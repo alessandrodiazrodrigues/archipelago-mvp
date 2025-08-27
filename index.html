@@ -1,5 +1,4 @@
-# Write updated HTML implementing multi-hospital overview, admission/update modals, and corrected footer text.
-html = r"""<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
@@ -335,7 +334,6 @@ html = r"""<!DOCTYPE html>
     let activeTab = "hospitais";
     let currentHospital = "H1";
     let selectedLeito = null;
-    const fails = {}; // fails[hospital][leito] = contagem
 
     // ------------- ELEMENTOS -------------
     const tabs = document.querySelectorAll(".tab");
@@ -391,7 +389,7 @@ html = r"""<!DOCTYPE html>
       route();
     });
 
-    // ------------- RENDER HOSPITAIS -------------
+    // ------------- KPIs -------------
     function kpisHospital(leitos){
       const now = new Date();
       const ocupados = leitos.filter(l=>l.status==="Em uso").length;
@@ -402,6 +400,7 @@ html = r"""<!DOCTYPE html>
       return {ocupados,vagos,altas24,top};
     }
 
+    // ------------- RENDER HOSPITAIS -------------
     function renderHospitais(){
       // Resumo geral
       const all = hospitais.flatMap(h=>banco[h]);
@@ -435,14 +434,13 @@ html = r"""<!DOCTYPE html>
         card.addEventListener("click",()=>{
           currentHospital = h;
           selHospital.value = h;
-          // Por padrão, abre Leitos
           setTab("leitos");
         });
         hospitaisGrid.appendChild(card);
       });
     }
 
-    // ------------- RENDER LEITOS -------------
+    // ------------- UTILS -------------
     function timeTo(date){
       if(!date) return "—";
       const now = new Date();
@@ -452,6 +450,7 @@ html = r"""<!DOCTYPE html>
       return `Alta em ${String(h).padStart(2,"0")}h ${String(m).padStart(2,"0")}m`;
     }
 
+    // ------------- RENDER LEITOS -------------
     function renderLeitos(){
       leitosView.innerHTML = "";
       const leitos = banco[currentHospital];
@@ -509,7 +508,7 @@ html = r"""<!DOCTYPE html>
       selectedLeito = id;
       if(!l) return;
       if(l.status==="Vago"){
-        // Abrir modal de Admissão
+        // Abrir modal de Admissão (cadastro)
         a_leito.textContent = `Leito ${id}`;
         a_hospital.textContent = hospitalNomes[currentHospital];
         a_concessoes.innerHTML = concessoesCatalogo.map(c=>`<label><input type="checkbox"/> ${c}</label>`).join("");
@@ -528,7 +527,7 @@ html = r"""<!DOCTYPE html>
       openModal(modalConfirm);
     }
 
-    // Confirmar paciente -> abrir Atualização (para H1 leito 1, DD = 01 funcionará)
+    // Confirmar paciente -> abrir Atualização (no H1 Leito 1, DD=01)
     document.getElementById("btnConfirmar").addEventListener("click", ()=>{
       const id = selectedLeito;
       const l = banco[currentHospital].find(x=>x.id===id);
@@ -545,7 +544,7 @@ html = r"""<!DOCTYPE html>
         u_pps.value = l.pps || "";
         u_concessoes.innerHTML = concessoesCatalogo.map(c=>{
           const checked = (l.concessoes||[]).includes(c) ? "checked" : "";
-          return `<label><input type="checkbox" ${checked}/> ${c}</label>`;
+          return `<label><input type=\"checkbox\" ${checked}/> ${c}</label>`;
         }).join("");
         openModal(modalAtualizacao);
       }else{
@@ -557,7 +556,6 @@ html = r"""<!DOCTYPE html>
     function openModal(el){
       el.style.display = "flex";
       el.setAttribute("aria-hidden", "false");
-      // foco no primeiro input se existir
       const input = el.querySelector("input, select, textarea, button.primary");
       if(input) setTimeout(()=>input.focus(), 80);
     }
@@ -566,7 +564,7 @@ html = r"""<!DOCTYPE html>
       el.setAttribute("aria-hidden", "true");
     }
     document.querySelectorAll("[data-close]").forEach(btn=>{
-      btn.addEventListener("click", (e)=>{
+      btn.addEventListener("click", ()=>{
         const sel = btn.getAttribute("data-close");
         const el = document.querySelector(sel);
         if(el) closeModal(el);
@@ -582,7 +580,6 @@ html = r"""<!DOCTYPE html>
     }
 
     function route(){
-      // Mostrar/ocultar views
       if(activeTab==="hospitais"){
         hospitaisView.classList.remove("hidden");
         leitosView.classList.add("hidden");
@@ -648,8 +645,3 @@ html = r"""<!DOCTYPE html>
   </script>
 </body>
 </html>
-"""
-path = "/mnt/data/archipelago_mvp_multihosp.html"
-with open(path, "w", encoding="utf-8") as f:
-    f.write(html)
-path
