@@ -109,6 +109,8 @@
     <div class="toolbar">
       <div class="muted">Demo estática (sem backend) para apresentação do fluxo</div>
       <div style="display:flex;gap:8px">
+        <button class="btn" id="btnQr">Ler QR Code</button>
+        <button class="btn ghost" id="btnShowQRCodes">QR Leitos (1 e 3)</button>
         <button class="btn ghost" id="btnLogin">Entrar com Google</button>
         <button class="btn" id="btnRefresh">Atualizar agora</button>
       </div>
@@ -279,11 +281,57 @@
     </div>
   </div>
 
+  <!-- MODAL: LEITURA DE QR CODE -->
+  <div id="modalQRScan" class="backdrop" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true">
+      <header>
+        <div><strong>Ler QR Code do Leito</strong></div>
+        <button class="btn" id="btnCloseQR" data-close="#modalQRScan">Fechar</button>
+      </header>
+      <div class="content">
+        <div class="mini" style="margin-bottom:8px">Se a câmera não abrir neste dispositivo, utilize a <strong>seleção manual de leito</strong> (fallback).</div>
+        <div id="qrRegion" style="width:100%;max-width:420px;margin:0 auto;border:1px solid var(--border);border-radius:12px;overflow:hidden"></div>
+      </div>
+      <div class="actions">
+        <button class="btn" data-close="#modalQRScan">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: QR CODES (GERAÇÃO) -->
+  <div id="modalQRCodes" class="backdrop" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true">
+      <header>
+        <div><strong>QR Codes dos Leitos (H1)</strong></div>
+        <button class="btn" data-close="#modalQRCodes">Fechar</button>
+      </header>
+      <div class="content">
+        <div class="row2">
+          <div>
+            <div class="label">Leito 1 → <code>?h=H1&leito=1</code></div>
+            <div id="qr1" style="padding:8px;background:#fff;border:1px solid var(--border);border-radius:12px;display:inline-block"></div>
+          </div>
+          <div>
+            <div class="label">Leito 3 → <code>?h=H1&leito=3</code></div>
+            <div id="qr3" style="padding:8px;background:#fff;border:1px solid var(--border);border-radius:12px;display:inline-block"></div>
+          </div>
+        </div>
+        <div class="mini" style="margin-top:10px">Dica: imprima e fixe no leito. Ao escanear, o sistema abre direto na tela do leito.</div>
+      </div>
+      <div class="actions">
+        <button class="btn" onclick="window.print()">Imprimir</button>
+        <button class="btn" data-close="#modalQRCodes">Fechar</button>
+      </div>
+    </div>
+  </div>
+
   <div class="footer">
     <div>© Protótipo ilustrativo (sem dados reais).</div>
     <div><strong>Desenvolvido por Alessandro Diaz Rodrigues</strong></div>
   </div>
 
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script>
     // ------------- DADOS DEMO MULTI-HOSPITAL -------------
     const concessoesCatalogo = ["Fisioterapia","Nutricionista","Psicólogo","Psiquiatra","Raio-X","Medicação"];
@@ -635,9 +683,98 @@
     startPolling();
     checkParams();
 
-    // Botões mock
+    // Botões mock + QR
     document.getElementById("btnLogin").addEventListener("click",()=>{
       alert("Simulação de login (no MVP funcional, usar Google Identity Services).");
+    });
+    document.getElementById("btnRefresh").addEventListener("click",()=>{ route(); });
+
+    // Referências dos modais de QR
+    const modalQRScan = document.getElementById('modalQRScan');
+    const modalQRCodes = document.getElementById('modalQRCodes');
+    const qrRegionEl = document.getElementById('qrRegion');
+    const qr1El = document.getElementById('qr1');
+    const qr3El = document.getElementById('qr3');
+
+    let qrReader = null;
+
+    function handleScan(text){
+      try{
+        const s = String(text).trim();
+        let h=null, leito=null;
+        try {
+          const u = new URL(s);
+          h = u.searchParams.get('h');
+          leito = Number(u.searchParams.get('leito'));
+        } catch(e){
+          // não é URL: aceitar número do leito
+          if(/^[0-9]{1,2}$/.test(s)){
+            h = currentHospital; leito = Number(s);
+          }
+        }
+        if(h && hospitais.includes(h) && leito>=1 && leito<=10){
+          currentHospital = h; selHospital.value = h;
+          setTab('leitos');
+          setTimeout(()=>openLeito(leito), 150);
+          stopScan();
+          closeModal(modalQRScan);
+        }
+      }catch(e){ console.warn('QR parse error', e); }
+    }
+
+    async function startScan(){
+      if(!window.Html5Qrcode){
+        alert('Leitor de QR não disponível. Use seleção manual.');
+        return;
+      }
+      try{
+        if(qrReader){ await stopScan(); }
+        qrReader = new Html5Qrcode('qrRegion');
+        await qrReader.start(
+          { facingMode: { exact: 'environment' } },
+          { fps: 10, qrbox: 250 },
+          handleScan,
+          (err)=>{/*silenciar erros de frame*/}
+        );
+      }catch(err){
+        try{
+          // fallback para qualquer câmera disponível
+          await qrReader.start(
+            { facingMode: 'environment' },
+            { fps: 10, qrbox: 250 },
+            handleScan,
+            ()=>{}
+          );
+        }catch(e){
+          alert('Não foi possível acessar a câmera neste dispositivo. Use a seleção manual.');
+          stopScan();
+          closeModal(modalQRScan);
+        }
+      }
+    }
+
+    function stopScan(){
+      if(qrReader){
+        return qrReader.stop().then(()=>{ qrReader.clear(); qrReader=null; }).catch(()=>{});
+      }
+      return Promise.resolve();
+    }
+
+    document.getElementById('btnQr').addEventListener('click', ()=>{
+      openModal(modalQRScan);
+      startScan();
+    });
+    document.getElementById('btnCloseQR').addEventListener('click', ()=>{ stopScan(); });
+
+    document.getElementById('btnShowQRCodes').addEventListener('click', ()=>{
+      // gerar/atualizar QR codes para os leitos 1 e 3 do Hospital 1
+      const base = `${location.origin}${location.pathname}`;
+      const url1 = `${base}?h=H1&leito=1`;
+      const url3 = `${base}?h=H1&leito=3`;
+      qr1El.innerHTML = ''; qr3El.innerHTML='';
+      new QRCode(qr1El, {text:url1, width:180, height:180});
+      new QRCode(qr3El, {text:url3, width:180, height:180});
+      openModal(modalQRCodes);
     });
     document.getElementById("btnRefresh").addEventListener("click",()=>{
       route();
