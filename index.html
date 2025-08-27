@@ -1,4 +1,5 @@
-<!DOCTYPE html>
+# Write updated HTML implementing multi-hospital overview, admission/update modals, and corrected footer text.
+html = r"""<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
@@ -6,61 +7,53 @@
   <title>Protótipo MVP – Archipelago Dashboard</title>
   <style>
     :root{
-      --brand:#0F3D73;      /* azul primário aproximado */
-      --brand-2:#0B2C52;    /* azul escuro de apoio */
-      --accent:#1F73B7;     /* azul médio para destaques */
-      --bg:#f6f8fa;         /* fundo neutro */
-      --text:#1f2937;       /* texto principal */
-      --muted:#6b7280;      /* texto secundário */
-      --success:#2ecc71;
-      --warning:#f39c12;
-      --danger:#e53935;
+      --brand:#0F3D73;
+      --brand-2:#0B2C52;
+      --accent:#1F73B7;
+      --bg:#f6f8fa;
+      --text:#1f2937;
+      --muted:#6b7280;
+      --success:#16a34a;
+      --warning:#f59e0b;
+      --danger:#dc2626;
       --card:#ffffff;
       --border:#e5e7eb;
     }
     *{box-sizing:border-box}
     html,body{height:100%}
-    body{margin:0;font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial, "Apple Color Emoji", "Segoe UI Emoji";color:var(--text);background:var(--bg)}
+    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,Helvetica Neue,Arial;color:var(--text);background:var(--bg)}
     header{
       background:linear-gradient(90deg,var(--brand),var(--brand-2));
-      color:#fff;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap
+      color:#fff;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap
     }
-    .brand{display:flex;align-items:center;gap:12px}
-    .logo{
-      width:44px;height:44px;border-radius:10px;background:#fff1;
-      display:grid;place-items:center;border:1px solid #ffffff30
-    }
+    .brand{display:flex;align-items:center;gap:10px}
+    .logo{width:40px;height:40px;border-radius:10px;background:#fff1;display:grid;place-items:center;border:1px solid #ffffff30}
     .logo::after{content:"PS";font-weight:700;letter-spacing:1px}
-    .title h1{margin:0;font-size:20px}
+    .title h1{margin:0;font-size:18px}
     .title small{display:block;color:#e6ecf5}
     nav.tabs{display:flex;gap:8px;flex-wrap:wrap}
     .tab{background:#ffffff1a;border:1px solid #ffffff33;color:#fff;padding:8px 12px;border-radius:10px;cursor:pointer;user-select:none}
     .tab.active{background:#fff;color:var(--brand);border-color:#fff}
-    main{max-width:1100px;margin:24px auto;padding:0 16px 80px}
-    .toolbar{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap}
+    .select{appearance:none;border:1px solid #ffffff66;background:#ffffff1a;color:#fff;padding:8px 10px;border-radius:10px}
+    main{max-width:1200px;margin:20px auto;padding:0 16px 96px}
+    .toolbar{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap}
     .btn{appearance:none;border:1px solid var(--border);background:#fff;padding:10px 14px;border-radius:10px;cursor:pointer}
     .btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
     .btn.ghost{background:transparent;color:var(--brand);border-color:var(--brand)}
-    .stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:12px 0 18px}
+    .stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:10px 0 16px}
     .stat{background:var(--card);border:1px solid var(--border);padding:14px;border-radius:12px}
     .stat .kpi{font-size:22px;font-weight:700}
-    .grid{
-      display:grid;grid-template-columns:repeat(5,minmax(0,1fr));
-      gap:12px
-    }
+    .grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
     @media (max-width:1000px){.grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
     @media (max-width:800px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
     @media (max-width:640px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-    .card{
-      background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px;cursor:pointer;transition:transform .06s ease, box-shadow .06s ease
-    }
+    .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px;cursor:pointer;transition:transform .06s ease, box-shadow .06s ease}
     .card:hover{transform:translateY(-2px);box-shadow:0 6px 18px #00000012}
     .card .row{display:flex;align-items:center;justify-content:space-between;gap:8px}
     .badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:4px 8px;border-radius:999px;border:1px solid var(--border);background:#f9fafb;color:var(--muted)}
     .dot{width:8px;height:8px;border-radius:50%}
     .dot.vago{background:var(--success)}
     .dot.ocupado{background:var(--warning)}
-    .dot.alerta{background:var(--danger)}
     .mini{font-size:12px;color:var(--muted)}
     .h{margin:10px 0 2px;font-weight:700}
     .badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
@@ -68,28 +61,27 @@
     .table{width:100%;border-collapse:separate;border-spacing:0 8px}
     .table th{font-size:12px;color:var(--muted);font-weight:600;text-align:left;padding:0 8px}
     .table td{background:var(--card);border:1px solid var(--border);padding:8px;border-radius:10px}
-    .footer{
-      position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--border);
-      padding:10px 16px;color:var(--muted);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap
-    }
-    /* Modal */
-    .modal-backdrop{
-      position:fixed;inset:0;background:#0b1a2a99;display:none;align-items:center;justify-content:center;padding:16px;z-index:1000
-    }
-    .modal{background:#fff;max-width:520px;width:100%;border-radius:14px;border:1px solid var(--border);box-shadow:0 10px 28px #00000024}
-    .modal header{background:none;color:var(--text);display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border)}
+    .pill{display:inline-block;border-radius:999px;padding:2px 8px;font-size:12px;border:1px solid var(--border);background:#f9fafb;color:var(--muted)}
+    .footer{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--border);padding:10px 16px;color:var(--muted);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap}
+    .hidden{display:none}
+    /* Modais */
+    .backdrop{position:fixed;inset:0;background:#0b1a2a99;display:none;align-items:center;justify-content:center;padding:16px;z-index:1000}
+    .modal{background:#fff;max-width:820px;width:100%;border-radius:14px;border:1px solid var(--border);box-shadow:0 10px 28px #00000024}
+    .modal header{background:none;color:var(--text);display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border)}
     .modal .content{padding:16px}
     .field{margin-bottom:12px}
     .label{font-size:13px;color:var(--muted);margin-bottom:4px}
-    .input{
-      width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px;outline:none
-    }
-    .input:focus{border-color:var(--brand);box-shadow:0 0 0 3px #0f3d7320}
+    .input, .select2, textarea{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px;outline:none}
+    .input:focus, .select2:focus, textarea:focus{border-color:var(--brand);box-shadow:0 0 0 3px #0f3d7320}
+    .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .row3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
     .actions{display:flex;gap:8px;justify-content:flex-end;padding:12px 16px;border-top:1px solid var(--border)}
-    .danger{color:#b91c1c}
-    .muted{color:var(--muted)}
-    .pill{display:inline-block;border-radius:999px;padding:2px 8px;font-size:12px;border:1px solid var(--border);background:#f9fafb;color:var(--muted)}
-    .hidden{display:none}
+    .danger{color:var(--danger)}
+    .checklist{display:flex;flex-wrap:wrap;gap:8px}
+    .checklist label{display:flex;align-items:center;gap:6px;border:1px solid var(--border);padding:6px 10px;border-radius:999px;background:#f9fafb;font-size:13px}
+    .hospital-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+    @media (max-width:900px){.hospital-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media (max-width:560px){.hospital-grid{grid-template-columns:1fr}}
   </style>
 </head>
 <body>
@@ -98,48 +90,52 @@
       <div class="logo" aria-label="Prevent Senior logo" title="Prevent Senior"></div>
       <div class="title">
         <h1>Protótipo MVP – Archipelago Dashboard</h1>
-        <small>Gestão de Leitos • Hospital Piloto (10 leitos)</small>
+        <small>Gestão de Leitos • Multi-Hospital (Demo)</small>
       </div>
     </div>
-    <nav class="tabs" role="tablist" aria-label="Navegação principal">
-      <button class="tab active" data-tab="leitos" aria-selected="true">Leitos</button>
+    <nav class="tabs" role="tablist">
+      <button class="tab active" data-tab="hospitais" aria-selected="true">Hospitais</button>
+      <button class="tab" data-tab="leitos" aria-selected="false">Leitos</button>
       <button class="tab" data-tab="dashboard" aria-selected="false">Dashboard</button>
     </nav>
+    <select id="selHospital" class="select" title="Hospital atual">
+      <option value="H1">Hospital 1</option>
+      <option value="H2">Hospital 2</option>
+      <option value="H3">Hospital 3</option>
+      <option value="H4">Hospital 4</option>
+    </select>
   </header>
 
   <main>
     <div class="toolbar">
-      <div class="muted">Status em demonstração (dados fictícios)</div>
+      <div class="muted">Demo estática (sem backend) para apresentação do fluxo</div>
       <div style="display:flex;gap:8px">
         <button class="btn ghost" id="btnLogin">Entrar com Google</button>
         <button class="btn" id="btnRefresh">Atualizar agora</button>
       </div>
     </div>
 
-    <!-- KPIs (apenas na aba Dashboard) -->
-    <section id="stats" class="stats hidden" aria-live="polite">
-      <div class="stat">
-        <div class="mini">Leitos em uso</div>
-        <div class="kpi" id="kpiOcupados">–</div>
-      </div>
-      <div class="stat">
-        <div class="mini">Leitos vagos</div>
-        <div class="kpi" id="kpiVagos">–</div>
-      </div>
-      <div class="stat">
-        <div class="mini">Altas previstas (próx. 24h)</div>
-        <div class="kpi" id="kpiAltas24">–</div>
-      </div>
+    <!-- KPIs (por hospital) -->
+    <section id="stats" class="stats hidden">
+      <div class="stat"><div class="mini">Leitos em uso</div><div class="kpi" id="kpiOcupados">–</div></div>
+      <div class="stat"><div class="mini">Leitos vagos</div><div class="kpi" id="kpiVagos">–</div></div>
+      <div class="stat"><div class="mini">Altas 24h</div><div class="kpi" id="kpiAltas24">–</div></div>
+      <div class="stat"><div class="mini">Top concessão</div><div class="kpi" id="kpiTopConc">–</div></div>
     </section>
 
-    <!-- Grid de Leitos -->
-    <section id="leitosView" class="grid" aria-label="Leitos">
-      <!-- cards gerados via JS -->
+    <!-- VISÃO GERAL DE HOSPITAIS -->
+    <section id="hospitaisView">
+      <h3 style="margin:4px 0 10px">Visão geral (4 hospitais)</h3>
+      <div id="resumoGeral" class="stats" style="grid-template-columns:repeat(4,minmax(0,1fr));"></div>
+      <div class="hospital-grid" id="hospitaisGrid"></div>
     </section>
 
-    <!-- Tabela Dashboard -->
-    <section id="dashboardView" class="hidden" aria-label="Painel Operacional">
-      <table class="table" aria-describedby="descDashboard">
+    <!-- GRID DE LEITOS (por hospital) -->
+    <section id="leitosView" class="grid hidden" aria-label="Leitos"></section>
+
+    <!-- DASHBOARD (por hospital) -->
+    <section id="dashboardView" class="hidden">
+      <table class="table">
         <thead>
           <tr>
             <th>Leito</th>
@@ -150,126 +146,315 @@
             <th>Concessões</th>
           </tr>
         </thead>
-        <tbody id="dashBody">
-          <!-- linhas via JS -->
-        </tbody>
+        <tbody id="dashBody"></tbody>
       </table>
     </section>
   </main>
 
-  <!-- Modal de confirmação leve -->
-  <div id="modalBackdrop" class="modal-backdrop" aria-hidden="true">
-    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <!-- MODAL: CONFIRMAÇÃO (para leito em uso) -->
+  <div id="modalConfirm" class="backdrop" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true">
       <header>
-        <div id="modalTitle"><strong>Confirmação do paciente</strong></div>
-        <button class="btn" id="btnCloseModal" aria-label="Fechar">Fechar</button>
+        <div><strong>Confirmação do paciente</strong></div>
+        <button class="btn" data-close="#modalConfirm">Fechar</button>
       </header>
       <div class="content">
         <div class="field">
           <div class="label">Paciente atual</div>
-          <div><strong id="pacienteNome"></strong> • Matrícula <span id="pacienteMatricula" class="pill"></span></div>
+          <div><strong id="c_nome"></strong> • Matrícula <span id="c_matricula" class="pill"></span></div>
         </div>
         <div class="field">
           <div class="label">Data de nascimento</div>
-          <div><span class="muted">__/</span><strong id="nascMes"></strong><span class="muted">/</span><strong id="nascAno"></strong></div>
-          <div class="mini" style="margin-top:4px">Para continuar, digite apenas o <strong>dia</strong> (DD) de nascimento.</div>
+          <div><span class="muted">__/</span><strong id="c_mes"></strong><span class="muted">/</span><strong id="c_ano"></strong></div>
+          <div class="mini" style="margin-top:4px">Digite apenas o <strong>dia</strong> (DD) de nascimento.</div>
         </div>
-        <div class="field">
-          <label class="label" for="inputDia">Dia (DD)</label>
-          <input id="inputDia" class="input" inputmode="numeric" pattern="[0-9]*" maxlength="2" placeholder="DD" aria-describedby="diaHelp" />
-          <div id="diaHelp" class="mini">Ex.: 08</div>
+        <div class="field row3">
+          <div>
+            <label class="label" for="c_dia">Dia (DD)</label>
+            <input id="c_dia" class="input" inputmode="numeric" maxlength="2" placeholder="DD"/>
+          </div>
+          <div>
+            <label class="label">Leito</label>
+            <div class="pill" id="c_leito"></div>
+          </div>
+          <div>
+            <label class="label">Hospital</label>
+            <div class="pill" id="c_hospital"></div>
+          </div>
         </div>
-        <div id="msgErro" class="danger hidden">Dia não confere. Tente novamente.</div>
+        <div id="c_erro" class="danger hidden">Dia não confere. Tente novamente.</div>
       </div>
       <div class="actions">
-        <button class="btn" id="btnCancelar">Cancelar</button>
+        <button class="btn" data-close="#modalConfirm">Cancelar</button>
         <button class="btn primary" id="btnConfirmar">Confirmar</button>
       </div>
     </div>
   </div>
 
+  <!-- MODAL: ADMISSÃO (leito vago) -->
+  <div id="modalAdmissao" class="backdrop" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true">
+      <header>
+        <div><strong>Admissão de Paciente</strong></div>
+        <button class="btn" data-close="#modalAdmissao">Fechar</button>
+      </header>
+      <div class="content">
+        <div class="field row2">
+          <div><label class="label">Leito</label><div id="a_leito" class="pill"></div></div>
+          <div><label class="label">Hospital</label><div id="a_hospital" class="pill"></div></div>
+        </div>
+        <div class="field row2">
+          <div><label class="label" for="a_nome">Nome completo</label><input id="a_nome" class="input" placeholder="Nome do paciente"/></div>
+          <div><label class="label" for="a_matricula">Matrícula</label><input id="a_matricula" class="input" placeholder="000000"/></div>
+        </div>
+        <div class="field row3">
+          <div><label class="label" for="a_dia">Nascimento (dia)</label><input id="a_dia" class="input" inputmode="numeric" maxlength="2" placeholder="DD"/></div>
+          <div><label class="label" for="a_mes">Nascimento (mês)</label><input id="a_mes" class="input" inputmode="numeric" maxlength="2" placeholder="MM"/></div>
+          <div><label class="label" for="a_ano">Nascimento (ano)</label><input id="a_ano" class="input" inputmode="numeric" maxlength="4" placeholder="AAAA"/></div>
+        </div>
+        <div class="field row3">
+          <div>
+            <label class="label" for="a_prev">Previsão de alta</label>
+            <select id="a_prev" class="select2"><option>24h</option><option>48h</option><option>72h</option><option>+72h</option></select>
+          </div>
+          <div>
+            <label class="label" for="a_linha">Linha de cuidado</label>
+            <select id="a_linha" class="select2"><option>APS</option><option>Geriatria</option><option>Outras</option></select>
+          </div>
+          <div>
+            <label class="label" for="a_pps">PPS</label>
+            <input id="a_pps" class="input" inputmode="numeric" placeholder="0–100"/>
+          </div>
+        </div>
+        <div class="field">
+          <div class="label">Concessões necessárias</div>
+          <div class="checklist" id="a_concessoes"></div>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn" data-close="#modalAdmissao">Cancelar</button>
+        <button class="btn primary">Salvar (demo)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ATUALIZAÇÃO (leito em uso) -->
+  <div id="modalAtualizacao" class="backdrop" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true">
+      <header>
+        <div><strong>Atualização de Paciente</strong></div>
+        <button class="btn" data-close="#modalAtualizacao">Fechar</button>
+      </header>
+      <div class="content">
+        <div class="field row2">
+          <div><label class="label">Leito</label><div id="u_leito" class="pill"></div></div>
+          <div><label class="label">Hospital</label><div id="u_hospital" class="pill"></div></div>
+        </div>
+        <div class="field row2">
+          <div><label class="label">Nome</label><input id="u_nome" class="input"/></div>
+          <div><label class="label">Matrícula</label><input id="u_matricula" class="input"/></div>
+        </div>
+        <div class="field row3">
+          <div>
+            <label class="label" for="u_prev">Previsão de alta</label>
+            <select id="u_prev" class="select2"><option>24h</option><option>48h</option><option>72h</option><option>+72h</option></select>
+          </div>
+          <div>
+            <label class="label" for="u_linha">Linha de cuidado</label>
+            <select id="u_linha" class="select2"><option>APS</option><option>Geriatria</option><option>Outras</option></select>
+          </div>
+          <div>
+            <label class="label" for="u_pps">PPS</label>
+            <input id="u_pps" class="input" inputmode="numeric"/>
+          </div>
+        </div>
+        <div class="field">
+          <div class="label">Concessões</div>
+          <div class="checklist" id="u_concessoes"></div>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn">Salvar (demo)</button>
+        <button class="btn primary">Dar Alta (demo)</button>
+      </div>
+    </div>
+  </div>
+
   <div class="footer">
-    <div>© Protótipo ilustrativo para validação de fluxo (sem dados reais).</div>
-    <div><strong>Desesenvolfo por Alessandro Diaz Rodrigues</strong></div>
+    <div>© Protótipo ilustrativo (sem dados reais).</div>
+    <div><strong>Desenvolvido por Alessandro Diaz Rodrigues</strong></div>
   </div>
 
   <script>
-    // --- Dados fictícios para demonstração ---
+    // ------------- DADOS DEMO MULTI-HOSPITAL -------------
     const concessoesCatalogo = ["Fisioterapia","Nutricionista","Psicólogo","Psiquiatra","Raio-X","Medicação"];
-    const leitos = Array.from({length:10}).map((_,i)=>{
-      const id = i+1;
-      // alterna Vago/Em uso apenas para ilustrar
-      const emUso = id % 3 !== 0; // 1,2 em uso; 3 vago; 4,5 em uso; 6 vago; etc.
-      const nome = emUso ? ["Maria Aparecida Silva","João Pedro Santos","Ana Paula Reis","Carlos Souza","Luciana Matos","Paulo Andrade","Beatriz Gomes","Rafael Lima","Sônia Oliveira","Marcelo Freitas"][i] : "";
-      const iniciais = nome ? nome.split(" ").map(n=>n[0]).slice(0,2).join("") : "";
-      const matricula = emUso ? String(100000+i) : "";
-      const previsaoBucket = emUso ? (id%2===0? "24h" : (id%5===0?"72h":"48h")) : "";
+    const hospitais = ["H1","H2","H3","H4"];
+    const hospitalNomes = {H1:"Hospital 1",H2:"Hospital 2",H3:"Hospital 3",H4:"Hospital 4"};
+
+    function gerarLeitos(seed, hospital){
       const now = new Date();
-      const horas = previsaoBucket==="24h"?24:previsaoBucket==="48h"?48:previsaoBucket==="72h"?72:96;
-      const previsaoAt = new Date(now.getTime()+horas*3600*1000);
-      const linhaCuidado = emUso ? (id%2===0?"Geriatria":"APS") : "";
-      const pps = emUso ? (50 + (i%4)*10) : null;
-      const spict = emUso ? (i%4===0) : false;
-      const acordo = emUso ? concessoesCatalogo.filter((_,k)=> (k+i)%3===0 ) : [];
-      // Data de nascimento simulada
-      const ano = emUso ? 1948 + (i*3)%50 : null;
-      const mes = emUso ? ( (i%12)+1 ) : null;
-      const dia = emUso ? ( (i%28)+1 ) : null;
-      const dataEntrada = emUso ? new Date(now.getTime()- (i+2)*3600*1000) : null;
-      return {
-        id, status: emUso?"Em uso":"Vago",
-        paciente: {nome, iniciais, matricula, dia, mes, ano},
-        previsaoBucket, previsaoAt, linhaCuidado, pps, spict, concessoes: acordo, dataEntrada
+      const arr = [];
+      for(let i=1;i<=10;i++){
+        const emUso = i%3 !== 0; // 3,6,9 vagos (padrão)
+        const nomes = ["Maria Aparecida Silva","João Pedro Santos","Ana Paula Reis","Carlos Souza","Luciana Matos","Paulo Andrade","Beatriz Gomes","Rafael Lima","Sônia Oliveira","Marcelo Freitas"];
+        const nome = emUso ? nomes[i-1] : "";
+        const iniciais = nome ? nome.split(" ").map(n=>n[0]).slice(0,2).join("") : "";
+        const matricula = emUso ? String(seed*1000 + i) : "";
+        const previsaoBucket = emUso ? (i%2===0? "24h" : (i%5===0?"72h":"48h")) : "";
+        const horas = previsaoBucket==="24h"?24:previsaoBucket==="48h"?48:previsaoBucket==="72h"?72:96;
+        const previsaoAt = emUso ? new Date(now.getTime()+horas*3600*1000) : null;
+        const linhaCuidado = emUso ? (i%2===0?"Geriatria":"APS") : "";
+        const pps = emUso ? (50 + (i%4)*10) : null;
+        const spict = emUso ? (i%4===0) : false;
+        const acordo = emUso ? concessoesCatalogo.filter((_,k)=> (k+i+seed)%3===0 ) : [];
+        const ano = emUso ? 1950 + ((i+seed*2)%50) : null;
+        const mes = emUso ? ((i+seed)%12)+1 : null;
+        const dia = emUso ? ((i+seed)%28)+1 : null;
+        const dataEntrada = emUso ? new Date(now.getTime()- (i+2)*3600*1000) : null;
+        arr.push({
+          hospital, id:i, status: emUso?"Em uso":"Vago",
+          paciente: {nome, iniciais, matricula, dia, mes, ano},
+          previsaoBucket, previsaoAt, linhaCuidado, pps, spict, concessoes: acordo, dataEntrada
+        });
       }
-    });
+      // Ajustes de demo:
+      if(hospital==="H1"){
+        // Leito 3 VAGO (para Admissão)
+        arr[2].status = "Vago";
+        arr[2].paciente = {nome:"", iniciais:"", matricula:"", dia:null, mes:null, ano:null};
+        // Leito 1 com dia de nascimento = 01 (para confirmação)
+        arr[0].paciente.dia = 1;
+      }
+      return arr;
+    }
 
-    // Estado de UI
-    let activeTab = "leitos";
+    const banco = {};
+    hospitais.forEach((h,idx)=> banco[h] = gerarLeitos(idx+1,h));
+
+    // ------------- ESTADO DE UI -------------
+    let activeTab = "hospitais";
+    let currentHospital = "H1";
     let selectedLeito = null;
-    let failCountByLeito = {}; // contador de tentativas no protótipo
+    const fails = {}; // fails[hospital][leito] = contagem
 
-    // Elementos
+    // ------------- ELEMENTOS -------------
     const tabs = document.querySelectorAll(".tab");
+    const selHospital = document.getElementById("selHospital");
+    const hospitaisView = document.getElementById("hospitaisView");
+    const hospitaisGrid = document.getElementById("hospitaisGrid");
+    const resumoGeral = document.getElementById("resumoGeral");
     const leitosView = document.getElementById("leitosView");
     const dashboardView = document.getElementById("dashboardView");
     const stats = document.getElementById("stats");
     const kpiOcupados = document.getElementById("kpiOcupados");
     const kpiVagos = document.getElementById("kpiVagos");
     const kpiAltas24 = document.getElementById("kpiAltas24");
+    const kpiTopConc = document.getElementById("kpiTopConc");
     const dashBody = document.getElementById("dashBody");
 
-    // Modal
-    const modalBackdrop = document.getElementById("modalBackdrop");
-    const pacienteNome = document.getElementById("pacienteNome");
-    const pacienteMatricula = document.getElementById("pacienteMatricula");
-    const nascMes = document.getElementById("nascMes");
-    const nascAno = document.getElementById("nascAno");
-    const inputDia = document.getElementById("inputDia");
+    // Modais (confirmação / admissão / atualização)
+    const modalConfirm = document.getElementById("modalConfirm");
+    const c_nome = document.getElementById("c_nome");
+    const c_matricula = document.getElementById("c_matricula");
+    const c_mes = document.getElementById("c_mes");
+    const c_ano = document.getElementById("c_ano");
+    const c_dia = document.getElementById("c_dia");
+    const c_leito = document.getElementById("c_leito");
+    const c_hospital = document.getElementById("c_hospital");
+    const c_erro = document.getElementById("c_erro");
     const btnConfirmar = document.getElementById("btnConfirmar");
-    const btnCancelar = document.getElementById("btnCancelar");
-    const btnCloseModal = document.getElementById("btnCloseModal");
-    const msgErro = document.getElementById("msgErro");
 
-    // Tabs
+    const modalAdmissao = document.getElementById("modalAdmissao");
+    const a_leito = document.getElementById("a_leito");
+    const a_hospital = document.getElementById("a_hospital");
+    const a_concessoes = document.getElementById("a_concessoes");
+
+    const modalAtualizacao = document.getElementById("modalAtualizacao");
+    const u_leito = document.getElementById("u_leito");
+    const u_hospital = document.getElementById("u_hospital");
+    const u_nome = document.getElementById("u_nome");
+    const u_matricula = document.getElementById("u_matricula");
+    const u_prev = document.getElementById("u_prev");
+    const u_linha = document.getElementById("u_linha");
+    const u_pps = document.getElementById("u_pps");
+    const u_concessoes = document.getElementById("u_concessoes");
+
+    // ------------- TABS & SELECT -------------
     tabs.forEach(t=>t.addEventListener("click",()=>{
       tabs.forEach(b=>b.classList.remove("active"));
       t.classList.add("active");
       activeTab = t.dataset.tab;
-      if(activeTab==="dashboard"){
-        stats.classList.remove("hidden");
-        dashboardView.classList.remove("hidden");
-        leitosView.classList.add("hidden");
-        renderDashboard();
-      }else{
-        stats.classList.add("hidden");
-        dashboardView.classList.add("hidden");
-        leitosView.classList.remove("hidden");
-      }
+      route();
     }));
+    selHospital.addEventListener("change",()=>{
+      currentHospital = selHospital.value;
+      route();
+    });
 
-    // Renderização do grid de leitos
+    // ------------- RENDER HOSPITAIS -------------
+    function kpisHospital(leitos){
+      const now = new Date();
+      const ocupados = leitos.filter(l=>l.status==="Em uso").length;
+      const vagos = leitos.length - ocupados;
+      const altas24 = leitos.filter(l=>l.status==="Em uso" && (l.previsaoAt - now) <= 24*3600*1000).length;
+      const concessoes = leitos.flatMap(l=>l.concessoes||[]);
+      const top = concessoes.length? Object.entries(concessoes.reduce((a,c)=>(a[c]=(a[c]||0)+1,a),{})).sort((a,b)=>b[1]-a[1])[0][0] : "—";
+      return {ocupados,vagos,altas24,top};
+    }
+
+    function renderHospitais(){
+      // Resumo geral
+      const all = hospitais.flatMap(h=>banco[h]);
+      const r = kpisHospital(all);
+      resumoGeral.innerHTML = `
+        <div class="stat"><div class="mini">Ocupados (geral)</div><div class="kpi">${r.ocupados}</div></div>
+        <div class="stat"><div class="mini">Vagos (geral)</div><div class="kpi">${r.vagos}</div></div>
+        <div class="stat"><div class="mini">Altas 24h (geral)</div><div class="kpi">${r.altas24}</div></div>
+        <div class="stat"><div class="mini">Top concessão (geral)</div><div class="kpi">${r.top}</div></div>
+      `;
+
+      // Cards por hospital
+      hospitaisGrid.innerHTML = "";
+      hospitais.forEach(h=>{
+        const lts = banco[h];
+        const k = kpisHospital(lts);
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <div class="row">
+            <div class="badge"><span class="dot ocupado"></span> ${hospitalNomes[h]}</div>
+            <div class="mini">Altas 24h: ${k.altas24}</div>
+          </div>
+          <div class="h">Ocupados: ${k.ocupados} • Vagos: ${k.vagos}</div>
+          <div class="mini">Top concessão: ${k.top}</div>
+          <div class="badges" style="margin-top:8px">
+            <span class="con">Ver Leitos</span>
+            <span class="con">Ver Dashboard</span>
+          </div>
+        `;
+        card.addEventListener("click",()=>{
+          currentHospital = h;
+          selHospital.value = h;
+          // Por padrão, abre Leitos
+          setTab("leitos");
+        });
+        hospitaisGrid.appendChild(card);
+      });
+    }
+
+    // ------------- RENDER LEITOS -------------
+    function timeTo(date){
+      if(!date) return "—";
+      const now = new Date();
+      const diff = Math.max(0, date - now);
+      const h = Math.floor(diff/3600000);
+      const m = Math.floor((diff%3600000)/60000);
+      return `Alta em ${String(h).padStart(2,"0")}h ${String(m).padStart(2,"0")}m`;
+    }
+
     function renderLeitos(){
       leitosView.innerHTML = "";
+      const leitos = banco[currentHospital];
       leitos.forEach(l=>{
         const card = document.createElement("div");
         card.className = "card";
@@ -283,7 +468,7 @@
           <div class="h">${l.status==='Em uso'? (l.paciente.iniciais || '—') : '—'}</div>
           <div class="mini">${l.status==='Em uso'? (l.linhaCuidado || '') : ''}</div>
           <div class="badges">
-            ${l.concessoes.map(c=>`<span class="con">${c}</span>`).join("")}
+            ${(l.concessoes||[]).map(c=>`<span class="con">${c}</span>`).join("")}
           </div>
         `;
         card.addEventListener("click",()=>openLeito(l.id));
@@ -291,22 +476,21 @@
       });
     }
 
-    // Renderização do dashboard
+    // ------------- RENDER DASHBOARD -------------
     function renderDashboard(){
-      const ocupados = leitos.filter(l=>l.status==="Em uso").length;
-      const vagos = leitos.length - ocupados;
-      const now = new Date();
-      const altas24 = leitos.filter(l=>l.status==="Em uso" && (l.previsaoAt - now) <= (24*3600*1000)).length;
-      kpiOcupados.textContent = ocupados;
-      kpiVagos.textContent = vagos;
-      kpiAltas24.textContent = altas24;
+      const leitos = banco[currentHospital];
+      const k = kpisHospital(leitos);
+      kpiOcupados.textContent = k.ocupados;
+      kpiVagos.textContent = k.vagos;
+      kpiAltas24.textContent = k.altas24;
+      kpiTopConc.textContent = k.top;
       dashBody.innerHTML = "";
       leitos
         .slice()
         .sort((a,b)=> (a.previsaoAt||Infinity) - (b.previsaoAt||Infinity))
         .forEach(l=>{
           const tr = document.createElement("tr");
-          const conc = l.concessoes.length? l.concessoes.join(", ") : "—";
+          const conc = (l.concessoes||[]).length? l.concessoes.join(", ") : "—";
           tr.innerHTML = `
             <td><span class="badge"><span class="dot ${l.status==='Em uso'?'ocupado':'vago'}"></span> ${l.id}</span></td>
             <td>${l.status}</td>
@@ -319,104 +503,153 @@
         });
     }
 
-    // Abrir um leito (via clique ou simulação de QR: ?leito=ID)
+    // ------------- AÇÕES DE LEITO -------------
     function openLeito(id){
-      const l = leitos.find(x=>x.id===id);
+      const l = banco[currentHospital].find(x=>x.id===id);
       selectedLeito = id;
       if(!l) return;
       if(l.status==="Vago"){
-        alert(`Leito ${id} está Vago. (No MVP funcional, aqui abre a tela de Admissão.)`);
+        // Abrir modal de Admissão
+        a_leito.textContent = `Leito ${id}`;
+        a_hospital.textContent = hospitalNomes[currentHospital];
+        a_concessoes.innerHTML = concessoesCatalogo.map(c=>`<label><input type="checkbox"/> ${c}</label>`).join("");
+        openModal(modalAdmissao);
         return;
       }
-      // Em uso: abrir modal de confirmação (nome + __/MM/AAAA + input DD)
-      pacienteNome.textContent = l.paciente.nome;
-      pacienteMatricula.textContent = l.paciente.matricula;
-      nascMes.textContent = String(l.paciente.mes).padStart(2,"0");
-      nascAno.textContent = String(l.paciente.ano);
-      inputDia.value = "";
-      msgErro.classList.add("hidden");
-      modalBackdrop.style.display = "flex";
-      modalBackdrop.setAttribute("aria-hidden","false");
-      setTimeout(()=>inputDia.focus(), 100);
+      // Em uso: confirmação (nome + __/MM/AAAA + DD)
+      c_nome.textContent = l.paciente.nome;
+      c_matricula.textContent = l.paciente.matricula;
+      c_mes.textContent = String(l.paciente.mes).padStart(2,"0");
+      c_ano.textContent = String(l.paciente.ano);
+      c_leito.textContent = `Leito ${id}`;
+      c_hospital.textContent = hospitalNomes[currentHospital];
+      c_dia.value = "";
+      c_erro.classList.add("hidden");
+      openModal(modalConfirm);
     }
 
-    // Modal handlers
-    function closeModal(){
-      modalBackdrop.style.display = "none";
-      modalBackdrop.setAttribute("aria-hidden","true");
-    }
-    btnCloseModal.addEventListener("click", closeModal);
-    btnCancelar.addEventListener("click", closeModal);
-
-    btnConfirmar.addEventListener("click", ()=>{
+    // Confirmar paciente -> abrir Atualização (para H1 leito 1, DD = 01 funcionará)
+    document.getElementById("btnConfirmar").addEventListener("click", ()=>{
       const id = selectedLeito;
-      const l = leitos.find(x=>x.id===id);
-      const dia = Number(inputDia.value);
-      failCountByLeito[id] = failCountByLeito[id] || 0;
-
-      if(String(dia).padStart(2,"0") === String(l.paciente.dia).padStart(2,"0")){
-        // OK
-        msgErro.classList.add("hidden");
-        failCountByLeito[id] = 0;
-        closeModal();
-        alert(`Confirmação OK. (No MVP funcional, aqui liberamos Atualização/Alta do Leito ${id}.)`);
+      const l = banco[currentHospital].find(x=>x.id===id);
+      const dia = String(c_dia.value).padStart(2,"0");
+      if(dia === String(l.paciente.dia).padStart(2,"0")){
+        closeModal(modalConfirm);
+        // Preencher modal de Atualização
+        u_leito.textContent = `Leito ${id}`;
+        u_hospital.textContent = hospitalNomes[currentHospital];
+        u_nome.value = l.paciente.nome;
+        u_matricula.value = l.paciente.matricula;
+        u_prev.value = l.previsaoBucket || "48h";
+        u_linha.value = l.linhaCuidado || "APS";
+        u_pps.value = l.pps || "";
+        u_concessoes.innerHTML = concessoesCatalogo.map(c=>{
+          const checked = (l.concessoes||[]).includes(c) ? "checked" : "";
+          return `<label><input type="checkbox" ${checked}/> ${c}</label>`;
+        }).join("");
+        openModal(modalAtualizacao);
       }else{
-        failCountByLeito[id]++;
-        msgErro.classList.remove("hidden");
-        if(failCountByLeito[id] >= 3){
-          btnConfirmar.disabled = true;
-          setTimeout(()=>{
-            btnConfirmar.disabled = false;
-            failCountByLeito[id] = 0;
-            msgErro.classList.add("hidden");
-          }, 120000); // 2 minutos
-        }
+        c_erro.classList.remove("hidden");
       }
     });
 
-    // Utilitário: tempo restante formatado
-    function timeTo(date){
-      if(!date) return "—";
-      const now = new Date();
-      const diff = Math.max(0, date - now);
-      const h = Math.floor(diff/3600000);
-      const m = Math.floor((diff%3600000)/60000);
-      return `Alta em ${String(h).padStart(2,"0")}h ${String(m).padStart(2,"0")}m`;
+    // ------------- MODAL HELPERS -------------
+    function openModal(el){
+      el.style.display = "flex";
+      el.setAttribute("aria-hidden", "false");
+      // foco no primeiro input se existir
+      const input = el.querySelector("input, select, textarea, button.primary");
+      if(input) setTimeout(()=>input.focus(), 80);
+    }
+    function closeModal(el){
+      el.style.display = "none";
+      el.setAttribute("aria-hidden", "true");
+    }
+    document.querySelectorAll("[data-close]").forEach(btn=>{
+      btn.addEventListener("click", (e)=>{
+        const sel = btn.getAttribute("data-close");
+        const el = document.querySelector(sel);
+        if(el) closeModal(el);
+      });
+    });
+
+    // ------------- NAVEGAÇÃO / ROTAS -------------
+    function setTab(tab){
+      tabs.forEach(b=>b.classList.remove("active"));
+      document.querySelector(`.tab[data-tab='${tab}']`).classList.add("active");
+      activeTab = tab;
+      route();
     }
 
-    // Polling leve (simulado aqui com re-render)
+    function route(){
+      // Mostrar/ocultar views
+      if(activeTab==="hospitais"){
+        hospitaisView.classList.remove("hidden");
+        leitosView.classList.add("hidden");
+        dashboardView.classList.add("hidden");
+        stats.classList.add("hidden");
+        renderHospitais();
+      }
+      if(activeTab==="leitos"){
+        hospitaisView.classList.add("hidden");
+        leitosView.classList.remove("hidden");
+        dashboardView.classList.add("hidden");
+        stats.classList.add("hidden");
+        renderLeitos();
+      }
+      if(activeTab==="dashboard"){
+        hospitaisView.classList.add("hidden");
+        leitosView.classList.add("hidden");
+        dashboardView.classList.remove("hidden");
+        stats.classList.remove("hidden");
+        renderDashboard();
+      }
+    }
+
+    // ------------- POLLING SIMULADO -------------
     let interval = null;
     function startPolling(){
       if(interval) clearInterval(interval);
       interval = setInterval(()=>{
-        // no protótipo estático, apenas re-renderiza
         if(activeTab==="dashboard"){ renderDashboard(); }
-        else { renderLeitos(); }
+        if(activeTab==="hospitais"){ renderHospitais(); }
+        if(activeTab==="leitos"){ renderLeitos(); }
       }, 8000);
     }
 
-    // Botões
-    document.getElementById("btnLogin").addEventListener("click",()=>{
-      alert("Simulação de login com Google. (No MVP funcional, usar Google Identity Services.)");
-    });
-    document.getElementById("btnRefresh").addEventListener("click",()=>{
-      if(activeTab==="dashboard"){ renderDashboard(); } else { renderLeitos(); }
-    });
-
-    // Nav por query (?leito=ID) para simular QR Code
-    function checkQRParam(){
+    // ------------- PARÂMETROS (QR / HOSPITAL) -------------
+    function checkParams(){
       const params = new URLSearchParams(location.search);
+      const h = params.get("h");
       const leito = Number(params.get("leito"));
+      if(h && hospitais.includes(h)){
+        currentHospital = h;
+        selHospital.value = h;
+      }
       if(leito>=1 && leito<=10){
+        setTab("leitos");
         setTimeout(()=>openLeito(leito), 300);
       }
     }
 
-    // Inicialização
-    renderLeitos();
-    renderDashboard();
+    // ------------- BOOTSTRAP -------------
+    renderHospitais();
+    setTab("hospitais");
     startPolling();
-    checkQRParam();
+    checkParams();
+
+    // Botões mock
+    document.getElementById("btnLogin").addEventListener("click",()=>{
+      alert("Simulação de login (no MVP funcional, usar Google Identity Services).");
+    });
+    document.getElementById("btnRefresh").addEventListener("click",()=>{
+      route();
+    });
   </script>
 </body>
 </html>
+"""
+path = "/mnt/data/archipelago_mvp_multihosp.html"
+with open(path, "w", encoding="utf-8") as f:
+    f.write(html)
+path
