@@ -77,6 +77,7 @@
     .kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:10px}
     .kpis .stat{padding:10px}
     .muted-banner{font-size:12px;color:var(--muted);padding:8px 10px;border:1px dashed var(--border);border-radius:10px;background:#fafafa}
+  .mobile-wrap{max-width:420px;margin:0 auto;box-shadow:0 0 0 10px #00000008,0 18px 40px #00000022;border-radius:22px;background:var(--bg)}
   </style>
 </head>
 <body>
@@ -102,9 +103,17 @@
     </select>
   </header>
 
-  <main>
+  <main id="mainRoot">
     <div class="toolbar">
       <div class="muted">Demo estática (sem backend) para apresentação do fluxo</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" id="btnQr">Ler QR Code</button>
+        <button class="btn ghost" id="btnShowQRCodes">QR Leitos (1 e 3)</button>
+        <button class="btn ghost" id="btnLogin">Entrar com Google</button>
+        <button class="btn" id="btnRefresh">Atualizar agora</button>
+        <button class="btn" id="btnMobile">Simular Mobile</button>
+      </div>
+    </div>
       <div style="display:flex;gap:8px">
         <button class="btn" id="btnQr">Ler QR Code</button>
         <button class="btn ghost" id="btnShowQRCodes">QR Leitos (1 e 3)</button>
@@ -151,7 +160,17 @@
     <section id="gestorView" class="hidden">
       <h3 style="margin:4px 0 12px">Archipelago Dashboard – Visão do Gestor (Desktop)</h3>
       <div class="gestor-grid" id="gestorGrid"></div>
-      <div class="mini" style="margin-top:8px">Clique em um painel operacional para abrir os detalhes do hospital.</div>
+      <div class="mini" style="margin:12px 0">Clique em um painel operacional para abrir os detalhes do hospital.</div>
+      <!-- BLOCO DE GRÁFICOS (inspirado no mock) -->
+      <div class="stats" style="grid-template-columns:repeat(3,minmax(0,1fr));margin-top:4px">
+        <div class="stat"><div class="mini">Leitos Totais (geral)</div><div class="kpi" id="gKpiTotais">–</div></div>
+        <div class="stat"><div class="mini">Leitos Ocupados (geral)</div><div class="kpi" id="gKpiOcupados">–</div></div>
+        <div class="stat"><div class="mini">Taxa de Ocupação (geral)</div><div class="kpi" id="gKpiTaxa">–</div></div>
+      </div>
+      <div class="row2" style="margin-top:10px">
+        <div class="stat"><div class="mini" style="margin-bottom:6px">Ocupação por Hospital</div><canvas id="chartOcup" height="140"></canvas></div>
+        <div class="stat"><div class="mini" style="margin-bottom:6px">Altas Previstas (Próximas 24h)</div><canvas id="chartAltas" height="140"></canvas></div>
+      </div>
     </section>
   </main>
 
@@ -330,6 +349,7 @@
 
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script>
     // --------- DADOS DEMO ---------
     const concessoesCatalogo = ["Fisioterapia","Nutricionista","Psicólogo","Psiquiatra","Raio-X","Medicação"];
@@ -521,14 +541,35 @@
     function renderGestor(){
       const grid = document.getElementById('gestorGrid');
       grid.innerHTML = '';
+      let tot=0, occ=0;
       hospitais.forEach(h=>{
         const meta = hospitalMeta[h];
         const lts = banco[h];
         const k = kpisHospital(lts);
+        tot += lts.length; occ += k.ocupados;
         const tile = document.createElement('div');
         tile.className = 'tile';
         tile.innerHTML = `
           <h4>${meta.nome} ${meta.operando? '' : '<span class="pill">Pré-visualização</span>'}</h4>
+          <div class="kpis">
+            <div class="stat"><div class="mini">Leitos Totais</div><div class="kpi">${lts.length}</div></div>
+            <div class="stat"><div class="mini">Leitos Ocupados</div><div class="kpi">${k.ocupados}</div></div>
+            <div class="stat"><div class="mini">Taxa de Ocupação</div><div class="kpi">${Math.round((k.ocupados/lts.length)*100)||0}%</div></div>
+          </div>
+          ${meta.operando ? '' : '<div class="muted-banner">Hospital ainda não operacional neste MVP. Dados meramente ilustrativos.</div>'}
+          <div class="mini" style="margin-top:8px">Altas 24h: <strong>${k.altas24}</strong> • Top concessão: <strong>${k.top}</strong></div>
+        `;
+        tile.addEventListener('click',()=>{ if(meta.operando){ currentHospital = h; selHospital.value = h; setTab('dashboard'); } });
+        grid.appendChild(tile);
+      });
+      // KPIs gerais
+      const taxa = tot? Math.round((occ/tot)*100):0;
+      document.getElementById('gKpiTotais').textContent = tot;
+      document.getElementById('gKpiOcupados').textContent = occ;
+      document.getElementById('gKpiTaxa').textContent = taxa+"%";
+      // Gráficos
+      renderChartsGestor();
+    } ${meta.operando? '' : '<span class="pill">Pré-visualização</span>'}</h4>
           <div class="kpis">
             <div class="stat"><div class="mini">Leitos Totais</div><div class="kpi">${lts.length}</div></div>
             <div class="stat"><div class="mini">Leitos Ocupados</div><div class="kpi">${k.ocupados}</div></div>
@@ -606,6 +647,25 @@
     // --------- BOOT ---------
     renderHospitais(); setTab("hospitais"); startPolling(); checkParams();
 
+    // --------- CHARTS (Gestor) ---------
+    let chartOcup=null, chartAltas=null;
+    function renderChartsGestor(){
+      const ctx1 = document.getElementById('chartOcup');
+      const ctx2 = document.getElementById('chartAltas');
+      if(!ctx1 || !ctx2) return;
+      const labels = hospitais.map(h=>hospitalNomes[h]);
+      const dataOcc = hospitais.map(h=>{
+        const lts=banco[h]; const k=kpisHospital(lts); return Math.round((k.ocupados/(lts.length||1))*100);
+      });
+      if(chartOcup) chartOcup.destroy();
+      chartOcup = new Chart(ctx1,{type:'bar', data:{labels, datasets:[{label:'Ocupação %', data:dataOcc}]}, options:{plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true,max:100}}});
+      // Série mock para Altas previstas 24h (soma por faixa horária)
+      const horas=['08h','12h','16h','20h','00h'];
+      const vals = [5,9,4,6,3];
+      if(chartAltas) chartAltas.destroy();
+      chartAltas = new Chart(ctx2,{type:'line', data:{labels:horas, datasets:[{label:'Altas (24h)', data:vals, fill:true, tension:.3}]}, options:{plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}}});
+    }
+
     // --------- BOTÕES MOCK / QR ---------
     document.getElementById("btnLogin").addEventListener("click",()=>{ alert("Simulação de login (no MVP funcional, usar Google Identity Services)."); });
     document.getElementById("btnRefresh").addEventListener("click",()=>{ route(); });
@@ -616,6 +676,12 @@
     const qr1El = document.getElementById('qr1');
     const qr3El = document.getElementById('qr3');
     let qrReader = null;
+
+    // Simulador de mobile: alterna um wrapper que limita a largura
+    const mainRoot = document.getElementById('mainRoot');
+    const btnMobile = document.getElementById('btnMobile');
+    let mobileOn=false;
+    btnMobile.addEventListener('click',()=>{ mobileOn=!mobileOn; if(mobileOn){ mainRoot.classList.add('mobile-wrap'); btnMobile.textContent='Sair do Mobile'; } else { mainRoot.classList.remove('mobile-wrap'); btnMobile.textContent='Simular Mobile'; } });
 
     function handleScan(text){
       try{
