@@ -1,31 +1,4 @@
-async function testConnection() {
-    logInfo("Testando conexão com a API...");
-    
-    try {
-      const res = await fetch(API_URL + '?action=test', {
-        method: 'GET'
-      });
-      
-      logInfo(`Status da conexão: ${res.status} ${res.statusText}`);
-      
-      if (res.ok) {
-        try {
-          const json = await res.json();
-          logSuccess("Conexão com a API estabelecida!", json);
-          return true;
-        } catch(e) {
-          logWarning("Conexão estabelecida mas resposta não é JSON válido");
-          return true;
-        }
-      } else {
-        logError(`Falha na conexão: HTTP ${res.status}`);
-        return false;
-      }
-    } catch(error) {
-      logError("Erro ao testar conexão:", error);
-      return false;
-    }
-  }<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8" />
@@ -589,6 +562,35 @@ async function testConnection() {
   }
 
   // -------------------- API FUNCTIONS --------------------
+  async function testConnection() {
+    logInfo("Testando conexão com a API...");
+    
+    try {
+      const res = await fetch(API_URL + '?action=test', {
+        method: 'GET'
+      });
+      
+      logInfo(`Status da conexão: ${res.status} ${res.statusText}`);
+      
+      if (res.ok) {
+        try {
+          const json = await res.json();
+          logSuccess("Conexão com a API estabelecida!", json);
+          return true;
+        } catch(e) {
+          logWarning("Conexão estabelecida mas resposta não é JSON válido");
+          return true;
+        }
+      } else {
+        logError(`Falha na conexão: HTTP ${res.status}`);
+        return false;
+      }
+    } catch(error) {
+      logError("Erro ao testar conexão:", error);
+      return false;
+    }
+  }
+
   async function loadHospital(h) {
     logInfo(`Iniciando carregamento do hospital: ${h}`);
     logInfo(`URL da API: ${API_URL}`);
@@ -640,10 +642,6 @@ async function testConnection() {
       if (activeTab==='leitos') renderCards();
       if (activeTab==='leitos2') renderTable();
     }
-  }Sem previsão"])[idx % 5],
-      linhas: (idx % 3 !== 2) ? ["Assistencia","Geriatria","APS","Cardiologia","Pneumologia","Neurologia","Melhor Cuidado"].filter((_, k) => (k + idx) % 3 === 0) : [],
-      concessoes: (idx % 3 !== 2) ? ["PAD","Fisioterapia","Fonoaudiologia","Aspiracoes","Curativos"].filter((_, k) => (k + idx) % 2 === 0) : []
-    }));
   }
 
   async function apiCall(payload) {
@@ -863,7 +861,7 @@ async function testConnection() {
     $("#u_idade").value = l.idade??"";
     $("#u_pps").value = l.pps??"";
     $("#u_spict").value = l.spict||"elegivel";
-    $("#u_prev").value = l.prevAlta||"Sem previsão";
+    $("#u_prev").value = l.prevAlta||"Sem previsao";
 
     $("#u_linhas").innerHTML = LINHAS.map(v=>{
       const chk = (l.linhas||[]).includes(v) ? "checked":"";
