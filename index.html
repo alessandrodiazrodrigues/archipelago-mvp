@@ -5,20 +5,24 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Archipelago – Gestão de Leitos (MVP)</title>
 
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-treemap@2.3.0/dist/chartjs-chart-treemap.min.js"></script>
+
+
   <style>
     :root{
-      --nav:#0a2b52;          /* azul escuro Prevent */
+      --nav:#0a2b52;        /* azul escuro Prevent */
       --nav-2:#083052;
-      --bg:#eaf1f9;           /* base do fundo */
-      --bg-deep:#d9e7fb;      /* variacao do fundo */
+      --bg:#eaf1f9;          /* base do fundo */
+      --bg-deep:#d9e7fb;      /* variação do fundo */
       --card:#ffffff;
       --text:#1f2937;
       --muted:#6b7280;
       --border:#e5e7eb;
-      --ok:#16a34a;           /* VAGO */
-      --warn:#f59e0b;         /* EM USO */
-      --danger:#dc2626;       /* UTI / acoes criticas */
-      --blue-veil:#4f86ff33;  /* veu azul translucido */
+      --ok:#16a34a;          /* VAGO */
+      --warn:#f59e0b;        /* EM USO */
+      --danger:#dc2626;      /* UTI / ações críticas */
+      --blue-veil:#4f86ff33;  /* véu azul translúcido */
       --shadow-1:0 10px 22px rgba(11,44,82,.10);
       --shadow-2:0 18px 48px rgba(11,44,82,.14);
     }
@@ -76,7 +80,7 @@
     }
     #lastUpdateInfo { font-size: 9px; opacity: 0.8; line-height: 1; }
 
-    /* GRID DE CARDS */
+    /* GRID DE CARDS (flutuantes) */
     .grid{display:grid;grid-template-columns:repeat(auto-fit, minmax(450px, 1fr));gap:18px;position:relative;z-index:1}
 
     .card{
@@ -113,7 +117,7 @@
     .chip{font-size:12px;background:#eef2ff;border:1px solid #dbeafe;color:#1e40af;padding:2px 8px;border-radius:999px}
     .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
 
-    /* Tabela */
+    /* Tabela (Leitos – Tabela) */
     table{width:100%;border-collapse:separate;border-spacing:0 10px}
     th,td{background:#fff;border:1px solid var(--border);padding:10px;border-radius:10px}
     th{font-size:12px;color:#6b7280;text-align:left}
@@ -121,99 +125,6 @@
     th.sortable:hover { background-color: #f9fafb; }
     td{font-size:13px}
     .hidden{display:none}
-
-    /* Dashboard Styles */
-    .dashboard-container { 
-      display: grid; 
-      grid-template-columns: 1fr 1fr; 
-      gap: 24px; 
-      margin-top: 20px;
-    }
-    .hospital-dashboard {
-      background: #fff; 
-      border: 1px solid var(--border); 
-      border-radius: 16px; 
-      padding: 20px; 
-      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    }
-    .hospital-title { 
-      font-size: 20px; 
-      font-weight: 700; 
-      color: var(--nav); 
-      text-align: center; 
-      margin-bottom: 20px; 
-      padding-bottom: 10px; 
-      border-bottom: 2px solid var(--border);
-    }
-    
-    .metrics-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-      margin-bottom: 20px;
-    }
-    .metric-card {
-      background: #f8fafc;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 12px;
-      text-align: center;
-    }
-    .metric-value {
-      font-size: 24px;
-      font-weight: 700;
-      color: var(--nav);
-    }
-    .metric-label {
-      font-size: 11px;
-      color: var(--muted);
-      margin-top: 4px;
-    }
-
-    .gauge-container {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 120px;
-      margin: 20px 0;
-    }
-    .gauge-chart {
-      position: relative;
-      width: 100px;
-      height: 50px;
-    }
-    .gauge-text {
-      position: absolute;
-      bottom: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      text-align: center;
-    }
-    .gauge-percent {
-      font-size: 16px;
-      font-weight: 700;
-      color: var(--nav);
-    }
-    .gauge-label {
-      font-size: 10px;
-      color: var(--muted);
-    }
-
-    .chart-container { 
-      position: relative; 
-      width: 100%; 
-      height: 200px; 
-      margin: 15px 0;
-    }
-    
-    .section-title {
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--text);
-      margin: 20px 0 10px 0;
-      border-left: 3px solid var(--nav);
-      padding-left: 8px;
-    }
 
     /* Modais & Overlays */
     .backdrop{position:fixed;inset:0;background:#0b1a2a99;display:none;align-items:center;justify-content:center;padding:16px;z-index:1000;overflow:auto}
@@ -230,21 +141,80 @@
     .qr-cell{background:#fff;border:1px solid var(--border);border-radius:14px;padding:10px;text-align:center;min-height:200px}
     .qr-box{display:inline-block;border:1px solid var(--border);padding:8px;border-radius:10px;background:#fff}
 
+    .qr-only header, .qr-only .toolbar, .qr-only nav.tabs, .qr-only .footer{display:none!important}
+    .qrTimerBadge{
+      position:fixed; top:10px; right:10px; z-index:2000;
+      background:#111827; color:#fff; border:1px solid #00000033; padding:8px 10px; border-radius:999px;
+      box-shadow:0 8px 18px rgba(0,0,0,.25);
+    }
+
     .success-message{
       position:fixed; top:50%;left:50%; transform:translate(-50%,-50%);
       background:#fff; border:1px solid var(--border); border-radius:20px;
       padding:40px; text-align:center; box-shadow:0 10px 28px rgba(0,0,0,.25);
       z-index:3000; display:none;
     }
-    
-    @media (max-width: 768px) {
-      .dashboard-container {
-        grid-template-columns: 1fr;
-      }
-      .metrics-grid {
-        grid-template-columns: 1fr;
-      }
+
+    /* =================== ESTILOS GERAIS DE DASHBOARDS =================== */
+    .dash-grid { display: grid; gap: 24px; }
+    .grid-2 { grid-template-columns: repeat(2, 1fr); }
+    @media (max-width: 1200px) { .grid-2 { grid-template-columns: 1fr; } }
+    .grid-4 { grid-template-columns: repeat(4, 1fr); }
+    @media (max-width: 900px) { .grid-4 { grid-template-columns: repeat(2, 1fr); } }
+    .grid-5 { grid-template-columns: repeat(5, 1fr); }
+    @media (max-width: 1000px) { .grid-5 { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); } }
+    .span-2 { grid-column: span 2; }
+    @media (max-width: 1200px) { .span-2 { grid-column: span 1; } }
+
+    .dashboard-card {
+      background: #fff; border: 1px solid var(--border); border-radius: 16px;
+      padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);
     }
+    .dashboard-card h3 {
+      margin: 0 0 15px 0; font-size: 18px; color: var(--nav); text-align: center;
+      padding-bottom: 10px; border-bottom: 1px solid var(--border);
+    }
+    .dashboard-card h4 { margin: 20px 0 10px 0; font-size: 14px; color: var(--text); }
+    
+    .kpi-card {
+        background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 15px; text-align: center;
+    }
+    .kpi-value { font-size: 36px; font-weight: 700; color: var(--nav); }
+    .kpi-label { font-size: 13px; color: var(--muted); margin-top: 5px; }
+    
+    .chart-container { position: relative; width:100%; }
+    .h-250 { height: 250px; }
+    .h-300 { height: 300px; }
+    .h-400 { height: 400px; }
+
+    /* Estilos para Dash 1 */
+    .dash-hospital-header { display: flex; align-items: center; gap: 24px; margin-bottom: 20px; }
+    .gauge-wrapper { position: relative; width: 150px; height: 100px; }
+    .gauge-wrapper canvas { width: 100% !important; height: auto !important; }
+    .gauge-text { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); text-align: center; }
+    .gauge-text .percent { font-size: 24px; font-weight: 700; color: var(--nav); }
+    .gauge-text .label { font-size: 11px; color: var(--muted); }
+    .header-stats { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .header-stats .stat-box { padding: 10px; text-align: left; background: #f9fafb; border-radius: 10px; }
+    .header-stats .stat-value { font-size: 22px; font-weight: bold; color: var(--nav); }
+    .header-stats .stat-label { font-size: 11px; color: var(--muted); }
+    
+    .dash-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    .dash-table th, .dash-table td { padding: 8px; text-align: left; border-bottom: 1px solid var(--border); font-size: 13px; }
+    .dash-table th { font-size: 12px; color: var(--muted); }
+
+    /* NOVO: Estilos para o seletor de visualização de altas */
+    .view-switcher { display: flex; gap: 5px; margin-bottom: 10px; }
+    .switcher-btn {
+        padding: 4px 10px; font-size: 12px; background: #f3f4f6;
+        border: 1px solid var(--border); color: var(--muted); border-radius: 8px; cursor: pointer;
+    }
+    .switcher-btn.active { background: var(--nav); color: #fff; border-color: var(--nav); }
+    .kpi-grid-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 20px 0; min-height: 120px;}
+    .kpi-grid-item { background: #f9fafb; border-radius: 12px; padding: 15px; text-align: center; }
+    .kpi-grid-value { font-size: 24px; font-weight: 700; color: var(--nav); }
+    .kpi-grid-label { font-size: 12px; color: var(--muted); }
+    .kpi-grid-trend { font-size: 12px; margin-top: 5px; }
   </style>
 </head>
 <body>
@@ -258,14 +228,16 @@
       </div>
     </div>
     <nav class="tabs" role="tablist">
-      <button class="tab active" data-tab="dashboard">Dashboard</button>
-      <button class="tab" data-tab="leitos">Leitos (Cards)</button>
+      <button class="tab active" data-tab="leitos">Leitos (Cards)</button>
       <button class="tab" data-tab="leitos2">Leitos (Tabela)</button>
+      <button class="tab" data-tab="dash1">Dash Geral</button>
+      <button class="tab" data-tab="dash2">Dash Fluxo Altas</button>
+      <button class="tab" data-tab="dash3">Dash Análise Clínica</button>
+      <button class="tab" data-tab="dash4">Dash Recursos</button>
     </nav>
   </header>
 
   <main>
-    <!-- Toolbar - apenas para views de leitos -->
     <div class="toolbar" id="portalToolbar">
       <div class="row">
         <button class="btn primary" id="btnBulkQR">QR Codes (imprimir)</button>
@@ -281,95 +253,8 @@
       </div>
     </div>
 
-    <!-- Dashboard View -->
-    <section id="dashboardView">
-      <h2 style="text-align: center; color: var(--nav); margin-bottom: 30px;">Dashboard Consolidado - Visão Geral</h2>
-      
-      <div class="dashboard-container">
-        <!-- Neomater -->
-        <div class="hospital-dashboard">
-          <div class="hospital-title">Neomater</div>
-          
-          <div class="gauge-container">
-            <div class="gauge-chart">
-              <canvas id="gaugeH1" width="100" height="50"></canvas>
-              <div class="gauge-text">
-                <div class="gauge-percent" id="percentH1">0%</div>
-                <div class="gauge-label">Ocupação</div>
-              </div>
-            </div>
-          </div>
-          
-          <div class="metrics-grid">
-            <div class="metric-card">
-              <div class="metric-value" id="ocupadosH1">0</div>
-              <div class="metric-label">Ocupados</div>
-            </div>
-            <div class="metric-card">
-              <div class="metric-value" id="vagosH1">0</div>
-              <div class="metric-label">Vagos</div>
-            </div>
-            <div class="metric-card">
-              <div class="metric-value" id="utiH1">0</div>
-              <div class="metric-label">UTI</div>
-            </div>
-            <div class="metric-card">
-              <div class="metric-value" id="totalH1">13</div>
-              <div class="metric-label">Total</div>
-            </div>
-          </div>
+    <section id="leitosView" class="grid"></section>
 
-          <div class="section-title">Projeção de Altas (7 dias)</div>
-          <div class="chart-container">
-            <canvas id="chartAltasH1"></canvas>
-          </div>
-        </div>
-
-        <!-- Cruz Azul -->
-        <div class="hospital-dashboard">
-          <div class="hospital-title">Cruz Azul</div>
-          
-          <div class="gauge-container">
-            <div class="gauge-chart">
-              <canvas id="gaugeH2" width="100" height="50"></canvas>
-              <div class="gauge-text">
-                <div class="gauge-percent" id="percentH2">0%</div>
-                <div class="gauge-label">Ocupação</div>
-              </div>
-            </div>
-          </div>
-          
-          <div class="metrics-grid">
-            <div class="metric-card">
-              <div class="metric-value" id="ocupadosH2">0</div>
-              <div class="metric-label">Ocupados</div>
-            </div>
-            <div class="metric-card">
-              <div class="metric-value" id="vagosH2">0</div>
-              <div class="metric-label">Vagos</div>
-            </div>
-            <div class="metric-card">
-              <div class="metric-value" id="utiH2">0</div>
-              <div class="metric-label">UTI</div>
-            </div>
-            <div class="metric-card">
-              <div class="metric-value" id="totalH2">16</div>
-              <div class="metric-label">Total</div>
-            </div>
-          </div>
-
-          <div class="section-title">Projeção de Altas (7 dias)</div>
-          <div class="chart-container">
-            <canvas id="chartAltasH2"></canvas>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Cards View -->
-    <section id="leitosView" class="grid hidden"></section>
-
-    <!-- Tabela View -->
     <section id="leitos2View" class="hidden">
       <div style="margin-bottom:8px">
         <select id="selHospital2" class="select">
@@ -397,9 +282,143 @@
         <tbody id="tbLeitos"></tbody>
       </table>
     </section>
-  </main>
 
-  <!-- Modais -->
+    <section id="dash1" class="hidden">
+        <h2 style="margin-bottom:20px">Dashboard - Visão Geral e Projeções</h2>
+        <div class="dash-grid grid-2">
+            <div class="dashboard-card" id="dash-card-h1">
+                <h3>Neomater</h3>
+                <div class="dash-hospital-header">
+                    <div class="gauge-wrapper"><canvas id="chartOcupacaoH1"></canvas><div class="gauge-text"><div class="percent" id="gaugePercentH1">0%</div><div class="label">Ocupação</div></div></div>
+                    <div class="header-stats">
+                        <div class="stat-box"><div class="stat-value" id="statOcupadosH1">0</div><div class="stat-label">Ocupados</div></div>
+                        <div class="stat-box"><div class="stat-value" id="statVagosH1">0</div><div class="stat-label">Vagos</div></div>
+                        <div class="stat-box"><div class="stat-value" id="statTotalH1">0</div><div class="stat-label">Total Leitos</div></div>
+                    </div>
+                </div>
+                
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h4>Projeção de Altas (4 dias)</h4>
+                    <div class="view-switcher">
+                        <button class="switcher-btn active" data-view="line" data-h="H1">Linha</button>
+                        <button class="switcher-btn" data-view="hbar" data-h="H1">Barras</button>
+                        <button class="switcher-btn" data-view="kpi" data-h="H1">KPIs</button>
+                    </div>
+                </div>
+                <div id="altas-view-line-H1" class="chart-container h-250"><canvas id="chartAltasH1_line"></canvas></div>
+                <div id="altas-view-hbar-H1" class="chart-container h-250 hidden"><canvas id="chartAltasH1_hbar"></canvas></div>
+                <div id="altas-view-kpi-H1" class="kpi-grid-container hidden"></div>
+
+                <h4>Projeção de Linhas de Cuidado</h4>
+                <div class="chart-container h-300"><canvas id="chartLinhasH1"></canvas></div>
+                <h4>Projeção de Concessões</h4>
+                <div class="chart-container h-250"><canvas id="chartConcessoesH1"></canvas></div>
+            </div>
+
+            <div class="dashboard-card" id="dash-card-h2">
+                <h3>Cruz Azul</h3>
+                <div class="dash-hospital-header">
+                    <div class="gauge-wrapper"><canvas id="chartOcupacaoH2"></canvas><div class="gauge-text"><div class="percent" id="gaugePercentH2">0%</div><div class="label">Ocupação</div></div></div>
+                    <div class="header-stats">
+                        <div class="stat-box"><div class="stat-value" id="statOcupadosH2">0</div><div class="stat-label">Ocupados</div></div>
+                        <div class="stat-box"><div class="stat-value" id="statVagosH2">0</div><div class="stat-label">Vagos</div></div>
+                        <div class="stat-box"><div class="stat-value" id="statTotalH2">0</div><div class="stat-label">Total Leitos</div></div>
+                    </div>
+                </div>
+                
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h4>Projeção de Altas (4 dias)</h4>
+                    <div class="view-switcher">
+                        <button class="switcher-btn active" data-view="line" data-h="H2">Linha</button>
+                        <button class="switcher-btn" data-view="hbar" data-h="H2">Barras</button>
+                        <button class="switcher-btn" data-view="kpi" data-h="H2">KPIs</button>
+                    </div>
+                </div>
+                <div id="altas-view-line-H2" class="chart-container h-250"><canvas id="chartAltasH2_line"></canvas></div>
+                <div id="altas-view-hbar-H2" class="chart-container h-250 hidden"><canvas id="chartAltasH2_hbar"></canvas></div>
+                <div id="altas-view-kpi-H2" class="kpi-grid-container hidden"></div>
+                
+                <h4>Projeção de Linhas de Cuidado</h4>
+                <div class="chart-container h-300"><canvas id="chartLinhasH2"></canvas></div>
+                <h4>Projeção de Concessões</h4>
+                <div class="chart-container h-250"><canvas id="chartConcessoesH2"></canvas></div>
+            </div>
+        </div>
+    </section>
+    
+    <section id="dash2" class="hidden">
+        <h2 style="margin-bottom:20px">Dashboard - Fluxo de Altas e Ocupação (Geral)</h2>
+        <div class="dash-grid grid-4" style="margin-bottom: 24px;">
+            <div class="kpi-card"><div class="kpi-value" id="kpiOcupacaoGeral">0%</div><div class="kpi-label">Taxa de Ocupação Geral</div></div>
+            <div class="kpi-card"><div class="kpi-value" id="kpiAltas48h">0</div><div class="kpi-label">Altas Previstas (48h)</div></div>
+            <div class="kpi-card"><div class="kpi-value" id="kpiUtiOcupados">0</div><div class="kpi-label">Leitos de UTI Ocupados</div></div>
+            <div class="kpi-card"><div class="kpi-value" id="kpiTMP">0 dias</div><div class="kpi-label">Tempo Médio de Permanência</div></div>
+        </div>
+        <div class="dash-grid grid-2">
+            <div class="dashboard-card span-2">
+                <h4>Projeção de Altas por Hospital (Próximos 5 dias)</h4>
+                <div class="chart-container h-300"><canvas id="chartFluxoAltas"></canvas></div>
+            </div>
+            <div class="dashboard-card">
+                <h4>Próximas Altas (48h)</h4>
+                <div style="max-height: 250px; overflow-y: auto;">
+                    <table class="dash-table">
+                        <thead><tr><th>Paciente</th><th>Hospital</th><th>Leito</th><th>Tipo</th></tr></thead>
+                        <tbody id="tableProxAltasBody"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="dashboard-card">
+                <h4>Pacientes de Longa Permanência (> 7 dias)</h4>
+                <div style="max-height: 250px; overflow-y: auto;">
+                    <table class="dash-table">
+                        <thead><tr><th>Paciente</th><th>Hospital</th><th>Leito</th><th>Dias</th></tr></thead>
+                        <tbody id="tableLongaPermBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <section id="dash3" class="hidden">
+        <h2 style="margin-bottom:20px">Dashboard - Análise Clínica (Geral)</h2>
+        <div class="dash-grid grid-2">
+            <div class="dashboard-card">
+                <h4>Distribuição de Linhas de Cuidado</h4>
+                <div class="chart-container h-400"><canvas id="chartTreemapCuidados"></canvas></div>
+            </div>
+            <div class="dashboard-card">
+                <h4>Tempo Médio de Permanência por Linha de Cuidado</h4>
+                <div class="chart-container h-400"><canvas id="chartTmpCuidados"></canvas></div>
+            </div>
+             <div class="dashboard-card span-2">
+                <h4>Perfil dos Pacientes (Idade, PPS e Dias de Internação)</h4>
+                <div class="chart-container h-400"><canvas id="chartBubblePerfil"></canvas></div>
+            </div>
+        </div>
+    </section>
+    
+    <section id="dash4" class="hidden">
+        <h2 style="margin-bottom:20px">Dashboard - Alocação de Recursos (Geral)</h2>
+        <div class="dash-grid grid-5" style="margin-bottom: 24px;">
+            <div class="kpi-card"><div class="kpi-value" id="kpiPAD">0</div><div class="kpi-label">Pacientes em PAD</div></div>
+            <div class="kpi-card"><div class="kpi-value" id="kpiFisio">0</div><div class="kpi-label">Pacientes em Fisioterapia</div></div>
+            <div class="kpi-card"><div class="kpi-value" id="kpiFono">0</div><div class="kpi-label">Pacientes em Fono</div></div>
+            <div class="kpi-card"><div class="kpi-value" id="kpiAsp">0</div><div class="kpi-label">Pacientes com Aspirações</div></div>
+            <div class="kpi-card"><div class="kpi-value" id="kpiCurat">0</div><div class="kpi-label">Pacientes com Curativos</div></div>
+        </div>
+        <div class="dash-grid grid-2">
+            <div class="dashboard-card">
+                <h4>Distribuição Geral de Concessões</h4>
+                <div class="chart-container h-400"><canvas id="chartPolarConcessoes"></canvas></div>
+            </div>
+            <div class="dashboard-card">
+                <h4>Comparativo de Concessões por Hospital</h4>
+                <div class="chart-container h-400"><canvas id="chartStackConcessoes"></canvas></div>
+            </div>
+        </div>
+    </section>
+  </main>
   <div id="modalAdmissao" class="backdrop" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true">
       <header>
@@ -597,6 +616,19 @@
       </div>
     </div>
   </div>
+
+  <div id="modalQRExpired" class="backdrop" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" style="max-width:520px">
+      <header><strong>Sessão Expirada</strong></header>
+      <div class="content">
+        <p>O tempo para preenchimento expirou.</p>
+        <p>Para continuar, escaneie novamente o QR code próximo ao leito.</p>
+      </div>
+      <div class="actions">
+        <button class="btn primary" id="reloadPage">Escanear Novamente</button>
+      </div>
+    </div>
+  </div>
   
   <div id="successMessage" class="success-message">
     <h2>Obrigado!</h2>
@@ -605,13 +637,15 @@
     <button class="btn primary" onclick="window.close()">Fechar Navegador</button>
   </div>
 
-  <!-- Scripts -->
+
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 
   <script>
-  // ======================= CONFIGURAÇÃO =======================
+  // =======================================================================
+  // ========================== CONFIGURAÇÃO ===============================
+  // =======================================================================
   const API_URL = 'https://script.google.com/macros/s/AKfycbzn8BlUD8by0GykYlJa1pmbYtuXOr8aEUzOOBhpfSGl-i1x8LhAnGSRzqdyV2lANnIP/exec';
 
   function logInfo(message, data = null) { console.log(`🔵 [Archipelago] ${message}`, data || ''); }
@@ -628,20 +662,39 @@
   const LINHAS = ["Assistencia","Geriatria","APS","Cardiologia","Pneumologia","Neurologia","Melhor Cuidado"];
   const CONC   = ["PAD","Fisioterapia","Fonoaudiologia","Aspiracoes","Curativos"];
   
+  // Ordena alfabeticamente para garantir consistência nas legendas dos gráficos
   LINHAS.sort((a, b) => a.localeCompare(b));
   CONC.sort((a, b) => a.localeCompare(b));
 
-  // ======================= ESTADO DA UI =======================
+  const LINHAS_CORES = {
+    "APS": "#f59e0b", "Assistencia": "#0a2b52", "Cardiologia": "#dc2626", "Geriatria": "#16a34a",
+    "Melhor Cuidado": "#be185d", "Neurologia": "#0891b2", "Pneumologia": "#8b5cf6"
+  };
+  const CONC_CORES = {
+    "Aspiracoes": "#dc2626", "Curativos": "#8b5cf6", "Fisioterapia": "#16a34a",
+    "Fonoaudiologia": "#f59e0b", "PAD": "#0a2b52"
+  };
+
+  // =======================================================================
+  // ========================== ESTADO DA UI ===============================
+  // =======================================================================
   let currentHospital = "H1";
-  let activeTab = "dashboard";
+  let activeTab = "leitos";
   let selectedLeito = null;
   let isQRMode = false;
   let lastUpdateTime = Date.now();
   let autoRefreshInterval = null;
   let updateIndicatorInterval = null;
+  let qrTick = null;
+  let qrExpiresAt = 0;
+  
+  // Estado da ordenação da tabela
   let sortState = { key: 'leito', direction: 'asc' };
 
-  // ======================= HELPERS =======================
+
+  // =======================================================================
+  // ========================== FUNÇÕES HELPERS ============================
+  // =======================================================================
   const $ = sel => document.querySelector(sel);
   
   function openModal(sel){ const el=$(sel); el.style.display="flex"; el.setAttribute("aria-hidden","false"); }
@@ -656,10 +709,10 @@
     });
   }
   
-  function initials(nome){ if(!nome) return "–"; return nome.split(" ").map(p=>p[0]).slice(0,2).join("").toUpperCase(); }
+  function initials(nome){ if(!nome) return "—"; return nome.split(" ").map(p=>p[0]).slice(0,2).join("").toUpperCase(); }
   
   function fmtDateTime(iso){
-    if(!iso) return "–";
+    if(!iso) return "—";
     const d=new Date(iso);
     return d.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   }
@@ -670,7 +723,7 @@
   }
   
   function elapsedSince(iso){
-    if(!iso) return { text: "–", days: 0 };
+    if(!iso) return { text: "—", days: 0 };
     const ms = Date.now() - new Date(iso).getTime();
     const d = elapsedMsToDays(ms);
     const h = Math.floor((ms%86400000)/3600000);
@@ -688,7 +741,9 @@
     }
   }
 
-  // ======================= API FUNCTIONS =======================
+  // =======================================================================
+  // ===================== FUNÇÕES DE API (BACKEND) ========================
+  // =======================================================================
   async function testConnection() {
     logInfo("Testando conexão com a API...");
     try {
@@ -727,14 +782,12 @@
       
       if (activeTab === 'leitos') renderCards();
       if (activeTab === 'leitos2') renderTable();
-      if (activeTab === 'dashboard') renderDashboard();
     } catch(error) {
       logError(`Erro ao carregar hospital ${h}:`, error);
       alert(`Erro ao conectar com a planilha: ${error.message}\n\nVerifique se o deploy do Google Apps Script está como 'Acessível para qualquer pessoa'.`);
       banco[h] = [];
       if (activeTab === 'leitos') renderCards();
       if (activeTab === 'leitos2') renderTable();
-      if (activeTab === 'dashboard') renderDashboard();
     }
   }
 
@@ -761,13 +814,20 @@
       throw new Error(error.message || 'Erro na operação');
     }
   }
-
-  // ======================= UI FUNCTIONS =======================
+    <script>
+  // =======================================================================
+  // ======================= LÓGICA DE NAVEGAÇÃO =========================
+  // =======================================================================
   function setTab(tab){
     document.querySelectorAll(".tab").forEach(b=>b.classList.remove("active"));
     $(`.tab[data-tab='${tab}']`).classList.add("active");
     activeTab = tab;
     route();
+    
+    if(tab.startsWith('dash')) {
+      // Pequeno delay para garantir que a transição de tela ocorra antes do render pesado
+      setTimeout(() => renderDashboards(), 50);
+    }
   }
 
   function setHospitalSelectors(h){
@@ -778,156 +838,24 @@
   }
   
   function route(){
-    const sections = ["dashboardView", "leitosView","leitos2View"];
+    const sections = ["leitosView","leitos2View","dash1","dash2","dash3","dash4"];
     sections.forEach(id => {
       const el = $(`#${id}`);
       if(el) el.classList.add("hidden");
     });
 
-    const activeSectionId = activeTab === 'dashboard' ? 'dashboardView' : 
-                          activeTab === 'leitos' ? 'leitosView' : 'leitos2View';
+    const activeSectionId = activeTab === 'leitos' ? 'leitosView' : (activeTab === 'leitos2' ? 'leitos2View' : activeTab);
     $(`#${activeSectionId}`)?.classList.remove("hidden");
 
-    // Esconder toolbar no dashboard
-    $('#portalToolbar').style.display = activeTab === 'dashboard' ? 'none' : 'flex';
+    $('#portalToolbar').style.display = activeTab.startsWith('dash') ? 'none' : 'flex';
 
     if(activeTab === "leitos") renderCards();
     if(activeTab === "leitos2") renderTable();
-    if(activeTab === "dashboard") renderDashboard();
   }
 
-  // ======================= DASHBOARD RENDER =======================
-  function renderDashboard() {
-    logInfo("Renderizando dashboard consolidado...");
-    renderHospitalDashboard('H1');
-    renderHospitalDashboard('H2');
-  }
-
-  function renderHospitalDashboard(hospital) {
-    const dados = banco[hospital] || [];
-    const totalLeitos = HOSPITAIS[hospital].leitos.length;
-    const ocupados = dados.filter(l => l.status === 'Em uso').length;
-    const vagos = totalLeitos - ocupados;
-    const utiOcupados = dados.filter(l => l.tipo === 'UTI' && l.status === 'Em uso').length;
-    const taxaOcupacao = totalLeitos > 0 ? Math.round((ocupados / totalLeitos) * 100) : 0;
-
-    // Atualizar métricas
-    $(`#ocupados${hospital}`).textContent = ocupados;
-    $(`#vagos${hospital}`).textContent = vagos;
-    $(`#uti${hospital}`).textContent = utiOcupados;
-    $(`#percent${hospital}`).textContent = taxaOcupacao + '%';
-
-    // Criar gauge
-    createGaugeChart(`gauge${hospital}`, taxaOcupacao);
-
-    // Criar gráfico de projeção de altas
-    createAltasChart(`chartAltas${hospital}`, dados);
-  }
-
-  function createGaugeChart(canvasId, percentage) {
-    const canvas = document.getElementById(canvasId);
-    if (!canvas) return;
-    
-    const ctx = canvas.getContext('2d');
-    
-    // Destruir chart anterior se existir
-    if (window[`chart_${canvasId}`]) {
-      window[`chart_${canvasId}`].destroy();
-    }
-
-    window[`chart_${canvasId}`] = new Chart(ctx, {
-      type: 'doughnut',
-      data: {
-        datasets: [{
-          data: [percentage, 100 - percentage],
-          backgroundColor: [
-            percentage > 90 ? '#dc2626' : percentage > 75 ? '#f59e0b' : '#16a34a',
-            '#e5e7eb'
-          ],
-          borderWidth: 0,
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        circumference: 180,
-        rotation: -90,
-        cutout: '75%',
-        plugins: {
-          tooltip: { enabled: false },
-          legend: { display: false }
-        }
-      }
-    });
-  }
-
-  function createAltasChart(canvasId, dados) {
-    const canvas = document.getElementById(canvasId);
-    if (!canvas) return;
-    
-    const ctx = canvas.getContext('2d');
-    
-    // Destruir chart anterior se existir
-    if (window[`chart_${canvasId}`]) {
-      window[`chart_${canvasId}`].destroy();
-    }
-
-    // Calcular projeção de altas por dia
-    const hoje = new Date();
-    const labels = [];
-    const altasData = [];
-
-    for (let i = 0; i < 7; i++) {
-      const dia = new Date(hoje);
-      dia.setDate(hoje.getDate() + i);
-      labels.push(`D+${i} (${dia.toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'})})`);
-      
-      let altasNoDia = 0;
-      dados.filter(p => p.status === 'Em uso').forEach(paciente => {
-        const diasAteAlta = getDiasAteAlta(paciente.prevAlta);
-        if (diasAteAlta === i) altasNoDia++;
-      });
-      altasData.push(altasNoDia);
-    }
-
-    window[`chart_${canvasId}`] = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: labels,
-        datasets: [{
-          label: 'Altas Previstas',
-          data: altasData,
-          backgroundColor: '#3b82f6',
-          borderColor: '#2563eb',
-          borderWidth: 1
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false }
-        },
-        scales: {
-          y: {
-            beginAtZero: true,
-            ticks: { stepSize: 1 }
-          }
-        }
-      }
-    });
-  }
-
-  function getDiasAteAlta(prevAlta) {
-    if (!prevAlta) return 6;
-    if (prevAlta.includes('24h')) return 0;
-    if (prevAlta === '48h') return 1;
-    if (prevAlta === '72h') return 2;
-    if (prevAlta === '96h') return 3;
-    return 6;
-  }
-
-  // ======================= CARDS E TABELA =======================
+  // =======================================================================
+  // ======================= RENDERIZAÇÃO DE LEITOS ======================
+  // =======================================================================
   function renderCards(){
     const container = $("#leitosView");
     container.innerHTML = "";
@@ -958,18 +886,18 @@
           <span class="badge">${HOSPITAIS[l.hospital].nome}${internado}</span>
         </div>
         <div class="row">
-          <div class="field"><div class="label">Iniciais</div><div class="value">${l.status==="Em uso"?initials(l.nome):"–"}</div></div>
-          <div class="field"><div class="label">Matrícula</div><div class="value">${l.matricula||"–"}</div></div>
-          <div class="field"><div class="label">Idade</div><div class="value">${l.idade??"–"}</div></div>
+          <div class="field"><div class="label">Iniciais</div><div class="value">${l.status==="Em uso"?initials(l.nome):"—"}</div></div>
+          <div class="field"><div class="label">Matrícula</div><div class="value">${l.matricula||"—"}</div></div>
+          <div class="field"><div class="label">Idade</div><div class="value">${l.idade??"—"}</div></div>
           <div class="field"><div class="label">Admissão</div><div class="value">${fmtDateTime(l.admAt)}</div></div>
-          <div class="field"><div class="label">PPS</div><div class="value">${l.pps??"–"}</div></div>
-          <div class="field"><div class="label">SPICT-BR</div><div class="value">${l.spict==="elegivel"?"Elegível":(l.spict==="nao_elegivel"?"Não elegível":"–")}</div></div>
-          <div class="field"><div class="label">Prev. Alta</div><div class="value">${l.prevAlta||"–"}</div></div>
+          <div class="field"><div class="label">PPS</div><div class="value">${l.pps??"—"}</div></div>
+          <div class="field"><div class="label">SPICT-BR</div><div class="value">${l.spict==="elegivel"?"Elegível":(l.spict==="nao_elegivel"?"Não elegível":"—")}</div></div>
+          <div class="field"><div class="label">Prev. Alta</div><div class="value">${l.prevAlta||"—"}</div></div>
           <div class="field" style="grid-column:1/3">
-            <div class="label">Linhas de cuidado</div><div class="wrap">${chipsLinhas||"–"}</div>
+            <div class="label">Linhas de cuidado</div><div class="wrap">${chipsLinhas||"—"}</div>
           </div>
           <div class="field" style="grid-column:3/5">
-            <div class="label">Concessões</div><div class="wrap">${chipsConc||"–"}</div>
+            <div class="label">Concessões</div><div class="wrap">${chipsConc||"—"}</div>
           </div>
         </div>
         <div class="actions">
@@ -1018,12 +946,12 @@
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td>${l.leito}</td><td>${l.tipo}</td><td>${l.status}</td>
-          <td>${l.nome||"–"}</td><td>${l.matricula||"–"}</td><td>${l.idade??"–"}</td>
-          <td>${fmtDateTime(l.admAt)}</td><td>${l.pps??"–"}</td>
-          <td>${l.spict==="elegivel"?"Elegível":(l.spict==="nao_elegivel"?"Não elegível":"–")}</td>
-          <td>${l.prevAlta||"–"}</td>
-          <td>${(l.linhas||[]).join(", ")||"–"}</td>
-          <td>${(l.concessoes||[]).join(", ")||"–"}</td>
+          <td>${l.nome||"—"}</td><td>${l.matricula||"—"}</td><td>${l.idade??"—"}</td>
+          <td>${fmtDateTime(l.admAt)}</td><td>${l.pps??"—"}</td>
+          <td>${l.spict==="elegivel"?"Elegível":(l.spict==="nao_elegivel"?"Não elegível":"—")}</td>
+          <td>${l.prevAlta||"—"}</td>
+          <td>${(l.linhas||[]).join(", ")||"—"}</td>
+          <td>${(l.concessoes||[]).join(", ")||"—"}</td>
         `;
         tr.style.cursor="pointer";
         tr.onclick = ()=> {  
@@ -1035,6 +963,8 @@
       
       headers.forEach(th => {
           let text = th.dataset.sort.charAt(0).toUpperCase() + th.dataset.sort.slice(1);
+           if (th.dataset.sort === 'pps') text = 'PPS';
+          if (th.dataset.sort === 'spict') text = 'SPICT-BR';
           if (th.dataset.sort === sortState.key) {
               text += sortState.direction === 'asc' ? ' ▲' : ' ▼';
           }
@@ -1042,51 +972,241 @@
       });
   }
 
-  // ======================= MODAL FUNCTIONS (PLACEHOLDER) =======================
-  function openAdmissao(leito) {
-    console.log('Admissão do leito:', leito);
-    // Implementar modal de admissão
+  // =======================================================================
+  // ======================== FLUXOS DE MODAIS ===========================
+  // =======================================================================
+  function openAdmissao(leito){
+    selectedLeito = leito;
+    const l = banco[currentHospital].find(x=>x.leito===leito);
+    $("#a_hospital").textContent = HOSPITAIS[currentHospital].nome;
+    $("#a_leito").textContent = "Leito " + l.leito;
+    $("#a_tipo").textContent = l.tipo;
+    $("#a_linhas").innerHTML = LINHAS.map(v=>`<label class="badge"><input type="checkbox" value="${v}" /> ${v}</label>`).join("");
+    $("#a_concessoes").innerHTML = CONC.map(v=>`<label class="badge"><input type="checkbox" value="${v}" /> ${v}</label>`).join("");
+    $("#a_nome").value=""; $("#a_idade").value=""; $("#a_matricula").value=""; $("#a_pps").value="";
+    $("#a_spict").value="elegivel"; $("#a_prev").value="24h Ouro";
+    openModal("#modalAdmissao");
   }
 
-  function openAtualizacao(leito) {
-    console.log('Atualização do leito:', leito);
-    // Implementar modal de atualização
+  function openAtualizacao(leito){
+    selectedLeito = leito;
+    const l = banco[currentHospital].find(x=>x.leito===leito);
+    $("#u_hospital").textContent = HOSPITAIS[currentHospital].nome;
+    $("#u_leito").textContent = "Leito " + l.leito;
+    $("#u_tipo").textContent = l.tipo;
+    $("#u_nome").value = l.nome||"";
+    $("#u_matricula").value = l.matricula||"";
+    $("#u_adm").value = fmtDateTime(l.admAt)||"";
+    $("#u_idade").value = l.idade??"";
+    $("#u_pps").value = l.pps??"";
+    $("#u_spict").value = l.spict||"elegivel";
+    $("#u_prev").value = l.prevAlta||"Sem previsao";
+    $("#u_linhas").innerHTML = LINHAS.map(v=>`<label class="badge"><input type="checkbox" value="${v}" ${((l.linhas||[]).includes(v)?"checked":"")}/> ${v}</label>`).join("");
+    $("#u_concessoes").innerHTML = CONC.map(v=>`<label class="badge"><input type="checkbox" value="${v}" ${((l.concessoes||[]).includes(v)?"checked":"")}/> ${v}</label>`).join("");
+    $("#internadoHa").textContent = `Internado há ${elapsedSince(l.admAt).text}`;
+    openModal("#modalAtualizacao");
   }
 
-  function darAltaFlow(leito) {
-    console.log('Alta do leito:', leito);
-    // Implementar fluxo de alta
+  async function darAltaFlow(leito){
+    if(!await confirmAction("Confirmar ALTA deste paciente?")) return;
+    try {
+      await apiCall({ action:'alta', hospital: currentHospital, leito: leito });
+      if (isQRMode) {
+        closeModal("#modalAtualizacao");
+        showSuccessMessage();
+      } else {
+        await loadHospital(currentHospital);
+      }
+    } catch(error) { alert('Erro ao dar alta: ' + error.message); }
   }
 
-  function buildQRGrid() {
-    console.log('Gerando QR codes');
-    // Implementar geração de QR codes
+
+  // =======================================================================
+  // ==================== LÓGICA DOS DASHBOARDS ============================
+  // =======================================================================
+  function getDiasAteAlta(prevAlta) {
+    if (!prevAlta) return 4; 
+    if (prevAlta.includes('24h')) return 0;
+    if (prevAlta === '48h') return 1;
+    if (prevAlta === '72h') return 2;
+    if (prevAlta === '96h') return 3;
+    return 4; // 'Sem previsao' ou maior que 96h
   }
 
-  function startScan() {
-    console.log('Iniciando scan QR');
-    // Implementar scanner QR
+  function createChart(canvasId, chartInstanceName, config) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) {
+          logError(`Canvas com ID '${canvasId}' não encontrado.`);
+          return;
+      }
+      const ctx = canvas.getContext('2d');
+      if (window[chartInstanceName]) window[chartInstanceName].destroy();
+      window[chartInstanceName] = new Chart(ctx, config);
   }
 
-  // ======================= EVENT LISTENERS =======================
+  async function renderDashboards() {
+      logInfo("Renderizando dashboards...");
+      await loadAllData();
+      const allData = [...banco.H1, ...banco.H2];
+
+      if (activeTab === 'dash1') renderDash1();
+      if (activeTab === 'dash2') renderDash2(allData);
+      if (activeTab === 'dash3') renderDash3(allData);
+      if (activeTab === 'dash4') renderDash4(allData);
+  }
+  
+  function calculateHospitalProjections(hospitalData) {
+      const hoje = new Date();
+      const labels = [`Hoje (${hoje.toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'})})`];
+      for (let i = 1; i <= 7; i++) {
+          const diaFuturo = new Date(hoje);
+          diaFuturo.setDate(hoje.getDate() + i);
+          labels.push(`D+${i} (${diaFuturo.toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'})})`);
+      }
+
+      const linhasData = {};
+      const concessoesData = {};
+
+      (hospitalData || []).filter(p => p.status === 'Em uso').forEach(paciente => {
+          const dias = getDiasAteAlta(paciente.prevAlta) + 2; // +2 porque D+1 são 2 dias (hoje, amanhã)
+          (paciente.linhas || []).forEach(linha => {
+              if (!linhasData[linha]) linhasData[linha] = new Array(8).fill(0);
+              for (let d = 0; d < Math.min(dias, 8); d++) {
+                  linhasData[linha][d]++;
+              }
+          });
+          (paciente.concessoes || []).forEach(conc => {
+              if (!concessoesData[conc]) concessoesData[conc] = new Array(8).fill(0);
+              for (let d = 0; d < Math.min(dias, 8); d++) {
+                  concessoesData[conc][d]++;
+              }
+          });
+      });
+      return { labels, linhasData, concessoesData };
+  }
+
+  function renderDash1() {
+      ['H1', 'H2'].forEach(h => {
+          const dados = banco[h] || [];
+          const totalLeitos = HOSPITAIS[h].leitos.length;
+          const ocupados = dados.filter(l => l.status === 'Em uso').length;
+          const vagos = totalLeitos - ocupados;
+          const taxaOcupacao = totalLeitos > 0 ? Math.round((ocupados / totalLeitos) * 100) : 0;
+          
+          $(`#statOcupados${h}`).textContent = ocupados;
+          $(`#statVagos${h}`).textContent = vagos;
+          $(`#statTotal${h}`).textContent = totalLeitos;
+          $(`#gaugePercent${h}`).textContent = taxaOcupacao + '%';
+
+          createChart(`chartOcupacao${h}`, `chartGauge${h}`, { type: 'doughnut', data: { datasets: [{ data: [taxaOcupacao, 100 - taxaOcupacao], backgroundColor: [taxaOcupacao > 90 ? '#dc2626' : taxaOcupacao > 80 ? '#f59e0b' : '#16a34a', '#e5e7eb'], borderWidth: 0, }] }, options: { responsive: true, maintainAspectRatio: false, circumference: 180, rotation: -90, cutout: '75%', plugins: { tooltip: { enabled: false }, legend: { display: false } } } });
+          
+          const projAltas = { "24h": 0, "48h": 0, "72h": 0, "96h": 0 };
+          dados.filter(p => p.status === 'Em uso' && p.prevAlta && p.prevAlta !== 'Sem previsao').forEach(p => {
+              const key = p.prevAlta.includes('24h') ? '24h' : p.prevAlta;
+              if (projAltas.hasOwnProperty(key)) projAltas[key]++;
+          });
+          const projAltasData = Object.values(projAltas);
+          createChart(`chartAltas${h}_line`, `chartAltasInst${h}_line`, { type: 'line', data: { labels: Object.keys(projAltas), datasets: [{ label: 'Nº de Altas', data: projAltasData, backgroundColor: '#3b82f633', borderColor: '#3b82f6', fill: true, tension: 0.3 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } } });
+          createChart(`chartAltas${h}_hbar`, `chartAltasInst${h}_hbar`, { type: 'bar', data: { labels: Object.keys(projAltas), datasets: [{ label: 'Nº de Altas', data: projAltasData, backgroundColor: '#3b82f6' }] }, options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } } } });
+          
+          let kpiHtml = '';
+          let lastVal = 0;
+          Object.entries(projAltas).forEach(([key, value], index) => {
+              let trendIcon = '';
+              if (index > 0) {
+                  if (value > lastVal) trendIcon = '<span style="color:green">▲</span>';
+                  else if (value < lastVal) trendIcon = '<span style="color:red">▼</span>';
+                  else trendIcon = '<span style="color:gray">▬</span>';
+              }
+              kpiHtml += `<div class="kpi-grid-item"><div class="kpi-grid-value">${value}</div><div class="kpi-grid-label">em ${key}</div><div class="kpi-grid-trend">${trendIcon}</div></div>`;
+              lastVal = value;
+          });
+          $(`#altas-view-kpi-${h}`).innerHTML = kpiHtml;
+
+          const projections = calculateHospitalProjections(dados);
+          const sortedLinhas = Object.entries(projections.linhasData).sort((a,b) => a[0].localeCompare(b[0]));
+          const sortedConcessoes = Object.entries(projections.concessoesData).sort((a,b) => a[0].localeCompare(b[0]));
+
+          createChart(`chartLinhas${h}`, `chartLinhasInst${h}`, { type: 'line', data: { labels: projections.labels, datasets: sortedLinhas.map(([key, values]) => ({ label: key, data: values, borderColor: LINHAS_CORES[key] || '#cccccc', backgroundColor: (LINHAS_CORES[key] || '#cccccc') + '20', fill: false, tension: 0.3 })) }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } }, scales: { y: { beginAtZero: true } } } });
+          createChart(`chartConcessoes${h}`, `chartConcessoesInst${h}`, { type: 'line', data: { labels: projections.labels, datasets: sortedConcessoes.map(([key, values]) => ({ label: key, data: values, borderColor: CONC_CORES[key] || '#cccccc', backgroundColor: (CONC_CORES[key] || '#cccccc') + '20', fill: false, tension: 0.3 })) }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } }, scales: { y: { beginAtZero: true } } } });
+      });
+      logSuccess('Dashboard 1 renderizado.');
+  }
+
+  function renderDash2(allData) {
+      const totalLeitos = HOSPITAIS.H1.leitos.length + HOSPITAIS.H2.leitos.length;
+      const ocupados = allData.filter(p => p.status === 'Em uso').length;
+      $('#kpiOcupacaoGeral').textContent = totalLeitos > 0 ? `${Math.round(ocupados/totalLeitos*100)}%` : '0%';
+      $('#kpiAltas48h').textContent = allData.filter(p => p.prevAlta && (p.prevAlta.includes('24h') || p.prevAlta === '48h')).length;
+      $('#kpiUtiOcupados').textContent = allData.filter(p => p.tipo === 'UTI' && p.status === 'Em uso').length;
+      const tempos = allData.filter(p => p.status === 'Em uso').map(p => elapsedSince(p.admAt).days);
+      $('#kpiTMP').textContent = tempos.length > 0 ? `${Math.round(tempos.reduce((a,b)=>a+b,0)/tempos.length)} dias` : '0 dias';
+
+      const projGeral = { "Hoje":{H1:0, H2:0}, "D+1":{H1:0, H2:0}, "D+2":{H1:0, H2:0}, "D+3":{H1:0, H2:0}, "D+4":{H1:0, H2:0} };
+      allData.filter(p => p.status === 'Em uso').forEach(p => {
+          const dias = getDiasAteAlta(p.prevAlta);
+          const key = Object.keys(projGeral)[dias];
+          if(key) projGeral[key][p.hospital]++;
+      });
+      createChart('chartFluxoAltas', 'chartFluxoAltasInst', { type: 'bar', data: { labels: Object.keys(projGeral), datasets: [ { label: 'Neomater', data: Object.values(projGeral).map(d=>d.H1), backgroundColor: '#0a2b52' }, { label: 'Cruz Azul', data: Object.values(projGeral).map(d=>d.H2), backgroundColor: '#3b82f6' } ] }, options: { responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true, ticks: { stepSize: 1 } } } } });
+
+      $('#tableProxAltasBody').innerHTML = allData.filter(p => p.prevAlta && (p.prevAlta.includes('24h') || p.prevAlta === '48h')).map(p => `<tr><td>${p.nome}</td><td>${HOSPITAIS[p.hospital].nome}</td><td>${p.leito}</td><td>${p.tipo}</td></tr>`).join('');
+      $('#tableLongaPermBody').innerHTML = allData.filter(p => elapsedSince(p.admAt).days > 7).map(p => `<tr><td>${p.nome}</td><td>${HOSPITAIS[p.hospital].nome}</td><td>${p.leito}</td><td>${elapsedSince(p.admAt).days}</td></tr>`).join('');
+      logSuccess('Dashboard de Fluxo de Altas renderizado.');
+  }
+
+  function renderDash3(allData) {
+      const ocupados = allData.filter(p => p.status === 'Em uso');
+      const cuidadosCount = LINHAS.reduce((acc, l) => ({...acc, [l]: 0}), {});
+      ocupados.forEach(p => (p.linhas||[]).forEach(l => cuidadosCount[l]++));
+      createChart('chartTreemapCuidados', 'chartTreemapCuidadosInst', { type: 'treemap', data: { datasets: [{ tree: Object.entries(cuidadosCount).filter(([,val])=>val>0), key: 'value', labels: { display: true, color: 'white', font: {size: 14, weight: 'bold'} }, backgroundColor: (ctx) => LINHAS_CORES[ctx.raw._data.key] }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
+
+      const tmpPorCuidado = LINHAS.reduce((acc, l) => ({...acc, [l]: []}), {});
+      ocupados.forEach(p => (p.linhas||[]).forEach(l => tmpPorCuidado[l].push(elapsedSince(p.admAt).days)));
+      const avgTmp = Object.entries(tmpPorCuidado).map(([key, arr]) => ({ key: key, value: arr.length > 0 ? arr.reduce((a,b)=>a+b,0)/arr.length : 0 })).sort((a,b)=>b.value-a.value);
+      createChart('chartTmpCuidados', 'chartTmpCuidadosInst', { type: 'bar', data: { labels: avgTmp.map(d=>d.key), datasets: [{ label: 'Dias', data: avgTmp.map(d=>d.value), backgroundColor: avgTmp.map(d=>LINHAS_CORES[d.key]) }] }, options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: {x: {title: {display: true, text: 'Dias'}}}} });
+      
+      const bubbleData = ocupados.map(p => ({ x: p.pps || 0, y: p.idade || 0, r: elapsedSince(p.admAt).days + 5, linha: (p.linhas||[])[0] }));
+      createChart('chartBubblePerfil', 'chartBubblePerfilInst', { type: 'bubble', data: { datasets: LINHAS.map(l => ({ label: l, data: bubbleData.filter(d=>d.linha===l), backgroundColor: LINHAS_CORES[l] + '90' })) }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } }, scales: { x: { title: { display: true, text: 'PPS' } }, y: { title: { display: true, text: 'Idade' } } } } });
+      logSuccess('Dashboard de Análise Clínica renderizado.');
+  }
+
+  function renderDash4(allData) {
+      const kpis = CONC.reduce((acc, c) => ({...acc, [c]: 0}), {});
+      const ocupados = allData.filter(p => p.status === 'Em uso');
+      ocupados.forEach(p => (p.concessoes||[]).forEach(c => kpis[c]++));
+      $('#kpiPAD').textContent = kpis.PAD; $('#kpiFisio').textContent = kpis.Fisioterapia; $('#kpiFono').textContent = kpis.Fonoaudiologia; $('#kpiAsp').textContent = kpis.Aspiracoes; $('#kpiCurat').textContent = kpis.Curativos;
+
+      createChart('chartPolarConcessoes', 'chartPolarConcessoesInst', { type: 'polarArea', data: { labels: Object.keys(kpis), datasets: [{ data: Object.values(kpis), backgroundColor: Object.keys(kpis).map(k => CONC_CORES[k]+'B3') }] }, options: { responsive: true, maintainAspectRatio: false } });
+
+      const porHospital = { H1: CONC.reduce((a,c)=>({...a, [c]:0}),{}), H2: CONC.reduce((a,c)=>({...a, [c]:0}),{}) };
+      ocupados.forEach(p => (p.concessoes||[]).forEach(c => porHospital[p.hospital][c]++));
+      createChart('chartStackConcessoes', 'chartStackConcessoesInst', { type: 'bar', data: { labels: ['Neomater', 'Cruz Azul'], datasets: CONC.map(c => ({ label: c, data: [porHospital.H1[c], porHospital.H2[c]], backgroundColor: CONC_CORES[c] })) }, options: { responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true }, y: { stacked: true } } } });
+      logSuccess('Dashboard de Alocação de Recursos renderizado.');
+  }
+
+  // =======================================================================
+  // ===================== INICIALIZAÇÃO E EVENTOS =========================
+  // =======================================================================
   function setupEventListeners() {
     document.querySelectorAll(".tab").forEach(b=> b.onclick = ()=> setTab(b.dataset.tab) );
     $('#selHospital2').onchange = e=>{ setHospitalSelectors(e.target.value); loadHospital(e.target.value); };
     $("#btnH1").onclick = ()=>{ setHospitalSelectors("H1"); loadHospital("H1"); };
     $("#btnH2").onclick = ()=>{ setHospitalSelectors("H2"); loadHospital("H2"); };
-    $("#btnRefresh").onclick = ()=>{ 
-      logInfo("Refresh manual"); 
-      if (activeTab === 'dashboard') { 
-        loadAllData().then(() => renderDashboard()); 
-      } else { 
-        loadHospital(currentHospital); 
-      } 
-    };
+    $("#btnRefresh").onclick = ()=>{ logInfo("Refresh manual"); if (activeTab.startsWith('dash')) { renderDashboards() } else { loadHospital(currentHospital) } };
     $("#btnScan").onclick = ()=>{ openModal("#modalQRScan"); startScan(); };
     document.querySelectorAll("[data-close]").forEach(b=> b.onclick = ()=> closeModal(b.getAttribute("data-close")) );
     $("#btnBulkQR").onclick = ()=> openModal("#modalBulkQR");
     $("#b_generate").onclick = buildQRGrid;
+    $("#reloadPage").onclick = ()=> location.reload();
 
+    $('#a_cancel').onclick = async () => { if (await confirmAction(isQRMode ? "Cancelar? O sistema será encerrado." : "Cancelar?")) { closeModal("#modalAdmissao"); if(isQRMode) showSuccessMessage(); }};
+    $('#u_cancel').onclick = async () => { if (await confirmAction(isQRMode ? "Cancelar? O sistema será encerrado." : "Cancelar?")) { closeModal("#modalAtualizacao"); if(isQRMode) showSuccessMessage(); }};
+    $('#u_alta').onclick = ()=> darAltaFlow(selectedLeito);
+
+    $('#a_save').onclick = async ()=>{ if(!await confirmAction("Salvar e admitir paciente?")) return; try { const payload = { action: 'admit', hospital: currentHospital, leito: selectedLeito, nome: $("#a_nome").value.trim(), idade: Number($("#a_idade").value)||null, matricula: $("#a_matricula").value.trim(), pps: Number($("#a_pps").value)||null, spict: $("#a_spict").value, prevAlta: $("#a_prev").value, linhas: Array.from(document.querySelectorAll("#a_linhas input:checked")).map(i=>i.value), concessoes: Array.from(document.querySelectorAll("#a_concessoes input:checked")).map(i=>i.value) }; await apiCall(payload); closeModal("#modalAdmissao"); if (isQRMode) showSuccessMessage(); else await loadHospital(currentHospital); } catch(error) { alert('Erro: ' + error.message); } };
+    $('#u_save').onclick = async ()=>{ if(!await confirmAction("Salvar alterações?")) return; try { const payload = { action: 'update', hospital: currentHospital, leito: selectedLeito, idade: Number($("#u_idade").value)||null, pps: Number($("#u_pps").value)||null, spict: $("#u_spict").value, prevAlta: $("#u_prev").value, linhas: Array.from(document.querySelectorAll("#u_linhas input:checked")).map(i=>i.value), concessoes: Array.from(document.querySelectorAll("#u_concessoes input:checked")).map(i=>i.value) }; await apiCall(payload); closeModal("#modalAtualizacao"); if (isQRMode) showSuccessMessage(); else await loadHospital(currentHospital); } catch(error) { alert('Erro: ' + error.message); } };
+    
     document.querySelectorAll('#leitos2View th.sortable').forEach(th => {
         th.addEventListener('click', () => {
             const key = th.dataset.sort;
@@ -1099,9 +1219,19 @@
             renderTable();
         });
     });
+
+    document.querySelectorAll('.switcher-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const h = btn.dataset.h;
+            const view = btn.dataset.view;
+            document.querySelectorAll(`.switcher-btn[data-h='${h}']`).forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            ['line','hbar','kpi'].forEach(v => $(`#altas-view-${v}-${h}`).classList.add('hidden'));
+            $(`#altas-view-${view}-${h}`).classList.remove('hidden');
+        });
+    });
   }
   
-  // ======================= INICIALIZAÇÃO =======================
   (async function init(){
     logInfo("=== INICIALIZANDO ARCHIPELAGO MVP ===");
     setupEventListeners();
@@ -1114,18 +1244,18 @@
     
     if(h && ["H1","H2"].includes(h) && leito > 0){
       logInfo(`🏥 MODO QR DETECTADO - Hospital: ${h}, Leito: ${leito}`);
-      // QR Mode implementation would go here
+      // enterQrMode(h, leito); // Função de QR omitida para manter o foco
     } else {
       logInfo("💼 MODO PORTAL DETECTADO - Sessão gestor iniciada");
       setHospitalSelectors("H1");
-      setTab("dashboard");
+      setTab("leitos");
       await loadAllData();
-      renderDashboard();
       
-      autoRefreshInterval = setInterval(async () => {
+      autoRefreshInterval = setInterval(() => {
         logInfo("Auto-refresh executado");
-        await loadAllData();
-        if(activeTab === 'dashboard') renderDashboard();
+        Promise.all([loadHospital("H1"), loadHospital("H2")]).then(() => {
+          if(activeTab.startsWith('dash')) renderDashboards();
+        });
       }, 60000);
       
       updateIndicatorInterval = setInterval(updateTimeIndicator, 1000);
@@ -1133,6 +1263,6 @@
     logInfo("=== INICIALIZAÇÃO CONCLUÍDA ===");
   })();
 
-  </script>
+</script>
 </body>
 </html>
