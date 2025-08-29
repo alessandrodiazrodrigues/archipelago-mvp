@@ -478,7 +478,7 @@
   <script>
   // -------------------- CONFIGURAÇÃO DA API --------------------
   // IMPORTANTE: Substitua pela URL do seu Google Apps Script Web App
-  const API_URL = 'https://script.google.com/macros/s/AKfycbxoleU3gSTq8psiFtVrTedgH0ZGksrAbsJPxfp9SWB7HHZRPdFAPvcfKMQH6AKuL5Gx/exec';
+  const API_URL = 'https://script.google.com/macros/s/AKfycbzn8BlUD8by0GykYlJa1pmbYtuXOr8aEUzOOBhpfSGl-i1x8LhAnGSRzqdyV2lANnIP/exec';
 
   // Sistema de logs para debug
   function logInfo(message, data = null) {
@@ -648,41 +648,7 @@
     logInfo(`Iniciando operação: ${payload.action}`, payload);
     
     try {
-      logInfo(`Fazendo requisição POST para: ${API_URL}`);
-      
-      const res = await fetch(API_URL, { 
-        method: 'POST', 
-        headers: { 'Content-Type': 'application/json' }, 
-        body: JSON.stringify(payload)
-      });
-      
-      logInfo(`Resposta POST recebida. Status: ${res.status} ${res.statusText}`);
-      
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-      }
-      
-      const json = await res.json();
-      logInfo(`Resposta JSON da operação ${payload.action}:`, json);
-      
-      if (!json.ok) {
-        throw new Error(json.error || 'Erro na operação');
-      }
-      
-      logSuccess(`Operação ${payload.action} realizada com sucesso!`);
-      return json.data;
-      
-    } catch(error) {
-      logError(`Erro na operação ${payload.action}:`, error);
-      
-      if (error.name === 'TypeError' && error.message.includes('fetch')) {
-        logError('Erro de conectividade detectado');
-        throw new Error('Erro de conexão. Verifique sua internet e a configuração da API.');
-      }
-      
-      throw error;
-    }
-  }
+      logInfo(`Fazendo requisição POST para: ${
 
   // -------------------- RENDER – CARDS --------------------
   function renderCards(){
