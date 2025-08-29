@@ -201,10 +201,12 @@
       <div class="row">
         <button class="btn primary" id="btnBulkQR">QR Codes (imprimir)</button>
         <button class="btn" id="btnScan">Ler QR Code</button>
+        <button class="btn" id="btnRefresh">🔄 Atualizar</button>
       </div>
       <div class="row">
         <button class="btn" data-h="H1" id="btnH1">Neomater</button>
         <button class="btn" data-h="H2" id="btnH2">Cruz Azul</button>
+        <span id="lastUpdateInfo" style="margin-left:10px;padding:5px 10px;background:#f3f4f6;border-radius:8px;font-size:12px;color:#6b7280;">Atualizado há 0s</span>
       </div>
     </div>
 
@@ -249,6 +251,7 @@
     <h2>Obrigado!</h2>
     <p>Operação realizada com sucesso.</p>
     <p style="color:#6b7280;font-size:14px">Você pode fechar o navegador.</p>
+    <button class="btn primary" onclick="window.close()">Fechar Navegador</button>
   </div>
 
   <!-- ======= MODAIS ======= -->
@@ -520,6 +523,9 @@
   let activeTab = "leitos";
   let selectedLeito = null;
   let isQRMode = false;
+  let lastUpdateTime = Date.now();
+  let autoRefreshInterval = null;
+  let updateIndicatorInterval = null;
 
   // Timer QR (somente em modo QR)
   let qrTick = null;
@@ -616,6 +622,7 @@
       
       // Sucesso - usa dados da API
       banco[h] = json.data;
+      lastUpdateTime = Date.now(); // Atualiza timestamp
       logSuccess(`Dados carregados com sucesso para ${h}. Total de leitos: ${json.data.length}`);
       logInfo(`Estrutura dos dados:`, json.data.slice(0, 2)); // mostra apenas os primeiros 2 para não poluir
       
@@ -641,6 +648,21 @@
       banco[h] = [];
       if (activeTab==='leitos') renderCards();
       if (activeTab==='leitos2') renderTable();
+    }
+  }
+
+  // Função para atualizar indicador de tempo
+  function updateTimeIndicator() {
+    if(isQRMode) return; // Não mostra no modo QR
+    const indicator = document.getElementById('lastUpdateInfo');
+    if(indicator) {
+      const elapsed = Math.floor((Date.now() - lastUpdateTime) / 1000);
+      if(elapsed < 60) {
+        indicator.textContent = `Atualizado há ${elapsed}s`;
+      } else {
+        const minutes = Math.floor(elapsed / 60);
+        indicator.textContent = `Atualizado há ${minutes}min`;
+      }
     }
   }
 
@@ -1091,6 +1113,12 @@
   $("#btnH1").onclick = ()=>{ setHospitalSelectors("H1"); loadHospital("H1"); };
   $("#btnH2").onclick = ()=>{ setHospitalSelectors("H2"); loadHospital("H2"); };
 
+  // Botão de refresh manual
+  $("#btnRefresh").onclick = ()=>{ 
+    logInfo("Refresh manual executado");
+    loadHospital(currentHospital); 
+  };
+
   // QR scan (para uso do gestor em desktop)
   $("#btnScan").onclick = ()=>{ openModal("#modalQRScan"); startScan(); };
   document.querySelectorAll("[data-close]").forEach(b=> b.onclick = ()=> closeModal(b.getAttribute("data-close")) );
@@ -1125,6 +1153,17 @@
       setHospitalSelectors("H1");
       setTab("leitos");
       loadHospital("H1");
+      
+      // Auto-refresh a cada 1 minuto no modo portal
+      autoRefreshInterval = setInterval(() => {
+        if(activeTab === 'leitos' || activeTab === 'leitos2') {
+          logInfo("Auto-refresh executado");
+          loadHospital(currentHospital);
+        }
+      }, 60000); // 60 segundos
+      
+      // Atualiza indicador de tempo a cada segundo
+      updateIndicatorInterval = setInterval(updateTimeIndicator, 1000);
     }
     
     logInfo("=== INICIALIZAÇÃO CONCLUÍDA ===");
