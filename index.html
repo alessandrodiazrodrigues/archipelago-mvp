@@ -1,932 +1,855 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Protótipo MVP – Archipelago Dashboard</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Archipelago – Gestão de Leitos (MVP)</title>
+
+  <!-- ======= ESTILO ======= -->
   <style>
     :root{
-      --brand:#0F3D73;
-      --brand-2:#0B2C52;
-      --accent:#1F73B7;
-      --bg:#f6f8fa;
+      --nav:#0a2b52;          /* azul escuro Prevent */
+      --nav-2:#083052;
+      --bg:#eef3f8;           /* fundo frio */
+      --card:#ffffff;
       --text:#1f2937;
       --muted:#6b7280;
-      --success:#16a34a;
-      --warning:#f59e0b;
-      --danger:#dc2626;
-      --card:#ffffff;
       --border:#e5e7eb;
+      --ok:#16a34a;           /* VAGO */
+      --warn:#f59e0b;         /* OCUPADO */
+      --danger:#dc2626;       /* UTI / ações críticas */
+      --shadow:0 10px 30px rgba(0,0,0,.08);
     }
     *{box-sizing:border-box}
     html,body{height:100%}
-    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,Helvetica Neue,Arial;color:var(--text);background:var(--bg)}
+    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Helvetica Neue,Arial;color:var(--text);background:var(--bg)}
+
+    /* Nav */
     header{
-      background:linear-gradient(90deg,var(--brand),var(--brand-2));
-      color:#fff;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap
+      background:linear-gradient(90deg,var(--nav),var(--nav-2));
+      color:#fff; padding:12px 16px; display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;
     }
-    .brand{display:flex;align-items:center;gap:10px}
-    .logo{width:40px;height:40px;border-radius:10px;background:#fff1;display:grid;place-items:center;border:1px solid #ffffff30}
-    .logo::after{content:"PS";font-weight:700;letter-spacing:1px}
+    .brand{display:flex; align-items:center; gap:10px}
+    .logo{width:40px;height:40px;border-radius:10px;background:#fff1;display:grid;place-items:center;border:1px solid #ffffff33}
+    .logo::after{content:"PS";font-weight:700}
     .title h1{margin:0;font-size:18px}
-    .title small{display:block;color:#e6ecf5}
+    .title small{display:block;color:#dbe7f5}
+    .timer{margin-left:10px;padding:4px 8px;border-radius:999px;background:#ffffff20;border:1px solid #ffffff40}
     nav.tabs{display:flex;gap:8px;flex-wrap:wrap}
     .tab{background:#ffffff1a;border:1px solid #ffffff33;color:#fff;padding:8px 12px;border-radius:10px;cursor:pointer;user-select:none}
-    .tab.active{background:#fff;color:var(--brand);border-color:#fff}
-    .select{appearance:none;border:1px solid #ffffff66;background:#ffffff1a;color:#fff;padding:8px 10px;border-radius:10px}
+    .tab.active{background:#fff;color:var(--nav);border-color:#fff}
 
-    /* App root + modo Mobile */
-    #appRoot{max-width:1200px;margin:0 auto}
-    .mobile-sim{
-      max-width:420px !important;
-      margin:0 auto;
-      border:10px solid #0b0b0b;
-      border-radius:24px;
-      box-shadow:0 20px 60px #00000033;
-      overflow:hidden;
-      background:#000;
-    }
-    .mobile-sim header{border-top-left-radius:0;border-top-right-radius:0}
-
-    main{max-width:1200px;margin:20px auto;padding:0 16px 96px}
-    .toolbar{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap}
+    /* Layout */
+    main{max-width:1200px;margin:18px auto 100px;padding:0 16px}
+    .toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+    .toolbar .row{display:flex;gap:8px;flex-wrap:wrap}
     .btn{appearance:none;border:1px solid var(--border);background:#fff;padding:10px 14px;border-radius:10px;cursor:pointer}
-    .btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
-    .btn.ghost{background:transparent;color:var(--brand);border-color:var(--brand)}
-    .stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:10px 0 16px}
-    .stat{background:var(--card);border:1px solid var(--border);padding:14px;border-radius:12px}
-    .stat .kpi{font-size:22px;font-weight:700}
-    .grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
-    @media (max-width:1000px){.grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
-    @media (max-width:800px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
-    @media (max-width:640px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-    .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px;cursor:pointer;transition:transform .06s ease, box-shadow .06s ease}
-    .card:hover{transform:translateY(-2px);box-shadow:0 6px 18px #00000012}
-    .card .row{display:flex;align-items:center;justify-content:space-between;gap:8px}
-    .badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:4px 8px;border-radius:999px;border:1px solid var(--border);background:#f9fafb;color:var(--muted)}
-    .dot{width:8px;height:8px;border-radius:50%}
-    .dot.vago{background:var(--success)}
-    .dot.ocupado{background:var(--warning)}
-    .mini{font-size:12px;color:var(--muted)}
-    .h{margin:10px 0 2px;font-weight:700}
-    .badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
-    .con{font-size:11px;background:#eef2ff;border:1px solid #dbeafe;color:#1e40af}
-    .table{width:100%;border-collapse:separate;border-spacing:0 8px}
-    .table th{font-size:12px;color:var(--muted);font-weight:600;text-align:left;padding:0 8px}
-    .table td{background:var(--card);border:1px solid var(--border);padding:8px;border-radius:10px}
-    .pill{display:inline-block;border-radius:999px;padding:2px 8px;font-size:12px;border:1px solid var(--border);background:#f9fafb;color:var(--muted)}
-    .footer{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--border);padding:10px 16px;color:var(--muted);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap}
+    .btn.primary{background:var(--nav);border-color:var(--nav);color:#fff}
+    .btn.ghost{background:transparent;color:#fff;border-color:#ffffff66}
+    .btn.danger{background:var(--danger);border-color:var(--danger);color:#fff}
+    .select{appearance:none;border:1px solid var(--border);background:#fff;padding:10px 12px;border-radius:10px}
+
+    /* Cards (grade de leitos) */
+    .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+    @media (max-width:900px){.grid{grid-template-columns:1fr}}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);padding:14px}
+    .card .top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+    .badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:#f9fafb;color:var(--muted);font-size:12px}
+    .status{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;color:#111;border:1px solid var(--border);background:#fff}
+    .status.ok{background:#ecfdf5;border-color:#bbf7d0;color:#065f46}
+    .status.warn{background:#fff7ed;border-color:#fed7aa;color:#92400e}
+    .tipo{font-size:12px;color:#fff;background:#6b7280;border-radius:999px;padding:4px 8px}
+    .tipo.uti{background:var(--danger)}
+    .tipo.enf{background:#0ea5e9}
+    .row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+    .field{background:#f9fafb;border:1px solid var(--border);border-radius:10px;padding:8px}
+    .field .label{font-size:11px;color:#6b7280}
+    .field .value{font-weight:600}
+    .wrap{display:flex;flex-wrap:wrap;gap:6px}
+    .chip{font-size:12px;background:#eef2ff;border:1px solid #dbeafe;color:#1e40af;padding:2px 8px;border-radius:999px}
+    .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:10px}
+
+    /* Tabela (Leitos 2) */
+    table{width:100%;border-collapse:separate;border-spacing:0 8px}
+    th,td{background:#fff;border:1px solid var(--border);padding:8px;border-radius:8px}
+    th{font-size:12px;color:#6b7280;text-align:left}
+    td{font-size:13px}
     .hidden{display:none}
 
     /* Modais */
     .backdrop{position:fixed;inset:0;background:#0b1a2a99;display:none;align-items:center;justify-content:center;padding:16px;z-index:1000}
-    .modal{background:#fff;max-width:820px;width:100%;border-radius:14px;border:1px solid var(--border);box-shadow:0 10px 28px #00000024}
-    .modal header{background:none;color:var(--text);display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border)}
+    .modal{background:#fff;max-width:860px;width:100%;border-radius:16px;border:1px solid var(--border);box-shadow:0 10px 28px rgba(0,0,0,.25)}
+    .modal header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border)}
     .modal .content{padding:16px}
-    .field{margin-bottom:12px}
-    .label{font-size:13px;color:var(--muted);margin-bottom:4px}
-    .input, .select2, textarea{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px;outline:none}
-    .input:focus, .select2:focus, textarea:focus{border-color:var(--brand);box-shadow:0 0 0 3px #0f3d7320}
+    .modal .actions{display:flex;gap:8px;justify-content:flex-end;padding:12px 16px;border-top:1px solid var(--border)}
     .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
     .row3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-    .actions{display:flex;gap:8px;justify-content:flex-end;padding:12px 16px;border-top:1px solid var(--border)}
+    .input,.select2,textarea{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px}
+    .label{font-size:12px;color:#6b7280;margin-bottom:4px;display:block}
     .danger{color:var(--danger)}
-    .checklist{display:flex;flex-wrap:wrap;gap:8px}
-    .checklist label{display:flex;align-items:center;gap:6px;border:1px solid var(--border);padding:6px 10px;border-radius:999px;background:#f9fafb;font-size:13px}
+    .footer{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--border);padding:10px 16px;color:#6b7280;display:flex;align-items:center;justify-content:space-between}
 
-    /* Grades de hospitais */
-    .hospital-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
-    @media (max-width:900px){.hospital-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-    @media (max-width:560px){.hospital-grid{grid-template-columns:1fr}}
-
-    /* Gestor (cards de gráfico) */
-    .chart-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px}
-    .chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    @media (max-width:900px){.chart-grid{grid-template-columns:1fr}}
-
-    /* Gestor 2×2 */
-    .gestor2-header{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:10px 0 16px}
-    .gestor2-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px}
-    .gestor2-card h4{margin:0 0 8px;font-size:14px}
-    .gestor2-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    .gestor2-mini{height:150px;position:relative}
-    @media (max-width:900px){
-      .gestor2-header{grid-template-columns:repeat(2,minmax(0,1fr))}
-      .gestor2-grid{grid-template-columns:1fr}
+    /* QR em massa (impressão) */
+    .qr-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+    .qr-cell{background:#fff;border:1px solid var(--border);border-radius:12px;padding:10px;text-align:center}
+    .qr-box{display:inline-block;border:1px solid var(--border);padding:8px;border-radius:10px;background:#fff}
+    @media print{
+      header,.toolbar,.footer,.modal .actions{display:none !important}
+      body{background:#fff}
+      .modal{box-shadow:none;border:none}
+      .qr-grid{grid-template-columns:repeat(3,1fr)}
     }
   </style>
 </head>
 <body>
-<div id="appRoot">
+
+  <!-- ======= BARRA SUPERIOR ======= -->
   <header>
     <div class="brand">
-      <div class="logo" aria-label="Prevent Senior logo" title="Prevent Senior"></div>
+      <div class="logo"></div>
       <div class="title">
-        <h1>Protótipo MVP – Archipelago Dashboard</h1>
-        <small>Gestão de Leitos • Multi-Hospital (Demo)</small>
+        <h1>Archipelago – Gestão de Leitos</h1>
+        <small>Protótipo (estado atual, sem histórico)</small>
       </div>
+      <div id="timerBadge" class="timer">⏱ sessão: --:--</div>
     </div>
     <nav class="tabs" role="tablist">
-      <button class="tab active" data-tab="hospitais" aria-selected="true">Hospitais</button>
-      <button class="tab" data-tab="leitos" aria-selected="false">Leitos</button>
-      <button class="tab" data-tab="dashboard" aria-selected="false">Dashboard</button>
-      <button class="tab" data-tab="gestor" aria-selected="false">Gestor</button>
-      <button class="tab" data-tab="gestor2" aria-selected="false">Gestor 2×2</button>
+      <button class="tab active" data-tab="leitos">Leitos (Cards)</button>
+      <button class="tab" data-tab="leitos2">Leitos 2 (Tabela)</button>
     </nav>
-    <select id="selHospital" class="select" title="Hospital atual">
-      <option value="H1">Hospital 1</option>
-      <option value="H2">Hospital 2</option>
-      <option value="H3">Hospital 3</option>
-      <option value="H4">Hospital 4</option>
-    </select>
   </header>
 
+  <!-- ======= CONTEÚDO ======= -->
   <main>
+    <!-- Toolbar superior (Gestor) -->
     <div class="toolbar">
-      <div class="muted">Demo estática (sem backend) para apresentação do fluxo</div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn" id="btnQr">Ler QR Code</button>
-        <button class="btn ghost" id="btnShowQRCodes">QR Leitos (1 e 3)</button>
-        <button class="btn ghost" id="btnLogin">Entrar com Google</button>
-        <button class="btn" id="btnRefresh">Atualizar agora</button>
-        <button class="btn primary" id="btnSimularMobile">Simular Mobile</button>
+      <div class="row">
+        <button class="btn primary" id="btnBulkQR">QR Codes (imprimir)</button>
+        <button class="btn" id="btnScan">Ler QR Code</button>
+      </div>
+      <div class="row">
+        <button class="btn" data-h="H1" id="btnH1">Neomater</button>
+        <button class="btn" data-h="H2" id="btnH2">Cruz Azul</button>
+        <select id="selHospital" class="select">
+          <option value="H1">Neomater</option>
+          <option value="H2">Cruz Azul</option>
+        </select>
       </div>
     </div>
 
-    <!-- KPIs (por hospital) -->
-    <section id="stats" class="stats hidden">
-      <div class="stat"><div class="mini">Leitos em uso</div><div class="kpi" id="kpiOcupados">–</div></div>
-      <div class="stat"><div class="mini">Leitos vagos</div><div class="kpi" id="kpiVagos">–</div></div>
-      <div class="stat"><div class="mini">Altas 24h</div><div class="kpi" id="kpiAltas24">–</div></div>
-      <div class="stat"><div class="mini">Top concessão</div><div class="kpi" id="kpiTopConc">–</div></div>
-    </section>
+    <!-- Grade de Cards -->
+    <section id="leitosView" class="grid" aria-label="Leitos (Cards)"></section>
 
-    <!-- VISÃO GERAL DE HOSPITAIS -->
-    <section id="hospitaisView">
-      <h3 style="margin:4px 0 10px">Visão geral (4 hospitais)</h3>
-      <div id="resumoGeral" class="stats" style="grid-template-columns:repeat(4,minmax(0,1fr));"></div>
-      <div class="hospital-grid" id="hospitaisGrid"></div>
-    </section>
-
-    <!-- GRID DE LEITOS (por hospital) -->
-    <section id="leitosView" class="grid hidden" aria-label="Leitos"></section>
-
-    <!-- DASHBOARD (por hospital) -->
-    <section id="dashboardView" class="hidden">
-      <table class="table">
+    <!-- Tabela (Leitos 2) -->
+    <section id="leitos2View" class="hidden">
+      <div style="margin-bottom:8px">
+        <select id="selHospital2" class="select">
+          <option value="H1">Neomater</option>
+          <option value="H2">Cruz Azul</option>
+        </select>
+      </div>
+      <table>
         <thead>
           <tr>
-            <th>Leito</th>
-            <th>Status</th>
-            <th>Paciente</th>
-            <th>Previsão de Alta</th>
-            <th>Linha de Cuidado</th>
-            <th>Concessões</th>
+            <th>Leito</th><th>Tipo</th><th>Status</th><th>Nome</th><th>Matrícula</th><th>Idade</th>
+            <th>Admissão</th><th>PPS</th><th>SPICT-BR</th><th>Prev. Alta</th>
+            <th>Linhas de Cuidado</th><th>Concessões</th>
           </tr>
         </thead>
-        <tbody id="dashBody"></tbody>
+        <tbody id="tbLeitos"></tbody>
       </table>
-    </section>
-
-    <!-- GESTOR (gráficos gerais) -->
-    <section id="gestorView" class="hidden" aria-label="Painel do Gestor">
-      <div class="chart-grid">
-        <div class="chart-card">
-          <div class="mini">Ocupação por hospital</div>
-          <canvas id="chartOcupacao" height="160"></canvas>
-        </div>
-        <div class="chart-card">
-          <div class="mini">Previsão de altas (próximas 24h)</div>
-          <canvas id="chartAltas24" height="160"></canvas>
-        </div>
-      </div>
-    </section>
-
-    <!-- GESTOR 2×2 (todos os hospitais) -->
-    <section id="gestor2View" class="hidden" aria-label="Painel do Gestor (2x2)">
-      <div id="gestor2Header" class="gestor2-header"></div>
-      <div id="gestor2Grid" class="hospital-grid" style="margin-top:8px"></div>
     </section>
   </main>
 
-  <!-- MODAIS -->
-  <div id="modalConfirm" class="backdrop" aria-hidden="true">
+  <!-- ======= RODAPÉ ======= -->
+  <div class="footer">
+    <div>© Protótipo ilustrativo – Prevent Senior (sem dados reais)</div>
+    <div><strong>MVP Archipelago</strong></div>
+  </div>
+
+  <!-- ======= MODAIS ======= -->
+
+  <!-- PIN -->
+  <div id="modalPin" class="backdrop" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true">
-      <header>
-        <div><strong>Confirmação do paciente</strong></div>
-        <button class="btn" data-close="#modalConfirm">Fechar</button>
-      </header>
+      <header><strong>Digite o PIN de Acesso</strong><button class="btn" data-close="#modalPin">Fechar</button></header>
       <div class="content">
-        <div class="field">
-          <div class="label">Paciente atual</div>
-          <div><strong id="c_nome"></strong> • Matrícula <span id="c_matricula" class="pill"></span></div>
-        </div>
-        <div class="field">
-          <div class="label">Data de nascimento</div>
-          <div><span class="muted">__/</span><strong id="c_mes"></strong><span class="muted">/</span><strong id="c_ano"></strong></div>
-          <div class="mini" style="margin-top:4px">Digite apenas o <strong>dia</strong> (DD) de nascimento.</div>
-        </div>
-        <div class="field row3">
+        <div id="pin_box" class="row2">
           <div>
-            <label class="label" for="c_dia">Dia (DD)</label>
-            <input id="c_dia" class="input" inputmode="numeric" maxlength="2" placeholder="DD"/>
+            <label class="label" for="pin_input">PIN (padrão do MVP: 1234)</label>
+            <input id="pin_input" class="input" inputmode="numeric" maxlength="4" placeholder="1234" />
           </div>
           <div>
-            <label class="label">Leito</label>
-            <div class="pill" id="c_leito"></div>
-          </div>
-          <div>
-            <label class="label">Hospital</label>
-            <div class="pill" id="c_hospital"></div>
+            <label class="label">&nbsp;</label>
+            <button id="pin_ok" class="btn primary" style="width:100%">Entrar</button>
           </div>
         </div>
-        <div id="c_erro" class="danger hidden">Dia não confere. Tente novamente.</div>
+        <div id="pin_msg" class="danger hidden">PIN incorreto.</div>
       </div>
       <div class="actions">
-        <button class="btn" data-close="#modalConfirm">Cancelar</button>
-        <button class="btn primary" id="btnConfirmar">Confirmar</button>
+        <button class="btn" data-close="#modalPin">Cancelar</button>
+        <button id="pin_ok2" class="btn primary">Entrar</button>
       </div>
     </div>
   </div>
 
+  <!-- Admissão -->
   <div id="modalAdmissao" class="backdrop" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true">
       <header>
-        <div><strong>Admissão de Paciente</strong></div>
+        <strong>Admissão de Paciente</strong>
         <button class="btn" data-close="#modalAdmissao">Fechar</button>
       </header>
       <div class="content">
-        <div class="field row2">
-          <div><label class="label">Leito</label><div id="a_leito" class="pill"></div></div>
-          <div><label class="label">Hospital</label><div id="a_hospital" class="pill"></div></div>
+        <div class="row3">
+          <div><span class="label">Hospital</span><div id="a_hospital" class="badge"></div></div>
+          <div><span class="label">Leito</span><div id="a_leito" class="badge"></div></div>
+          <div><span class="label">Tipo</span><div id="a_tipo" class="badge"></div></div>
         </div>
-        <div class="field row2">
-          <div><label class="label" for="a_nome">Nome completo</label><input id="a_nome" class="input" placeholder="Nome do paciente"/></div>
-          <div><label class="label" for="a_matricula">Matrícula</label><input id="a_matricula" class="input" placeholder="000000"/></div>
+        <div class="row2" style="margin-top:10px">
+          <div>
+            <label class="label" for="a_nome">Nome completo</label>
+            <input id="a_nome" class="input" />
+          </div>
+          <div>
+            <label class="label" for="a_idade">Idade</label>
+            <input id="a_idade" class="input" inputmode="numeric" />
+          </div>
         </div>
-        <div class="field row3">
-          <div><label class="label" for="a_dia">Nascimento (dia)</label><input id="a_dia" class="input" inputmode="numeric" maxlength="2" placeholder="DD"/></div>
-          <div><label class="label" for="a_mes">Nascimento (mês)</label><input id="a_mes" class="input" inputmode="numeric" maxlength="2" placeholder="MM"/></div>
-          <div><label class="label" for="a_ano">Nascimento (ano)</label><input id="a_ano" class="input" inputmode="numeric" maxlength="4" placeholder="AAAA"/></div>
+        <div class="row3">
+          <div>
+            <label class="label" for="a_matricula">Matrícula (número)</label>
+            <input id="a_matricula" class="input" inputmode="numeric" />
+          </div>
+          <div>
+            <label class="label" for="a_pps">PPS (0–10)</label>
+            <input id="a_pps" class="input" inputmode="numeric" />
+          </div>
+          <div>
+            <label class="label" for="a_spict">SPICT-BR</label>
+            <select id="a_spict" class="select2">
+              <option value="elegivel">Elegível</option>
+              <option value="nao_elegivel">Não elegível</option>
+            </select>
+          </div>
         </div>
-        <div class="field row3">
+
+        <div class="row3">
           <div>
             <label class="label" for="a_prev">Previsão de alta</label>
-            <select id="a_prev" class="select2"><option>24h</option><option>48h</option><option>72h</option><option>+72h</option></select>
+            <select id="a_prev" class="select2">
+              <option>24h Ouro</option><option>24h 2R</option><option>24h 3R</option>
+              <option>48h</option><option>72h</option><option>96h</option><option>Sem previsão</option>
+            </select>
           </div>
           <div>
-            <label class="label" for="a_linha">Linha de cuidado</label>
-            <select id="a_linha" class="select2"><option>APS</option><option>Geriatria</option><option>Outras</option></select>
+            <span class="label">Linhas de cuidado (multi)</span>
+            <div id="a_linhas" class="wrap"></div>
           </div>
           <div>
-            <label class="label" for="a_pps">PPS</label>
-            <input id="a_pps" class="input" inputmode="numeric" placeholder="0–100"/>
+            <span class="label">Concessões (multi)</span>
+            <div id="a_concessoes" class="wrap"></div>
           </div>
         </div>
-        <div class="field">
-          <div class="label">Concessões necessárias</div>
-          <div class="checklist" id="a_concessoes"></div>
+        <div class="mini" style="margin-top:8px;color:#6b7280">
+          * Data e hora de admissão serão registradas automaticamente ao salvar.
         </div>
       </div>
       <div class="actions">
-        <button class="btn" data-close="#modalAdmissao">Cancelar</button>
-        <button class="btn primary">Salvar (demo)</button>
+        <button class="btn" id="a_cancel">Cancelar</button>
+        <button class="btn primary" id="a_save">Salvar e Admitir</button>
       </div>
     </div>
   </div>
 
+  <!-- Atualização -->
   <div id="modalAtualizacao" class="backdrop" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true">
       <header>
-        <div><strong>Atualização de Paciente</strong></div>
+        <strong>Atualização de Paciente</strong>
         <button class="btn" data-close="#modalAtualizacao">Fechar</button>
       </header>
       <div class="content">
-        <div class="field row2">
-          <div><label class="label">Leito</label><div id="u_leito" class="pill"></div></div>
-          <div><label class="label">Hospital</label><div id="u_hospital" class="pill"></div></div>
+        <div class="row3">
+          <div><span class="label">Hospital</span><div id="u_hospital" class="badge"></div></div>
+          <div><span class="label">Leito</span><div id="u_leito" class="badge"></div></div>
+          <div><span class="label">Tipo</span><div id="u_tipo" class="badge"></div></div>
         </div>
-        <div class="field row2">
-          <div><label class="label">Nome</label><input id="u_nome" class="input"/></div>
-          <div><label class="label">Matrícula</label><input id="u_matricula" class="input"/></div>
+
+        <div class="row3" style="margin-top:10px">
+          <div>
+            <label class="label">Nome (bloqueado)</label>
+            <input id="u_nome" class="input" disabled />
+          </div>
+          <div>
+            <label class="label">Matrícula (bloqueado)</label>
+            <input id="u_matricula" class="input" disabled />
+          </div>
+          <div>
+            <label class="label">Admissão (bloqueado)</label>
+            <input id="u_adm" class="input" disabled />
+          </div>
         </div>
-        <div class="field row3">
+
+        <div class="row3">
+          <div>
+            <label class="label" for="u_idade">Idade</label>
+            <input id="u_idade" class="input" inputmode="numeric" />
+          </div>
+          <div>
+            <label class="label" for="u_pps">PPS (0–10)</label>
+            <input id="u_pps" class="input" inputmode="numeric" />
+          </div>
+          <div>
+            <label class="label" for="u_spict">SPICT-BR</label>
+            <select id="u_spict" class="select2">
+              <option value="elegivel">Elegível</option>
+              <option value="nao_elegivel">Não elegível</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row3">
           <div>
             <label class="label" for="u_prev">Previsão de alta</label>
-            <select id="u_prev" class="select2"><option>24h</option><option>48h</option><option>72h</option><option>+72h</option></select>
+            <select id="u_prev" class="select2">
+              <option>24h Ouro</option><option>24h 2R</option><option>24h 3R</option>
+              <option>48h</option><option>72h</option><option>96h</option><option>Sem previsão</option>
+            </select>
           </div>
           <div>
-            <label class="label" for="u_linha">Linha de cuidado</label>
-            <select id="u_linha" class="select2"><option>APS</option><option>Geriatria</option><option>Outras</option></select>
+            <span class="label">Linhas de cuidado (multi)</span>
+            <div id="u_linhas" class="wrap"></div>
           </div>
           <div>
-            <label class="label" for="u_pps">PPS</label>
-            <input id="u_pps" class="input" inputmode="numeric"/>
+            <span class="label">Concessões (multi)</span>
+            <div id="u_concessoes" class="wrap"></div>
           </div>
         </div>
-        <div class="field">
-          <div class="label">Concessões</div>
-          <div class="checklist" id="u_concessoes"></div>
-        </div>
+
+        <div class="mini" id="internadoHa" style="margin-top:8px;color:#6b7280"></div>
       </div>
       <div class="actions">
-        <button class="btn">Salvar (demo)</button>
-        <button class="btn primary">Dar Alta (demo)</button>
+        <button class="btn" id="u_cancel">Cancelar</button>
+        <button class="btn primary" id="u_save">Salvar</button>
+        <button class="btn danger" id="u_alta">Dar Alta</button>
       </div>
     </div>
   </div>
 
+  <!-- Confirm genérico -->
+  <div id="modalConfirm" class="backdrop" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" style="max-width:520px">
+      <header><strong>Confirmação</strong></header>
+      <div class="content"><div id="confirmMsg">Confirma?</div></div>
+      <div class="actions">
+        <button class="btn" id="confirmNo">Não</button>
+        <button class="btn primary" id="confirmYes">Sim</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ler QR -->
   <div id="modalQRScan" class="backdrop" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true">
-      <header>
-        <div><strong>Ler QR Code do Leito</strong></div>
-        <button class="btn" id="btnCloseQR" data-close="#modalQRScan">Fechar</button>
-      </header>
+      <header><strong>Ler QR Code</strong><button class="btn" data-close="#modalQRScan">Fechar</button></header>
       <div class="content">
-        <div class="mini" style="margin-bottom:8px">Se a câmera não abrir neste dispositivo, utilize a <strong>seleção manual de leito</strong> (fallback).</div>
+        <div class="mini" style="margin-bottom:8px">Se a câmera não abrir, use a seleção manual.</div>
         <div id="qrRegion" style="width:100%;max-width:420px;margin:0 auto;border:1px solid var(--border);border-radius:12px;overflow:hidden"></div>
       </div>
-      <div class="actions">
-        <button class="btn" data-close="#modalQRScan">Cancelar</button>
-      </div>
+      <div class="actions"><button class="btn" data-close="#modalQRScan">Cancelar</button></div>
     </div>
   </div>
 
-  <div id="modalQRCodes" class="backdrop" aria-hidden="true">
+  <!-- QR em massa (impressão) -->
+  <div id="modalBulkQR" class="backdrop" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true">
-      <header>
-        <div><strong>QR Codes dos Leitos (H1)</strong></div>
-        <button class="btn" data-close="#modalQRCodes">Fechar</button>
-      </header>
+      <header><strong>Gerar QR Codes para impressão</strong><button class="btn" data-close="#modalBulkQR">Fechar</button></header>
       <div class="content">
-        <div class="row2">
+        <div class="row3">
           <div>
-            <div class="label">Leito 1 → <code>?h=H1&leito=1</code></div>
-            <div id="qr1" style="padding:8px;background:#fff;border:1px solid var(--border);border-radius:12px;display:inline-block"></div>
+            <label class="label" for="b_hospital">Hospital</label>
+            <select id="b_hospital" class="select2">
+              <option value="H1">Neomater</option>
+              <option value="H2">Cruz Azul</option>
+            </select>
           </div>
           <div>
-            <div class="label">Leito 3 → <code>?h=H1&leito=3</code></div>
-            <div id="qr3" style="padding:8px;background:#fff;border:1px solid var(--border);border-radius:12px;display:inline-block"></div>
+            <label class="label" for="b_from">Leito inicial</label>
+            <input id="b_from" class="input" inputmode="numeric" placeholder="1" />
+          </div>
+          <div>
+            <label class="label" for="b_to">Leito final</label>
+            <input id="b_to" class="input" inputmode="numeric" placeholder="13/16" />
           </div>
         </div>
-        <div class="mini" style="margin-top:10px">Dica: imprima e fixe no leito. Ao escanear, o sistema abre direto na tela do leito.</div>
+        <div style="margin-top:10px"><button class="btn primary" id="b_generate">Gerar</button> <button class="btn" onclick="window.print()">Imprimir</button></div>
+        <div id="qr_grid" class="qr-grid" style="margin-top:12px"></div>
       </div>
-      <div class="actions">
-        <button class="btn" onclick="window.print()">Imprimir</button>
-        <button class="btn" data-close="#modalQRCodes">Fechar</button>
-      </div>
+      <div class="actions"><button class="btn" data-close="#modalBulkQR">Fechar</button></div>
     </div>
   </div>
 
-  <div class="footer">
-    <div>© Protótipo ilustrativo (sem dados reais).</div>
-    <div><strong>Desenvolvido por Alessandro Diaz Rodrigues</strong></div>
-  </div>
-</div>
-
+  <!-- ======= LIBS ======= -->
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
+  <!-- ======= SCRIPT ======= -->
   <script>
-    // ---------- DADOS DEMO ----------
-    const concessoesCatalogo = ["Fisioterapia","Nutricionista","Psicólogo","Psiquiatra","Raio-X","Medicação"];
-    const hospitais = ["H1","H2","H3","H4"];
-    const hospitalNomes = {H1:"Hospital 1",H2:"Hospital 2",H3:"Hospital 3",H4:"Hospital 4"};
+  // -------------------- DADOS FIXOS --------------------
+  const PIN_FIXED = "1234";
 
-    function gerarLeitos(seed, hospital){
-      const now = new Date();
-      const arr = [];
-      for(let i=1;i<=10;i++){
-        const emUso = i%3 !== 0; // 3,6,9 vagos
-        const nomes = ["Maria Aparecida Silva","João Pedro Santos","Ana Paula Reis","Carlos Souza","Luciana Matos","Paulo Andrade","Beatriz Gomes","Rafael Lima","Sônia Oliveira","Marcelo Freitas"];
-        const nome = emUso ? nomes[i-1] : "";
-        const iniciais = nome ? nome.split(" ").map(n=>n[0]).slice(0,2).join("") : "";
-        const matricula = emUso ? String(seed*1000 + i) : "";
-        const previsaoBucket = emUso ? (i%2===0? "24h" : (i%5===0?"72h":"48h")) : "";
-        const horas = previsaoBucket==="24h"?24:previsaoBucket==="48h"?48:previsaoBucket==="72h"?72:96;
-        const previsaoAt = emUso ? new Date(now.getTime()+horas*3600*1000) : null;
-        const linhaCuidado = emUso ? (i%2===0?"Geriatria":"APS") : "";
-        const pps = emUso ? (50 + (i%4)*10) : null;
-        const spict = emUso ? (i%4===0) : false;
-        const acordo = emUso ? concessoesCatalogo.filter((_,k)=> (k+i+seed)%3===0 ) : [];
-        const ano = emUso ? 1950 + ((i+seed*2)%50) : null;
-        const mes = emUso ? ((i+seed)%12)+1 : null;
-        const dia = emUso ? ((i+seed)%28)+1 : null;
-        const dataEntrada = emUso ? new Date(now.getTime()- (i+2)*3600*1000) : null;
-        arr.push({
-          hospital, id:i, status: emUso?"Em uso":"Vago",
-          paciente: {nome, iniciais, matricula, dia, mes, ano},
-          previsaoBucket, previsaoAt, linhaCuidado, pps, spict, concessoes: acordo, dataEntrada
-        });
-      }
-      if(hospital==="H1"){
-        arr[2].status = "Vago";
-        arr[2].paciente = {nome:"", iniciais:"", matricula:"", dia:null, mes:null, ano:null};
-        arr[0].paciente.dia = 1;
-      }
-      return arr;
-    }
+  // Hospitais / leitos (H1: 13 – 10 Enf + 3 UTI | H2: 16 Enf)
+  const HOSPITAIS = {
+    H1: { nome:"Neomater", leitos:[
+      ...Array.from({length:10}, (_,i)=>({ id:i+1,  tipo:"Enfermaria/Apto" })),
+      ...Array.from({length:3},  (_,i)=>({ id:11+i, tipo:"UTI" }))
+    ]},
+    H2: { nome:"Cruz Azul", leitos:[
+      ...Array.from({length:16}, (_,i)=>({ id:i+1, tipo:"Enfermaria/Apto" }))
+    ]}
+  };
 
-    const banco = {};
-    hospitais.forEach((h,idx)=> banco[h] = gerarLeitos(idx+1,h));
-
-    // ---------- ESTADO & ELEMENTOS ----------
-    let activeTab = "hospitais";
-    let currentHospital = "H1";
-    let selectedLeito = null;
-    let mobileSimOn = false;
-
-    const tabs = document.querySelectorAll(".tab");
-    const selHospital = document.getElementById("selHospital");
-    const hospitaisView = document.getElementById("hospitaisView");
-    const hospitaisGrid = document.getElementById("hospitaisGrid");
-    const resumoGeral = document.getElementById("resumoGeral");
-    const leitosView = document.getElementById("leitosView");
-    const dashboardView = document.getElementById("dashboardView");
-    const gestorView = document.getElementById("gestorView");
-    const gestor2View = document.getElementById("gestor2View");
-    const stats = document.getElementById("stats");
-    const kpiOcupados = document.getElementById("kpiOcupados");
-    const kpiVagos = document.getElementById("kpiVagos");
-    const kpiAltas24 = document.getElementById("kpiAltas24");
-    const kpiTopConc = document.getElementById("kpiTopConc");
-    const dashBody = document.getElementById("dashBody");
-    const appRoot = document.getElementById("appRoot");
-
-    // Gráficos Gestor
-    const elChartOcup = document.getElementById("chartOcupacao");
-    const elChartAltas = document.getElementById("chartAltas24");
-    let chartOcup = null, chartAltas = null;
-
-    // ---------- TABS & SELECT ----------
-    tabs.forEach(t=>t.addEventListener("click",()=>{
-      tabs.forEach(b=>b.classList.remove("active"));
-      t.classList.add("active");
-      activeTab = t.dataset.tab;
-      route();
+  // Estado atual dos leitos (sem histórico)
+  const banco = {};
+  for(const hId of Object.keys(HOSPITAIS)){
+    banco[hId] = HOSPITAIS[hId].leitos.map((l,idx)=>({
+      hospital:hId, id:l.id, tipo:l.tipo,
+      status: (idx%3!==2) ? "Em uso" : "Vago", // alguns vagos
+      // Dados de paciente (podem estar vazios)
+      nome: (idx%3!==2) ? ["Maria Silva","João Santos","Ana Reis","Carlos Souza","Luciana Matos","Paulo Andrade","Beatriz Gomes","Rafael Lima","Sônia Oliveira","Marcelo Freitas"][idx%10] : "",
+      matricula:(idx%3!==2) ? String(1000 + idx) : "",
+      idade:(idx%3!==2) ? (60+ (idx%25)) : null,
+      admAt:(idx%3!==2) ? new Date(Date.now()-(idx+3)*3600*1000).toISOString() : null, // horas atrás
+      pps:(idx%3!==2) ? (idx%11) : null,
+      spict:(idx%2===0) ? "elegivel" : "nao_elegivel",
+      prevAlta:(["24h Ouro","48h","72h","96h","Sem previsão"])[idx%5],
+      linhas:(idx%3!==2) ? ["Assistência","Geriatria","APS","Cardiologia","Pneumologia","Neurologia","Melhor Cuidado"].filter((_,k)=> (k+idx)%3===0 ) : [],
+      concessoes:(idx%3!==2) ? ["PAD","Fisioterapia","Fonoaudiologia","Aspirações","Curativos"].filter((_,k)=> (k+idx)%2===0 ) : []
     }));
-    selHospital.addEventListener("change",()=>{
-      currentHospital = selHospital.value;
-      route();
+  }
+
+  // Catálogos fixos (não-editáveis no MVP)
+  const LINHAS = ["Assistência","Geriatria","APS","Cardiologia","Pneumologia","Neurologia","Melhor Cuidado"];
+  const CONC  = ["PAD","Fisioterapia","Fonoaudiologia","Aspirações","Curativos"];
+
+  // -------------------- ESTADO DE UI --------------------
+  let currentHospital = "H1";
+  let activeTab = "leitos";
+  let selectedLeito = null;
+
+  // Sessão (PIN + timer 2 min)
+  let session = { expiresAt:0, tick:null };
+
+  // -------------------- HELPERS --------------------
+  const $ = sel => document.querySelector(sel);
+  function openModal(sel){ const el=$(sel); el.style.display="flex"; el.setAttribute("aria-hidden","false"); }
+  function closeModal(sel){ const el=$(sel); el.style.display="none"; el.setAttribute("aria-hidden","true"); }
+  function confirmAction(msg){
+    return new Promise(res=>{
+      $("#confirmMsg").textContent = msg || "Confirma?";
+      openModal("#modalConfirm");
+      $("#confirmYes").onclick = ()=>{ closeModal("#modalConfirm"); res(true); };
+      $("#confirmNo").onclick  = ()=>{ closeModal("#modalConfirm"); res(false); };
     });
+  }
+  function initials(nome){
+    if(!nome) return "—";
+    return nome.split(" ").map(p=>p[0]).slice(0,2).join("").toUpperCase();
+  }
+  function fmtDateTime(iso){
+    if(!iso) return "—";
+    const d=new Date(iso);
+    const dd=String(d.getDate()).padStart(2,"0");
+    const mm=String(d.getMonth()+1).padStart(2,"0");
+    const yy=d.getFullYear();
+    const hh=String(d.getHours()).padStart(2,"0");
+    const mi=String(d.getMinutes()).padStart(2,"0");
+    return `${dd}/${mm}/${yy} ${hh}:${mi}`;
+  }
+  function elapsedSince(iso){
+    if(!iso) return "—";
+    const ms = Date.now() - new Date(iso).getTime();
+    const d = Math.floor(ms/86400000);
+    const h = Math.floor((ms%86400000)/3600000);
+    const m = Math.floor((ms%3600000)/60000);
+    return `${d} dias, ${h} horas, ${m} minutos`;
+  }
 
-    // ---------- KPIs ----------
-    function kpisHospital(leitos){
-      const now = new Date();
-      const ocupados = leitos.filter(l=>l.status==="Em uso").length;
-      const vagos = leitos.length - ocupados;
-      const altas24 = leitos.filter(l=>l.status==="Em uso" && (l.previsaoAt - now) <= 24*3600*1000).length;
-      const concessoes = leitos.flatMap(l=>l.concessoes||[]);
-      const top = concessoes.length? Object.entries(concessoes.reduce((a,c)=>(a[c]=(a[c]||0)+1,a),{})).sort((a,b)=>b[1]-a[1])[0][0] : "—";
-      return {ocupados,vagos,altas24,top};
-    }
-    function kpisGerais(){
-      const all = hospitais.flatMap(h=>banco[h]);
-      const {ocupados,vagos,altas24,top} = kpisHospital(all);
-      return {
-        totHosp: hospitais.length,
-        totLeitos: all.length,
-        ocupados, vagos, altas24, top,
-        taxaOcup: all.length? Math.round((ocupados/all.length)*100) : 0
-      };
-    }
-
-    // ---------- RENDER HOSPITAIS ----------
-    function renderHospitais(){
-      const all = hospitais.flatMap(h=>banco[h]);
-      const r = kpisHospital(all);
-      resumoGeral.innerHTML = `
-        <div class="stat"><div class="mini">Ocupados (geral)</div><div class="kpi">${r.ocupados}</div></div>
-        <div class="stat"><div class="mini">Vagos (geral)</div><div class="kpi">${r.vagos}</div></div>
-        <div class="stat"><div class="mini">Altas 24h (geral)</div><div class="kpi">${r.altas24}</div></div>
-        <div class="stat"><div class="mini">Top concessão (geral)</div><div class="kpi">${r.top}</div></div>
-      `;
-      hospitaisGrid.innerHTML = "";
-      hospitais.forEach(h=>{
-        const lts = banco[h];
-        const k = kpisHospital(lts);
-        const card = document.createElement("div");
-        card.className = "card";
-        card.innerHTML = `
-          <div class="row">
-            <div class="badge"><span class="dot ocupado"></span> ${hospitalNomes[h]}</div>
-            <div class="mini">Altas 24h: ${k.altas24}</div>
-          </div>
-          <div class="h">Ocupados: ${k.ocupados} • Vagos: ${k.vagos}</div>
-          <div class="mini">Top concessão: ${k.top}</div>
-          <div class="badges" style="margin-top:8px">
-            <span class="con">Ver Leitos</span>
-            <span class="con">Ver Dashboard</span>
-          </div>
-        `;
-        card.addEventListener("click",()=>{
-          currentHospital = h;
-          selHospital.value = h;
-          setTab("leitos");
-        });
-        hospitaisGrid.appendChild(card);
-      });
-    }
-
-    // ---------- UTILS ----------
-    function timeTo(date){
-      if(!date) return "—";
-      const now = new Date();
-      const diff = Math.max(0, date - now);
-      const h = Math.floor(diff/3600000);
-      const m = Math.floor((diff%3600000)/60000);
-      return `Alta em ${String(h).padStart(2,"0")}h ${String(m).padStart(2,"0")}m`;
-    }
-
-    // ---------- RENDER LEITOS ----------
-    function renderLeitos(){
-      leitosView.innerHTML = "";
-      const leitos = banco[currentHospital];
-      leitos.forEach(l=>{
-        const card = document.createElement("div");
-        card.className = "card";
-        card.setAttribute("role","button");
-        card.setAttribute("aria-label", `Leito ${l.id} ${l.status}`);
-        card.innerHTML = `
-          <div class="row">
-            <div class="badge"><span class="dot ${l.status==='Em uso'?'ocupado':'vago'}"></span> Leito ${l.id}</div>
-            <div class="mini">${l.status==='Em uso' ? timeTo(l.previsaoAt) : 'Vago'}</div>
-          </div>
-          <div class="h">${l.status==='Em uso'? (l.paciente.iniciais || '—') : '—'}</div>
-          <div class="mini">${l.status==='Em uso'? (l.linhaCuidado || '') : ''}</div>
-          <div class="badges">
-            ${(l.concessoes||[]).map(c=>`<span class="con">${c}</span>`).join("")}
-          </div>
-        `;
-        card.addEventListener("click",()=>openLeito(l.id));
-        leitosView.appendChild(card);
-      });
-    }
-
-    // ---------- RENDER DASHBOARD (hospital) ----------
-    function renderDashboard(){
-      const leitos = banco[currentHospital];
-      const k = kpisHospital(leitos);
-      kpiOcupados.textContent = k.ocupados;
-      kpiVagos.textContent = k.vagos;
-      kpiAltas24.textContent = k.altas24;
-      kpiTopConc.textContent = k.top;
-      dashBody.innerHTML = "";
-      leitos
-        .slice()
-        .sort((a,b)=> (a.previsaoAt||Infinity) - (b.previsaoAt||Infinity))
-        .forEach(l=>{
-          const tr = document.createElement("tr");
-          const conc = (l.concessoes||[]).length? l.concessoes.join(", ") : "—";
-          tr.innerHTML = `
-            <td><span class="badge"><span class="dot ${l.status==='Em uso'?'ocupado':'vago'}"></span> ${l.id}</span></td>
-            <td>${l.status}</td>
-            <td>${l.status==='Em uso'? (l.paciente.nome) : '—'}</td>
-            <td>${l.status==='Em uso'? timeTo(l.previsaoAt) : '—'}</td>
-            <td>${l.status==='Em uso'? (l.linhaCuidado||'—') : '—'}</td>
-            <td>${conc}</td>
-          `;
-          dashBody.appendChild(tr);
-        });
-    }
-
-    // ---------- DATASETS GRÁFICOS ----------
-    function datasetOcupacaoPorHospital(){
-      const labels = hospitais.map(h=>hospitalNomes[h]);
-      const ocupados = hospitais.map(h=> banco[h].filter(l=>l.status==="Em uso").length );
-      const vagos = hospitais.map(h=> banco[h].filter(l=>l.status!=="Em uso").length );
-      return { labels, ocupados, vagos };
-    }
-    function datasetAltasProximas24h(){
-      const now = new Date();
-      const buckets = new Array(24).fill(0);
-      hospitais.forEach(h=>{
-        banco[h].forEach(l=>{
-          if(l.status==="Em uso" && l.previsaoAt){
-            const diff = l.previsaoAt - now;
-            if(diff >= 0 && diff <= 24*3600*1000){
-              const hour = Math.floor(diff/3600000);
-              buckets[hour] += 1;
-            }
-          }
-        });
-      });
-      const labels = buckets.map((_,i)=>`${i}h`);
-      return { labels, buckets };
-    }
-    function datasetOcupacaoHospital(h){
-      const lts = banco[h];
-      const ocup = lts.filter(l=>l.status==="Em uso").length;
-      const vag = lts.length - ocup;
-      return {ocup, vag, total:lts.length, perc: lts.length? Math.round((ocup/lts.length)*100):0};
-    }
-    function datasetAltas24Hospital(h){
-      const now = new Date();
-      const buckets = new Array(6).fill(0); // 0-4,4-8,8-12,12-16,16-20,20-24
-      banco[h].forEach(l=>{
-        if(l.status==="Em uso" && l.previsaoAt){
-          const diffh = (l.previsaoAt - now)/3600000;
-          if(diffh>=0 && diffh<=24){
-            const idx = Math.min(5, Math.floor(diffh/4));
-            buckets[idx] += 1;
-          }
-        }
-      });
-      const labels = ["0–4h","4–8h","8–12h","12–16h","16–20h","20–24h"];
-      return {labels,buckets};
-    }
-
-    // ---------- RENDER GESTOR (geral) ----------
-    function renderGestor(){
-      const {labels, ocupados, vagos} = datasetOcupacaoPorHospital();
-      if(chartOcup){ chartOcup.destroy(); }
-      chartOcup = new Chart(elChartOcup, {
-        type:'bar',
-        data:{ labels, datasets:[
-          {label:'Ocupados', data:ocupados, borderWidth:1},
-          {label:'Vagos', data:vagos, borderWidth:1}
-        ]},
-        options:{
-          responsive:true, maintainAspectRatio:false,
-          scales:{
-            x:{ stacked:true, ticks:{ maxRotation:0, autoSkip:true } },
-            y:{ stacked:true, beginAtZero:true, ticks:{ precision:0 } }
-          },
-          datasets:{ bar:{ categoryPercentage:0.6, barPercentage:0.8, maxBarThickness:38 } },
-          animation:false,
-          plugins:{ legend:{ position:'bottom' }, title:{ display:false } }
-        }
-      });
-
-      const altas = datasetAltasProximas24h();
-      if(chartAltas){ chartAltas.destroy(); }
-      chartAltas = new Chart(elChartAltas, {
-        type:'bar',
-        data:{ labels:altas.labels, datasets:[{ label:'Altas previstas', data:altas.buckets, borderWidth:1 }] },
-        options:{
-          responsive:true, maintainAspectRatio:false,
-          scales:{ y:{ beginAtZero:true, ticks:{ precision:0 } } },
-          datasets:{ bar:{ maxBarThickness:24 } },
-          animation:false,
-          plugins:{ legend:{ position:'bottom' }, title:{ display:false } }
-        }
-      });
-    }
-
-    // ---------- RENDER GESTOR 2×2 ----------
-    let gestor2Charts = [];
-    function destroyGestor2Charts(){
-      gestor2Charts.forEach(ch=>{ try{ ch.destroy(); }catch(e){} });
-      gestor2Charts = [];
-    }
-    function renderGestor2(){
-      // KPIs gerais
-      const g = kpisGerais();
-      document.getElementById('gestor2Header').innerHTML = `
-        <div class="stat"><div class="mini">Leitos Totais</div><div class="kpi">${g.totLeitos}</div></div>
-        <div class="stat"><div class="mini">Leitos Ocupados</div><div class="kpi">${g.ocupados}</div></div>
-        <div class="stat"><div class="mini">Leitos Vagos</div><div class="kpi">${g.vagos}</div></div>
-        <div class="stat"><div class="mini">Taxa de Ocupação</div><div class="kpi">${g.taxaOcup}%</div></div>
-      `;
-
-      // Grid 2x2 – um cartão por hospital
-      const grid = document.getElementById('gestor2Grid');
-      grid.innerHTML = "";
-      destroyGestor2Charts();
-
-      hospitais.forEach(h=>{
-        const card = document.createElement('div');
-        card.className = "gestor2-card";
-        card.innerHTML = `
-          <h4>${hospitalNomes[h]}</h4>
-          <div class="gestor2-grid">
-            <div class="chart-card">
-              <div class="mini">Ocupação (%)</div>
-              <canvas id="occ_${h}" class="gestor2-mini"></canvas>
-            </div>
-            <div class="chart-card">
-              <div class="mini">Altas (0–24h)</div>
-              <canvas id="alt_${h}" class="gestor2-mini"></canvas>
-            </div>
-          </div>
-        `;
-        grid.appendChild(card);
-
-        // Mini gráfico de ocupação (doughnut)
-        const dOcc = datasetOcupacaoHospital(h);
-        const c1 = new Chart(document.getElementById(`occ_${h}`), {
-          type:'doughnut',
-          data:{
-            labels:['Ocupados','Vagos'],
-            datasets:[{ data:[dOcc.ocup, dOcc.vag], borderWidth:1 }]
-          },
-          options:{
-            responsive:true, maintainAspectRatio:false,
-            cutout:'60%',
-            plugins:{ legend:{ position:'bottom' }, tooltip:{ enabled:true } }
-          }
-        });
-        gestor2Charts.push(c1);
-
-        // Mini gráfico de altas por janela (barras)
-        const dAlt = datasetAltas24Hospital(h);
-        const c2 = new Chart(document.getElementById(`alt_${h}`), {
-          type:'bar',
-          data:{ labels:dAlt.labels, datasets:[{ label:'Altas', data:dAlt.buckets, borderWidth:1 }] },
-          options:{
-            responsive:true, maintainAspectRatio:false,
-            scales:{ y:{ beginAtZero:true, ticks:{ precision:0 } } },
-            datasets:{ bar:{ maxBarThickness:20 } },
-            plugins:{ legend:{ display:false } }
-          }
-        });
-        gestor2Charts.push(c2);
-      });
-    }
-
-    // ---------- AÇÕES DE LEITO ----------
-    function openLeito(id){
-      const l = banco[currentHospital].find(x=>x.id===id);
-      selectedLeito = id;
-      if(!l) return;
-      if(l.status==="Vago"){
-        a_leito.textContent = `Leito ${id}`;
-        a_hospital.textContent = hospitalNomes[currentHospital];
-        a_concessoes.innerHTML = concessoesCatalogo.map(c=>`<label><input type="checkbox"/> ${c}</label>`).join("");
-        openModal(modalAdmissao);
-        return;
-      }
-      c_nome.textContent = l.paciente.nome;
-      c_matricula.textContent = l.paciente.matricula;
-      c_mes.textContent = String(l.paciente.mes).padStart(2,"0");
-      c_ano.textContent = String(l.paciente.ano);
-      c_leito.textContent = `Leito ${id}`;
-      c_hospital.textContent = hospitalNomes[currentHospital];
-      c_dia.value = "";
-      c_erro.classList.add("hidden");
-      openModal(modalConfirm);
-    }
-    document.getElementById("btnConfirmar").addEventListener("click", ()=>{
-      const id = selectedLeito;
-      const l = banco[currentHospital].find(x=>x.id===id);
-      const dia = String(c_dia.value).padStart(2,"0");
-      if(dia === String(l.paciente.dia).padStart(2,"0")){
-        closeModal(modalConfirm);
-        u_leito.textContent = `Leito ${id}`;
-        u_hospital.textContent = hospitalNomes[currentHospital];
-        u_nome.value = l.paciente.nome;
-        u_matricula.value = l.paciente.matricula;
-        u_prev.value = l.previsaoBucket || "48h";
-        u_linha.value = l.linhaCuidado || "APS";
-        u_pps.value = l.pps || "";
-        u_concessoes.innerHTML = concessoesCatalogo.map(c=>{
-          const checked = (l.concessoes||[]).includes(c) ? "checked" : "";
-          return `<label><input type="checkbox" ${checked}/> ${c}</label>`;
-        }).join("");
-        openModal(modalAtualizacao);
+  // Sessão PIN
+  function updateTimerUI(leftMs){
+    const mm = String(Math.floor(leftMs/60000)).padStart(2,"0");
+    const ss = String(Math.floor((leftMs%60000)/1000)).padStart(2,"0");
+    $("#timerBadge").textContent = `⏱ sessão: ${mm}:${ss}`;
+  }
+  function startSession(seconds){
+    clearInterval(session.tick);
+    session.expiresAt = Date.now() + seconds*1000;
+    session.tick = setInterval(()=>{
+      const left = Math.max(0, session.expiresAt - Date.now());
+      updateTimerUI(left);
+      if(left<=0){ clearInterval(session.tick); requirePin(()=>{}); }
+    }, 500);
+  }
+  function requirePin(nextAction){
+    $("#pin_msg").classList.add("hidden");
+    const ok = ()=>{
+      const val = $("#pin_input").value.trim();
+      if(val===PIN_FIXED){
+        startSession(120); // 2 minutos
+        closeModal("#modalPin");
+        nextAction && nextAction();
       }else{
-        c_erro.classList.remove("hidden");
+        $("#pin_msg").classList.remove("hidden");
       }
-    });
+    };
+    $("#pin_ok").onclick = ok;
+    $("#pin_ok2").onclick = ok;
+    openModal("#modalPin");
+    $("#pin_input").focus();
+  }
+  function ensureSession(next){
+    if(Date.now()<session.expiresAt) return next();
+    requirePin(next);
+  }
 
-    // ---------- MODAIS ----------
-    function openModal(el){ el.style.display = "flex"; el.setAttribute("aria-hidden","false"); }
-    function closeModal(el){ el.style.display = "none"; el.setAttribute("aria-hidden","true"); }
-    document.querySelectorAll("[data-close]").forEach(btn=>{
-      btn.addEventListener("click", ()=>{
-        const sel = btn.getAttribute("data-close");
-        const el = document.querySelector(sel);
-        if(el) closeModal(el);
-      });
-    });
+  // -------------------- RENDER – CARDS --------------------
+  function renderCards(){
+    const container = $("#leitosView");
+    container.innerHTML = "";
+    const leitos = banco[currentHospital];
 
-    // ---------- NAVEGAÇÃO ----------
-    function setTab(tab){
-      tabs.forEach(b=>b.classList.remove("active"));
-      document.querySelector(`.tab[data-tab='${tab}']`).classList.add("active");
-      activeTab = tab;
-      route();
-    }
-    function route(){
-      // esconder tudo
-      hospitaisView.classList.add("hidden");
-      leitosView.classList.add("hidden");
-      dashboardView.classList.add("hidden");
-      gestorView.classList.add("hidden");
-      gestor2View.classList.add("hidden");
-      stats.classList.add("hidden");
+    leitos.forEach(l=>{
+      const card = document.createElement("div");
+      card.className = "card";
 
-      if(activeTab==="hospitais"){ hospitaisView.classList.remove("hidden"); renderHospitais(); }
-      if(activeTab==="leitos"){ leitosView.classList.remove("hidden"); renderLeitos(); }
-      if(activeTab==="dashboard"){ dashboardView.classList.remove("hidden"); stats.classList.remove("hidden"); renderDashboard(); }
-      if(activeTab==="gestor"){ gestorView.classList.remove("hidden"); renderGestor(); }
-      if(activeTab==="gestor2"){ gestor2View.classList.remove("hidden"); renderGestor2(); }
-    }
+      const statusClass = l.status==="Em uso" ? "warn" : "ok";
+      const tipoClass   = l.tipo==="UTI" ? "uti" : "enf";
+      const internado   = l.status==="Em uso" ? ` • Internado há ${elapsedSince(l.admAt)}` : "";
 
-    // ---------- POLLING ----------
-    let interval = null;
-    function startPolling(){
-      if(interval) clearInterval(interval);
-      interval = setInterval(()=>{
-        if(activeTab==="dashboard"){ renderDashboard(); }
-        if(activeTab==="hospitais"){ renderHospitais(); }
-        if(activeTab==="leitos"){ renderLeitos(); }
-        if(activeTab==="gestor"){ renderGestor(); }
-        if(activeTab==="gestor2"){ renderGestor2(); }
-      }, 8000);
-    }
+      // chips
+      const chipsLinhas = (l.linhas||[]).map(x=>`<span class="chip">${x}</span>`).join("");
+      const chipsConc   = (l.concessoes||[]).map(x=>`<span class="chip">${x}</span>`).join("");
 
-    // ---------- PARAMS ----------
-    function checkParams(){
-      const params = new URLSearchParams(location.search);
-      const h = params.get("h");
-      const leito = Number(params.get("leito"));
-      if(h && hospitais.includes(h)){ currentHospital = h; selHospital.value = h; }
-      if(leito>=1 && leito<=10){ setTab("leitos"); setTimeout(()=>openLeito(leito), 300); }
-    }
+      card.innerHTML = `
+        <div class="top">
+          <div class="wrap">
+            <span class="status ${statusClass}">Leito ${l.id} – ${l.status}</span>
+            <span class="tipo ${tipoClass}">${l.tipo}</span>
+            <span class="badge">${HOSPITAIS[l.hospital].nome}${internado? `<span class="badge" style="margin-left:6px">${internado}</span>`:""}</span>
+          </div>
+          <button class="btn" aria-label="Abrir leito">Abrir</button>
+        </div>
 
-    // ---------- BOOTSTRAP ----------
-    renderHospitais();
-    setTab("hospitais");
-    startPolling();
-    checkParams();
+        <div class="row">
+          <div class="field"><div class="label">Iniciais</div><div class="value">${l.status==="Em uso"?initials(l.nome):"—"}</div></div>
+          <div class="field"><div class="label">Matrícula</div><div class="value">${l.matricula||"—"}</div></div>
+          <div class="field"><div class="label">Idade</div><div class="value">${l.idade??"—"}</div></div>
+          <div class="field"><div class="label">Admissão</div><div class="value">${fmtDateTime(l.admAt)}</div></div>
 
-    // ---------- Botões & QR ----------
-    document.getElementById("btnLogin").addEventListener("click",()=>{ alert("Simulação de login (no MVP funcional, usar Google Identity Services)."); });
-    document.getElementById("btnRefresh").addEventListener("click",()=>{ route(); });
+          <div class="field"><div class="label">PPS</div><div class="value">${l.pps??"—"}</div></div>
+          <div class="field"><div class="label">SPICT-BR</div><div class="value">${l.spict==="elegivel"?"Elegível":(l.spict==="nao_elegivel"?"Não elegível":"—")}</div></div>
+          <div class="field"><div class="label">Prev. Alta</div><div class="value">${l.prevAlta||"—"}</div></div>
+          <div class="field"><div class="label">—</div><div class="value"> </div></div>
 
-    // Simular Mobile
-    document.getElementById("btnSimularMobile").addEventListener("click", ()=>{
-      mobileSimOn = !mobileSimOn;
-      const btn = document.getElementById("btnSimularMobile");
-      if(mobileSimOn){ appRoot.classList.add("mobile-sim"); btn.textContent = "Sair do modo Mobile"; }
-      else{ appRoot.classList.remove("mobile-sim"); btn.textContent = "Simular Mobile"; }
-    });
+          <div class="field" style="grid-column:1/3">
+            <div class="label">Linhas de cuidado</div><div class="wrap">${chipsLinhas||"—"}</div>
+          </div>
+          <div class="field" style="grid-column:3/5">
+            <div class="label">Concessões</div><div class="wrap">${chipsConc||"—"}</div>
+          </div>
+        </div>
 
-    const modalQRScan = document.getElementById('modalQRScan');
-    const modalQRCodes = document.getElementById('modalQRCodes');
-    const qrRegionEl = document.getElementById('qrRegion');
-    const qr1El = document.getElementById('qr1');
-    const qr3El = document.getElementById('qr3');
+        <div class="actions">
+          ${l.status==="Vago"
+            ? `<button class="btn primary">Admitir</button>`
+            : `<button class="btn primary">Atualizar</button>
+               <button class="btn danger">Dar Alta</button>`
+          }
+        </div>
+      `;
 
-    let qrReader = null;
-    function handleScan(text){
-      try{
-        const s = String(text).trim();
-        let h=null, leito=null;
-        try {
-          const u = new URL(s);
-          h = u.searchParams.get('h');
-          leito = Number(u.searchParams.get('leito'));
-        } catch(e){
-          if(/^[0-9]{1,2}$/.test(s)){ h = currentHospital; leito = Number(s); }
-        }
-        if(h && hospitais.includes(h) && leito>=1 && leito<=10){
-          currentHospital = h; selHospital.value = h;
-          setTab('leitos');
-          setTimeout(()=>openLeito(leito), 150);
-          stopScan(); closeModal(modalQRScan);
-        }
-      }catch(e){ console.warn('QR parse error', e); }
-    }
-    async function startScan(){
-      if(!window.Html5Qrcode){ alert('Leitor de QR não disponível. Use seleção manual.'); return; }
-      try{
-        if(qrReader){ await stopScan(); }
-        qrReader = new Html5Qrcode('qrRegion');
-        await qrReader.start(
-          { facingMode: { exact: 'environment' } },
-          { fps: 10, qrbox: 250 },
-          handleScan, ()=>{}
-        );
-      }catch(err){
-        try{
-          await qrReader.start({ facingMode:'environment' },{ fps:10, qrbox:250 },handleScan,()=>{});
-        }catch(e){
-          alert('Não foi possível acessar a câmera neste dispositivo. Use a seleção manual.');
-          stopScan(); closeModal(modalQRScan);
-        }
+      // Ações
+      const [btnAbrir] = card.querySelectorAll(".top .btn");
+      btnAbrir.onclick = ()=> openLeitoFromCards(l.id);  // gestor abre direto
+
+      const actBtns = card.querySelectorAll(".actions .btn");
+      if(l.status==="Vago"){
+        actBtns[0].onclick = ()=> openAdmissao(l.id);
+      }else{
+        actBtns[0].onclick = ()=> openAtualizacao(l.id);
+        actBtns[1].onclick = ()=> darAltaFlow(l.id);
       }
-    }
-    function stopScan(){
-      if(qrReader){
-        return qrReader.stop().then(()=>{ qrReader.clear(); qrReader=null; }).catch(()=>{});
-      }
-      return Promise.resolve();
-    }
-    document.getElementById('btnQr').addEventListener('click', ()=>{ openModal(modalQRScan); startScan(); });
-    document.getElementById('btnCloseQR').addEventListener('click', ()=>{ stopScan(); });
-    document.getElementById('btnShowQRCodes').addEventListener('click', ()=>{
-      const base = `${location.origin}${location.pathname}`;
-      const url1 = `${base}?h=H1&leito=1`;
-      const url3 = `${base}?h=H1&leito=3`;
-      qr1El.innerHTML = ''; qr3El.innerHTML='';
-      new QRCode(qr1El, {text:url1, width:180, height:180});
-      new QRCode(qr3El, {text:url3, width:180, height:180});
-      openModal(modalQRCodes);
+
+      container.appendChild(card);
     });
-    document.getElementById("btnRefresh").addEventListener("click",()=>{ route(); });
+  }
+
+  // -------------------- RENDER – TABELA --------------------
+  function renderTable(){
+    const tb = $("#tbLeitos");
+    tb.innerHTML = "";
+    banco[currentHospital].forEach(l=>{
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${l.id}</td><td>${l.tipo}</td><td>${l.status}</td>
+        <td>${l.nome||"—"}</td><td>${l.matricula||"—"}</td><td>${l.idade??"—"}</td>
+        <td>${fmtDateTime(l.admAt)}</td><td>${l.pps??"—"}</td>
+        <td>${l.spict==="elegivel"?"Elegível":(l.spict==="nao_elegivel"?"Não elegível":"—")}</td>
+        <td>${l.prevAlta||"—"}</td>
+        <td>${(l.linhas||[]).join(", ")||"—"}</td>
+        <td>${(l.concessoes||[]).join(", ")||"—"}</td>
+      `;
+      tr.style.cursor="pointer";
+      tr.onclick = ()=> openLeitoFromCards(l.id);
+      tb.appendChild(tr);
+    });
+  }
+
+  // -------------------- FLUXOS – ABRIR/ADMITIR/ATUALIZAR/ALTA --------------------
+  function openLeitoFromCards(id){
+    selectedLeito = id;
+    const l = banco[currentHospital].find(x=>x.id===id);
+    if(l.status==="Vago"){ openAdmissao(id); return; }
+    openAtualizacao(id);
+  }
+
+  // Fluxo Médico via QR – exige PIN antes de abrir
+  function openLeitoSecure(h, id){
+    currentHospital = h; setHospitalSelectors(h); route();
+    ensureSession(()=> {
+      const l = banco[currentHospital].find(x=>x.id===id);
+      if(!l) return;
+      if(l.status==="Vago") openAdmissao(id); else openAtualizacao(id);
+    });
+  }
+
+  // ----- Admissão -----
+  function openAdmissao(id){
+    const l = banco[currentHospital].find(x=>x.id===id);
+    $("#a_hospital").textContent = HOSPITAIS[currentHospital].nome;
+    $("#a_leito").textContent = "Leito " + l.id;
+    $("#a_tipo").textContent = l.tipo;
+
+    // checklists
+    $("#a_linhas").innerHTML = LINHAS.map(v=>`<label class="badge"><input type="checkbox" value="${v}" /> ${v}</label>`).join("");
+    $("#a_concessoes").innerHTML = CONC.map(v=>`<label class="badge"><input type="checkbox" value="${v}" /> ${v}</label>`).join("");
+
+    $("#a_nome").value=""; $("#a_idade").value=""; $("#a_matricula").value=""; $("#a_pps").value="";
+    $("#a_spict").value="elegivel"; $("#a_prev").value="24h Ouro";
+
+    openModal("#modalAdmissao");
+  }
+
+  $("#a_cancel").onclick = async ()=>{
+    const ok = await confirmAction("Cancelar admissão?");
+    if(ok) closeModal("#modalAdmissao");
+  };
+  $("#a_save").onclick = async ()=>{
+    const ok = await confirmAction("Salvar e admitir este paciente?");
+    if(!ok) return;
+
+    const lines = Array.from(document.querySelectorAll("#a_linhas input:checked")).map(i=>i.value);
+    const concs = Array.from(document.querySelectorAll("#a_concessoes input:checked")).map(i=>i.value);
+
+    const l = banco[currentHospital].find(x=>x.id===parseInt($("#a_leito").textContent.replace("Leito ","")));
+    l.status="Em uso";
+    l.nome = $("#a_nome").value.trim();
+    l.idade = Number($("#a_idade").value)||null;
+    l.matricula = $("#a_matricula").value.trim();
+    l.pps = Number($("#a_pps").value)||null;
+    l.spict = $("#a_spict").value;
+    l.prevAlta = $("#a_prev").value;
+    l.linhas = lines;
+    l.concessoes = concs;
+    l.admAt = new Date().toISOString();
+
+    closeModal("#modalAdmissao");
+    route();
+  };
+
+  // ----- Atualização -----
+  function openAtualizacao(id){
+    const l = banco[currentHospital].find(x=>x.id===id);
+    selectedLeito = id;
+
+    $("#u_hospital").textContent = HOSPITAIS[currentHospital].nome;
+    $("#u_leito").textContent = "Leito " + l.id;
+    $("#u_tipo").textContent = l.tipo;
+
+    $("#u_nome").value = l.nome||"";
+    $("#u_matricula").value = l.matricula||"";
+    $("#u_adm").value = fmtDateTime(l.admAt)||"";
+
+    $("#u_idade").value = l.idade??"";
+    $("#u_pps").value = l.pps??"";
+    $("#u_spict").value = l.spict||"elegivel";
+    $("#u_prev").value = l.prevAlta||"Sem previsão";
+
+    $("#u_linhas").innerHTML = LINHAS.map(v=>{
+      const chk = (l.linhas||[]).includes(v) ? "checked":"";
+      return `<label class="badge"><input type="checkbox" value="${v}" ${chk}/> ${v}</label>`;
+    }).join("");
+
+    $("#u_concessoes").innerHTML = CONC.map(v=>{
+      const chk = (l.concessoes||[]).includes(v) ? "checked":"";
+      return `<label class="badge"><input type="checkbox" value="${v}" ${chk}/> ${v}</label>`;
+    }).join("");
+
+    $("#internadoHa").textContent = `Internado há ${elapsedSince(l.admAt)}`;
+
+    openModal("#modalAtualizacao");
+  }
+
+  $("#u_cancel").onclick = async ()=>{
+    const ok = await confirmAction("Cancelar alterações?");
+    if(ok) closeModal("#modalAtualizacao");
+  };
+  $("#u_save").onclick = async ()=>{
+    const ok = await confirmAction("Salvar alterações?");
+    if(!ok) return;
+
+    const l = banco[currentHospital].find(x=>x.id===selectedLeito);
+    l.idade = Number($("#u_idade").value)||null;
+    l.pps = Number($("#u_pps").value)||null;
+    l.spict = $("#u_spict").value;
+    l.prevAlta = $("#u_prev").value;
+    l.linhas = Array.from(document.querySelectorAll("#u_linhas input:checked")).map(i=>i.value);
+    l.concessoes = Array.from(document.querySelectorAll("#u_concessoes input:checked")).map(i=>i.value);
+
+    closeModal("#modalAtualizacao");
+    route();
+  };
+  async function darAltaFlow(id){
+    const ok = await confirmAction("Confirmar ALTA deste paciente?");
+    if(!ok) return;
+    const l = banco[currentHospital].find(x=>x.id===id);
+    l.status="Vago";
+    l.nome=""; l.matricula=""; l.idade=null; l.admAt=null; l.pps=null; l.spict=null; l.prevAlta=null; l.linhas=[]; l.concessoes=[];
+    route();
+  }
+  $("#u_alta").onclick = ()=> darAltaFlow(selectedLeito);
+
+  // -------------------- NAVEGAÇÃO --------------------
+  function setTab(tab){
+    document.querySelectorAll(".tab").forEach(b=>b.classList.remove("active"));
+    document.querySelector(`.tab[data-tab='${tab}']`).classList.add("active");
+    activeTab = tab;
+    route();
+  }
+  function setHospitalSelectors(h){
+    currentHospital = h;
+    $("#selHospital").value = h;
+    $("#selHospital2").value = h;
+  }
+  function route(){
+    if(activeTab==="leitos"){
+      $("#leitosView").classList.remove("hidden");
+      $("#leitos2View").classList.add("hidden");
+      renderCards();
+    }else{
+      $("#leitosView").classList.add("hidden");
+      $("#leitos2View").classList.remove("hidden");
+      renderTable();
+    }
+  }
+
+  // -------------------- QR – Scanner & Em Massa --------------------
+  let qrReader = null;
+  function handleScan(text){
+    try{
+      const u = new URL(String(text));
+      const h = u.searchParams.get('h');
+      const leito = Number(u.searchParams.get('leito'));
+      if(h && ["H1","H2"].includes(h) && leito>0){
+        closeModal("#modalQRScan");
+        stopScan();
+        // Exige PIN e abre
+        openLeitoSecure(h, leito);
+      }
+    }catch(e){
+      // não-URL: ignorar
+    }
+  }
+  async function startScan(){
+    if(!window.Html5Qrcode){ alert("Leitor não disponível neste dispositivo."); return; }
+    try{
+      if(qrReader){ await stopScan(); }
+      qrReader = new Html5Qrcode('qrRegion');
+      await qrReader.start({ facingMode:'environment' }, { fps:10, qrbox:250 }, handleScan, ()=>{});
+    }catch(e){
+      alert("Não foi possível acessar a câmera.");
+      stopScan(); closeModal("#modalQRScan");
+    }
+  }
+  function stopScan(){
+    if(!qrReader) return Promise.resolve();
+    return qrReader.stop().then(()=>{ qrReader.clear(); qrReader=null; }).catch(()=>{});
+  }
+
+  function openBulkQR(){
+    $("#b_hospital").value = currentHospital;
+    const limit = currentHospital==="H1"?13:16;
+    $("#b_from").value = 1;
+    $("#b_to").value = limit;
+    $("#qr_grid").innerHTML = "";
+    openModal("#modalBulkQR");
+  }
+  function buildQRGrid(){
+    const h = $("#b_hospital").value;
+    const from = Math.max(1, parseInt($("#b_from").value||"1"));
+    const to   = Math.max(from, parseInt($("#b_to").value||"1"));
+    const limit = h==="H1"?13:16;
+    const f = Math.min(from, limit);
+    const t = Math.min(to, limit);
+
+    const base = `${location.origin}${location.pathname}`;
+    const grid = $("#qr_grid");
+    grid.innerHTML = "";
+    for(let i=f;i<=t;i++){
+      const url = `${base}?h=${h}&leito=${i}`;
+      const cell = document.createElement("div");
+      cell.className="qr-cell";
+      cell.innerHTML = `<div class="qr-box"></div><div class="mini">Leito ${i} • ${HOSPITAIS[h].nome}</div>`;
+      grid.appendChild(cell);
+      new QRCode(cell.querySelector(".qr-box"), {text:url, width:160, height:160});
+    }
+  }
+
+  // -------------------- EVENTOS --------------------
+  // Tabs
+  document.querySelectorAll(".tab").forEach(b=> b.onclick = ()=> setTab(b.dataset.tab) );
+  // Hospital selectors
+  $("#selHospital").onchange = e=>{ setHospitalSelectors(e.target.value); route(); };
+  $("#selHospital2").onchange = e=>{ setHospitalSelectors(e.target.value); route(); };
+  $("#btnH1").onclick = ()=>{ setHospitalSelectors("H1"); route(); };
+  $("#btnH2").onclick = ()=>{ setHospitalSelectors("H2"); route(); };
+
+  // QR scan
+  $("#btnScan").onclick = ()=>{ openModal("#modalQRScan"); startScan(); };
+  document.querySelectorAll("[data-close]").forEach(b=> b.onclick = ()=> closeModal(b.getAttribute("data-close")) );
+  // Bulk QR
+  $("#btnBulkQR").onclick = openBulkQR;
+  $("#b_generate").onclick = buildQRGrid;
+
+  // PIN modal close (se fechar, sessão não inicia)
+  // (handlers nos botões já configurados em requirePin)
+
+  // -------------------- PARAMS (URL) --------------------
+  (function checkParams(){
+    const p = new URLSearchParams(location.search);
+    const h = p.get("h");
+    const leito = Number(p.get("leito"));
+    if(h && ["H1","H2"].includes(h) && leito>0){
+      // fluxo médico direto do QR: exige PIN
+      openLeitoSecure(h, leito);
+    }
+  })();
+
+  // -------------------- BOOT --------------------
+  setHospitalSelectors("H1");
+  setTab("leitos");
+  startSession(0); // mostra --:--
   </script>
 </body>
 </html>
