@@ -10,31 +10,46 @@
     :root{
       --nav:#0a2b52;          /* azul escuro Prevent */
       --nav-2:#083052;
-      --bg:#eef3f8;           /* fundo frio */
+      --bg:#eaf1f9;           /* base do fundo */
+      --bg-deep:#d9e7fb;      /* variação do fundo */
       --card:#ffffff;
       --text:#1f2937;
       --muted:#6b7280;
       --border:#e5e7eb;
       --ok:#16a34a;           /* VAGO */
-      --warn:#f59e0b;         /* OCUPADO */
+      --warn:#f59e0b;         /* EM USO */
       --danger:#dc2626;       /* UTI / ações críticas */
-      --shadow:0 10px 30px rgba(0,0,0,.08);
+      --blue-veil:#4f86ff33;  /* véu azul translúcido */
+      --shadow-1:0 10px 22px rgba(11,44,82,.10);
+      --shadow-2:0 18px 48px rgba(11,44,82,.14);
     }
+
     *{box-sizing:border-box}
     html,body{height:100%}
-    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Helvetica Neue,Arial;color:var(--text);background:var(--bg)}
+    body{
+      margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Helvetica Neue,Arial;
+      color:var(--text);
+      /* Fundo com sensação de profundidade */
+      background:
+        radial-gradient(1200px 600px at 15% -10%, #cfe2ff 0%, transparent 55%),
+        radial-gradient(1000px 500px at 85% 0%, #c9dffe 0%, transparent 60%),
+        linear-gradient(180deg, var(--bg) 0%, var(--bg-deep) 100%);
+    }
 
-    /* Nav */
+    /* Header */
     header{
       background:linear-gradient(90deg,var(--nav),var(--nav-2));
       color:#fff; padding:12px 16px; display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;
+      box-shadow:0 6px 18px rgba(8,48,82,.20);
+      position:relative; z-index:5;
     }
     .brand{display:flex; align-items:center; gap:10px}
-    .logo{width:40px;height:40px;border-radius:10px;background:#fff1;display:grid;place-items:center;border:1px solid #ffffff33}
+    .logo{width:40px;height:40px;border-radius:10px;background:#fff1;display:grid;place-items:center;border:1px solid #ffffff33;backdrop-filter:blur(2px)}
     .logo::after{content:"PS";font-weight:700}
     .title h1{margin:0;font-size:18px}
     .title small{display:block;color:#dbe7f5}
-    .timer{margin-left:10px;padding:4px 8px;border-radius:999px;background:#ffffff20;border:1px solid #ffffff40}
+    #qrTimer{margin-left:10px;padding:4px 8px;border-radius:999px;background:#ffffff20;border:1px solid #ffffff40}
+
     nav.tabs{display:flex;gap:8px;flex-wrap:wrap}
     .tab{background:#ffffff1a;border:1px solid #ffffff33;color:#fff;padding:8px 12px;border-radius:10px;cursor:pointer;user-select:none}
     .tab.active{background:#fff;color:var(--nav);border-color:#fff}
@@ -43,17 +58,49 @@
     main{max-width:1200px;margin:18px auto 100px;padding:0 16px}
     .toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:8px}
     .toolbar .row{display:flex;gap:8px;flex-wrap:wrap}
-    .btn{appearance:none;border:1px solid var(--border);background:#fff;padding:10px 14px;border-radius:10px;cursor:pointer}
+    .btn{appearance:none;border:1px solid var(--border);background:#fff;padding:10px 14px;border-radius:12px;cursor:pointer}
     .btn.primary{background:var(--nav);border-color:var(--nav);color:#fff}
     .btn.ghost{background:transparent;color:#fff;border-color:#ffffff66}
     .btn.danger{background:var(--danger);border-color:var(--danger);color:#fff}
-    .select{appearance:none;border:1px solid var(--border);background:#fff;padding:10px 12px;border-radius:10px}
+    .select{appearance:none;border:1px solid var(--border);background:#fff;padding:10px 12px;border-radius:12px}
 
-    /* Cards (grade de leitos) */
-    .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+    /* GRID DE CARDS (flutuantes) */
+    .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;position:relative;z-index:1}
     @media (max-width:900px){.grid{grid-template-columns:1fr}}
-    .card{background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);padding:14px}
-    .card .top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+
+    .card{
+      position:relative;
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:20px;
+      padding:16px;
+      /* múltiplas sombras para profundidade */
+      box-shadow:
+        var(--shadow-1),
+        var(--shadow-2),
+        0 0 0 1px rgba(255,255,255,.6) inset;
+      transform:translateY(0);
+      transition:transform .18s ease, box-shadow .18s ease, filter .18s ease;
+      /* glow/veil azul leve sob o card */
+    }
+    .card::before{
+      content:"";
+      position:absolute; inset:-8px -8px -16px -8px;
+      border-radius:24px;
+      background:radial-gradient(500px 220px at 30% -20%, var(--blue-veil), transparent 70%);
+      z-index:-1;
+      filter:blur(8px);
+    }
+    .card:hover{
+      transform:translateY(-2px);
+      box-shadow:
+        0 16px 38px rgba(11,44,82,.16),
+        0 26px 64px rgba(11,44,82,.18),
+        0 0 0 1px rgba(255,255,255,.7) inset;
+      filter:saturate(1.02);
+    }
+
+    .card .top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
     .badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:#f9fafb;color:var(--muted);font-size:12px}
     .status{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;color:#111;border:1px solid var(--border);background:#fff}
     .status.ok{background:#ecfdf5;border-color:#bbf7d0;color:#065f46}
@@ -61,38 +108,47 @@
     .tipo{font-size:12px;color:#fff;background:#6b7280;border-radius:999px;padding:4px 8px}
     .tipo.uti{background:var(--danger)}
     .tipo.enf{background:#0ea5e9}
+
     .row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-    .field{background:#f9fafb;border:1px solid var(--border);border-radius:10px;padding:8px}
+    .field{background:#f9fafb;border:1px solid var(--border);border-radius:12px;padding:10px}
     .field .label{font-size:11px;color:#6b7280}
     .field .value{font-weight:600}
     .wrap{display:flex;flex-wrap:wrap;gap:6px}
     .chip{font-size:12px;background:#eef2ff;border:1px solid #dbeafe;color:#1e40af;padding:2px 8px;border-radius:999px}
-    .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:10px}
+    .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
 
-    /* Tabela (Leitos 2) */
-    table{width:100%;border-collapse:separate;border-spacing:0 8px}
-    th,td{background:#fff;border:1px solid var(--border);padding:8px;border-radius:8px}
+    /* Tabela (Leitos – Tabela) */
+    table{width:100%;border-collapse:separate;border-spacing:0 10px}
+    th,td{background:#fff;border:1px solid var(--border);padding:10px;border-radius:10px}
     th{font-size:12px;color:#6b7280;text-align:left}
     td{font-size:13px}
     .hidden{display:none}
 
     /* Modais */
     .backdrop{position:fixed;inset:0;background:#0b1a2a99;display:none;align-items:center;justify-content:center;padding:16px;z-index:1000}
-    .modal{background:#fff;max-width:860px;width:100%;border-radius:16px;border:1px solid var(--border);box-shadow:0 10px 28px rgba(0,0,0,.25)}
+    .modal{background:#fff;max-width:860px;width:100%;border-radius:20px;border:1px solid var(--border);box-shadow:0 10px 28px rgba(0,0,0,.25)}
     .modal header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border)}
     .modal .content{padding:16px}
     .modal .actions{display:flex;gap:8px;justify-content:flex-end;padding:12px 16px;border-top:1px solid var(--border)}
     .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
     .row3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-    .input,.select2,textarea{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px}
+    .input,.select2,textarea{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:12px}
     .label{font-size:12px;color:#6b7280;margin-bottom:4px;display:block}
     .danger{color:var(--danger)}
-    .footer{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--border);padding:10px 16px;color:#6b7280;display:flex;align-items:center;justify-content:space-between}
 
     /* QR em massa (impressão) */
     .qr-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-    .qr-cell{background:#fff;border:1px solid var(--border);border-radius:12px;padding:10px;text-align:center}
+    .qr-cell{background:#fff;border:1px solid var(--border);border-radius:14px;padding:10px;text-align:center}
     .qr-box{display:inline-block;border:1px solid var(--border);padding:8px;border-radius:10px;background:#fff}
+
+    /* Modo QR (médico): ocultar navegação e fixar temporizador */
+    .qr-only header, .qr-only .toolbar, .qr-only nav.tabs, .qr-only .footer{display:none!important}
+    .qrTimerBadge{
+      position:fixed; top:10px; right:10px; z-index:2000;
+      background:#111827; color:#fff; border:1px solid #00000033; padding:8px 10px; border-radius:999px;
+      box-shadow:0 8px 18px rgba(0,0,0,.25);
+    }
+
     @media print{
       header,.toolbar,.footer,.modal .actions{display:none !important}
       body{background:#fff}
@@ -104,25 +160,29 @@
 <body>
 
   <!-- ======= BARRA SUPERIOR ======= -->
-  <header>
+  <header id="appHeader">
     <div class="brand">
       <div class="logo"></div>
       <div class="title">
         <h1>Archipelago – Gestão de Leitos</h1>
         <small>Protótipo (estado atual, sem histórico)</small>
       </div>
-      <div id="timerBadge" class="timer">⏱ sessão: --:--</div>
+      <div id="qrTimer" class=""> </div>
     </div>
     <nav class="tabs" role="tablist">
       <button class="tab active" data-tab="leitos">Leitos (Cards)</button>
-      <button class="tab" data-tab="leitos2">Leitos 2 (Tabela)</button>
+      <button class="tab" data-tab="leitos2">Leitos (Tabela)</button>
+      <button class="tab" data-tab="dash1">Dash 1</button>
+      <button class="tab" data-tab="dash2">Dash 2</button>
+      <button class="tab" data-tab="dash3">Dash 3</button>
+      <button class="tab" data-tab="dash4">Dash 4</button>
     </nav>
   </header>
 
   <!-- ======= CONTEÚDO ======= -->
   <main>
     <!-- Toolbar superior (Gestor) -->
-    <div class="toolbar">
+    <div class="toolbar" id="portalToolbar">
       <div class="row">
         <button class="btn primary" id="btnBulkQR">QR Codes (imprimir)</button>
         <button class="btn" id="btnScan">Ler QR Code</button>
@@ -140,7 +200,7 @@
     <!-- Grade de Cards -->
     <section id="leitosView" class="grid" aria-label="Leitos (Cards)"></section>
 
-    <!-- Tabela (Leitos 2) -->
+    <!-- Tabela (Leitos – Tabela) -->
     <section id="leitos2View" class="hidden">
       <div style="margin-bottom:8px">
         <select id="selHospital2" class="select">
@@ -159,6 +219,12 @@
         <tbody id="tbLeitos"></tbody>
       </table>
     </section>
+
+    <!-- Dashes placeholders (mantidos para evoluções) -->
+    <section id="dash1" class="hidden"><div class="badge">Dash 1 (placeholder)</div></section>
+    <section id="dash2" class="hidden"><div class="badge">Dash 2 (placeholder)</div></section>
+    <section id="dash3" class="hidden"><div class="badge">Dash 3 (placeholder)</div></section>
+    <section id="dash4" class="hidden"><div class="badge">Dash 4 (placeholder)</div></section>
   </main>
 
   <!-- ======= RODAPÉ ======= -->
@@ -168,30 +234,6 @@
   </div>
 
   <!-- ======= MODAIS ======= -->
-
-  <!-- PIN -->
-  <div id="modalPin" class="backdrop" aria-hidden="true">
-    <div class="modal" role="dialog" aria-modal="true">
-      <header><strong>Digite o PIN de Acesso</strong><button class="btn" data-close="#modalPin">Fechar</button></header>
-      <div class="content">
-        <div id="pin_box" class="row2">
-          <div>
-            <label class="label" for="pin_input">PIN (padrão do MVP: 1234)</label>
-            <input id="pin_input" class="input" inputmode="numeric" maxlength="4" placeholder="1234" />
-          </div>
-          <div>
-            <label class="label">&nbsp;</label>
-            <button id="pin_ok" class="btn primary" style="width:100%">Entrar</button>
-          </div>
-        </div>
-        <div id="pin_msg" class="danger hidden">PIN incorreto.</div>
-      </div>
-      <div class="actions">
-        <button class="btn" data-close="#modalPin">Cancelar</button>
-        <button id="pin_ok2" class="btn primary">Entrar</button>
-      </div>
-    </div>
-  </div>
 
   <!-- Admissão -->
   <div id="modalAdmissao" class="backdrop" aria-hidden="true">
@@ -397,8 +439,6 @@
   <!-- ======= SCRIPT ======= -->
   <script>
   // -------------------- DADOS FIXOS --------------------
-  const PIN_FIXED = "1234";
-
   // Hospitais / leitos (H1: 13 – 10 Enf + 3 UTI | H2: 16 Enf)
   const HOSPITAIS = {
     H1: { nome:"Neomater", leitos:[
@@ -410,12 +450,12 @@
     ]}
   };
 
-  // Estado atual dos leitos (sem histórico)
+  // Estado atual dos leitos (sem histórico) – mock inicial
   const banco = {};
   for(const hId of Object.keys(HOSPITAIS)){
     banco[hId] = HOSPITAIS[hId].leitos.map((l,idx)=>({
       hospital:hId, id:l.id, tipo:l.tipo,
-      status: (idx%3!==2) ? "Em uso" : "Vago", // alguns vagos
+      status: (idx%3!==2) ? "Em uso" : "Vago", // alguns vagos para demo
       // Dados de paciente (podem estar vazios)
       nome: (idx%3!==2) ? ["Maria Silva","João Santos","Ana Reis","Carlos Souza","Luciana Matos","Paulo Andrade","Beatriz Gomes","Rafael Lima","Sônia Oliveira","Marcelo Freitas"][idx%10] : "",
       matricula:(idx%3!==2) ? String(1000 + idx) : "",
@@ -429,7 +469,6 @@
     }));
   }
 
-  // Catálogos fixos (não-editáveis no MVP)
   const LINHAS = ["Assistência","Geriatria","APS","Cardiologia","Pneumologia","Neurologia","Melhor Cuidado"];
   const CONC  = ["PAD","Fisioterapia","Fonoaudiologia","Aspirações","Curativos"];
 
@@ -438,8 +477,9 @@
   let activeTab = "leitos";
   let selectedLeito = null;
 
-  // Sessão (PIN + timer 2 min)
-  let session = { expiresAt:0, tick:null };
+  // Timer QR (somente em modo QR)
+  let qrTick = null;
+  let qrExpiresAt = 0;
 
   // -------------------- HELPERS --------------------
   const $ = sel => document.querySelector(sel);
@@ -453,10 +493,7 @@
       $("#confirmNo").onclick  = ()=>{ closeModal("#modalConfirm"); res(false); };
     });
   }
-  function initials(nome){
-    if(!nome) return "—";
-    return nome.split(" ").map(p=>p[0]).slice(0,2).join("").toUpperCase();
-  }
+  function initials(nome){ if(!nome) return "—"; return nome.split(" ").map(p=>p[0]).slice(0,2).join("").toUpperCase(); }
   function fmtDateTime(iso){
     if(!iso) return "—";
     const d=new Date(iso);
@@ -476,43 +513,6 @@
     return `${d} dias, ${h} horas, ${m} minutos`;
   }
 
-  // Sessão PIN
-  function updateTimerUI(leftMs){
-    const mm = String(Math.floor(leftMs/60000)).padStart(2,"0");
-    const ss = String(Math.floor((leftMs%60000)/1000)).padStart(2,"0");
-    $("#timerBadge").textContent = `⏱ sessão: ${mm}:${ss}`;
-  }
-  function startSession(seconds){
-    clearInterval(session.tick);
-    session.expiresAt = Date.now() + seconds*1000;
-    session.tick = setInterval(()=>{
-      const left = Math.max(0, session.expiresAt - Date.now());
-      updateTimerUI(left);
-      if(left<=0){ clearInterval(session.tick); requirePin(()=>{}); }
-    }, 500);
-  }
-  function requirePin(nextAction){
-    $("#pin_msg").classList.add("hidden");
-    const ok = ()=>{
-      const val = $("#pin_input").value.trim();
-      if(val===PIN_FIXED){
-        startSession(120); // 2 minutos
-        closeModal("#modalPin");
-        nextAction && nextAction();
-      }else{
-        $("#pin_msg").classList.remove("hidden");
-      }
-    };
-    $("#pin_ok").onclick = ok;
-    $("#pin_ok2").onclick = ok;
-    openModal("#modalPin");
-    $("#pin_input").focus();
-  }
-  function ensureSession(next){
-    if(Date.now()<session.expiresAt) return next();
-    requirePin(next);
-  }
-
   // -------------------- RENDER – CARDS --------------------
   function renderCards(){
     const container = $("#leitosView");
@@ -527,7 +527,6 @@
       const tipoClass   = l.tipo==="UTI" ? "uti" : "enf";
       const internado   = l.status==="Em uso" ? ` • Internado há ${elapsedSince(l.admAt)}` : "";
 
-      // chips
       const chipsLinhas = (l.linhas||[]).map(x=>`<span class="chip">${x}</span>`).join("");
       const chipsConc   = (l.concessoes||[]).map(x=>`<span class="chip">${x}</span>`).join("");
 
@@ -538,7 +537,6 @@
             <span class="tipo ${tipoClass}">${l.tipo}</span>
             <span class="badge">${HOSPITAIS[l.hospital].nome}${internado? `<span class="badge" style="margin-left:6px">${internado}</span>`:""}</span>
           </div>
-          <button class="btn" aria-label="Abrir leito">Abrir</button>
         </div>
 
         <div class="row">
@@ -562,24 +560,21 @@
 
         <div class="actions">
           ${l.status==="Vago"
-            ? `<button class="btn primary">Admitir</button>`
-            : `<button class="btn primary">Atualizar</button>
-               <button class="btn danger">Dar Alta</button>`
+            ? `<button class="btn primary" data-act="admitir">Admitir</button>`
+            : `<button class="btn primary" data-act="atualizar">Atualizar</button>
+               <button class="btn danger"  data-act="alta">Dar Alta</button>`
           }
         </div>
       `;
 
-      // Ações
-      const [btnAbrir] = card.querySelectorAll(".top .btn");
-      btnAbrir.onclick = ()=> openLeitoFromCards(l.id);  // gestor abre direto
+      // Ações (sem botão "Abrir")
+      const btnAdmitir   = card.querySelector('[data-act="admitir"]');
+      const btnAtualizar = card.querySelector('[data-act="atualizar"]');
+      const btnAlta      = card.querySelector('[data-act="alta"]');
 
-      const actBtns = card.querySelectorAll(".actions .btn");
-      if(l.status==="Vago"){
-        actBtns[0].onclick = ()=> openAdmissao(l.id);
-      }else{
-        actBtns[0].onclick = ()=> openAtualizacao(l.id);
-        actBtns[1].onclick = ()=> darAltaFlow(l.id);
-      }
+      if(btnAdmitir)   btnAdmitir.onclick   = ()=> openAdmissao(l.id);
+      if(btnAtualizar) btnAtualizar.onclick = ()=> openAtualizacao(l.id);
+      if(btnAlta)      btnAlta.onclick      = ()=> darAltaFlow(l.id);
 
       container.appendChild(card);
     });
@@ -601,37 +596,19 @@
         <td>${(l.concessoes||[]).join(", ")||"—"}</td>
       `;
       tr.style.cursor="pointer";
-      tr.onclick = ()=> openLeitoFromCards(l.id);
+      tr.onclick = ()=> { selectedLeito = l.id; if(l.status==="Vago") openAdmissao(l.id); else openAtualizacao(l.id); };
       tb.appendChild(tr);
     });
   }
 
-  // -------------------- FLUXOS – ABRIR/ADMITIR/ATUALIZAR/ALTA --------------------
-  function openLeitoFromCards(id){
-    selectedLeito = id;
-    const l = banco[currentHospital].find(x=>x.id===id);
-    if(l.status==="Vago"){ openAdmissao(id); return; }
-    openAtualizacao(id);
-  }
-
-  // Fluxo Médico via QR – exige PIN antes de abrir
-  function openLeitoSecure(h, id){
-    currentHospital = h; setHospitalSelectors(h); route();
-    ensureSession(()=> {
-      const l = banco[currentHospital].find(x=>x.id===id);
-      if(!l) return;
-      if(l.status==="Vago") openAdmissao(id); else openAtualizacao(id);
-    });
-  }
-
-  // ----- Admissão -----
+  // -------------------- FLUXOS – ADMITIR/ATUALIZAR/ALTA --------------------
   function openAdmissao(id){
     const l = banco[currentHospital].find(x=>x.id===id);
+    selectedLeito = id;
     $("#a_hospital").textContent = HOSPITAIS[currentHospital].nome;
     $("#a_leito").textContent = "Leito " + l.id;
     $("#a_tipo").textContent = l.tipo;
 
-    // checklists
     $("#a_linhas").innerHTML = LINHAS.map(v=>`<label class="badge"><input type="checkbox" value="${v}" /> ${v}</label>`).join("");
     $("#a_concessoes").innerHTML = CONC.map(v=>`<label class="badge"><input type="checkbox" value="${v}" /> ${v}</label>`).join("");
 
@@ -652,7 +629,7 @@
     const lines = Array.from(document.querySelectorAll("#a_linhas input:checked")).map(i=>i.value);
     const concs = Array.from(document.querySelectorAll("#a_concessoes input:checked")).map(i=>i.value);
 
-    const l = banco[currentHospital].find(x=>x.id===parseInt($("#a_leito").textContent.replace("Leito ","")));
+    const l = banco[currentHospital].find(x=>x.id===selectedLeito);
     l.status="Em uso";
     l.nome = $("#a_nome").value.trim();
     l.idade = Number($("#a_idade").value)||null;
@@ -668,7 +645,6 @@
     route();
   };
 
-  // ----- Atualização -----
   function openAtualizacao(id){
     const l = banco[currentHospital].find(x=>x.id===id);
     selectedLeito = id;
@@ -743,15 +719,15 @@
     $("#selHospital2").value = h;
   }
   function route(){
-    if(activeTab==="leitos"){
-      $("#leitosView").classList.remove("hidden");
-      $("#leitos2View").classList.add("hidden");
-      renderCards();
-    }else{
-      $("#leitosView").classList.add("hidden");
-      $("#leitos2View").classList.remove("hidden");
-      renderTable();
-    }
+    const sections = ["leitos","leitos2","dash1","dash2","dash3","dash4"];
+    sections.forEach(id=>{
+      const el = document.getElementById(id==="leitos"?"leitosView":(id==="leitos2"?"leitos2View":id));
+      if(!el) return;
+      if(activeTab===id) el.classList.remove("hidden"); else el.classList.add("hidden");
+    });
+
+    if(activeTab==="leitos"){ renderCards(); }
+    if(activeTab==="leitos2"){ renderTable(); }
   }
 
   // -------------------- QR – Scanner & Em Massa --------------------
@@ -764,11 +740,11 @@
       if(h && ["H1","H2"].includes(h) && leito>0){
         closeModal("#modalQRScan");
         stopScan();
-        // Exige PIN e abre
-        openLeitoSecure(h, leito);
+        // Abre no mesmo HTML entrando em modo QR
+        location.href = `${location.pathname}?h=${h}&leito=${leito}`;
       }
     }catch(e){
-      // não-URL: ignorar
+      // ignorar
     }
   }
   async function startScan(){
@@ -816,6 +792,48 @@
     }
   }
 
+  // -------------------- MODO QR (médico) --------------------
+  function startQrTimer(seconds){
+    qrExpiresAt = Date.now() + seconds*1000;
+    const badge = document.createElement("div");
+    badge.className = "qrTimerBadge";
+    badge.id = "qrBadge";
+    document.body.appendChild(badge);
+
+    qrTick = setInterval(()=>{
+      const left = Math.max(0, qrExpiresAt - Date.now());
+      const mm = String(Math.floor(left/60000)).padStart(2,"0");
+      const ss = String(Math.floor((left%60000)/1000)).padStart(2,"0");
+      badge.textContent = `⏱ ${mm}:${ss} para concluir`;
+      if(left<=0){
+        clearInterval(qrTick);
+        badge.textContent = "Acesso expirado – reescaneie o QR no leito";
+        // bloquear ações e fechar modais
+        document.querySelectorAll(".backdrop").forEach(b=> b.style.display="none");
+        // Mostrar aviso simples
+        alert("Sessão expirada. Reescaneie o QR próximo ao leito para continuar.");
+      }
+    }, 500);
+  }
+
+  function enterQrMode(h, leito){
+    document.body.classList.add("qr-only");
+    // esconder navegação/toolbar
+    $("#appHeader").style.display = "none";
+    $("#portalToolbar").style.display = "none";
+
+    // Seleciona hospital e abre o leito
+    currentHospital = h; setHospitalSelectors(h);
+    activeTab = "leitos"; route();
+
+    const l = banco[currentHospital].find(x=>x.id===leito);
+    if(!l) return;
+    if(l.status==="Vago") openAdmissao(leito); else openAtualizacao(leito);
+
+    // inicia timer 2 min
+    startQrTimer(120);
+  }
+
   // -------------------- EVENTOS --------------------
   // Tabs
   document.querySelectorAll(".tab").forEach(b=> b.onclick = ()=> setTab(b.dataset.tab) );
@@ -825,15 +843,12 @@
   $("#btnH1").onclick = ()=>{ setHospitalSelectors("H1"); route(); };
   $("#btnH2").onclick = ()=>{ setHospitalSelectors("H2"); route(); };
 
-  // QR scan
+  // QR scan (para uso do gestor em desktop)
   $("#btnScan").onclick = ()=>{ openModal("#modalQRScan"); startScan(); };
   document.querySelectorAll("[data-close]").forEach(b=> b.onclick = ()=> closeModal(b.getAttribute("data-close")) );
   // Bulk QR
   $("#btnBulkQR").onclick = openBulkQR;
   $("#b_generate").onclick = buildQRGrid;
-
-  // PIN modal close (se fechar, sessão não inicia)
-  // (handlers nos botões já configurados em requirePin)
 
   // -------------------- PARAMS (URL) --------------------
   (function checkParams(){
@@ -841,15 +856,14 @@
     const h = p.get("h");
     const leito = Number(p.get("leito"));
     if(h && ["H1","H2"].includes(h) && leito>0){
-      // fluxo médico direto do QR: exige PIN
-      openLeitoSecure(h, leito);
+      // fluxo médico direto do QR: entrar no modo QR (sem PIN, com timer)
+      enterQrMode(h, leito);
+    }else{
+      // portal normal (sem timer)
+      setHospitalSelectors("H1");
+      setTab("leitos");
     }
   })();
-
-  // -------------------- BOOT --------------------
-  setHospitalSelectors("H1");
-  setTab("leitos");
-  startSession(0); // mostra --:--
   </script>
 </body>
 </html>
