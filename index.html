@@ -62,19 +62,40 @@
     .btn.primary{background:var(--nav);border-color:var(--nav);color:#fff}
     .btn.ghost{background:transparent;color:#fff;border-color:#ffffff66}
     .btn.danger{background:var(--danger);border-color:var(--danger);color:#fff}
-    .btn.hospital{background:var(--nav);border-color:var(--nav);color:#fff}
-    .btn.hospital.active{background:#1e40af;border-color:#1e40af;box-shadow:0 0 0 3px rgba(30,64,175,0.2)}
+    
+    /* CORREÇÃO: Botões de hospital padronizados em azul */
+    .btn.hospital{
+      background:var(--nav);
+      border-color:var(--nav);
+      color:#fff;
+      transition: all 0.2s ease;
+    }
+    .btn.hospital.active{
+      background:#1e40af;
+      border-color:#1e40af;
+      box-shadow:0 0 0 3px rgba(30,64,175,0.3);
+      transform: translateY(-1px);
+    }
+    .btn.hospital:hover{
+      background:#1e40af;
+    }
+    
     .select{appearance:none;border:1px solid var(--border);background:#fff;padding:10px 12px;border-radius:12px}
     
-    /* Indicador de tempo dentro do botão */
+    /* CORREÇÃO: Botão de refresh com tempo integrado */
     #btnRefresh {
       display: flex;
+      flex-direction: column;
       align-items: center;
-      gap: 8px;
+      gap: 2px;
+      background: var(--nav);
+      border-color: var(--nav);
+      color: #fff;
     }
     #lastUpdateInfo {
-      font-size: 11px;
-      opacity: 0.9;
+      font-size: 9px;
+      opacity: 0.8;
+      line-height: 1;
     }
 
     /* GRID DE CARDS (flutuantes) */
@@ -199,6 +220,24 @@
       color: var(--text);
     }
     
+    /* CORREÇÃO: Estilos para mini-gauges */
+    .mini-gauge-container {
+      position: relative;
+      width: 100px;
+      height: 60px;
+      margin: 0 auto;
+    }
+    
+    .mini-gauge-value {
+      position: absolute;
+      bottom: 5px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 14px;
+      font-weight: bold;
+      color: var(--nav);
+    }
+    
     .gauge-container {
       position: relative;
       width: 200px;
@@ -290,12 +329,14 @@
       <div class="row">
         <button class="btn primary" id="btnBulkQR">QR Codes (imprimir)</button>
         <button class="btn" id="btnScan">Ler QR Code</button>
+        <!-- CORREÇÃO: Botão refresh com tempo integrado -->
         <button class="btn primary" id="btnRefresh">
           🔄 Atualizar
           <span id="lastUpdateInfo">há 0s</span>
         </button>
       </div>
       <div class="row">
+        <!-- CORREÇÃO: Botões de hospital padronizados -->
         <button class="btn hospital active" data-h="H1" id="btnH1">Neomater</button>
         <button class="btn hospital" data-h="H2" id="btnH2">Cruz Azul</button>
       </div>
@@ -324,9 +365,10 @@
       </table>
     </section>
 
-    <!-- Dash 1 - Visão Geral dos 4 Hospitais -->
+    <!-- CORREÇÃO: Dash 1 - Somente Neomater e Cruz Azul -->
     <section id="dash1" class="hidden">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+      <!-- Quadrantes dos 2 Hospitais -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:30px">
         <!-- Neomater (H1) -->
         <div class="dashboard-card">
           <h3 style="text-align:center;color:var(--nav);margin-bottom:15px">Neomater</h3>
@@ -335,34 +377,34 @@
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
             <!-- Taxa de Ocupação -->
             <div style="text-align:center;padding:10px;background:#f9fafb;border-radius:8px">
-              <div class="gauge-container" style="width:100px;height:60px;margin:0 auto">
-                <canvas id="gaugeOcupacaoH1"></canvas>
-                <div class="gauge-value" style="font-size:16px;bottom:5px" id="gaugeOcupacaoH1Value">0%</div>
+              <div class="mini-gauge-container">
+                <canvas id="gaugeOcupacaoH1" width="100" height="60"></canvas>
+                <div class="mini-gauge-value" id="gaugeOcupacaoH1Value">0%</div>
               </div>
               <div style="font-size:10px;color:var(--muted);margin-top:5px">Taxa Ocupação</div>
             </div>
             
             <!-- Leitos Ocupados -->
             <div style="text-align:center;padding:10px;background:#f9fafb;border-radius:8px">
-              <div class="gauge-container" style="width:100px;height:60px;margin:0 auto">
-                <canvas id="gaugeOcupadosH1"></canvas>
-                <div class="gauge-value" style="font-size:16px;bottom:5px" id="gaugeOcupadosH1Value">0</div>
+              <div class="mini-gauge-container">
+                <canvas id="gaugeOcupadosH1" width="100" height="60"></canvas>
+                <div class="mini-gauge-value" id="gaugeOcupadosH1Value">0</div>
               </div>
               <div style="font-size:10px;color:var(--muted);margin-top:5px">Ocupados</div>
             </div>
             
             <!-- Leitos Disponíveis -->
             <div style="text-align:center;padding:10px;background:#f9fafb;border-radius:8px">
-              <div class="gauge-container" style="width:100px;height:60px;margin:0 auto">
-                <canvas id="gaugeDisponiveisH1"></canvas>
-                <div class="gauge-value" style="font-size:16px;bottom:5px" id="gaugeDisponiveisH1Value">0</div>
+              <div class="mini-gauge-container">
+                <canvas id="gaugeDisponiveisH1" width="100" height="60"></canvas>
+                <div class="mini-gauge-value" id="gaugeDisponiveisH1Value">0</div>
               </div>
               <div style="font-size:10px;color:var(--muted);margin-top:5px">Disponíveis</div>
             </div>
             
-            <!-- Previsão de Altas -->
+            <!-- Altas em 24h -->
             <div style="text-align:center;padding:10px;background:#f9fafb;border-radius:8px">
-              <div style="font-size:20px;font-weight:bold;color:var(--nav)" id="altasH1">0</div>
+              <div style="font-size:20px;font-weight:bold;color:var(--nav);margin:15px 0" id="altasH1">0</div>
               <div style="font-size:10px;color:var(--muted)">Altas 24h</div>
             </div>
           </div>
@@ -383,34 +425,34 @@
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
             <!-- Taxa de Ocupação -->
             <div style="text-align:center;padding:10px;background:#f9fafb;border-radius:8px">
-              <div class="gauge-container" style="width:100px;height:60px;margin:0 auto">
-                <canvas id="gaugeOcupacaoH2"></canvas>
-                <div class="gauge-value" style="font-size:16px;bottom:5px" id="gaugeOcupacaoH2Value">0%</div>
+              <div class="mini-gauge-container">
+                <canvas id="gaugeOcupacaoH2" width="100" height="60"></canvas>
+                <div class="mini-gauge-value" id="gaugeOcupacaoH2Value">0%</div>
               </div>
               <div style="font-size:10px;color:var(--muted);margin-top:5px">Taxa Ocupação</div>
             </div>
             
             <!-- Leitos Ocupados -->
             <div style="text-align:center;padding:10px;background:#f9fafb;border-radius:8px">
-              <div class="gauge-container" style="width:100px;height:60px;margin:0 auto">
-                <canvas id="gaugeOcupadosH2"></canvas>
-                <div class="gauge-value" style="font-size:16px;bottom:5px" id="gaugeOcupadosH2Value">0</div>
+              <div class="mini-gauge-container">
+                <canvas id="gaugeOcupadosH2" width="100" height="60"></canvas>
+                <div class="mini-gauge-value" id="gaugeOcupadosH2Value">0</div>
               </div>
               <div style="font-size:10px;color:var(--muted);margin-top:5px">Ocupados</div>
             </div>
             
             <!-- Leitos Disponíveis -->
             <div style="text-align:center;padding:10px;background:#f9fafb;border-radius:8px">
-              <div class="gauge-container" style="width:100px;height:60px;margin:0 auto">
-                <canvas id="gaugeDisponiveisH2"></canvas>
-                <div class="gauge-value" style="font-size:16px;bottom:5px" id="gaugeDisponiveisH2Value">0</div>
+              <div class="mini-gauge-container">
+                <canvas id="gaugeDisponiveisH2" width="100" height="60"></canvas>
+                <div class="mini-gauge-value" id="gaugeDisponiveisH2Value">0</div>
               </div>
               <div style="font-size:10px;color:var(--muted);margin-top:5px">Disponíveis</div>
             </div>
             
-            <!-- Previsão de Altas -->
+            <!-- Altas em 24h -->
             <div style="text-align:center;padding:10px;background:#f9fafb;border-radius:8px">
-              <div style="font-size:20px;font-weight:bold;color:var(--nav)" id="altasH2">0</div>
+              <div style="font-size:20px;font-weight:bold;color:var(--nav);margin:15px 0" id="altasH2">0</div>
               <div style="font-size:10px;color:var(--muted)">Altas 24h</div>
             </div>
           </div>
@@ -420,24 +462,6 @@
               <div><strong>Total:</strong> 16 leitos</div>
               <div><strong>Enfermaria:</strong> 16 leitos</div>
             </div>
-          </div>
-        </div>
-
-        <!-- Hospital 3 (Placeholder) -->
-        <div class="dashboard-card" style="opacity:0.5">
-          <h3 style="text-align:center;color:var(--muted);margin-bottom:15px">Hospital 3</h3>
-          <div style="text-align:center;padding:40px;color:var(--muted)">
-            <p>Em breve</p>
-            <small>Dados não disponíveis</small>
-          </div>
-        </div>
-
-        <!-- Hospital 4 (Placeholder) -->
-        <div class="dashboard-card" style="opacity:0.5">
-          <h3 style="text-align:center;color:var(--muted);margin-bottom:15px">Hospital 4</h3>
-          <div style="text-align:center;padding:40px;color:var(--muted)">
-            <p>Em breve</p>
-            <small>Dados não disponíveis</small>
           </div>
         </div>
       </div>
@@ -943,17 +967,17 @@
     }
   }
 
-  // Função para atualizar indicador de tempo
+  // CORREÇÃO: Função para atualizar indicador de tempo
   function updateTimeIndicator() {
     if(isQRMode) return; // Não mostra no modo QR
     const indicator = document.getElementById('lastUpdateInfo');
     if(indicator) {
       const elapsed = Math.floor((Date.now() - lastUpdateTime) / 1000);
       if(elapsed < 60) {
-        indicator.textContent = `Atualizado há ${elapsed}s`;
+        indicator.textContent = `há ${elapsed}s`;
       } else {
         const minutes = Math.floor(elapsed / 60);
-        indicator.textContent = `Atualizado há ${minutes}min`;
+        indicator.textContent = `há ${minutes}min`;
       }
     }
   }
@@ -1276,7 +1300,7 @@
     const s2 = document.getElementById('selHospital2');
     if (s2) s2.value = h;
     
-    // Atualiza visual dos botões de hospital
+    // CORREÇÃO: Atualiza visual dos botões de hospital
     document.querySelectorAll('.btn.hospital').forEach(btn => {
       btn.classList.remove('active');
     });
@@ -1297,16 +1321,47 @@
   }
 
   // -------------------- DASHBOARDS --------------------
+  // CORREÇÃO: Função para criar mini-gauge
+  function createMiniGauge(canvasId, value, maxValue, color = '#0a2b52') {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    const centerX = 50;
+    const centerY = 35;
+    const radius = 30;
+    
+    // Limpa o canvas
+    ctx.clearRect(0, 0, 100, 60);
+    
+    // Fundo do arco (semicírculo)
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, Math.PI, 0, false);
+    ctx.strokeStyle = '#e5e7eb';
+    ctx.lineWidth = 8;
+    ctx.stroke();
+    
+    // Arco do valor
+    const percentage = maxValue > 0 ? Math.min(value / maxValue, 1) : 0;
+    const angle = Math.PI * percentage;
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, Math.PI, Math.PI + angle, false);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 8;
+    ctx.lineCap = 'round';
+    ctx.stroke();
+  }
+
   function drawGauge(canvasId, value, maxValue, color, small = false) {
     const canvas = document.getElementById(canvasId);
     if (!canvas) return;
     
     const ctx = canvas.getContext('2d');
-    const width = canvas.width = small ? 100 : 200;
-    const height = canvas.height = small ? 60 : 120;
+    const width = canvas.width = small ? 120 : 200;
+    const height = canvas.height = small ? 80 : 120;
     const centerX = width / 2;
-    const centerY = height - (small ? 5 : 20);
-    const radius = small ? 35 : 70;
+    const centerY = height - (small ? 10 : 20);
+    const radius = small ? 40 : 70;
     
     // Limpa canvas
     ctx.clearRect(0, 0, width, height);
@@ -1314,7 +1369,7 @@
     // Desenha arco de fundo
     ctx.beginPath();
     ctx.arc(centerX, centerY, radius, Math.PI, 0, false);
-    ctx.lineWidth = small ? 10 : 20;
+    ctx.lineWidth = small ? 12 : 20;
     ctx.strokeStyle = '#e5e7eb';
     ctx.stroke();
     
@@ -1324,7 +1379,7 @@
     
     ctx.beginPath();
     ctx.arc(centerX, centerY, radius, Math.PI, endAngle, false);
-    ctx.lineWidth = small ? 10 : 20;
+    ctx.lineWidth = small ? 12 : 20;
     ctx.strokeStyle = color || '#0a2b52';
     ctx.lineCap = 'round';
     ctx.stroke();
@@ -1387,14 +1442,17 @@
     return { labels, concessoesData, linhasData };
   }
 
-  function renderDashboards() {
-    // Dashboard 1 - Visão Geral
+  // CORREÇÃO: Função principal para renderizar dashboards
+  async function renderDashboards() {
+    // Dashboard 1 - Visão Geral (CORRIGIDO)
     if (activeTab === 'dash1') {
       // Carrega dados de ambos hospitais primeiro
-      Promise.all([
-        loadHospital('H1'),
-        loadHospital('H2')
-      ]).then(() => {
+      try {
+        await Promise.all([
+          loadHospital('H1'),
+          loadHospital('H2')
+        ]);
+        
         // Renderiza cada hospital
         ['H1', 'H2'].forEach(hospital => {
           const dados = banco[hospital] || [];
@@ -1411,21 +1469,20 @@
             (l.prevAlta.includes('24h'))
           ).length;
           
-          // Taxa de ocupação
-          drawGauge(`gaugeOcupacao${hospital}`, taxaOcupacao, 100, 
-            taxaOcupacao > 90 ? '#ef4444' : 
-            taxaOcupacao > 85 ? '#f59e0b' : 
-            taxaOcupacao > 70 ? '#10b981' : '#3b82f6',
-            true
-          );
+          // Taxa de ocupação com cores dinâmicas
+          const corTaxa = taxaOcupacao > 90 ? '#ef4444' : 
+                         taxaOcupacao > 85 ? '#f59e0b' : 
+                         taxaOcupacao > 70 ? '#10b981' : '#3b82f6';
+          
+          createMiniGauge(`gaugeOcupacao${hospital}`, taxaOcupacao, 100, corTaxa);
           $(`#gaugeOcupacao${hospital}Value`).textContent = taxaOcupacao + '%';
           
           // Leitos ocupados
-          drawGauge(`gaugeOcupados${hospital}`, ocupados, totalLeitos, '#f59e0b', true);
+          createMiniGauge(`gaugeOcupados${hospital}`, ocupados, totalLeitos, '#f59e0b');
           $(`#gaugeOcupados${hospital}Value`).textContent = ocupados;
           
           // Leitos disponíveis
-          drawGauge(`gaugeDisponiveis${hospital}`, disponiveis, totalLeitos, '#10b981', true);
+          createMiniGauge(`gaugeDisponiveis${hospital}`, disponiveis, totalLeitos, '#10b981');
           $(`#gaugeDisponiveis${hospital}Value`).textContent = disponiveis;
           
           // Altas em 24h
@@ -1554,7 +1611,11 @@
             }
           });
         }
-      });
+        
+        logSuccess('Dashboard 1 renderizado com sucesso');
+      } catch (error) {
+        logError('Erro ao renderizar Dashboard 1:', error);
+      }
     }
     
     // Dashboard 2 - Previsão de Altas (mantém como está)
@@ -1609,8 +1670,99 @@
       }
     }
     
-    // Dashboards 3 e 4 mantêm como estão...
-    // (código existente para dash3 e dash4)
+    // Dashboard 3 - Linhas de Cuidado
+    if (activeTab === 'dash3') {
+      const dados = banco[currentHospital];
+      if (!dados || dados.length === 0) return;
+      
+      const linhasCount = {};
+      dados.filter(l => l.status === 'Em uso').forEach(l => {
+        (l.linhas || []).forEach(linha => {
+          linhasCount[linha] = (linhasCount[linha] || 0) + 1;
+        });
+      });
+      
+      const canvas = document.getElementById('chartLinhas');
+      if (canvas) {
+        const ctx = canvas.getContext('2d');
+        if (window.chartLinhas) window.chartLinhas.destroy();
+        
+        window.chartLinhas = new Chart(ctx, {
+          type: 'doughnut',
+          data: {
+            labels: Object.keys(linhasCount),
+            datasets: [{
+              data: Object.values(linhasCount),
+              backgroundColor: [
+                '#0a2b52', '#16a34a', '#f59e0b', '#dc2626', '#8b5cf6', '#0891b2', '#be185d'
+              ]
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false
+          }
+        });
+      }
+      
+      // Top Linhas
+      const topLinhas = Object.entries(linhasCount)
+        .sort(([,a], [,b]) => b - a)
+        .slice(0, 5);
+      
+      $('#topLinhas').innerHTML = topLinhas.map(([linha, count]) => 
+        `<div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+          <span>${linha}</span><strong>${count}</strong>
+        </div>`
+      ).join('');
+    }
+    
+    // Dashboard 4 - Concessões
+    if (activeTab === 'dash4') {
+      const dados = banco[currentHospital];
+      if (!dados || dados.length === 0) return;
+      
+      const concessoesCount = {};
+      dados.filter(l => l.status === 'Em uso').forEach(l => {
+        (l.concessoes || []).forEach(conc => {
+          concessoesCount[conc] = (concessoesCount[conc] || 0) + 1;
+        });
+      });
+      
+      const canvas = document.getElementById('chartConcessoes');
+      if (canvas) {
+        const ctx = canvas.getContext('2d');
+        if (window.chartConcessoes) window.chartConcessoes.destroy();
+        
+        window.chartConcessoes = new Chart(ctx, {
+          type: 'polarArea',
+          data: {
+            labels: Object.keys(concessoesCount),
+            datasets: [{
+              data: Object.values(concessoesCount),
+              backgroundColor: [
+                '#0a2b52', '#16a34a', '#f59e0b', '#dc2626', '#8b5cf6'
+              ]
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false
+          }
+        });
+      }
+      
+      // Top Concessões
+      const topConcessoes = Object.entries(concessoesCount)
+        .sort(([,a], [,b]) => b - a)
+        .slice(0, 5);
+      
+      $('#topConcessoes').innerHTML = topConcessoes.map(([conc, count]) => 
+        `<div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+          <span>${conc}</span><strong>${count}</strong>
+        </div>`
+      ).join('');
+    }
   }
 
   // -------------------- QR – Scanner & Em Massa --------------------
@@ -1778,7 +1930,7 @@
       loadHospital("H1");
       loadHospital("H2");
       
-      // Auto-refresh a cada 1 minuto no modo portal
+      // CORREÇÃO: Auto-refresh a cada 1 minuto no modo portal
       autoRefreshInterval = setInterval(() => {
         logInfo("Auto-refresh executado");
         loadHospital("H1"); // Carrega H1
@@ -1790,7 +1942,7 @@
         }
       }, 60000); // 60 segundos
       
-      // Atualiza indicador de tempo a cada segundo
+      // CORREÇÃO: Atualiza indicador de tempo a cada segundo
       updateIndicatorInterval = setInterval(updateTimeIndicator, 1000);
     }
     
