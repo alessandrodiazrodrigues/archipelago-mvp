@@ -105,14 +105,12 @@
       border:1px solid var(--border);
       border-radius:20px;
       padding:16px;
-      /* múltiplas sombras para profundidade */
       box-shadow:
         var(--shadow-1),
         var(--shadow-2),
         0 0 0 1px rgba(255,255,255,.6) inset;
       transform:translateY(0);
       transition:transform .18s ease, box-shadow .18s ease, filter .18s ease;
-      /* glow/veil azul leve sob o card */
     }
     .card::before{
       content:"";
@@ -257,7 +255,7 @@
       margin-top: 15px;
     }
 
-    /* NOVO: Estilos para Dash 1 */
+    /* Estilos para Dash 1 */
     .dashboard-grid-hospitais {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -571,7 +569,6 @@
             </select>
           </div>
         </div>
-
         <div class="row3">
           <div>
             <label class="label" for="a_prev">Previsão de alta</label>
@@ -599,7 +596,6 @@
       </div>
     </div>
   </div>
-
   <div id="modalAtualizacao" class="backdrop" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true">
       <header>
@@ -612,7 +608,6 @@
           <div><span class="label">Leito</span><div id="u_leito" class="badge"></div></div>
           <div><span class="label">Tipo</span><div id="u_tipo" class="badge"></div></div>
         </div>
-
         <div class="row3" style="margin-top:10px">
           <div>
             <label class="label">Nome (bloqueado)</label>
@@ -627,7 +622,6 @@
             <input id="u_adm" class="input" disabled />
           </div>
         </div>
-
         <div class="row3">
           <div>
             <label class="label" for="u_idade">Idade</label>
@@ -645,7 +639,6 @@
             </select>
           </div>
         </div>
-
         <div class="row3">
           <div>
             <label class="label" for="u_prev">Previsão de alta</label>
@@ -663,7 +656,6 @@
             <div id="u_concessoes" class="wrap"></div>
           </div>
         </div>
-
         <div class="mini" id="internadoHa" style="margin-top:8px;color:#6b7280"></div>
       </div>
       <div class="actions">
@@ -673,7 +665,6 @@
       </div>
     </div>
   </div>
-
   <div id="modalConfirm" class="backdrop" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true" style="max-width:520px">
       <header><strong>Confirmação</strong></header>
@@ -684,7 +675,6 @@
       </div>
     </div>
   </div>
-
   <div id="modalQRScan" class="backdrop" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true">
       <header><strong>Ler QR Code</strong><button class="btn" data-close="#modalQRScan">Fechar</button></header>
@@ -695,7 +685,6 @@
       <div class="actions"><button class="btn" data-close="#modalQRScan">Cancelar</button></div>
     </div>
   </div>
-
   <div id="modalBulkQR" class="backdrop" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true" style="max-width:90vw;max-height:90vh">
       <header>
@@ -729,7 +718,6 @@
       </div>
     </div>
   </div>
-
   <div id="modalQRExpired" class="backdrop" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true" style="max-width:520px">
       <header><strong>Sessão Expirada</strong></header>
@@ -1093,7 +1081,6 @@
       if(activeTab===id) el.classList.remove("hidden"); else el.classList.add("hidden");
     });
 
-    // NOVO: Esconder toolbar em dashboards
     const toolbar = document.getElementById('portalToolbar');
     toolbar.style.display = activeTab.startsWith('dash') ? 'none' : 'flex';
 
@@ -1102,25 +1089,22 @@
   }
 
   // -------------------- DASHBOARDS --------------------
-  // --- Funções Helper para Dashboards ---
-  // Mapeia string de previsão para número de dias
   function getDiasAteAlta(prevAlta) {
-    if (!prevAlta) return 7; // Default para 'Sem previsao'
+    if (!prevAlta) return 7; 
     if (prevAlta.includes('24h')) return 1;
     if (prevAlta === '48h') return 2;
     if (prevAlta === '72h') return 3;
     if (prevAlta === '96h') return 4;
-    return 7; // Default para 'Sem previsao'
+    return 7; 
   }
 
-  // NOVA LÓGICA: Calcula projeções para um hospital específico
   function calculateHospitalProjections(hospitalData) {
       const hoje = new Date();
       const labels = [`Hoje (${hoje.toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'})})`];
       for (let i = 1; i <= 7; i++) {
-          const dia futuro = new Date(hoje);
-          dia futuro.setDate(hoje.getDate() + i);
-          labels.push(`D+${i} (${dia futuro.toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'})})`);
+          const diaFuturo = new Date(hoje);
+          diaFuturo.setDate(hoje.getDate() + i);
+          labels.push(`D+${i} (${diaFuturo.toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'})})`);
       }
 
       const linhasData = {};
@@ -1147,7 +1131,6 @@
       return { labels, linhasData, concessoesData };
   }
   
-  // Helper para criar gráficos de linha
   function createLineChart(canvasId, chartInstanceName, { labels, data, title }) {
       const canvas = document.getElementById(canvasId);
       if (!canvas) return;
@@ -1160,7 +1143,7 @@
               label: key,
               data: values,
               borderColor: colors[idx % colors.length],
-              backgroundColor: colors[idx % colors.length] + '20', // Add transparency
+              backgroundColor: colors[idx % colors.length] + '20',
               fill: false,
               tension: 0.3,
               borderWidth: 2,
@@ -1177,7 +1160,6 @@
       });
   }
   
-  // Helper para criar gráficos de gauge (meia-rosca)
   function createGaugeChart(canvasId, chartInstanceName, value) {
       const canvas = document.getElementById(canvasId);
       if (!canvas) return;
@@ -1204,12 +1186,10 @@
       });
   }
 
-  // Função principal para renderizar dashboards
   async function renderDashboards() {
-    // Dashboard 1 - Visão Geral (NOVA VERSÃO)
+    // Dashboard 1 - Visão Geral
     if (activeTab === 'dash1') {
       try {
-        // Garante que ambos os hospitais estão carregados
         await Promise.all([
           banco.H1.length === 0 ? loadHospital('H1') : Promise.resolve(),
           banco.H2.length === 0 ? loadHospital('H2') : Promise.resolve()
@@ -1222,57 +1202,106 @@
           const vagos = totalLeitos - ocupados;
           const taxaOcupacao = totalLeitos > 0 ? Math.round((ocupados / totalLeitos) * 100) : 0;
           
-          // Atualiza stats
           $(`#statOcupados${h}`).textContent = ocupados;
           $(`#statVagos${h}`).textContent = vagos;
           $(`#statTotal${h}`).textContent = totalLeitos;
           $(`#gaugePercent${h}`).textContent = taxaOcupacao + '%';
 
-          // Cria Gauge
           createGaugeChart(`chartOcupacao${h}`, `chartGauge${h}`, taxaOcupacao);
           
-          // Calcula e renderiza projeções
           const projections = calculateHospitalProjections(dados);
           createLineChart(`chartLinhas${h}`, `chartLinhasInst${h}`, {
-              labels: projections.labels,
-              data: projections.linhasData,
-              title: 'Projeção de Linhas de Cuidado'
+              labels: projections.labels, data: projections.linhasData, title: 'Projeção de Linhas de Cuidado'
           });
           createLineChart(`chartConcessoes${h}`, `chartConcessoesInst${h}`, {
-              labels: projections.labels,
-              data: projections.concessoesData,
-              title: 'Projeção de Concessões'
+              labels: projections.labels, data: projections.concessoesData, title: 'Projeção de Concessões'
           });
         });
         logSuccess('Dashboard 1 renderizado com sucesso');
       } catch (error) {
         logError('Erro ao renderizar Dashboard 1:', error);
       }
+      return; // Finaliza aqui para não executar o código dos outros dashes
     }
     
-    // Dashboards 2, 3, 4 (lógica original mantida, mas precisa de hospital selecionado)
-    const dadosDash = banco[currentHospital] || [];
-    if (dadosDash.length === 0 && activeTab !== 'dash1') {
+    // Dashboards 2, 3, 4 usam o hospital selecionado atualmente
+    const dados = banco[currentHospital] || [];
+    if (dados.length === 0) {
         logWarning(`Dados para ${currentHospital} não disponíveis para os dashboards.`);
         return;
     }
 
+    // Dashboard 2 - Previsão de Altas
     if (activeTab === 'dash2') {
       const altas = { '24h Ouro': 0, '24h 2R': 0, '24h 3R': 0, '48h': 0, '72h': 0, '96h': 0, 'Sem previsao': 0 };
-      dadosDash.filter(l => l.status === 'Em uso').forEach(l => { if (altas.hasOwnProperty(l.prevAlta)) altas[l.prevAlta]++; });
+      dados.filter(l => l.status === 'Em uso').forEach(l => { if (altas.hasOwnProperty(l.prevAlta)) altas[l.prevAlta]++; });
+      
       $('#altas24h').textContent = altas['24h Ouro'] + altas['24h 2R'] + altas['24h 3R'];
       $('#altas48h').textContent = altas['48h'];
       $('#altas72h').textContent = altas['72h'];
       $('#altasSem').textContent = altas['Sem previsao'];
-      // Gráfico de barras...
+      
+      const canvas = document.getElementById('chartAltas');
+      if (canvas) {
+        const ctx = canvas.getContext('2d');
+        if (window.chartAltas) window.chartAltas.destroy();
+        window.chartAltas = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: Object.keys(altas),
+            datasets: [{
+              label: 'Pacientes',
+              data: Object.values(altas),
+              backgroundColor: ['#10b981', '#22c55e', '#34d399', '#3b82f6', '#60a5fa', '#f59e0b', '#ef4444']
+            }]
+          },
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+        });
+      }
     }
     
+    // Dashboard 3 - Linhas de Cuidado
     if (activeTab === 'dash3') {
-      // Lógica do Dash 3...
+      const linhasCount = {};
+      dados.filter(l => l.status === 'Em uso').forEach(l => (l.linhas || []).forEach(linha => { linhasCount[linha] = (linhasCount[linha] || 0) + 1; }));
+      
+      const canvas = document.getElementById('chartLinhas');
+      if (canvas) {
+        const ctx = canvas.getContext('2d');
+        if (window.chartLinhas) window.chartLinhas.destroy();
+        window.chartLinhas = new Chart(ctx, {
+          type: 'doughnut',
+          data: {
+            labels: Object.keys(linhasCount),
+            datasets: [{ data: Object.values(linhasCount), backgroundColor: ['#0a2b52', '#16a34a', '#f59e0b', '#dc2626', '#8b5cf6', '#0891b2', '#be185d'] }]
+          },
+          options: { responsive: true, maintainAspectRatio: false }
+        });
+      }
+      const topLinhas = Object.entries(linhasCount).sort(([,a], [,b]) => b - a).slice(0, 5);
+      $('#topLinhas').innerHTML = topLinhas.map(([linha, count]) => `<div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span>${linha}</span><strong>${count}</strong></div>`).join('');
     }
-
+    
+    // Dashboard 4 - Concessões
     if (activeTab === 'dash4') {
-      // Lógica do Dash 4...
+      const concessoesCount = {};
+      dados.filter(l => l.status === 'Em uso').forEach(l => (l.concessoes || []).forEach(conc => { concessoesCount[conc] = (concessoesCount[conc] || 0) + 1; }));
+
+      const canvas = document.getElementById('chartConcessoes');
+      if (canvas) {
+        const ctx = canvas.getContext('2d');
+        if (window.chartConcessoes) window.chartConcessoes.destroy();
+        window.chartConcessoes = new Chart(ctx, {
+          type: 'polarArea',
+          data: {
+            labels: Object.keys(concessoesCount),
+            datasets: [{ data: Object.values(concessoesCount), backgroundColor: ['#0a2b52', '#16a34a', '#f59e0b', '#dc2626', '#8b5cf6'] }]
+          },
+          options: { responsive: true, maintainAspectRatio: false }
+        });
+      }
+      const topConcessoes = Object.entries(concessoesCount).sort(([,a], [,b]) => b - a).slice(0, 5);
+      $('#topConcessoes').innerHTML = topConcessoes.map(([conc, count]) => `<div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span>${conc}</span><strong>${count}</strong></div>`).join('');
     }
   }
 
@@ -1377,19 +1406,25 @@
   }
 
   // -------------------- EVENTOS & INICIALIZAÇÃO --------------------
-  document.querySelectorAll(".tab").forEach(b=> b.onclick = ()=> setTab(b.dataset.tab) );
-  $('#selHospital2').onchange = e=>{ setHospitalSelectors(e.target.value); loadHospital(e.target.value); };
-  $("#btnH1").onclick = ()=>{ setHospitalSelectors("H1"); loadHospital("H1"); };
-  $("#btnH2").onclick = ()=>{ setHospitalSelectors("H2"); loadHospital("H2"); };
-  $("#btnRefresh").onclick = ()=>{ logInfo("Refresh manual"); loadHospital(currentHospital); };
-  $("#btnScan").onclick = ()=>{ openModal("#modalQRScan"); startScan(); };
-  document.querySelectorAll("[data-close]").forEach(b=> b.onclick = ()=> closeModal(b.getAttribute("data-close")) );
-  $("#btnBulkQR").onclick = openBulkQR;
-  $("#b_generate").onclick = buildQRGrid;
-  $("#reloadPage").onclick = ()=> location.reload();
-
+  function setupEventListeners() {
+    document.querySelectorAll(".tab").forEach(b=> b.onclick = ()=> setTab(b.dataset.tab) );
+    $('#selHospital2').onchange = e=>{ setHospitalSelectors(e.target.value); loadHospital(e.target.value); };
+    $("#btnH1").onclick = ()=>{ setHospitalSelectors("H1"); loadHospital("H1"); };
+    $("#btnH2").onclick = ()=>{ setHospitalSelectors("H2"); loadHospital("H2"); };
+    $("#btnRefresh").onclick = ()=>{ logInfo("Refresh manual"); loadHospital(currentHospital); };
+    $("#btnScan").onclick = ()=>{ openModal("#modalQRScan"); startScan(); };
+    document.querySelectorAll("[data-close]").forEach(b=> b.onclick = ()=> closeModal(b.getAttribute("data-close")) );
+    $("#btnBulkQR").onclick = openBulkQR;
+    $("#b_generate").onclick = buildQRGrid;
+    $("#reloadPage").onclick = ()=> location.reload();
+  }
+  
   (async function init(){
     logInfo("=== INICIALIZANDO ARCHIPELAGO MVP ===");
+    
+    // CORREÇÃO: Mover a configuração dos eventos para dentro da inicialização
+    setupEventListeners();
+
     const p = new URLSearchParams(location.search);
     const h = p.get("h");
     const leito = Number(p.get("leito"));
@@ -1399,19 +1434,18 @@
     if(h && ["H1","H2"].includes(h) && leito>0){
       logInfo(`🏥 MODO QR DETECTADO - Hospital: ${h}, Leito: ${leito}`);
       enterQrMode(h, leito);
-    }else{
+    } else {
       logInfo("💼 MODO PORTAL DETECTADO - Sessão gestor iniciada");
       setHospitalSelectors("H1");
       setTab("leitos");
       
-      loadHospital("H1");
-      loadHospital("H2");
+      await Promise.all([loadHospital("H1"), loadHospital("H2")]);
       
       autoRefreshInterval = setInterval(() => {
         logInfo("Auto-refresh executado");
-        loadHospital("H1");
-        loadHospital("H2");
-        if(activeTab.startsWith('dash')) renderDashboards();
+        Promise.all([loadHospital("H1"), loadHospital("H2")]).then(() => {
+          if(activeTab.startsWith('dash')) renderDashboards();
+        });
       }, 60000);
       
       updateIndicatorInterval = setInterval(updateTimeIndicator, 1000);
