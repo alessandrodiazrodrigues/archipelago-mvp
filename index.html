@@ -1018,12 +1018,7 @@
     if(!await confirmAction("Confirmar ALTA deste paciente?")) return;
     try {
       await apiCall({ action:'alta', hospital: currentHospital, leito: leito });
-      if (isQRMode) {
-        closeModal("#modalAtualizacao");
-        showSuccessMessage();
-      } else {
-        await loadHospital(currentHospital);
-      }
+      await loadHospital(currentHospital);
     } catch(error) { alert('Erro ao dar alta: ' + error.message); }
   }
 
@@ -1172,7 +1167,7 @@
 
       logSuccess('Dashboard 2 renderizado.');
   }
-
+  
   // =======================================================================
   // ======================= LÓGICA DE QR CODE ===========================
   // =======================================================================
@@ -1181,7 +1176,7 @@
   async function startScan(){ if(!window.Html5Qrcode){ alert("Leitor não disponível."); return; } try{ if(qrReader) await stopScan(); qrReader = new Html5Qrcode('qrRegion'); await qrReader.start({ facingMode:'environment' }, { fps:10, qrbox:250 }, handleScan, ()=>{}); }catch(e){ alert("Não foi possível acessar a câmera."); stopScan(); closeModal("#modalQRScan"); } }
   function stopScan(){ if(!qrReader) return Promise.resolve(); return qrReader.stop().then(()=>{ qrReader.clear(); qrReader=null; }).catch(()=>{}); }
   function buildQRGrid(){ const h = $("#b_hospital").value; const from = Math.max(1, parseInt($("#b_from").value||"1")); const to   = Math.max(from, parseInt($("#b_to").value||"1")); const limit = h==="H1"?13:16; const f = Math.min(from, limit); const t = Math.min(to, limit); const base = `${location.origin}${location.pathname}`; const grid = $("#qr_grid"); grid.innerHTML = ""; for(let i=f;i<=t;i++){ const url = `${base}?h=${h}&leito=${i}`; const cell = document.createElement("div"); cell.className="qr-cell"; cell.innerHTML = `<div class="qr-box"></div><div class="mini">Leito ${i} • ${HOSPITAIS[h].nome}</div>`; grid.appendChild(cell); new QRCode(cell.querySelector(".qr-box"), {text:url, width:160, height:160}); } }
-
+  
   // =======================================================================
   // ===================== INICIALIZAÇÃO E EVENTOS =========================
   // =======================================================================
@@ -1221,11 +1216,11 @@
     $('#qrCodeBtn').onclick = () => $('#qrDropdown').classList.toggle('show');
     $('#settingsBtn').onclick = () => $('#settingsDropdown').classList.toggle('show');
 
-    const readQRFn = () => { $('#qrDropdown').classList.remove('show'); $('#settingsDropdown').classList.remove('show'); openModal("#modalQRScan"); startScan(); };
+    const readQRFn = () => { openModal("#modalQRScan"); startScan(); };
     $('#btnReadQR_v1').onclick = readQRFn;
     $('#btnReadQR_v2').onclick = readQRFn;
 
-    const printQRFn = () => { $('#qrDropdown').classList.remove('show'); $('#settingsDropdown').classList.remove('show'); openModal("#modalBulkQR"); };
+    const printQRFn = () => { openModal("#modalBulkQR"); };
     $('#btnPrintQR_v1').onclick = printQRFn;
     $('#btnPrintQR_v2').onclick = printQRFn;
     
@@ -1244,8 +1239,48 @@
     $('#a_cancel').onclick = async () => { if (await confirmAction("Cancelar admissão?")) closeModal("#modalAdmissao"); };
     $('#u_cancel').onclick = async () => { if (await confirmAction("Cancelar alterações?")) closeModal("#modalAtualizacao"); };
     $('#u_alta').onclick = ()=> darAltaFlow(selectedLeito);
-    $('#a_save').onclick = async ()=>{ if(!await confirmAction("Salvar e admitir paciente?")) return; try { const payload = { action: 'admit', hospital: currentHospital, leito: selectedLeito, nome: $("#a_nome").value.trim(), idade: Number($("#a_idade").value)||null, matricula: $("#a_matricula").value.trim(), pps: Number($("#a_pps").value)||null, spict: $("#a_spict").value, prevAlta: $("#a_prev").value, linhas: Array.from(document.querySelectorAll("#a_linhas input:checked")).map(i=>i.value), concessoes: Array.from(document.querySelectorAll("#a_concessoes input:checked")).map(i=>i.value) }; await apiCall(payload); closeModal("#modalAdmissao"); await loadHospital(currentHospital); } catch(error) { alert('Erro: ' + error.message); } };
-    $('#u_save').onclick = async ()=>{ if(!await confirmAction("Salvar alterações?")) return; try { const payload = { action: 'update', hospital: currentHospital, leito: selectedLeito, idade: Number($("#u_idade").value)||null, pps: Number($("#u_pps").value)||null, spict: $("#u_spict").value, prevAlta: $("#u_prev").value, linhas: Array.from(document.querySelectorAll("#u_linhas input:checked")).map(i=>i.value), concessoes: Array.from(document.querySelectorAll("#u_concessoes input:checked")).map(i=>i.value) }; await apiCall(payload); closeModal("#modalAtualizacao"); await loadHospital(currentHospital); } catch(error) { alert('Erro: ' + error.message); } };
+
+    $('#a_save').onclick = async () => {
+        if (!await confirmAction("Salvar e admitir paciente?")) return;
+        try {
+            const payload = {
+                action: 'admit', hospital: currentHospital, leito: selectedLeito,
+                nome: $("#a_nome").value.trim(),
+                idade: Number($("#a_idade").value) || null,
+                matricula: $("#a_matricula").value.trim(),
+                pps: Number($("#a_pps").value) || null,
+                spict: $("#a_spict").value,
+                prevAlta: $("#a_prev").value,
+                linhas: Array.from(document.querySelectorAll("#a_linhas input:checked")).map(i => i.value),
+                concessoes: Array.from(document.querySelectorAll("#a_concessoes input:checked")).map(i => i.value)
+            };
+            await apiCall(payload);
+            closeModal("#modalAdmissao");
+            await loadHospital(currentHospital);
+        } catch (error) {
+            alert('Erro ao salvar admissão: ' + error.message);
+        }
+    };
+
+    $('#u_save').onclick = async () => {
+        if (!await confirmAction("Salvar alterações?")) return;
+        try {
+            const payload = {
+                action: 'update', hospital: currentHospital, leito: selectedLeito,
+                idade: Number($("#u_idade").value) || null,
+                pps: Number($("#u_pps").value) || null,
+                spict: $("#u_spict").value,
+                prevAlta: $("#u_prev").value,
+                linhas: Array.from(document.querySelectorAll("#u_linhas input:checked")).map(i => i.value),
+                concessoes: Array.from(document.querySelectorAll("#u_concessoes input:checked")).map(i => i.value)
+            };
+            await apiCall(payload);
+            closeModal("#modalAtualizacao");
+            await loadHospital(currentHospital);
+        } catch (error) {
+            alert('Erro ao salvar atualização: ' + error.message);
+        }
+    };
     
     // Ordenação da Tabela
     document.querySelectorAll('#leitos2View th.sortable').forEach(th => {
