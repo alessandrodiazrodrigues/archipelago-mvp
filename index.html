@@ -326,38 +326,51 @@
 
     <!-- Dash 1 - Visão Geral dos 4 Hospitais -->
     <section id="dash1" class="hidden">
-      <h2 style="margin-bottom:20px">Dashboard - Ocupação Geral</h2>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
         <!-- Neomater (H1) -->
         <div class="dashboard-card">
           <h3 style="text-align:center;color:var(--nav);margin-bottom:15px">Neomater</h3>
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
-            <div style="text-align:center">
-              <div class="gauge-container" style="width:120px;height:80px">
+          
+          <!-- 4 mini gráficos em grade 2x2 -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <!-- Taxa de Ocupação -->
+            <div style="text-align:center;padding:10px;background:#f9fafb;border-radius:8px">
+              <div class="gauge-container" style="width:100px;height:60px;margin:0 auto">
                 <canvas id="gaugeOcupacaoH1"></canvas>
-                <div class="gauge-value" id="gaugeOcupacaoH1Value" style="font-size:18px">0%</div>
+                <div class="gauge-value" style="font-size:16px;bottom:5px" id="gaugeOcupacaoH1Value">0%</div>
               </div>
-              <div style="font-size:11px;color:var(--muted)">Taxa Ocupação</div>
+              <div style="font-size:10px;color:var(--muted);margin-top:5px">Taxa Ocupação</div>
             </div>
-            <div style="text-align:center">
-              <div class="gauge-container" style="width:120px;height:80px">
+            
+            <!-- Leitos Ocupados -->
+            <div style="text-align:center;padding:10px;background:#f9fafb;border-radius:8px">
+              <div class="gauge-container" style="width:100px;height:60px;margin:0 auto">
                 <canvas id="gaugeOcupadosH1"></canvas>
-                <div class="gauge-value" id="gaugeOcupadosH1Value" style="font-size:18px">0</div>
+                <div class="gauge-value" style="font-size:16px;bottom:5px" id="gaugeOcupadosH1Value">0</div>
               </div>
-              <div style="font-size:11px;color:var(--muted)">Ocupados</div>
+              <div style="font-size:10px;color:var(--muted);margin-top:5px">Ocupados</div>
             </div>
-            <div style="text-align:center">
-              <div class="gauge-container" style="width:120px;height:80px">
+            
+            <!-- Leitos Disponíveis -->
+            <div style="text-align:center;padding:10px;background:#f9fafb;border-radius:8px">
+              <div class="gauge-container" style="width:100px;height:60px;margin:0 auto">
                 <canvas id="gaugeDisponiveisH1"></canvas>
-                <div class="gauge-value" id="gaugeDisponiveisH1Value" style="font-size:18px">0</div>
+                <div class="gauge-value" style="font-size:16px;bottom:5px" id="gaugeDisponiveisH1Value">0</div>
               </div>
-              <div style="font-size:11px;color:var(--muted)">Disponíveis</div>
+              <div style="font-size:10px;color:var(--muted);margin-top:5px">Disponíveis</div>
+            </div>
+            
+            <!-- Previsão de Altas -->
+            <div style="text-align:center;padding:10px;background:#f9fafb;border-radius:8px">
+              <div style="font-size:20px;font-weight:bold;color:var(--nav)" id="altasH1">0</div>
+              <div style="font-size:10px;color:var(--muted)">Altas 24h</div>
             </div>
           </div>
-          <div style="margin-top:15px;padding-top:15px;border-top:1px solid var(--border)">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:12px">
-              <div><strong>Total:</strong> <span id="totalH1">13</span> leitos</div>
-              <div><strong>UTI:</strong> <span id="utiH1">3</span> leitos</div>
+          
+          <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:11px">
+              <div><strong>Total:</strong> 13 leitos</div>
+              <div><strong>UTI:</strong> 3 leitos</div>
             </div>
           </div>
         </div>
@@ -365,33 +378,47 @@
         <!-- Cruz Azul (H2) -->
         <div class="dashboard-card">
           <h3 style="text-align:center;color:var(--nav);margin-bottom:15px">Cruz Azul</h3>
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
-            <div style="text-align:center">
-              <div class="gauge-container" style="width:120px;height:80px">
+          
+          <!-- 4 mini gráficos em grade 2x2 -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <!-- Taxa de Ocupação -->
+            <div style="text-align:center;padding:10px;background:#f9fafb;border-radius:8px">
+              <div class="gauge-container" style="width:100px;height:60px;margin:0 auto">
                 <canvas id="gaugeOcupacaoH2"></canvas>
-                <div class="gauge-value" id="gaugeOcupacaoH2Value" style="font-size:18px">0%</div>
+                <div class="gauge-value" style="font-size:16px;bottom:5px" id="gaugeOcupacaoH2Value">0%</div>
               </div>
-              <div style="font-size:11px;color:var(--muted)">Taxa Ocupação</div>
+              <div style="font-size:10px;color:var(--muted);margin-top:5px">Taxa Ocupação</div>
             </div>
-            <div style="text-align:center">
-              <div class="gauge-container" style="width:120px;height:80px">
+            
+            <!-- Leitos Ocupados -->
+            <div style="text-align:center;padding:10px;background:#f9fafb;border-radius:8px">
+              <div class="gauge-container" style="width:100px;height:60px;margin:0 auto">
                 <canvas id="gaugeOcupadosH2"></canvas>
-                <div class="gauge-value" id="gaugeOcupadosH2Value" style="font-size:18px">0</div>
+                <div class="gauge-value" style="font-size:16px;bottom:5px" id="gaugeOcupadosH2Value">0</div>
               </div>
-              <div style="font-size:11px;color:var(--muted)">Ocupados</div>
+              <div style="font-size:10px;color:var(--muted);margin-top:5px">Ocupados</div>
             </div>
-            <div style="text-align:center">
-              <div class="gauge-container" style="width:120px;height:80px">
+            
+            <!-- Leitos Disponíveis -->
+            <div style="text-align:center;padding:10px;background:#f9fafb;border-radius:8px">
+              <div class="gauge-container" style="width:100px;height:60px;margin:0 auto">
                 <canvas id="gaugeDisponiveisH2"></canvas>
-                <div class="gauge-value" id="gaugeDisponiveisH2Value" style="font-size:18px">0</div>
+                <div class="gauge-value" style="font-size:16px;bottom:5px" id="gaugeDisponiveisH2Value">0</div>
               </div>
-              <div style="font-size:11px;color:var(--muted)">Disponíveis</div>
+              <div style="font-size:10px;color:var(--muted);margin-top:5px">Disponíveis</div>
+            </div>
+            
+            <!-- Previsão de Altas -->
+            <div style="text-align:center;padding:10px;background:#f9fafb;border-radius:8px">
+              <div style="font-size:20px;font-weight:bold;color:var(--nav)" id="altasH2">0</div>
+              <div style="font-size:10px;color:var(--muted)">Altas 24h</div>
             </div>
           </div>
-          <div style="margin-top:15px;padding-top:15px;border-top:1px solid var(--border)">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:12px">
-              <div><strong>Total:</strong> <span id="totalH2">16</span> leitos</div>
-              <div><strong>Enfermaria:</strong> <span id="enfH2">16</span> leitos</div>
+          
+          <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:11px">
+              <div><strong>Total:</strong> 16 leitos</div>
+              <div><strong>Enfermaria:</strong> 16 leitos</div>
             </div>
           </div>
         </div>
@@ -417,17 +444,17 @@
 
       <!-- Gráficos Temporais -->
       <div style="margin-top:30px">
-        <h2 style="margin-bottom:20px">Projeção Temporal - Próximos 7 dias</h2>
+        <h3 style="margin-bottom:20px">Projeção Temporal - Próximos 7 dias</h3>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
           <div class="dashboard-card">
-            <h3>Concessões por Tempo</h3>
-            <div class="chart-container">
+            <h4 style="margin:0 0 15px 0;font-size:14px">Concessões por Tempo</h4>
+            <div class="chart-container" style="height:300px">
               <canvas id="chartConcessoesTempo"></canvas>
             </div>
           </div>
           <div class="dashboard-card">
-            <h3>Linhas de Cuidado por Tempo</h3>
-            <div class="chart-container">
+            <h4 style="margin:0 0 15px 0;font-size:14px">Linhas de Cuidado por Tempo</h4>
+            <div class="chart-container" style="height:300px">
               <canvas id="chartLinhasTempo"></canvas>
             </div>
           </div>
@@ -1275,11 +1302,11 @@
     if (!canvas) return;
     
     const ctx = canvas.getContext('2d');
-    const width = canvas.width = small ? 120 : 200;
-    const height = canvas.height = small ? 80 : 120;
+    const width = canvas.width = small ? 100 : 200;
+    const height = canvas.height = small ? 60 : 120;
     const centerX = width / 2;
-    const centerY = height - (small ? 10 : 20);
-    const radius = small ? 40 : 70;
+    const centerY = height - (small ? 5 : 20);
+    const radius = small ? 35 : 70;
     
     // Limpa canvas
     ctx.clearRect(0, 0, width, height);
@@ -1287,7 +1314,7 @@
     // Desenha arco de fundo
     ctx.beginPath();
     ctx.arc(centerX, centerY, radius, Math.PI, 0, false);
-    ctx.lineWidth = small ? 12 : 20;
+    ctx.lineWidth = small ? 10 : 20;
     ctx.strokeStyle = '#e5e7eb';
     ctx.stroke();
     
@@ -1297,28 +1324,10 @@
     
     ctx.beginPath();
     ctx.arc(centerX, centerY, radius, Math.PI, endAngle, false);
-    ctx.lineWidth = small ? 12 : 20;
+    ctx.lineWidth = small ? 10 : 20;
     ctx.strokeStyle = color || '#0a2b52';
     ctx.lineCap = 'round';
     ctx.stroke();
-    
-    // Desenha marcadores (menos para versão pequena)
-    if (!small) {
-      ctx.strokeStyle = '#6b7280';
-      ctx.lineWidth = 1;
-      for(let i = 0; i <= 10; i++) {
-        const angle = Math.PI + (Math.PI * i / 10);
-        const x1 = centerX + Math.cos(angle) * (radius - 25);
-        const y1 = centerY + Math.sin(angle) * (radius - 25);
-        const x2 = centerX + Math.cos(angle) * (radius - 30);
-        const y2 = centerY + Math.sin(angle) * (radius - 30);
-        
-        ctx.beginPath();
-        ctx.moveTo(x1, y1);
-        ctx.lineTo(x2, y2);
-        ctx.stroke();
-      }
-    }
   }
 
   function calculateProjections() {
@@ -1330,7 +1339,7 @@
     }
     
     // Dados para todos os hospitais
-    const allData = [...banco.H1, ...banco.H2];
+    const allData = [...(banco.H1 || []), ...(banco.H2 || [])];
     
     // Inicializa contadores para concessões
     const concessoesData = {};
@@ -1381,145 +1390,171 @@
   function renderDashboards() {
     // Dashboard 1 - Visão Geral
     if (activeTab === 'dash1') {
-      // Carrega dados de ambos hospitais
-      ['H1', 'H2'].forEach(hospital => {
-        const dados = banco[hospital];
-        if (!dados || dados.length === 0) return;
+      // Carrega dados de ambos hospitais primeiro
+      Promise.all([
+        loadHospital('H1'),
+        loadHospital('H2')
+      ]).then(() => {
+        // Renderiza cada hospital
+        ['H1', 'H2'].forEach(hospital => {
+          const dados = banco[hospital] || [];
+          
+          const totalLeitos = dados.length;
+          const ocupados = dados.filter(l => l.status === 'Em uso').length;
+          const disponiveis = totalLeitos - ocupados;
+          const taxaOcupacao = totalLeitos > 0 ? Math.round((ocupados / totalLeitos) * 100) : 0;
+          
+          // Calcula altas em 24h
+          const altas24h = dados.filter(l => 
+            l.status === 'Em uso' && 
+            l.prevAlta && 
+            (l.prevAlta.includes('24h'))
+          ).length;
+          
+          // Taxa de ocupação
+          drawGauge(`gaugeOcupacao${hospital}`, taxaOcupacao, 100, 
+            taxaOcupacao > 90 ? '#ef4444' : 
+            taxaOcupacao > 85 ? '#f59e0b' : 
+            taxaOcupacao > 70 ? '#10b981' : '#3b82f6',
+            true
+          );
+          $(`#gaugeOcupacao${hospital}Value`).textContent = taxaOcupacao + '%';
+          
+          // Leitos ocupados
+          drawGauge(`gaugeOcupados${hospital}`, ocupados, totalLeitos, '#f59e0b', true);
+          $(`#gaugeOcupados${hospital}Value`).textContent = ocupados;
+          
+          // Leitos disponíveis
+          drawGauge(`gaugeDisponiveis${hospital}`, disponiveis, totalLeitos, '#10b981', true);
+          $(`#gaugeDisponiveis${hospital}Value`).textContent = disponiveis;
+          
+          // Altas em 24h
+          $(`#altas${hospital}`).textContent = altas24h;
+        });
         
-        const totalLeitos = dados.length;
-        const ocupados = dados.filter(l => l.status === 'Em uso').length;
-        const disponiveis = totalLeitos - ocupados;
-        const taxaOcupacao = Math.round((ocupados / totalLeitos) * 100);
+        // Gráficos temporais
+        const projections = calculateProjections();
         
-        // Taxa de ocupação
-        drawGauge(`gaugeOcupacao${hospital}`, taxaOcupacao, 100, 
-          taxaOcupacao > 90 ? '#ef4444' : 
-          taxaOcupacao > 85 ? '#f59e0b' : 
-          taxaOcupacao > 70 ? '#10b981' : '#3b82f6',
-          true
-        );
-        $(`#gaugeOcupacao${hospital}Value`).textContent = taxaOcupacao + '%';
+        // Gráfico de Concessões por Tempo
+        const canvasConc = document.getElementById('chartConcessoesTempo');
+        if (canvasConc) {
+          const ctx = canvasConc.getContext('2d');
+          if (window.chartConcessoesTempo) window.chartConcessoesTempo.destroy();
+          
+          const datasets = Object.entries(projections.concessoesData)
+            .filter(([key, values]) => values.some(v => v > 0)) // Só mostra linhas com dados
+            .map(([conc, values], idx) => ({
+              label: conc,
+              data: values,
+              borderColor: [
+                '#0a2b52', '#16a34a', '#f59e0b', '#dc2626', '#8b5cf6'
+              ][idx % 5],
+              backgroundColor: 'transparent',
+              borderWidth: 2,
+              tension: 0.3
+            }));
+          
+          window.chartConcessoesTempo = new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels: projections.labels,
+              datasets: datasets
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                title: {
+                  display: true,
+                  text: `Data base: ${new Date().toLocaleDateString('pt-BR')}`,
+                  font: { size: 11 }
+                },
+                legend: {
+                  position: 'bottom',
+                  labels: { font: { size: 10 } }
+                }
+              },
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  title: {
+                    display: true,
+                    text: 'Quantidade de Beneficiários',
+                    font: { size: 10 }
+                  }
+                },
+                x: {
+                  title: {
+                    display: true,
+                    text: 'Tempo',
+                    font: { size: 10 }
+                  }
+                }
+              }
+            }
+          });
+        }
         
-        // Leitos ocupados
-        drawGauge(`gaugeOcupados${hospital}`, ocupados, totalLeitos, '#f59e0b', true);
-        $(`#gaugeOcupados${hospital}Value`).textContent = ocupados;
-        
-        // Leitos disponíveis
-        drawGauge(`gaugeDisponiveis${hospital}`, disponiveis, totalLeitos, '#10b981', true);
-        $(`#gaugeDisponiveis${hospital}Value`).textContent = disponiveis;
-        
-        // Atualiza totais
-        $(`#total${hospital}`).textContent = totalLeitos;
-        if (hospital === 'H1') {
-          const utiCount = dados.filter(l => l.tipo === 'UTI').length;
-          $(`#uti${hospital}`).textContent = utiCount;
-        } else {
-          $(`#enf${hospital}`).textContent = totalLeitos;
+        // Gráfico de Linhas de Cuidado por Tempo
+        const canvasLinhas = document.getElementById('chartLinhasTempo');
+        if (canvasLinhas) {
+          const ctx = canvasLinhas.getContext('2d');
+          if (window.chartLinhasTempo) window.chartLinhasTempo.destroy();
+          
+          const datasets = Object.entries(projections.linhasData)
+            .filter(([key, values]) => values.some(v => v > 0)) // Só mostra linhas com dados
+            .map(([linha, values], idx) => ({
+              label: linha,
+              data: values,
+              borderColor: [
+                '#1e40af', '#059669', '#ea580c', '#be123c', '#7c3aed', '#0891b2', '#be185d'
+              ][idx % 7],
+              backgroundColor: 'transparent',
+              borderWidth: 2,
+              tension: 0.3
+            }));
+          
+          window.chartLinhasTempo = new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels: projections.labels,
+              datasets: datasets
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                title: {
+                  display: true,
+                  text: `Data base: ${new Date().toLocaleDateString('pt-BR')}`,
+                  font: { size: 11 }
+                },
+                legend: {
+                  position: 'bottom',
+                  labels: { font: { size: 10 } }
+                }
+              },
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  title: {
+                    display: true,
+                    text: 'Quantidade de Beneficiários',
+                    font: { size: 10 }
+                  }
+                },
+                x: {
+                  title: {
+                    display: true,
+                    text: 'Tempo',
+                    font: { size: 10 }
+                  }
+                }
+              }
+            }
+          });
         }
       });
-      
-      // Gráficos temporais
-      const projections = calculateProjections();
-      
-      // Gráfico de Concessões por Tempo
-      const canvasConc = document.getElementById('chartConcessoesTempo');
-      if (canvasConc) {
-        const ctx = canvasConc.getContext('2d');
-        if (window.chartConcessoesTempo) window.chartConcessoesTempo.destroy();
-        
-        const datasets = Object.entries(projections.concessoesData).map((conc, idx) => ({
-          label: conc[0],
-          data: conc[1],
-          borderColor: [
-            '#0a2b52', '#16a34a', '#f59e0b', '#dc2626', '#8b5cf6'
-          ][idx % 5],
-          backgroundColor: 'transparent',
-          tension: 0.3
-        }));
-        
-        window.chartConcessoesTempo = new Chart(ctx, {
-          type: 'line',
-          data: {
-            labels: projections.labels,
-            datasets: datasets
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              title: {
-                display: true,
-                text: `Data base: ${new Date().toLocaleDateString('pt-BR')}`
-              }
-            },
-            scales: {
-              y: {
-                beginAtZero: true,
-                title: {
-                  display: true,
-                  text: 'Quantidade de Beneficiários'
-                }
-              },
-              x: {
-                title: {
-                  display: true,
-                  text: 'Tempo'
-                }
-              }
-            }
-          }
-        });
-      }
-      
-      // Gráfico de Linhas de Cuidado por Tempo
-      const canvasLinhas = document.getElementById('chartLinhasTempo');
-      if (canvasLinhas) {
-        const ctx = canvasLinhas.getContext('2d');
-        if (window.chartLinhasTempo) window.chartLinhasTempo.destroy();
-        
-        const datasets = Object.entries(projections.linhasData).map((linha, idx) => ({
-          label: linha[0],
-          data: linha[1],
-          borderColor: [
-            '#1e40af', '#059669', '#ea580c', '#be123c', '#7c3aed', '#0891b2', '#be185d'
-          ][idx % 7],
-          backgroundColor: 'transparent',
-          tension: 0.3
-        }));
-        
-        window.chartLinhasTempo = new Chart(ctx, {
-          type: 'line',
-          data: {
-            labels: projections.labels,
-            datasets: datasets
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              title: {
-                display: true,
-                text: `Data base: ${new Date().toLocaleDateString('pt-BR')}`
-              }
-            },
-            scales: {
-              y: {
-                beginAtZero: true,
-                title: {
-                  display: true,
-                  text: 'Quantidade de Beneficiários'
-                }
-              },
-              x: {
-                title: {
-                  display: true,
-                  text: 'Tempo'
-                }
-              }
-            }
-          }
-        });
-      }
     }
     
     // Dashboard 2 - Previsão de Altas (mantém como está)
