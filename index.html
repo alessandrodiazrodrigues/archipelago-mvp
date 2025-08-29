@@ -37,6 +37,24 @@
       transition: padding-left 0.3s ease;
     }
 
+    /* =================== LOADING OVERLAY =================== */
+    #loadingOverlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(234, 241, 249, 0.95); backdrop-filter: blur(3px);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      z-index: 2000; transition: opacity 0.3s ease;
+    }
+    .loading-spinner {
+      width: 60px; height: 60px; border: 3px solid #e5e7eb;
+      border-top: 3px solid var(--nav); border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    .loading-text {
+      margin-top: 15px; font-size: 16px; color: var(--nav); font-weight: 500;
+    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    #loadingOverlay.hidden { display: none; }
+
     /* =================== HEADER E NAVEGAÇÃO =================== */
     header{
       background:linear-gradient(90deg,var(--nav),var(--nav-2));
@@ -86,7 +104,6 @@
     #v2-header-buttons { display: none; }
     .layout-v2 #v2-header-buttons { display: flex; }
 
-
     /* =================== LAYOUT SWITCHER =================== */
     .layout-switcher { display: flex; align-items: center; gap: 8px; }
     .switch { position: relative; display: inline-block; width: 38px; height: 22px; }
@@ -116,7 +133,6 @@
       border-radius:20px; padding:16px;
       box-shadow: var(--shadow-1), var(--shadow-2), 0 0 0 1px rgba(255,255,255,.6) inset;
       transform:translateY(0); transition:transform .18s ease, box-shadow .18s ease;
-      /* Efeito 3D com borda gradiente */
       border: 2px solid transparent;
       background-clip: padding-box;
       border-image: linear-gradient(to bottom, #FFFFFF, #E5E7EB) 1;
@@ -137,6 +153,8 @@
     .field{background:#f9fafb;border:1px solid var(--border);border-radius:12px;padding:10px}
     .field .label{font-size:11px;color:#6b7280}
     .field .value{font-weight:600}
+    .wrap{display:flex;flex-wrap:wrap;gap:6px}
+    .chip{font-size:12px;background:#eef2ff;border:1px solid #dbeafe;color:#1e40af;padding:2px 8px;border-radius:999px}
     .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
 
     /* =================== TABELA DE LEITOS =================== */
@@ -158,6 +176,17 @@
     .row3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
     .input,.select2,textarea{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:12px}
     .label{font-size:12px;color:#6b7280;margin-bottom:4px;display:block}
+    
+    .qr-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-height:none;overflow:visible}
+    .qr-cell{background:#fff;border:1px solid var(--border);border-radius:14px;padding:10px;text-align:center;min-height:200px}
+    .qr-box{display:inline-block;border:1px solid var(--border);padding:8px;border-radius:10px;background:#fff}
+    
+    .success-message{
+      position:fixed; top:50%;left:50%; transform:translate(-50%,-50%);
+      background:#fff; border:1px solid var(--border); border-radius:20px;
+      padding:40px; text-align:center; box-shadow:0 10px 28px rgba(0,0,0,.25);
+      z-index:3000; display:none;
+    }
     
     /* =================== DASHBOARDS =================== */
     .dash-grid { display: grid; gap: 24px; }
@@ -288,10 +317,15 @@
     </div>
   </header>
 
+  <!-- Loading Overlay -->
+  <div id="loadingOverlay">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">Carregando dados...</div>
+  </div>
+
   <main>
     <div class="toolbar" id="portalToolbar">
-      <div class="row">
-        </div>
+      <div class="row"></div>
       <div class="row">
         <button class="btn hospital active" data-h="H1" id="btnH1">Neomater</button>
         <button class="btn hospital" data-h="H2" id="btnH2">Cruz Azul</button>
@@ -422,9 +456,6 @@
             </div>
         </div>
     </section>
-    
-    <section id="dash3" class="hidden"></section>
-    <section id="dash4" class="hidden"></section>
   </main>
 
   <div id="modalAdmissao" class="backdrop" aria-hidden="true">
@@ -677,6 +708,9 @@
     "Fonoaudiologia": "#f59e0b", "PAD": "#0a2b52"
   };
 
+  // =======================================================================
+  // ========================== ESTADO DA UI ===============================
+  // =======================================================================
   let currentHospital = "H1";
   let activeTab = "leitos";
   let selectedLeito = null;
@@ -684,9 +718,24 @@
   let lastUpdateTime = Date.now();
   let autoRefreshInterval = null;
   let updateIndicatorInterval = null;
-  
   let sortState = { key: 'leito', direction: 'asc' };
 
+  // =======================================================================
+  // ===================== FUNÇÕES DE LOADING ============================
+  // =======================================================================
+  function showLoading() {
+    document.getElementById('loadingOverlay').classList.remove('hidden');
+  }
+  
+  function hideLoading() {
+    setTimeout(() => {
+      document.getElementById('loadingOverlay').classList.add('hidden');
+    }, 500);
+  }
+
+  // =======================================================================
+  // ========================== FUNÇÕES HELPERS ============================
+  // =======================================================================
   const $ = sel => document.querySelector(sel);
   
   function openModal(sel){ const el=$(sel); el.style.display="flex"; el.setAttribute("aria-hidden","false"); }
@@ -739,6 +788,9 @@
     }
   }
 
+  // =======================================================================
+  // ===================== FUNÇÕES DE API (BACKEND) ========================
+  // =======================================================================
   async function testConnection() {
     logInfo("Testando conexão com a API...");
     try {
@@ -757,8 +809,8 @@
   
   async function loadAllData() {
     await Promise.all([
-        banco.H1.length === 0 ? loadHospital('H1') : Promise.resolve(),
-        banco.H2.length === 0 ? loadHospital('H2') : Promise.resolve()
+        loadHospital('H1'),
+        loadHospital('H2')
     ]);
   }
 
@@ -779,7 +831,6 @@
       if (activeTab === 'leitos2') renderTable();
     } catch(error) {
       logError(`Erro ao carregar hospital ${h}:`, error);
-      alert(`Erro ao conectar com a planilha: ${error.message}\n\nVerifique se o deploy do Google Apps Script está como 'Acessível para qualquer pessoa'.`);
       banco[h] = [];
       if (activeTab === 'leitos') renderCards();
       if (activeTab === 'leitos2') renderTable();
@@ -810,6 +861,9 @@
     }
   }
   
+  // =======================================================================
+  // ======================= LÓGICA DE NAVEGAÇÃO =========================
+  // =======================================================================
   function setTab(tab){
     document.querySelectorAll(".tab").forEach(b=>b.classList.remove("active"));
     document.querySelectorAll(".side-menu-item").forEach(b=>b.classList.remove("active"));
@@ -836,7 +890,7 @@
   }
   
   function route(){
-    const sections = ["leitosView","leitos2View","dash1","dash2","dash3","dash4"];
+    const sections = ["leitosView","leitos2View","dash1","dash2"];
     sections.forEach(id => {
       const el = $(`#${id}`);
       if(el) el.classList.add("hidden");
@@ -855,6 +909,9 @@
     if(activeTab === "leitos2") renderTable();
   }
 
+  // =======================================================================
+  // ======================= RENDERIZAÇÃO DE LEITOS ======================
+  // =======================================================================
   function renderCards(){
     const container = $("#leitosView");
     container.innerHTML = "";
@@ -872,6 +929,9 @@
       const statusClass = l.status==="Em uso" ? "warn" : "ok";
       const tipoClass   = l.tipo==="UTI" ? "uti" : "enf";
       
+      const chipsLinhas = (l.linhas||[]).map(x=>`<span class="chip">${x}</span>`).join("");
+      const chipsConc   = (l.concessoes||[]).map(x=>`<span class="chip">${x}</span>`).join("");
+      
       card.innerHTML = `
         <div class="top">
           <div class="wrap">
@@ -888,6 +948,12 @@
           <div class="field"><div class="label">PPS</div><div class="value">${l.pps??"—"}</div></div>
           <div class="field"><div class="label">SPICT-BR</div><div class="value">${l.spict==="elegivel"?"Elegível":(l.spict==="nao_elegivel"?"Não elegível":"—")}</div></div>
           <div class="field" style="grid-column: 3 / 5"><div class="label">Prev. Alta</div><div class="value">${l.prevAlta||"—"}</div></div>
+          <div class="field" style="grid-column:1/3">
+            <div class="label">Linhas de cuidado</div><div class="wrap">${chipsLinhas||"—"}</div>
+          </div>
+          <div class="field" style="grid-column:3/5">
+            <div class="label">Concessões</div><div class="wrap">${chipsConc||"—"}</div>
+          </div>
         </div>
         <div class="actions">
           ${l.status==="Vago"
@@ -962,6 +1028,9 @@
       });
   }
 
+  // =======================================================================
+  // ======================== FLUXOS DE MODAIS ===========================
+  // =======================================================================
   function openAdmissao(leito){
     selectedLeito = leito;
     const l = HOSPITAIS[currentHospital].leitos.find(x=>x.id===leito);
@@ -998,16 +1067,24 @@
     if(!await confirmAction("Confirmar ALTA deste paciente?")) return;
     try {
       await apiCall({ action:'alta', hospital: currentHospital, leito: leito });
-      await loadHospital(currentHospital);
+      if (isQRMode) {
+        closeModal("#modalAtualizacao");
+        showSuccessMessage();
+      } else {
+        await loadHospital(currentHospital);
+      }
     } catch(error) { alert('Erro ao dar alta: ' + error.message); }
   }
 
+  // =======================================================================
+  // ==================== LÓGICA DOS DASHBOARDS ============================
+  // =======================================================================
   function getDiasAteAlta(prevAlta) {
-    if (!prevAlta || prevAlta === 'Sem previsao') return 7; 
-    if (prevAlta.includes('24h')) return 0;
-    if (prevAlta === '48h') return 1;
-    if (prevAlta === '72h') return 2;
-    if (prevAlta === '96h') return 3;
+    if (!prevAlta || prevAlta === 'Sem previsao') return 7;
+    if (prevAlta.includes('24h')) return 1;
+    if (prevAlta === '48h') return 2;
+    if (prevAlta === '72h') return 3;
+    if (prevAlta === '96h') return 4;
     return 7;
   }
 
@@ -1044,16 +1121,18 @@
       const concessoesData = {};
 
       (hospitalData || []).filter(p => p.status === 'Em uso').forEach(paciente => {
-          const dias = getDiasAteAlta(paciente.prevAlta) + 1; 
+          const dias = getDiasAteAlta(paciente.prevAlta);
           (paciente.linhas || []).forEach(linha => {
               if (!linhasData[linha]) linhasData[linha] = new Array(8).fill(0);
-              for (let d = 0; d < Math.min(dias, 8); d++) {
+              const diasParaManterLinhas = dias === 7 ? 8 : dias;
+              for (let d = 0; d < diasParaManterLinhas; d++) {
                   linhasData[linha][d]++;
               }
           });
           (paciente.concessoes || []).forEach(conc => {
               if (!concessoesData[conc]) concessoesData[conc] = new Array(8).fill(0);
-              for (let d = 0; d < Math.min(dias, 8); d++) {
+              const diasParaManterConc = dias === 7 ? 8 : dias;
+              for (let d = 0; d < diasParaManterConc; d++) {
                   concessoesData[conc][d]++;
               }
           });
@@ -1127,8 +1206,8 @@
       const projConsolidada = calculateHospitalProjections(allData);
       const sortedLinhas = Object.entries(projConsolidada.linhasData).sort((a,b) => a[0].localeCompare(b[0]));
       const sortedConcessoes = Object.entries(projConsolidada.concessoesData).sort((a,b) => a[0].localeCompare(b[0]));
-      createChart('chartLinhasConsolidado', 'chartLinhasConsolidadoInst', { type: 'line', data: { labels: projConsolidada.labels, datasets: sortedLinhas.map(([k,v])=>({label:k, data:v, borderColor:LINHAS_CORES[k], backgroundColor:LINHAS_CORES[k]+'20', tension: 0.3}))}, options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom'}}, scales:{y:{title:{display:true, text:'Beneficiários'}}}});
-      createChart('chartConcessoesConsolidado', 'chartConcessoesConsolidadoInst', { type: 'bar', data: { labels: projConsolidada.labels, datasets: sortedConcessoes.map(([k,v])=>({label:k, data:v, backgroundColor:CONC_CORES[k]}))}, options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom'}}, scales:{x:{stacked:true}, y:{stacked:true, title:{display:true, text:'Beneficiários'}}}});
+      createChart('chartLinhasConsolidado', 'chartLinhasConsolidadoInst', { type: 'line', data: { labels: projConsolidada.labels, datasets: sortedLinhas.map(([k,v])=>({label:k, data:v, borderColor:LINHAS_CORES[k], backgroundColor:LINHAS_CORES[k]+'20', tension: 0.3}))}, options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom'}}, scales:{y:{title:{display:true, text:'Beneficiários'}}}}});
+      createChart('chartConcessoesConsolidado', 'chartConcessoesConsolidadoInst', { type: 'bar', data: { labels: projConsolidada.labels, datasets: sortedConcessoes.map(([k,v])=>({label:k, data:v, backgroundColor:CONC_CORES[k]}))}, options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom'}}, scales:{x:{stacked:true}, y:{stacked:true, title:{display:true, text:'Beneficiários'}}}}});
 
       const projGeralAltas = { "24h":{H1:0, H2:0}, "48h":{H1:0, H2:0}, "72h":{H1:0, H2:0}, "96h":{H1:0, H2:0} };
       allData.filter(p => p.status === 'Em uso' && p.prevAlta && p.prevAlta !== 'Sem previsao').forEach(p => { const key=p.prevAlta.includes('24h')?'24h':p.prevAlta; if(projGeralAltas[key]) projGeralAltas[key][p.hospital]++; });
@@ -1193,11 +1272,11 @@
     $('#qrCodeBtn').onclick = () => $('#qrDropdown').classList.toggle('show');
     $('#settingsBtn').onclick = () => $('#settingsDropdown').classList.toggle('show');
 
-    const readQRFn = () => { openModal("#modalQRScan"); startScan(); };
+    const readQRFn = () => { $('#qrDropdown').classList.remove('show'); $('#settingsDropdown').classList.remove('show'); openModal("#modalQRScan"); startScan(); };
     $('#btnReadQR_v1').onclick = readQRFn;
     $('#btnReadQR_v2').onclick = readQRFn;
 
-    const printQRFn = () => { openModal("#modalBulkQR"); };
+    const printQRFn = () => { $('#qrDropdown').classList.remove('show'); $('#settingsDropdown').classList.remove('show'); openModal("#modalBulkQR"); };
     $('#btnPrintQR_v1').onclick = printQRFn;
     $('#btnPrintQR_v2').onclick = printQRFn;
     
@@ -1216,30 +1295,8 @@
     $('#a_cancel').onclick = async () => { if (await confirmAction("Cancelar admissão?")) closeModal("#modalAdmissao"); };
     $('#u_cancel').onclick = async () => { if (await confirmAction("Cancelar alterações?")) closeModal("#modalAtualizacao"); };
     $('#u_alta').onclick = ()=> darAltaFlow(selectedLeito);
-
-    $('#a_save').onclick = async () => {
-        if (!await confirmAction("Salvar e admitir paciente?")) return;
-        try {
-            const payload = { action: 'admit', hospital: currentHospital, leito: selectedLeito, nome: $("#a_nome").value.trim(), idade: Number($("#a_idade").value)||null, matricula: $("#a_matricula").value.trim(), pps: Number($("#a_pps").value)||null, spict: $("#a_spict").value, prevAlta: $("#a_prev").value, linhas: Array.from(document.querySelectorAll("#a_linhas input:checked")).map(i=>i.value), concessoes: Array.from(document.querySelectorAll("#a_concessoes input:checked")).map(i=>i.value) };
-            await apiCall(payload);
-            closeModal("#modalAdmissao");
-            await loadHospital(currentHospital);
-        } catch(error) { 
-            alert('Erro ao salvar admissão: ' + error.message);
-        }
-    };
-
-    $('#u_save').onclick = async () => {
-        if (!await confirmAction("Salvar alterações?")) return;
-        try {
-            const payload = { action: 'update', hospital: currentHospital, leito: selectedLeito, idade: Number($("#u_idade").value)||null, pps: Number($("#u_pps").value)||null, spict: $("#u_spict").value, prevAlta: $("#u_prev").value, linhas: Array.from(document.querySelectorAll("#u_linhas input:checked")).map(i=>i.value), concessoes: Array.from(document.querySelectorAll("#u_concessoes input:checked")).map(i=>i.value) };
-            await apiCall(payload);
-            closeModal("#modalAtualizacao");
-            await loadHospital(currentHospital);
-        } catch(error) { 
-            alert('Erro ao salvar atualização: ' + error.message);
-        }
-    };
+    $('#a_save').onclick = async ()=>{ if(!await confirmAction("Salvar e admitir paciente?")) return; try { const payload = { action: 'admit', hospital: currentHospital, leito: selectedLeito, nome: $("#a_nome").value.trim(), idade: Number($("#a_idade").value)||null, matricula: $("#a_matricula").value.trim(), pps: Number($("#a_pps").value)||null, spict: $("#a_spict").value, prevAlta: $("#a_prev").value, linhas: Array.from(document.querySelectorAll("#a_linhas input:checked")).map(i=>i.value), concessoes: Array.from(document.querySelectorAll("#a_concessoes input:checked")).map(i=>i.value) }; await apiCall(payload); closeModal("#modalAdmissao"); await loadHospital(currentHospital); } catch(error) { alert('Erro: ' + error.message); } };
+    $('#u_save').onclick = async ()=>{ if(!await confirmAction("Salvar alterações?")) return; try { const payload = { action: 'update', hospital: currentHospital, leito: selectedLeito, idade: Number($("#u_idade").value)||null, pps: Number($("#u_pps").value)||null, spict: $("#u_spict").value, prevAlta: $("#u_prev").value, linhas: Array.from(document.querySelectorAll("#u_linhas input:checked")).map(i=>i.value), concessoes: Array.from(document.querySelectorAll("#u_concessoes input:checked")).map(i=>i.value) }; await apiCall(payload); closeModal("#modalAtualizacao"); await loadHospital(currentHospital); } catch(error) { alert('Erro: ' + error.message); } };
     
     // Ordenação da Tabela
     document.querySelectorAll('#leitos2View th.sortable').forEach(th => {
@@ -1271,6 +1328,7 @@
   // Função de inicialização
   (async function init(){
     logInfo("=== INICIALIZANDO ARCHIPELAGO MVP ===");
+    showLoading();
     setupEventListeners();
     
     await testConnection();
@@ -1289,6 +1347,7 @@
     
     updateIndicatorInterval = setInterval(updateTimeIndicator, 1000);
     
+    hideLoading();
     logInfo("=== INICIALIZAÇÃO CONCLUÍDA ===");
   })();
 
