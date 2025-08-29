@@ -74,12 +74,14 @@
       border:1px solid var(--border);
       border-radius:20px;
       padding:16px;
+      /* múltiplas sombras para profundidade */
       box-shadow:
         var(--shadow-1),
         var(--shadow-2),
         0 0 0 1px rgba(255,255,255,.6) inset;
       transform:translateY(0);
       transition:transform .18s ease, box-shadow .18s ease, filter .18s ease;
+      /* glow/veil azul leve sob o card */
     }
     .card::before{
       content:"";
@@ -89,10 +91,17 @@
       z-index:-1;
       filter:blur(8px);
     }
-    .card:hover{ transform:translateY(-2px); box-shadow: 0 16px 38px rgba(11,44,82,.16), 0 26px 64px rgba(11,44,82,.18), 0 0 0 1px rgba(255,255,255,.7) inset; filter:saturate(1.02); }
+    .card:hover{
+      transform:translateY(-2px);
+      box-shadow:
+        0 16px 38px rgba(11,44,82,.16),
+        0 26px 64px rgba(11,44,82,.18),
+        0 0 0 1px rgba(255,255,255,.7) inset;
+      filter:saturate(1.02);
+    }
 
     .card .top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
-    .badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:#f9fafb;color:#6b7280;font-size:12px}
+    .badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:#f9fafb;color:var(--muted);font-size:12px}
     .status{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;color:#111;border:1px solid var(--border);background:#fff}
     .status.ok{background:#ecfdf5;border-color:#bbf7d0;color:#065f46}
     .status.warn{background:#fff7ed;border-color:#fed7aa;color:#92400e}
@@ -140,10 +149,20 @@
       box-shadow:0 8px 18px rgba(0,0,0,.25);
     }
 
-    /* Tela de bloqueio (expirou/encerrar) */
-    .lockscreen{position:fixed;inset:0;background:#0b1a2acc;display:none;align-items:center;justify-content:center;z-index:3000}
-    .lockscreen .box{background:#fff;padding:20px;border-radius:16px;max-width:460px;border:1px solid var(--border);text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.35)}
-    .lockscreen p{color:#374151}
+    /* Success message styling */
+    .success-message{
+      position:fixed;
+      top:50%;left:50%;
+      transform:translate(-50%,-50%);
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:20px;
+      padding:40px;
+      text-align:center;
+      box-shadow:0 10px 28px rgba(0,0,0,.25);
+      z-index:3000;
+      display:none;
+    }
 
     @media print{
       header,.toolbar,.footer,.modal .actions{display:none !important}
@@ -155,7 +174,7 @@
 </head>
 <body>
 
-  <!-- ======= BARRA SUPERIOR (PORTAL) ======= -->
+  <!-- ======= BARRA SUPERIOR ======= -->
   <header id="appHeader">
     <div class="brand">
       <div class="logo"></div>
@@ -163,7 +182,7 @@
         <h1>Archipelago – Gestão de Leitos</h1>
         <small>Protótipo (estado atual, sem histórico)</small>
       </div>
-      <div id="qrTimer" class=""></div>
+      <div id="qrTimer" class=""> </div>
     </div>
     <nav class="tabs" role="tablist">
       <button class="tab active" data-tab="leitos">Leitos (Cards)</button>
@@ -212,7 +231,7 @@
       </table>
     </section>
 
-    <!-- Dashes placeholders -->
+    <!-- Dashes placeholders (mantidos para evoluções) -->
     <section id="dash1" class="hidden"><div class="badge">Dash 1 (placeholder)</div></section>
     <section id="dash2" class="hidden"><div class="badge">Dash 2 (placeholder)</div></section>
     <section id="dash3" class="hidden"><div class="badge">Dash 3 (placeholder)</div></section>
@@ -223,6 +242,13 @@
   <div class="footer">
     <div>© Protótipo ilustrativo – Prevent Senior (sem dados reais)</div>
     <div><strong>MVP Archipelago</strong></div>
+  </div>
+
+  <!-- Success Message -->
+  <div id="successMessage" class="success-message">
+    <h2>Obrigado!</h2>
+    <p>Operação realizada com sucesso.</p>
+    <p style="color:#6b7280;font-size:14px">Você pode fechar o navegador.</p>
   </div>
 
   <!-- ======= MODAIS ======= -->
@@ -383,7 +409,7 @@
     </div>
   </div>
 
-  <!-- Ler QR (uso do gestor em desktop) -->
+  <!-- Ler QR -->
   <div id="modalQRScan" class="backdrop" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true">
       <header><strong>Ler QR Code</strong><button class="btn" data-close="#modalQRScan">Fechar</button></header>
@@ -424,14 +450,16 @@
     </div>
   </div>
 
-  <!-- Tela de bloqueio (expirou/encerrar) -->
-  <div id="lockscreen" class="lockscreen">
-    <div class="box">
-      <h3>Sessão encerrada</h3>
-      <p>Por segurança, reescaneie o QR próximo ao leito para continuar.</p>
-      <div style="display:flex;gap:8px;justify-content:center;margin-top:10px">
-        <button class="btn primary" onclick="location.reload()">Ler QR novamente</button>
-        <button class="btn" onclick="tryCloseTab()">Fechar</button>
+  <!-- QR Expired Modal -->
+  <div id="modalQRExpired" class="backdrop" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" style="max-width:520px">
+      <header><strong>Sessão Expirada</strong></header>
+      <div class="content">
+        <p>O tempo para preenchimento expirou.</p>
+        <p>Para continuar, escaneie novamente o QR code próximo ao leito.</p>
+      </div>
+      <div class="actions">
+        <button class="btn primary" id="reloadPage">Escanear Novamente</button>
       </div>
     </div>
   </div>
@@ -442,31 +470,38 @@
 
   <!-- ======= SCRIPT ======= -->
   <script>
-  // ================== CONFIG API ==================
+  // -------------------- CONFIGURAÇÃO DA API --------------------
   const API_URL = 'https://script.google.com/macros/s/AKfycbzi8YS8acCErJvedwtx6lVr2Wd_VDOfUMsOO1xXM9MNZdedzulMmZZCMHkvI6z99AWJ/exec';
 
-  // ================== DADOS FIXOS (estrutura) ==================
+  // -------------------- DADOS FIXOS --------------------
+  // Hospitais / leitos (H1: 13 – 10 Enf + 3 UTI | H2: 16 Enf)
   const HOSPITAIS = {
-    H1: { nome:"Neomater" },
-    H2: { nome:"Cruz Azul" }
+    H1: { nome:"Neomater", leitos:[
+      ...Array.from({length:10}, (_,i)=>({ id:i+1,  tipo:"Enfermaria/Apto" })),
+      ...Array.from({length:3},  (_,i)=>({ id:11+i, tipo:"UTI" }))
+    ]},
+    H2: { nome:"Cruz Azul", leitos:[
+      ...Array.from({length:16}, (_,i)=>({ id:i+1, tipo:"Enfermaria/Apto" }))
+    ]}
   };
+
+  // Estado atual dos leitos (carregados da API)
+  const banco = { H1: [], H2: [] };
 
   const LINHAS = ["Assistência","Geriatria","APS","Cardiologia","Pneumologia","Neurologia","Melhor Cuidado"];
   const CONC  = ["PAD","Fisioterapia","Fonoaudiologia","Aspirações","Curativos"];
 
-  // ================== ESTADO DE UI ==================
-  let currentHospital = 'H1';
-  let activeTab = 'leitos';
+  // -------------------- ESTADO DE UI --------------------
+  let currentHospital = "H1";
+  let activeTab = "leitos";
   let selectedLeito = null;
-  let banco = { H1: [], H2: [] };
+  let isQRMode = false;
 
-  // QR Mode
-  let qrMode = false;     // verdadeiro quando veio de ?h=..&leito=..
+  // Timer QR (somente em modo QR)
   let qrTick = null;
   let qrExpiresAt = 0;
-  let qrLockedLeito = null; // id do leito em edição no modo QR
 
-  // ================== HELPERS ==================
+  // -------------------- HELPERS --------------------
   const $ = sel => document.querySelector(sel);
   function openModal(sel){ const el=$(sel); el.style.display="flex"; el.setAttribute("aria-hidden","false"); }
   function closeModal(sel){ const el=$(sel); el.style.display="none"; el.setAttribute("aria-hidden","true"); }
@@ -479,33 +514,65 @@
     });
   }
   function initials(nome){ if(!nome) return "—"; return nome.split(" ").map(p=>p[0]).slice(0,2).join("").toUpperCase(); }
-  function fmtDateTime(iso){ if(!iso) return "—"; const d=new Date(iso); const dd=String(d.getDate()).padStart(2,"0"); const mm=String(d.getMonth()+1).padStart(2,"0"); const yy=d.getFullYear(); const hh=String(d.getHours()).padStart(2,"0"); const mi=String(d.getMinutes()).padStart(2,"0"); return `${dd}/${mm}/${yy} ${hh}:${mi}`; }
-  function elapsedSince(iso){ if(!iso) return "—"; const ms = Date.now() - new Date(iso).getTime(); const d = Math.floor(ms/86400000); const h = Math.floor((ms%86400000)/3600000); const m = Math.floor((ms%3600000)/60000); return `${d} dias, ${h} horas, ${m} minutos`; }
-  function tryCloseTab(){ window.close(); setTimeout(()=>alert('Você pode fechar esta aba agora.'), 200); }
-
-  // ================== API ==================
-  async function loadHospital(h){
-    const res = await fetch(`${API_URL}?action=state&hospital=${h}`);
-    const json = await res.json();
-    if(!json.ok){ console.error(json); throw new Error(json.error||'Falha ao carregar'); }
-    banco[h] = json.data || [];
-    if (activeTab==='leitos') renderCards();
-    if (activeTab==='leitos2') renderTable();
+  function fmtDateTime(iso){
+    if(!iso) return "—";
+    const d=new Date(iso);
+    const dd=String(d.getDate()).padStart(2,"0");
+    const mm=String(d.getMonth()+1).padStart(2,"0");
+    const yy=d.getFullYear();
+    const hh=String(d.getHours()).padStart(2,"0");
+    const mi=String(d.getMinutes()).padStart(2,"0");
+    return `${dd}/${mm}/${yy} ${hh}:${mi}`;
+  }
+  function elapsedSince(iso){
+    if(!iso) return "—";
+    const ms = Date.now() - new Date(iso).getTime();
+    const d = Math.floor(ms/86400000);
+    const h = Math.floor((ms%86400000)/3600000);
+    const m = Math.floor((ms%3600000)/60000);
+    return `${d} dias, ${h} horas, ${m} minutos`;
   }
 
-  async function apiPost(payload){
-    const res = await fetch(API_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
-    const json = await res.json();
-    if(!json.ok){ console.error(json); throw new Error(json.error||'Falha na operação'); }
-    return json.data;
+  function showSuccessMessage() {
+    document.getElementById('successMessage').style.display = 'block';
   }
 
-  // ================== RENDER – CARDS ==================
+  // -------------------- API FUNCTIONS --------------------
+  async function loadHospital(h) {
+    try {
+      const res = await fetch(`${API_URL}?action=state&hospital=${h}`);
+      const json = await res.json();
+      if(!json.ok) throw new Error(json.error || 'Falha ao carregar');
+      banco[h] = json.data;
+      if (activeTab==='leitos') renderCards();
+      if (activeTab==='leitos2') renderTable();
+    } catch(error) {
+      console.error('Erro ao carregar hospital:', error);
+      alert('Erro ao carregar dados do hospital. Tente novamente.');
+    }
+  }
+
+  async function apiCall(payload) {
+    try {
+      const res = await fetch(API_URL, { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' }, 
+        body: JSON.stringify(payload) 
+      });
+      const json = await res.json();
+      if (!json.ok) throw new Error(json.error || 'Erro na operação');
+      return json.data;
+    } catch(error) {
+      console.error('Erro na API:', error);
+      throw error;
+    }
+  }
+
+  // -------------------- RENDER – CARDS --------------------
   function renderCards(){
     const container = $("#leitosView");
     container.innerHTML = "";
-
-    const leitos = banco[currentHospital] || [];
+    const leitos = banco[currentHospital];
 
     leitos.forEach(l=>{
       const card = document.createElement("div");
@@ -518,15 +585,12 @@
       const chipsLinhas = (l.linhas||[]).map(x=>`<span class="chip">${x}</span>`).join("");
       const chipsConc   = (l.concessoes||[]).map(x=>`<span class="chip">${x}</span>`).join("");
 
-      // Em modo QR, não listamos outros leitos além do bloqueado
-      if(qrMode && qrLockedLeito!==l.leito) return;
-
       card.innerHTML = `
         <div class="top">
           <div class="wrap">
-            <span class="status ${statusClass}">Leito ${l.leito} – ${l.status||'Vago'}</span>
-            <span class="tipo ${tipoClass}">${l.tipo||''}</span>
-            <span class="badge">${HOSPITAIS[l.hospital]?.nome || ''}${internado? `<span class="badge" style="margin-left:6px">${internado}</span>`:""}</span>
+            <span class="status ${statusClass}">Leito ${l.leito} – ${l.status}</span>
+            <span class="tipo ${tipoClass}">${l.tipo}</span>
+            <span class="badge">${HOSPITAIS[l.hospital].nome}${internado? `<span class="badge" style="margin-left:6px">${internado}</span>`:""}</span>
           </div>
         </div>
 
@@ -558,6 +622,11 @@
         </div>
       `;
 
+      // Em modo QR, só mostra o leito específico
+      if (isQRMode && l.leito !== selectedLeito) {
+        card.style.display = 'none';
+      }
+
       // Ações (sem botão "Abrir")
       const btnAdmitir   = card.querySelector('[data-act="admitir"]');
       const btnAtualizar = card.querySelector('[data-act="atualizar"]');
@@ -571,14 +640,14 @@
     });
   }
 
-  // ================== RENDER – TABELA ==================
+  // -------------------- RENDER – TABELA --------------------
   function renderTable(){
     const tb = $("#tbLeitos");
     tb.innerHTML = "";
-    (banco[currentHospital]||[]).forEach(l=>{
+    banco[currentHospital].forEach(l=>{
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td>${l.leito}</td><td>${l.tipo||''}</td><td>${l.status||'Vago'}</td>
+        <td>${l.leito}</td><td>${l.tipo}</td><td>${l.status}</td>
         <td>${l.nome||"—"}</td><td>${l.matricula||"—"}</td><td>${l.idade??"—"}</td>
         <td>${fmtDateTime(l.admAt)}</td><td>${l.pps??"—"}</td>
         <td>${l.spict==="elegivel"?"Elegível":(l.spict==="nao_elegivel"?"Não elegível":"—")}</td>
@@ -587,28 +656,25 @@
         <td>${(l.concessoes||[]).join(", ")||"—"}</td>
       `;
       tr.style.cursor="pointer";
-      tr.onclick = ()=> { selectedLeito = l.leito; if(l.status==="Vago") openAdmissao(l.leito); else openAtualizacao(l.leito); };
+      tr.onclick = ()=> { 
+        selectedLeito = l.leito; 
+        if(l.status==="Vago") openAdmissao(l.leito); 
+        else openAtualizacao(l.leito); 
+      };
       tb.appendChild(tr);
     });
   }
 
-  // ================== FLUXOS – ADMITIR/ATUALIZAR/ALTA ==================
-  function prepareChecklist(containerSel, values, catalog){
-    const c = $(containerSel); c.innerHTML = catalog.map(v=>{
-      const chk = (values||[]).includes(v)?'checked':'';
-      return `<label class="badge"><input type="checkbox" value="${v}" ${chk}/> ${v}</label>`;
-    }).join("");
-  }
-
-  function openAdmissao(leitoId){
-    const l = (banco[currentHospital]||[]).find(x=>x.leito===leitoId);
-    selectedLeito = leitoId;
+  // -------------------- FLUXOS – ADMITIR/ATUALIZAR/ALTA --------------------
+  function openAdmissao(leito){
+    const l = banco[currentHospital].find(x=>x.leito===leito);
+    selectedLeito = leito;
     $("#a_hospital").textContent = HOSPITAIS[currentHospital].nome;
-    $("#a_leito").textContent = "Leito " + leitoId;
-    $("#a_tipo").textContent = l?.tipo || '';
+    $("#a_leito").textContent = "Leito " + l.leito;
+    $("#a_tipo").textContent = l.tipo;
 
-    prepareChecklist('#a_linhas', [], LINHAS);
-    prepareChecklist('#a_concessoes', [], CONC);
+    $("#a_linhas").innerHTML = LINHAS.map(v=>`<label class="badge"><input type="checkbox" value="${v}" /> ${v}</label>`).join("");
+    $("#a_concessoes").innerHTML = CONC.map(v=>`<label class="badge"><input type="checkbox" value="${v}" /> ${v}</label>`).join("");
 
     $("#a_nome").value=""; $("#a_idade").value=""; $("#a_matricula").value=""; $("#a_pps").value="";
     $("#a_spict").value="elegivel"; $("#a_prev").value="24h Ouro";
@@ -617,55 +683,79 @@
   }
 
   $("#a_cancel").onclick = async ()=>{
-    const ok = await confirmAction("Cancelar admissão?");
-    if(!ok) return;
-    closeModal("#modalAdmissao");
-    if(qrMode) showLockscreen(); // em modo QR, não pode ver outros leitos
+    if (isQRMode) {
+      const ok = await confirmAction("Cancelar admissão? O sistema será encerrado.");
+      if(ok) {
+        closeModal("#modalAdmissao");
+        showSuccessMessage();
+      }
+    } else {
+      const ok = await confirmAction("Cancelar admissão?");
+      if(ok) closeModal("#modalAdmissao");
+    }
   };
 
   $("#a_save").onclick = async ()=>{
     const ok = await confirmAction("Salvar e admitir este paciente?");
     if(!ok) return;
 
-    try{
+    try {
+      const lines = Array.from(document.querySelectorAll("#a_linhas input:checked")).map(i=>i.value);
+      const concs = Array.from(document.querySelectorAll("#a_concessoes input:checked")).map(i=>i.value);
+
       const payload = {
-        action:'admit', hospital: currentHospital, leito: selectedLeito,
+        action: 'admit',
+        hospital: currentHospital,
+        leito: selectedLeito,
         nome: $("#a_nome").value.trim(),
         idade: Number($("#a_idade").value)||null,
         matricula: $("#a_matricula").value.trim(),
         pps: Number($("#a_pps").value)||null,
         spict: $("#a_spict").value,
         prevAlta: $("#a_prev").value,
-        linhas: [...document.querySelectorAll('#a_linhas input:checked')].map(i=>i.value),
-        concessoes: [...document.querySelectorAll('#a_concessoes input:checked')].map(i=>i.value)
+        linhas: lines,
+        concessoes: concs
       };
-      await apiPost(payload);
-      closeModal('#modalAdmissao');
-      await loadHospital(currentHospital);
-      if(qrMode) thankAndClose();
-    }catch(e){ alert('Erro ao admitir: '+e.message); }
+
+      await apiCall(payload);
+      closeModal("#modalAdmissao");
+      
+      if (isQRMode) {
+        showSuccessMessage();
+      } else {
+        await loadHospital(currentHospital);
+      }
+    } catch(error) {
+      alert('Erro ao salvar admissão: ' + error.message);
+    }
   };
 
-  function openAtualizacao(leitoId){
-    const l = (banco[currentHospital]||[]).find(x=>x.leito===leitoId);
-    if(!l) return;
-    selectedLeito = leitoId;
+  function openAtualizacao(leito){
+    const l = banco[currentHospital].find(x=>x.leito===leito);
+    selectedLeito = leito;
 
     $("#u_hospital").textContent = HOSPITAIS[currentHospital].nome;
-    $("#u_leito").textContent    = "Leito " + leitoId;
-    $("#u_tipo").textContent     = l.tipo||'';
+    $("#u_leito").textContent = "Leito " + l.leito;
+    $("#u_tipo").textContent = l.tipo;
 
     $("#u_nome").value = l.nome||"";
     $("#u_matricula").value = l.matricula||"";
     $("#u_adm").value = fmtDateTime(l.admAt)||"";
 
     $("#u_idade").value = l.idade??"";
-    $("#u_pps").value   = l.pps??"";
+    $("#u_pps").value = l.pps??"";
     $("#u_spict").value = l.spict||"elegivel";
-    $("#u_prev").value  = l.prevAlta||"Sem previsão";
+    $("#u_prev").value = l.prevAlta||"Sem previsão";
 
-    prepareChecklist('#u_linhas', l.linhas||[], LINHAS);
-    prepareChecklist('#u_concessoes', l.concessoes||[], CONC);
+    $("#u_linhas").innerHTML = LINHAS.map(v=>{
+      const chk = (l.linhas||[]).includes(v) ? "checked":"";
+      return `<label class="badge"><input type="checkbox" value="${v}" ${chk}/> ${v}</label>`;
+    }).join("");
+
+    $("#u_concessoes").innerHTML = CONC.map(v=>{
+      const chk = (l.concessoes||[]).includes(v) ? "checked":"";
+      return `<label class="badge"><input type="checkbox" value="${v}" ${chk}/> ${v}</label>`;
+    }).join("");
 
     $("#internadoHa").textContent = `Internado há ${elapsedSince(l.admAt)}`;
 
@@ -673,67 +763,95 @@
   }
 
   $("#u_cancel").onclick = async ()=>{
-    const ok = await confirmAction("Cancelar alterações?");
-    if(!ok) return;
-    closeModal("#modalAtualizacao");
-    if(qrMode) showLockscreen();
+    if (isQRMode) {
+      const ok = await confirmAction("Cancelar alterações? O sistema será encerrado.");
+      if(ok) {
+        closeModal("#modalAtualizacao");
+        showSuccessMessage();
+      }
+    } else {
+      const ok = await confirmAction("Cancelar alterações?");
+      if(ok) closeModal("#modalAtualizacao");
+    }
   };
 
   $("#u_save").onclick = async ()=>{
     const ok = await confirmAction("Salvar alterações?");
     if(!ok) return;
-    try{
+
+    try {
       const payload = {
-        action:'update', hospital: currentHospital, leito: selectedLeito,
+        action: 'update',
+        hospital: currentHospital,
+        leito: selectedLeito,
         idade: Number($("#u_idade").value)||null,
         pps: Number($("#u_pps").value)||null,
         spict: $("#u_spict").value,
         prevAlta: $("#u_prev").value,
-        linhas: [...document.querySelectorAll('#u_linhas input:checked')].map(i=>i.value),
-        concessoes: [...document.querySelectorAll('#u_concessoes input:checked')].map(i=>i.value)
+        linhas: Array.from(document.querySelectorAll("#u_linhas input:checked")).map(i=>i.value),
+        concessoes: Array.from(document.querySelectorAll("#u_concessoes input:checked")).map(i=>i.value)
       };
-      await apiPost(payload);
-      closeModal('#modalAtualizacao');
-      await loadHospital(currentHospital);
-      if(qrMode) thankAndClose();
-    }catch(e){ alert('Erro ao salvar: '+e.message); }
+
+      await apiCall(payload);
+      closeModal("#modalAtualizacao");
+      
+      if (isQRMode) {
+        showSuccessMessage();
+      } else {
+        await loadHospital(currentHospital);
+      }
+    } catch(error) {
+      alert('Erro ao salvar atualização: ' + error.message);
+    }
   };
 
-  async function darAltaFlow(leitoId){
+  async function darAltaFlow(leito){
     const ok = await confirmAction("Confirmar ALTA deste paciente?");
     if(!ok) return;
-    try{
-      await apiPost({ action:'alta', hospital: currentHospital, leito: leitoId });
-      closeModal('#modalAtualizacao');
-      await loadHospital(currentHospital);
-      if(qrMode) thankAndClose();
-    }catch(e){ alert('Erro ao dar alta: '+e.message); }
+    
+    try {
+      const payload = { action:'alta', hospital: currentHospital, leito: leito };
+      await apiCall(payload);
+      
+      if (isQRMode) {
+        closeModal("#modalAtualizacao");
+        showSuccessMessage();
+      } else {
+        await loadHospital(currentHospital);
+      }
+    } catch(error) {
+      alert('Erro ao dar alta: ' + error.message);
+    }
   }
   $("#u_alta").onclick = ()=> darAltaFlow(selectedLeito);
 
-  // ================== NAVEGAÇÃO (PORTAL) ==================
+  // -------------------- NAVEGAÇÃO --------------------
   function setTab(tab){
     document.querySelectorAll(".tab").forEach(b=>b.classList.remove("active"));
-    const t = document.querySelector(`.tab[data-tab='${tab}']`); if(t) t.classList.add("active");
-    activeTab = tab; route();
+    document.querySelector(`.tab[data-tab='${tab}']`).classList.add("active");
+    activeTab = tab;
+    route();
   }
-  function setHospitalSelectors(h){ currentHospital = h; const s2 = document.getElementById('selHospital2'); if (s2) s2.value = h; }
+
+  function setHospitalSelectors(h){
+    currentHospital = h;
+    const s2 = document.getElementById('selHospital2');
+    if (s2) s2.value = h;
+  }
+
   function route(){
     const sections = ["leitos","leitos2","dash1","dash2","dash3","dash4"];
     sections.forEach(id=>{
       const el = document.getElementById(id==="leitos"?"leitosView":(id==="leitos2"?"leitos2View":id));
-      if(!el) return; if(activeTab===id) el.classList.remove("hidden"); else el.classList.add("hidden");
+      if(!el) return;
+      if(activeTab===id) el.classList.remove("hidden"); else el.classList.add("hidden");
     });
-    if(activeTab==="leitos") renderCards();
-    if(activeTab==="leitos2") renderTable();
+
+    if(activeTab==="leitos"){ renderCards(); }
+    if(activeTab==="leitos2"){ renderTable(); }
   }
 
-  document.querySelectorAll(".tab").forEach(b=> b.onclick = ()=> setTab(b.dataset.tab) );
-  document.getElementById('btnH1').onclick = ()=>{ setHospitalSelectors('H1'); loadHospital('H1'); };
-  document.getElementById('btnH2').onclick = ()=>{ setHospitalSelectors('H2'); loadHospital('H2'); };
-  document.getElementById('selHospital2').onchange = e=>{ setHospitalSelectors(e.target.value); loadHospital(e.target.value); };
-
-  // ================== QR – Scanner & Em Massa ==================
+  // -------------------- QR – Scanner & Em Massa --------------------
   let qrReader = null;
   function handleScan(text){
     try{
@@ -743,9 +861,12 @@
       if(h && ["H1","H2"].includes(h) && leito>0){
         closeModal("#modalQRScan");
         stopScan();
-        location.href = `${location.pathname}?h=${h}&leito=${leito}`; // redireciona para modo QR
+        // Abre no mesmo HTML entrando em modo QR
+        location.href = `${location.pathname}?h=${h}&leito=${leito}`;
       }
-    }catch(e){ /* ignorar */ }
+    }catch(e){
+      // ignorar
+    }
   }
   async function startScan(){
     if(!window.Html5Qrcode){ alert("Leitor não disponível neste dispositivo."); return; }
@@ -753,93 +874,128 @@
       if(qrReader){ await stopScan(); }
       qrReader = new Html5Qrcode('qrRegion');
       await qrReader.start({ facingMode:'environment' }, { fps:10, qrbox:250 }, handleScan, ()=>{});
-    }catch(e){ alert("Não foi possível acessar a câmera."); stopScan(); closeModal("#modalQRScan"); }
+    }catch(e){
+      alert("Não foi possível acessar a câmera.");
+      stopScan(); closeModal("#modalQRScan");
+    }
   }
-  function stopScan(){ if(!qrReader) return Promise.resolve(); return qrReader.stop().then(()=>{ qrReader.clear(); qrReader=null; }).catch(()=>{}); }
+  function stopScan(){
+    if(!qrReader) return Promise.resolve();
+    return qrReader.stop().then(()=>{ qrReader.clear(); qrReader=null; }).catch(()=>{});
+  }
 
-  document.getElementById('btnScan').onclick = ()=>{ openModal('#modalQRScan'); startScan(); };
-  document.querySelectorAll('[data-close]').forEach(b=> b.onclick = ()=> { closeModal(b.getAttribute('data-close')); if(qrMode) showLockscreen(); });
-
-  // QR em massa
-  document.getElementById('btnBulkQR').onclick = openBulkQR;
-  document.getElementById('b_generate').onclick = buildQRGrid;
   function openBulkQR(){
-    document.getElementById('b_hospital').value = currentHospital;
-    const limit = currentHospital==='H1'?13:16;
-    document.getElementById('b_from').value = 1;
-    document.getElementById('b_to').value = limit;
-    document.getElementById('qr_grid').innerHTML = "";
-    openModal('#modalBulkQR');
+    $("#b_hospital").value = currentHospital;
+    const limit = currentHospital==="H1"?13:16;
+    $("#b_from").value = 1;
+    $("#b_to").value = limit;
+    $("#qr_grid").innerHTML = "";
+    openModal("#modalBulkQR");
   }
   function buildQRGrid(){
-    const h = document.getElementById('b_hospital').value;
-    const from = Math.max(1, parseInt(document.getElementById('b_from').value||'1'));
-    const to   = Math.max(from, parseInt(document.getElementById('b_to').value||'1'));
-    const limit = h==='H1'?13:16; const f = Math.min(from, limit); const t = Math.min(to, limit);
+    const h = $("#b_hospital").value;
+    const from = Math.max(1, parseInt($("#b_from").value||"1"));
+    const to   = Math.max(from, parseInt($("#b_to").value||"1"));
+    const limit = h==="H1"?13:16;
+    const f = Math.min(from, limit);
+    const t = Math.min(to, limit);
+
     const base = `${location.origin}${location.pathname}`;
-    const grid = document.getElementById('qr_grid'); grid.innerHTML = "";
+    const grid = $("#qr_grid");
+    grid.innerHTML = "";
     for(let i=f;i<=t;i++){
       const url = `${base}?h=${h}&leito=${i}`;
-      const cell = document.createElement('div');
-      cell.className='qr-cell';
+      const cell = document.createElement("div");
+      cell.className="qr-cell";
       cell.innerHTML = `<div class="qr-box"></div><div class="mini">Leito ${i} • ${HOSPITAIS[h].nome}</div>`;
       grid.appendChild(cell);
-      new QRCode(cell.querySelector('.qr-box'), {text:url, width:160, height:160});
+      new QRCode(cell.querySelector(".qr-box"), {text:url, width:160, height:160});
     }
   }
 
-  // ================== MODO QR (médico) ==================
+  // -------------------- MODO QR (médico) --------------------
   function startQrTimer(seconds){
     qrExpiresAt = Date.now() + seconds*1000;
-    const badge = document.createElement('div'); badge.className = 'qrTimerBadge'; badge.id = 'qrBadge'; document.body.appendChild(badge);
+    const badge = document.createElement("div");
+    badge.className = "qrTimerBadge";
+    badge.id = "qrBadge";
+    document.body.appendChild(badge);
+
     qrTick = setInterval(()=>{
       const left = Math.max(0, qrExpiresAt - Date.now());
-      const mm = String(Math.floor(left/60000)).padStart(2,'0');
-      const ss = String(Math.floor((left%60000)/1000)).padStart(2,'0');
+      const mm = String(Math.floor(left/60000)).padStart(2,"0");
+      const ss = String(Math.floor((left%60000)/1000)).padStart(2,"0");
       badge.textContent = `⏱ ${mm}:${ss} para concluir`;
-      if(left<=0){ clearInterval(qrTick); badge.textContent = 'Acesso expirado'; forceCloseAll(); showLockscreen(); }
+      if(left<=0){
+        clearInterval(qrTick);
+        // Fechar todos os modais
+        document.querySelectorAll(".backdrop").forEach(b=> b.style.display="none");
+        // Mostrar modal de expiração
+        openModal("#modalQRExpired");
+      }
     }, 500);
-  }
-  function forceCloseAll(){ document.querySelectorAll('.backdrop').forEach(b=> b.style.display='none'); }
-  function showLockscreen(){ document.getElementById('lockscreen').style.display='flex'; }
-  function thankAndClose(){
-    alert('Obrigado! Dados registrados. Você pode fechar o navegador.');
-    tryCloseTab();
-    // como fallback, exibe lockscreen
-    showLockscreen();
   }
 
   async function enterQrMode(h, leito){
-    qrMode = true; qrLockedLeito = leito;
-    document.body.classList.add('qr-only');
-    document.getElementById('appHeader').style.display = 'none';
-    document.getElementById('portalToolbar').style.display = 'none';
+    isQRMode = true;
+    document.body.classList.add("qr-only");
+    // esconder navegação/toolbar
+    $("#appHeader").style.display = "none";
+    $("#portalToolbar").style.display = "none";
 
-    // Carrega estado do hospital e abre somente o leito bloqueado
+    // Seleciona hospital e carrega dados
+    currentHospital = h; 
     setHospitalSelectors(h);
+    activeTab = "leitos"; 
+    
     await loadHospital(h);
+    selectedLeito = leito;
+    
+    route();
 
-    const l = (banco[currentHospital]||[]).find(x=>x.leito===leito);
-    if(!l){ showLockscreen(); return; }
+    const l = banco[currentHospital].find(x=>x.leito===leito);
+    if(!l) return;
     if(l.status==="Vago") openAdmissao(leito); else openAtualizacao(leito);
 
-    // timer 2 min
+    // inicia timer 2 min
     startQrTimer(120);
   }
 
-  // ================== BOOT ==================
-  (async function init(){
+  // -------------------- EVENTOS --------------------
+  // Tabs
+  document.querySelectorAll(".tab").forEach(b=> b.onclick = ()=> setTab(b.dataset.tab) );
+  // Hospital selectors
+  const selHospital2 = document.getElementById('selHospital2');
+  if (selHospital2) {
+    selHospital2.onchange = e=>{ setHospitalSelectors(e.target.value); loadHospital(e.target.value); };
+  }
+  $("#btnH1").onclick = ()=>{ setHospitalSelectors("H1"); loadHospital("H1"); };
+  $("#btnH2").onclick = ()=>{ setHospitalSelectors("H2"); loadHospital("H2"); };
+
+  // QR scan (para uso do gestor em desktop)
+  $("#btnScan").onclick = ()=>{ openModal("#modalQRScan"); startScan(); };
+  document.querySelectorAll("[data-close]").forEach(b=> b.onclick = ()=> closeModal(b.getAttribute("data-close")) );
+  // Bulk QR
+  $("#btnBulkQR").onclick = openBulkQR;
+  $("#b_generate").onclick = buildQRGrid;
+
+  // QR Expired Modal
+  $("#reloadPage").onclick = ()=> location.reload();
+
+  // -------------------- PARAMS (URL) --------------------
+  (function checkParams(){
     const p = new URLSearchParams(location.search);
-    const h = p.get('h');
-    const leito = Number(p.get('leito'));
+    const h = p.get("h");
+    const leito = Number(p.get("leito"));
     if(h && ["H1","H2"].includes(h) && leito>0){
-      await enterQrMode(h, leito);
-      return;
+      // fluxo médico direto do QR: entrar no modo QR (sem PIN, com timer)
+      enterQrMode(h, leito);
+    }else{
+      // portal normal (sem timer)
+      setHospitalSelectors("H1");
+      setTab("leitos");
+      loadHospital("H1");
     }
-    // portal normal
-    setHospitalSelectors('H1');
-    setTab('leitos');
-    await loadHospital('H1');
   })();
   </script>
 </body>
