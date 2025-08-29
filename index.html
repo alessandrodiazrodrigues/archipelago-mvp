@@ -477,7 +477,7 @@
   <!-- ======= SCRIPT ======= -->
   <script>
   // -------------------- CONFIGURAÇÃO DA API --------------------
-  // IMPORTANTE: Substitua pela URL do seu Google Apps Script Web App
+  // URL ATUALIZADA DO GOOGLE APPS SCRIPT
   const API_URL = 'https://script.google.com/macros/s/AKfycbzn8BlUD8by0GykYlJa1pmbYtuXOr8aEUzOOBhpfSGl-i1x8LhAnGSRzqdyV2lANnIP/exec';
 
   // Sistema de logs para debug
@@ -648,7 +648,44 @@
     logInfo(`Iniciando operação: ${payload.action}`, payload);
     
     try {
-      logInfo(`Fazendo requisição POST para: ${
+      // SEMPRE usa GET para evitar CORS
+      const params = new URLSearchParams();
+      for (const [key, value] of Object.entries(payload)) {
+        if (Array.isArray(value)) {
+          params.append(key, value.join('|'));
+        } else if (value !== null && value !== undefined && value !== '') {
+          params.append(key, String(value));
+        }
+      }
+      
+      const url = `${API_URL}?${params.toString()}`;
+      logInfo(`Fazendo requisição GET para: ${url}`);
+      
+      const res = await fetch(url, { 
+        method: 'GET'
+      });
+      
+      logInfo(`Resposta recebida. Status: ${res.status} ${res.statusText}`);
+      
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+      }
+      
+      const json = await res.json();
+      logInfo(`Resposta JSON da operação ${payload.action}:`, json);
+      
+      if (!json.ok) {
+        throw new Error(json.error || 'Erro na operação');
+      }
+      
+      logSuccess(`Operação ${payload.action} realizada com sucesso!`);
+      return json.data;
+      
+    } catch(error) {
+      logError(`Erro na operação ${payload.action}:`, error);
+      throw new Error(error.message || 'Erro na operação');
+    }
+  }
 
   // -------------------- RENDER – CARDS --------------------
   function renderCards(){
