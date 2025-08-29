@@ -50,7 +50,6 @@
     .logo::after{content:"PS";font-weight:700}
     .title h1{margin:0;font-size:18px}
     .title small{display:block;color:#dbe7f5}
-    #qrTimer{margin-left:10px;padding:4px 8px;border-radius:999px;background:#ffffff20;border:1px solid #ffffff40}
 
     nav.tabs{display:flex;gap:8px;flex-wrap:wrap}
     .tab{background:#ffffff1a;border:1px solid #ffffff33;color:#fff;padding:8px 12px;border-radius:10px;cursor:pointer;user-select:none}
@@ -140,13 +139,6 @@
     .qr-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-height:none;overflow:visible}
     .qr-cell{background:#fff;border:1px solid var(--border);border-radius:14px;padding:10px;text-align:center;min-height:200px}
     .qr-box{display:inline-block;border:1px solid var(--border);padding:8px;border-radius:10px;background:#fff}
-
-    .qr-only header, .qr-only .toolbar, .qr-only nav.tabs, .qr-only .footer{display:none!important}
-    .qrTimerBadge{
-      position:fixed; top:10px; right:10px; z-index:2000;
-      background:#111827; color:#fff; border:1px solid #00000033; padding:8px 10px; border-radius:999px;
-      box-shadow:0 8px 18px rgba(0,0,0,.25);
-    }
 
     .success-message{
       position:fixed; top:50%;left:50%; transform:translate(-50%,-50%);
@@ -419,6 +411,7 @@
         </div>
     </section>
   </main>
+
   <div id="modalAdmissao" class="backdrop" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true">
       <header>
@@ -636,6 +629,8 @@
     <p style="color:#6b7280;font-size:14px">Você pode fechar o navegador.</p>
     <button class="btn primary" onclick="window.close()">Fechar Navegador</button>
   </div>
+
+
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
@@ -1018,7 +1013,10 @@
       }
     } catch(error) { alert('Erro ao dar alta: ' + error.message); }
   }
-    <script>
+
+  // =======================================================================
+  // ==================== LÓGICA DOS DASHBOARDS ============================
+  // =======================================================================
   function getDiasAteAlta(prevAlta) {
     if (!prevAlta) return 4; 
     if (prevAlta.includes('24h')) return 0;
