@@ -426,7 +426,7 @@
     <section id="dash3" class="hidden"></section>
     <section id="dash4" class="hidden"></section>
   </main>
-  
+
   <div id="modalAdmissao" class="backdrop" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true">
       <header>
@@ -645,7 +645,7 @@
     <button class="btn primary" onclick="window.close()">Fechar Navegador</button>
   </div>
   
-  <script>
+<script>
   // =======================================================================
   // ========================== CONFIGURAÇÃO ===============================
   // =======================================================================
@@ -665,6 +665,7 @@
   const LINHAS = ["Assistencia","Geriatria","APS","Cardiologia","Pneumologia","Neurologia","Melhor Cuidado"];
   const CONC   = ["PAD","Fisioterapia","Fonoaudiologia","Aspiracoes","Curativos"];
   
+  // Ordena alfabeticamente para garantir consistência nas legendas dos gráficos
   LINHAS.sort((a, b) => a.localeCompare(b));
   CONC.sort((a, b) => a.localeCompare(b));
 
@@ -677,6 +678,9 @@
     "Fonoaudiologia": "#f59e0b", "PAD": "#0a2b52"
   };
 
+  // =======================================================================
+  // ========================== ESTADO DA UI ===============================
+  // =======================================================================
   let currentHospital = "H1";
   let activeTab = "leitos";
   let selectedLeito = null;
@@ -685,8 +689,12 @@
   let autoRefreshInterval = null;
   let updateIndicatorInterval = null;
   
+  // Estado da ordenação da tabela
   let sortState = { key: 'leito', direction: 'asc' };
 
+  // =======================================================================
+  // ========================== FUNÇÕES HELPERS ============================
+  // =======================================================================
   const $ = sel => document.querySelector(sel);
   
   function openModal(sel){ const el=$(sel); el.style.display="flex"; el.setAttribute("aria-hidden","false"); }
@@ -739,6 +747,9 @@
     }
   }
 
+  // =======================================================================
+  // ===================== FUNÇÕES DE API (BACKEND) ========================
+  // =======================================================================
   async function testConnection() {
     logInfo("Testando conexão com a API...");
     try {
@@ -810,6 +821,9 @@
     }
   }
   
+  // =======================================================================
+  // ======================= LÓGICA DE NAVEGAÇÃO =========================
+  // =======================================================================
   function setTab(tab){
     document.querySelectorAll(".tab").forEach(b=>b.classList.remove("active"));
     document.querySelectorAll(".side-menu-item").forEach(b=>b.classList.remove("active"));
@@ -855,6 +869,9 @@
     if(activeTab === "leitos2") renderTable();
   }
 
+  // =======================================================================
+  // ======================= RENDERIZAÇÃO DE LEITOS ======================
+  // =======================================================================
   function renderCards(){
     const container = $("#leitosView");
     container.innerHTML = "";
@@ -962,6 +979,9 @@
       });
   }
 
+  // =======================================================================
+  // ======================== FLUXOS DE MODAIS ===========================
+  // =======================================================================
   function openAdmissao(leito){
     selectedLeito = leito;
     const l = HOSPITAIS[currentHospital].leitos.find(x=>x.id===leito);
@@ -1007,6 +1027,9 @@
     } catch(error) { alert('Erro ao dar alta: ' + error.message); }
   }
 
+  // =======================================================================
+  // ==================== LÓGICA DOS DASHBOARDS ============================
+  // =======================================================================
   function getDiasAteAlta(prevAlta) {
     if (!prevAlta || prevAlta === 'Sem previsao') return 7; 
     if (prevAlta.includes('24h')) return 0;
