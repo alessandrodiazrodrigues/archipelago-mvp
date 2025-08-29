@@ -1,4 +1,31 @@
-<!DOCTYPE html>
+async function testConnection() {
+    logInfo("Testando conexão com a API...");
+    
+    try {
+      const res = await fetch(API_URL + '?action=test', {
+        method: 'GET'
+      });
+      
+      logInfo(`Status da conexão: ${res.status} ${res.statusText}`);
+      
+      if (res.ok) {
+        try {
+          const json = await res.json();
+          logSuccess("Conexão com a API estabelecida!", json);
+          return true;
+        } catch(e) {
+          logWarning("Conexão estabelecida mas resposta não é JSON válido");
+          return true;
+        }
+      } else {
+        logError(`Falha na conexão: HTTP ${res.status}`);
+        return false;
+      }
+    } catch(error) {
+      logError("Erro ao testar conexão:", error);
+      return false;
+    }
+  }<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8" />
@@ -480,25 +507,21 @@
   // IMPORTANTE: Substitua pela URL do seu Google Apps Script Web App
   const API_URL = 'https://script.google.com/macros/s/AKfycbzi8YS8acCErJvedwtx6lVr2Wd_VDOfUMsOO1xXM9MNZdedzulMmZZCMHkvI6z99AWJ/exec';
 
-  // Função para fazer chamadas JSONP como fallback
-  function makeJSONPRequest(url, callback) {
-    const script = document.createElement('script');
-    const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
-    
-    window[callbackName] = function(data) {
-      delete window[callbackName];
-      document.body.removeChild(script);
-      callback(null, data);
-    };
-    
-    script.onerror = function() {
-      delete window[callbackName];
-      document.body.removeChild(script);
-      callback(new Error('JSONP request failed'));
-    };
-    
-    script.src = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'callback=' + callbackName;
-    document.body.appendChild(script);
+  // Sistema de logs para debug
+  function logInfo(message, data = null) {
+    console.log(`🔵 [Archipelago] ${message}`, data ? data : '');
+  }
+
+  function logSuccess(message, data = null) {
+    console.log(`🟢 [SUCCESS] ${message}`, data ? data : '');
+  }
+
+  function logError(message, error = null) {
+    console.error(`🔴 [ERROR] ${message}`, error ? error : '');
+  }
+
+  function logWarning(message, data = null) {
+    console.warn(`🟡 [WARNING] ${message}`, data ? data : '');
   }
 
   // -------------------- DADOS FIXOS --------------------
@@ -567,125 +590,99 @@
 
   // -------------------- API FUNCTIONS --------------------
   async function loadHospital(h) {
+    logInfo(`Iniciando carregamento do hospital: ${h}`);
+    logInfo(`URL da API: ${API_URL}`);
+    
     try {
-      // Tenta primeiro com fetch normal
-      let res, json;
-      try {
-        res = await fetch(`${API_URL}?action=state&hospital=${h}`, {
-          method: 'GET',
-          mode: 'no-cors' // Mudança importante para mobile
-        });
-        // Se for no-cors, não conseguimos ler a resposta, então tentamos JSONP
-        throw new Error('Using JSONP fallback');
-      } catch(fetchError) {
-        // Fallback para JSONP
-        return new Promise((resolve, reject) => {
-          makeJSONPRequest(`${API_URL}?action=state&hospital=${h}`, (error, data) => {
-            if (error) {
-              console.error('Erro JSONP:', error);
-              // Se JSONP também falhar, usa dados mock locais
-              banco[h] = generateMockData(h);
-              if (activeTab==='leitos') renderCards();
-              if (activeTab==='leitos2') renderTable();
-              resolve();
-            } else {
-              if(!data.ok) throw new Error(data.error || 'Falha ao carregar');
-              banco[h] = data.data;
-              if (activeTab==='leitos') renderCards();
-              if (activeTab==='leitos2') renderTable();
-              resolve();
-            }
-          });
-        });
+      const url = `${API_URL}?action=state&hospital=${h}`;
+      logInfo(`Fazendo requisição GET para: ${url}`);
+      
+      const res = await fetch(url);
+      logInfo(`Resposta recebida. Status: ${res.status} ${res.statusText}`);
+      logInfo(`Headers da resposta:`, Object.fromEntries(res.headers.entries()));
+      
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}: ${res.statusText}`);
       }
+      
+      const json = await res.json();
+      logInfo(`JSON parseado:`, json);
+      
+      if(!json.ok) {
+        throw new Error(json.error || 'Resposta da API indica erro');
+      }
+      
+      // Sucesso - usa dados da API
+      banco[h] = json.data;
+      logSuccess(`Dados carregados com sucesso para ${h}. Total de leitos: ${json.data.length}`);
+      logInfo(`Estrutura dos dados:`, json.data.slice(0, 2)); // mostra apenas os primeiros 2 para não poluir
+      
+      if (activeTab==='leitos') renderCards();
+      if (activeTab==='leitos2') renderTable();
+      
     } catch(error) {
-      console.error('Erro ao carregar hospital:', error);
-      // Em caso de erro total, usa dados mock
-      banco[h] = generateMockData(h);
+      logError(`Erro ao carregar hospital ${h}:`, error);
+      
+      // Verifica se é erro de rede específico
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        logError('Erro de rede/CORS detectado. Possíveis causas:', [
+          '1. URL da API incorreta',
+          '2. Google Apps Script não está publicado como "Anyone"', 
+          '3. Problema de conectividade',
+          '4. Bloqueio de CORS pelo navegador'
+        ]);
+      }
+      
+      alert(`Erro ao conectar com a planilha: ${error.message}\n\nVerifique o console para mais detalhes.`);
+      
+      // Inicializa vazio para mostrar que não há conexão
+      banco[h] = [];
       if (activeTab==='leitos') renderCards();
       if (activeTab==='leitos2') renderTable();
     }
-  }
-
-  // Função para gerar dados mock quando a API não funciona
-  function generateMockData(h) {
-    const leitos = HOSPITAIS[h].leitos;
-    return leitos.map((l, idx) => ({
-      hospital: h, 
-      leito: l.id, 
-      tipo: l.tipo,
-      status: (idx % 3 !== 2) ? "Em uso" : "Vago",
-      nome: (idx % 3 !== 2) ? ["Maria Silva","João Santos","Ana Reis","Carlos Souza","Luciana Matos","Paulo Andrade","Beatriz Gomes","Rafael Lima","Sônia Oliveira","Marcelo Freitas"][idx % 10] : "",
-      matricula: (idx % 3 !== 2) ? String(1000 + idx) : "",
-      idade: (idx % 3 !== 2) ? (60 + (idx % 25)) : null,
-      admAt: (idx % 3 !== 2) ? new Date(Date.now() - (idx + 3) * 3600 * 1000).toISOString() : null,
-      pps: (idx % 3 !== 2) ? (idx % 11) : null,
-      spict: (idx % 2 === 0) ? "elegivel" : "nao_elegivel",
-      prevAlta: (["24h Ouro","48h","72h","96h","Sem previsão"])[idx % 5],
+  }Sem previsão"])[idx % 5],
       linhas: (idx % 3 !== 2) ? ["Assistência","Geriatria","APS","Cardiologia","Pneumologia","Neurologia","Melhor Cuidado"].filter((_, k) => (k + idx) % 3 === 0) : [],
       concessoes: (idx % 3 !== 2) ? ["PAD","Fisioterapia","Fonoaudiologia","Aspirações","Curativos"].filter((_, k) => (k + idx) % 2 === 0) : []
     }));
   }
 
   async function apiCall(payload) {
+    logInfo(`Iniciando operação: ${payload.action}`, payload);
+    
     try {
-      // Para POST, tentamos usar um formulário oculto como fallback
-      // porque no-cors não permite POST com JSON
-      const formData = new FormData();
-      formData.append('payload', JSON.stringify(payload));
+      logInfo(`Fazendo requisição POST para: ${API_URL}`);
       
-      try {
-        const res = await fetch(API_URL, { 
-          method: 'POST', 
-          body: formData,
-          mode: 'no-cors' // Para mobile
-        });
-        // Com no-cors não conseguimos ler a resposta, assumimos sucesso
-        return { success: true };
-      } catch(fetchError) {
-        // Se estiver em desenvolvimento/teste, simula sucesso
-        console.warn('API call simulado:', payload);
-        
-        // Atualiza dados localmente para simular API
-        if (payload.action === 'admit') {
-          const l = banco[payload.hospital].find(x => x.leito === payload.leito);
-          if (l) {
-            l.status = "Em uso";
-            l.nome = payload.nome || "";
-            l.matricula = payload.matricula || "";
-            l.idade = payload.idade;
-            l.pps = payload.pps;
-            l.spict = payload.spict;
-            l.prevAlta = payload.prevAlta;
-            l.linhas = payload.linhas || [];
-            l.concessoes = payload.concessoes || [];
-            l.admAt = new Date().toISOString();
-          }
-        } else if (payload.action === 'update') {
-          const l = banco[payload.hospital].find(x => x.leito === payload.leito);
-          if (l) {
-            l.idade = payload.idade;
-            l.pps = payload.pps;
-            l.spict = payload.spict;
-            l.prevAlta = payload.prevAlta;
-            l.linhas = payload.linhas || [];
-            l.concessoes = payload.concessoes || [];
-          }
-        } else if (payload.action === 'alta') {
-          const l = banco[payload.hospital].find(x => x.leito === payload.leito);
-          if (l) {
-            l.status = "Vago";
-            l.nome = ""; l.matricula = ""; l.idade = null; l.admAt = null; 
-            l.pps = null; l.spict = ""; l.prevAlta = ""; 
-            l.linhas = []; l.concessoes = [];
-          }
-        }
-        
-        return { success: true };
+      const res = await fetch(API_URL, { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' }, 
+        body: JSON.stringify(payload)
+      });
+      
+      logInfo(`Resposta POST recebida. Status: ${res.status} ${res.statusText}`);
+      
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}: ${res.statusText}`);
       }
+      
+      const json = await res.json();
+      logInfo(`Resposta JSON da operação ${payload.action}:`, json);
+      
+      if (!json.ok) {
+        throw new Error(json.error || 'Erro na operação');
+      }
+      
+      logSuccess(`Operação ${payload.action} realizada com sucesso!`);
+      return json.data;
+      
     } catch(error) {
-      console.error('Erro na API:', error);
-      throw new Error('Erro de conexão. Operação pode não ter sido salva no servidor.');
+      logError(`Erro na operação ${payload.action}:`, error);
+      
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        logError('Erro de conectividade detectado');
+        throw new Error('Erro de conexão. Verifique sua internet e a configuração da API.');
+      }
+      
+      throw error;
     }
   }
 
@@ -1104,19 +1101,32 @@
   $("#reloadPage").onclick = ()=> location.reload();
 
   // -------------------- PARAMS (URL) --------------------
-  (function checkParams(){
+  (async function checkParams(){
     const p = new URLSearchParams(location.search);
     const h = p.get("h");
     const leito = Number(p.get("leito"));
+    
+    logInfo("=== INICIALIZANDO ARCHIPELAGO MVP ===");
+    logInfo("URL da API configurada:", API_URL);
+    logInfo("Parâmetros da URL:", { hospital: h, leito: leito });
+    
+    // Testa conexão primeiro
+    const connected = await testConnection();
+    
     if(h && ["H1","H2"].includes(h) && leito>0){
+      logInfo("🏥 MODO QR DETECTADO - Sessão médica iniciada");
+      logInfo(`Hospital: ${h}, Leito: ${leito}`);
       // fluxo médico direto do QR: entrar no modo QR (sem PIN, com timer)
       enterQrMode(h, leito);
     }else{
+      logInfo("💼 MODO PORTAL DETECTADO - Sessão gestor iniciada");
       // portal normal (sem timer)
       setHospitalSelectors("H1");
       setTab("leitos");
       loadHospital("H1");
     }
+    
+    logInfo("=== INICIALIZAÇÃO CONCLUÍDA ===");
   })();
   </script>
 </body>
