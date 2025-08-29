@@ -326,7 +326,7 @@ async function testConnection() {
             <label class="label" for="a_prev">Previsão de alta</label>
             <select id="a_prev" class="select2">
               <option>24h Ouro</option><option>24h 2R</option><option>24h 3R</option>
-              <option>48h</option><option>72h</option><option>96h</option><option>Sem previsão</option>
+              <option>48h</option><option>72h</option><option>96h</option><option>Sem previsao</option>
             </select>
           </div>
           <div>
@@ -401,7 +401,7 @@ async function testConnection() {
             <label class="label" for="u_prev">Previsão de alta</label>
             <select id="u_prev" class="select2">
               <option>24h Ouro</option><option>24h 2R</option><option>24h 3R</option>
-              <option>48h</option><option>72h</option><option>96h</option><option>Sem previsão</option>
+              <option>48h</option><option>72h</option><option>96h</option><option>Sem previsao</option>
             </select>
           </div>
           <div>
@@ -539,8 +539,8 @@ async function testConnection() {
   // Estado atual dos leitos (carregados da API)
   const banco = { H1: [], H2: [] };
 
-  const LINHAS = ["Assistência","Geriatria","APS","Cardiologia","Pneumologia","Neurologia","Melhor Cuidado"];
-  const CONC  = ["PAD","Fisioterapia","Fonoaudiologia","Aspirações","Curativos"];
+  const LINHAS = ["Assistencia","Geriatria","APS","Cardiologia","Pneumologia","Neurologia","Melhor Cuidado"];
+  const CONC  = ["PAD","Fisioterapia","Fonoaudiologia","Aspiracoes","Curativos"];
 
   // -------------------- ESTADO DE UI --------------------
   let currentHospital = "H1";
@@ -641,8 +641,8 @@ async function testConnection() {
       if (activeTab==='leitos2') renderTable();
     }
   }Sem previsão"])[idx % 5],
-      linhas: (idx % 3 !== 2) ? ["Assistência","Geriatria","APS","Cardiologia","Pneumologia","Neurologia","Melhor Cuidado"].filter((_, k) => (k + idx) % 3 === 0) : [],
-      concessoes: (idx % 3 !== 2) ? ["PAD","Fisioterapia","Fonoaudiologia","Aspirações","Curativos"].filter((_, k) => (k + idx) % 2 === 0) : []
+      linhas: (idx % 3 !== 2) ? ["Assistencia","Geriatria","APS","Cardiologia","Pneumologia","Neurologia","Melhor Cuidado"].filter((_, k) => (k + idx) % 3 === 0) : [],
+      concessoes: (idx % 3 !== 2) ? ["PAD","Fisioterapia","Fonoaudiologia","Aspiracoes","Curativos"].filter((_, k) => (k + idx) % 2 === 0) : []
     }));
   }
 
