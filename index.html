@@ -744,7 +744,7 @@
   function logError(message, error = null) { console.error(`🔴 [ERROR] ${message}`, error ? error : ''); }
   function logWarning(message, data = null) { console.warn(`🟡 [WARNING] ${message}`, data ? data : ''); }
 
-  // -------------------- DADOS FIXOS --------------------
+  // -------------------- DADOS FIXOS E CORES --------------------
   const HOSPITAIS = {
     H1: { nome:"Neomater", leitos:[
       ...Array.from({length:10}, (_,i)=>({ id:i+1,  tipo:"Enfermaria/Apto" })),
@@ -758,6 +758,16 @@
   const banco = { H1: [], H2: [] };
   const LINHAS = ["Assistencia","Geriatria","APS","Cardiologia","Pneumologia","Neurologia","Melhor Cuidado"];
   const CONC   = ["PAD","Fisioterapia","Fonoaudiologia","Aspiracoes","Curativos"];
+
+  // CORREÇÃO: Mapa de cores fixo para consistência nos gráficos
+  const LINHAS_CORES = {
+    "Assistencia": "#0a2b52", "Geriatria": "#16a34a", "APS": "#f59e0b", "Cardiologia": "#dc2626",
+    "Pneumologia": "#8b5cf6", "Neurologia": "#0891b2", "Melhor Cuidado": "#be185d"
+  };
+  const CONC_CORES = {
+    "PAD": "#0a2b52", "Fisioterapia": "#16a34a", "Fonoaudiologia": "#f59e0b",
+    "Aspiracoes": "#dc2626", "Curativos": "#8b5cf6"
+  };
 
   // -------------------- ESTADO DE UI --------------------
   let currentHospital = "H1";
@@ -1131,19 +1141,21 @@
       return { labels, linhasData, concessoesData };
   }
   
-  function createLineChart(canvasId, chartInstanceName, { labels, data, title }) {
+  // CORREÇÃO: Função recebe um 'type' para buscar as cores no mapa correto
+  function createLineChart(canvasId, chartInstanceName, { labels, data, title }, type) {
       const canvas = document.getElementById(canvasId);
       if (!canvas) return;
       const ctx = canvas.getContext('2d');
       if (window[chartInstanceName]) window[chartInstanceName].destroy();
 
-      const colors = ['#0a2b52', '#16a34a', '#f59e0b', '#dc2626', '#8b5cf6', '#0891b2', '#be185d'];
+      const colorMap = type === 'linhas' ? LINHAS_CORES : CONC_CORES;
+
       const datasets = Object.entries(data)
-          .map(([key, values], idx) => ({
+          .map(([key, values]) => ({
               label: key,
               data: values,
-              borderColor: colors[idx % colors.length],
-              backgroundColor: colors[idx % colors.length] + '20',
+              borderColor: colorMap[key] || '#cccccc', // Pega cor do mapa
+              backgroundColor: (colorMap[key] || '#cccccc') + '20', // Pega cor do mapa
               fill: false,
               tension: 0.3,
               borderWidth: 2,
@@ -1187,7 +1199,6 @@
   }
 
   async function renderDashboards() {
-    // Dashboard 1 - Visão Geral
     if (activeTab === 'dash1') {
       try {
         await Promise.all([
@@ -1210,28 +1221,27 @@
           createGaugeChart(`chartOcupacao${h}`, `chartGauge${h}`, taxaOcupacao);
           
           const projections = calculateHospitalProjections(dados);
+          // CORREÇÃO: Passando o 'type' para a função de criação do gráfico
           createLineChart(`chartLinhas${h}`, `chartLinhasInst${h}`, {
               labels: projections.labels, data: projections.linhasData, title: 'Projeção de Linhas de Cuidado'
-          });
+          }, 'linhas');
           createLineChart(`chartConcessoes${h}`, `chartConcessoesInst${h}`, {
               labels: projections.labels, data: projections.concessoesData, title: 'Projeção de Concessões'
-          });
+          }, 'concessoes');
         });
         logSuccess('Dashboard 1 renderizado com sucesso');
       } catch (error) {
         logError('Erro ao renderizar Dashboard 1:', error);
       }
-      return; // Finaliza aqui para não executar o código dos outros dashes
+      return;
     }
     
-    // Dashboards 2, 3, 4 usam o hospital selecionado atualmente
     const dados = banco[currentHospital] || [];
     if (dados.length === 0) {
         logWarning(`Dados para ${currentHospital} não disponíveis para os dashboards.`);
         return;
     }
 
-    // Dashboard 2 - Previsão de Altas
     if (activeTab === 'dash2') {
       const altas = { '24h Ouro': 0, '24h 2R': 0, '24h 3R': 0, '48h': 0, '72h': 0, '96h': 0, 'Sem previsao': 0 };
       dados.filter(l => l.status === 'Em uso').forEach(l => { if (altas.hasOwnProperty(l.prevAlta)) altas[l.prevAlta]++; });
@@ -1260,7 +1270,6 @@
       }
     }
     
-    // Dashboard 3 - Linhas de Cuidado
     if (activeTab === 'dash3') {
       const linhasCount = {};
       dados.filter(l => l.status === 'Em uso').forEach(l => (l.linhas || []).forEach(linha => { linhasCount[linha] = (linhasCount[linha] || 0) + 1; }));
@@ -1273,7 +1282,7 @@
           type: 'doughnut',
           data: {
             labels: Object.keys(linhasCount),
-            datasets: [{ data: Object.values(linhasCount), backgroundColor: ['#0a2b52', '#16a34a', '#f59e0b', '#dc2626', '#8b5cf6', '#0891b2', '#be185d'] }]
+            datasets: [{ data: Object.values(linhasCount), backgroundColor: LINHAS.map(l => LINHAS_CORES[l]) }]
           },
           options: { responsive: true, maintainAspectRatio: false }
         });
@@ -1282,7 +1291,6 @@
       $('#topLinhas').innerHTML = topLinhas.map(([linha, count]) => `<div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span>${linha}</span><strong>${count}</strong></div>`).join('');
     }
     
-    // Dashboard 4 - Concessões
     if (activeTab === 'dash4') {
       const concessoesCount = {};
       dados.filter(l => l.status === 'Em uso').forEach(l => (l.concessoes || []).forEach(conc => { concessoesCount[conc] = (concessoesCount[conc] || 0) + 1; }));
@@ -1295,7 +1303,7 @@
           type: 'polarArea',
           data: {
             labels: Object.keys(concessoesCount),
-            datasets: [{ data: Object.values(concessoesCount), backgroundColor: ['#0a2b52', '#16a34a', '#f59e0b', '#dc2626', '#8b5cf6'] }]
+            datasets: [{ data: Object.values(concessoesCount), backgroundColor: CONC.map(c => CONC_CORES[c]) }]
           },
           options: { responsive: true, maintainAspectRatio: false }
         });
@@ -1421,8 +1429,6 @@
   
   (async function init(){
     logInfo("=== INICIALIZANDO ARCHIPELAGO MVP ===");
-    
-    // CORREÇÃO: Mover a configuração dos eventos para dentro da inicialização
     setupEventListeners();
 
     const p = new URLSearchParams(location.search);
