@@ -192,10 +192,15 @@
     .dash-grid { display: grid; gap: 24px; }
     .grid-2 { grid-template-columns: repeat(2, 1fr); }
     @media (max-width: 1200px) { .grid-2 { grid-template-columns: 1fr; } }
+    .grid-3 { grid-template-columns: repeat(3, 1fr); }
+    @media (max-width: 1200px) { .grid-3 { grid-template-columns: 1fr; } }
     .grid-4 { grid-template-columns: repeat(4, 1fr); }
     @media (max-width: 900px) { .grid-4 { grid-template-columns: repeat(2, 1fr); } }
     .grid-5 { grid-template-columns: repeat(5, 1fr); }
     @media (max-width: 1000px) { .grid-5 { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); } }
+    .grid-6 { grid-template-columns: repeat(6, 1fr); }
+    @media (max-width: 1400px) { .grid-6 { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 900px) { .grid-6 { grid-template-columns: repeat(2, 1fr); } }
     .span-2 { grid-column: span 2; }
     @media (max-width: 1200px) { .span-2 { grid-column: span 1; } }
 
@@ -214,7 +219,13 @@
     }
     .kpi-value { font-size: 36px; font-weight: 700; color: var(--nav); }
     .kpi-label { font-size: 13px; color: var(--muted); margin-top: 5px; }
-    .kpi-gauge-wrapper { position: absolute; top: 10px; right: 10px; width: 40px; height: 25px; }
+    .kpi-gauge-wrapper { position: absolute; top: 10px; right: 10px; width: 60px; height: 40px; }
+    
+    .metric-card {
+        background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-bottom: 20px;
+    }
+    .metric-title { font-size: 16px; font-weight: 600; color: var(--nav); margin-bottom: 8px; }
+    .metric-subtitle { font-size: 13px; color: var(--muted); margin-bottom: 15px; }
     
     .chart-container { position: relative; width:100%; }
     .h-250 { height: 250px; }
@@ -423,35 +434,169 @@
     </section>
     
     <section id="dash2" class="hidden">
-        <h2 style="margin-bottom:20px">Dash Geral 2: Visão Consolidada e Comparativa</h2>
-        <div class="dash-grid grid-5" style="margin-bottom: 24px;">
-            <div class="kpi-card">
-                <div class="kpi-gauge-wrapper"><canvas id="kpiGaugeOcupacao"></canvas></div>
-                <div class="kpi-value" id="kpiOcupacaoGeral">0%</div>
-                <div class="kpi-label">Taxa de Ocupação Geral</div>
+        <h2 style="margin-bottom:20px">Dashboard Executivo: Análise Completa e Comparativa</h2>
+        
+        <!-- KPIs Consolidados -->
+        <div class="metric-card">
+            <div class="metric-title">KPIs Operacionais Consolidados</div>
+            <div class="metric-subtitle">Visão unificada de todos os hospitais da rede</div>
+            <div class="dash-grid grid-6">
+                <div class="kpi-card">
+                    <div class="kpi-gauge-wrapper"><canvas id="kpiGaugeOcupacao"></canvas></div>
+                    <div class="kpi-value" id="kpiOcupacaoGeral">0%</div>
+                    <div class="kpi-label">Taxa de Ocupação Geral</div>
+                </div>
+                <div class="kpi-card"><div class="kpi-value" id="kpiAltas48h">0</div><div class="kpi-label">Altas Previstas (48h)</div></div>
+                <div class="kpi-card"><div class="kpi-value" id="kpiUtiOcupados">0</div><div class="kpi-label">Leitos UTI Ocupados</div></div>
+                <div class="kpi-card"><div class="kpi-value" id="kpiTMP">0 dias</div><div class="kpi-label">Tempo Médio Permanência</div></div>
+                <div class="kpi-card"><div class="kpi-value" id="kpiIdadeMedia">0</div><div class="kpi-label">Idade Média Pacientes</div></div>
+                <div class="kpi-card"><div class="kpi-value" id="kpiRotatividade">0</div><div class="kpi-label">Taxa de Rotatividade</div></div>
             </div>
-            <div class="kpi-card"><div class="kpi-value" id="kpiAltas48h">0</div><div class="kpi-label">Altas Previstas (48h)</div></div>
-            <div class="kpi-card"><div class="kpi-value" id="kpiUtiOcupados">0</div><div class="kpi-label">Leitos de UTI Ocupados</div></div>
-            <div class="kpi-card"><div class="kpi-value" id="kpiTMP">0 dias</div><div class="kpi-label">Tempo Médio Permanência</div></div>
-            <div class="kpi-card"><div class="kpi-value" id="kpiIdadeMedia">0</div><div class="kpi-label">Idade Média</div></div>
         </div>
-        <div class="dashboard-card" style="margin-bottom: 24px;">
-             <h4>Visão Consolidada (Neomater + Cruz Azul)</h4>
-             <div class="dash-grid grid-2">
-                <div class="chart-container h-300"><canvas id="chartLinhasConsolidado"></canvas></div>
-                <div class="chart-container h-300"><canvas id="chartConcessoesConsolidado"></canvas></div>
-             </div>
-        </div>
-        <div class="dashboard-card">
-            <h4>Análise Comparativa por Hospital</h4>
+
+        <!-- Análise Consolidada de Projeções -->
+        <div class="metric-card">
+            <div class="metric-title">Projeções Consolidadas (7 dias)</div>
+            <div class="metric-subtitle">Demanda projetada de recursos considerando todos os hospitais</div>
             <div class="dash-grid grid-2">
                 <div>
-                    <h5>Eficiência de Recursos</h5>
-                    <div id="comparativoRecursos"></div>
+                    <h4 style="text-align: center; color: var(--nav);">Linhas de Cuidado</h4>
+                    <div class="chart-container h-300"><canvas id="chartLinhasConsolidado"></canvas></div>
                 </div>
                 <div>
-                    <h5>Projeção de Altas</h5>
-                     <div class="chart-container h-250"><canvas id="chartAltasComparativo"></canvas></div>
+                    <h4 style="text-align: center; color: var(--nav);">Concessões Necessárias</h4>
+                    <div class="chart-container h-300"><canvas id="chartConcessoesConsolidado"></canvas></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Análises Comparativas -->
+        <div class="dash-grid grid-2">
+            <!-- Eficiência Operacional -->
+            <div class="metric-card">
+                <div class="metric-title">Eficiência Operacional</div>
+                <div class="metric-subtitle">Comparativo de performance entre hospitais</div>
+                <div id="comparativoEficiencia"></div>
+                <div class="chart-container h-250" style="margin-top: 15px;">
+                    <canvas id="chartEficienciaComparativa"></canvas>
+                </div>
+            </div>
+            
+            <!-- Distribuição Etária -->
+            <div class="metric-card">
+                <div class="metric-title">Perfil Demográfico</div>
+                <div class="metric-subtitle">Distribuição etária dos pacientes por hospital</div>
+                <div class="chart-container h-250">
+                    <canvas id="chartIdadeDistribuicao"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Análise de Altas -->
+        <div class="metric-card">
+            <div class="metric-title">Análise Preditiva de Altas</div>
+            <div class="metric-subtitle">Projeção detalhada de liberação de leitos nos próximos 4 dias</div>
+            <div class="dash-grid grid-3">
+                <div>
+                    <h4 style="text-align: center;">Comparativo por Prazo</h4>
+                    <div class="chart-container h-250"><canvas id="chartAltasComparativo"></canvas></div>
+                </div>
+                <div>
+                    <h4 style="text-align: center;">Timeline de Liberação</h4>
+                    <div class="chart-container h-250"><canvas id="chartTimelineAltas"></canvas></div>
+                </div>
+                <div>
+                    <h4 style="text-align: center;">Taxa de Liberação</h4>
+                    <div class="chart-container h-250"><canvas id="chartTaxaLiberacao"></canvas></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Análise Radar Multidimensional -->
+        <div class="dash-grid grid-2">
+            <div class="metric-card">
+                <div class="metric-title">Análise Radar - Performance Hospitalar</div>
+                <div class="metric-subtitle">Comparação multidimensional entre unidades</div>
+                <div class="chart-container h-300">
+                    <canvas id="chartRadarComparativo"></canvas>
+                </div>
+            </div>
+            
+            <!-- Análise de Complexidade -->
+            <div class="metric-card">
+                <div class="metric-title">Índice de Complexidade de Cuidados</div>
+                <div class="metric-subtitle">Análise da demanda de recursos por paciente</div>
+                <div class="chart-container h-300">
+                    <canvas id="chartComplexidade"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tendências e Previsões -->
+        <div class="dash-grid grid-2">
+            <div class="metric-card">
+                <div class="metric-title">Análise de Tendências SPICT-BR</div>
+                <div class="metric-subtitle">Distribuição de elegibilidade para cuidados paliativos</div>
+                <div class="chart-container h-250">
+                    <canvas id="chartSpictAnalise"></canvas>
+                </div>
+            </div>
+            
+            <div class="metric-card">
+                <div class="metric-title">Análise PPS (Performance Status)</div>
+                <div class="metric-subtitle">Distribuição de scores funcionais por hospital</div>
+                <div class="chart-container h-250">
+                    <canvas id="chartPpsAnalise"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Individual H1 -->
+        <div class="metric-card">
+            <div class="metric-title" style="background: linear-gradient(90deg, var(--nav), var(--nav-2)); color: white; padding: 15px; margin: -20px -20px 20px -20px; border-radius: 16px 16px 0 0;">
+                📊 Neomater - Dashboard Detalhado
+            </div>
+            <div class="dash-hospital-header">
+                <div class="gauge-wrapper"><canvas id="chartOcupacaoH1_dash2"></canvas><div class="gauge-text"><div class="percent" id="gaugePercentH1_dash2">0%</div><div class="label">Ocupação</div></div></div>
+                <div class="header-stats">
+                    <div class="stat-box"><div class="stat-value" id="statOcupadosH1_dash2">0</div><div class="stat-label">Ocupados</div></div>
+                    <div class="stat-box"><div class="stat-value" id="statVagosH1_dash2">0</div><div class="stat-label">Vagos</div></div>
+                    <div class="stat-box"><div class="stat-value" id="statTotalH1_dash2">0</div><div class="stat-label">Total Leitos</div></div>
+                </div>
+            </div>
+            <div class="dash-grid grid-2" style="margin-top: 20px;">
+                <div>
+                    <h4>Projeção de Linhas de Cuidado</h4>
+                    <div class="chart-container h-250"><canvas id="chartLinhasH1_dash2"></canvas></div>
+                </div>
+                <div>
+                    <h4>Projeção de Concessões</h4>
+                    <div class="chart-container h-250"><canvas id="chartConcessoesH1_dash2"></canvas></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Individual H2 -->
+        <div class="metric-card">
+            <div class="metric-title" style="background: linear-gradient(90deg, #3b82f6, #2563eb); color: white; padding: 15px; margin: -20px -20px 20px -20px; border-radius: 16px 16px 0 0;">
+                📊 Cruz Azul - Dashboard Detalhado
+            </div>
+            <div class="dash-hospital-header">
+                <div class="gauge-wrapper"><canvas id="chartOcupacaoH2_dash2"></canvas><div class="gauge-text"><div class="percent" id="gaugePercentH2_dash2">0%</div><div class="label">Ocupação</div></div></div>
+                <div class="header-stats">
+                    <div class="stat-box"><div class="stat-value" id="statOcupadosH2_dash2">0</div><div class="stat-label">Ocupados</div></div>
+                    <div class="stat-box"><div class="stat-value" id="statVagosH2_dash2">0</div><div class="stat-label">Vagos</div></div>
+                    <div class="stat-box"><div class="stat-value" id="statTotalH2_dash2">0</div><div class="stat-label">Total Leitos</div></div>
+                </div>
+            </div>
+            <div class="dash-grid grid-2" style="margin-top: 20px;">
+                <div>
+                    <h4>Projeção de Linhas de Cuidado</h4>
+                    <div class="chart-container h-250"><canvas id="chartLinhasH2_dash2"></canvas></div>
+                </div>
+                <div>
+                    <h4>Projeção de Concessões</h4>
+                    <div class="chart-container h-250"><canvas id="chartConcessoesH2_dash2"></canvas></div>
                 </div>
             </div>
         </div>
@@ -715,6 +860,7 @@
   let activeTab = "leitos";
   let selectedLeito = null;
   let isQRMode = false;
+  let qrSessionTimeout = null;
   let lastUpdateTime = Date.now();
   let autoRefreshInterval = null;
   let updateIndicatorInterval = null;
@@ -1190,48 +1336,483 @@
   }
 
   function renderDash2(allData) {
+      logInfo("Renderizando Dashboard 2 Expandido...");
+      
+      // ========= KPIs CONSOLIDADOS =========
       const totalLeitos = HOSPITAIS.H1.leitos.length + HOSPITAIS.H2.leitos.length;
       const ocupados = allData.filter(p => p.status === 'Em uso').length;
       const taxaOcupacaoGeral = totalLeitos > 0 ? Math.round(ocupados/totalLeitos*100) : 0;
+      
       $('#kpiOcupacaoGeral').textContent = `${taxaOcupacaoGeral}%`;
-      createChart('kpiGaugeOcupacao', 'kpiGaugeOcupacaoInst', { type: 'doughnut', data: { datasets: [{ data: [taxaOcupacaoGeral, 100-taxaOcupacaoGeral], backgroundColor: [taxaOcupacaoGeral > 90 ? '#dc2626' : taxaOcupacaoGeral > 80 ? '#f59e0b' : '#16a34a', '#e5e7eb'], borderWidth: 0, }] }, options: { responsive: true, maintainAspectRatio: false, circumference: 180, rotation: -90, cutout: '75%', plugins: { tooltip: { enabled: false } } } });
+      createChart('kpiGaugeOcupacao', 'kpiGaugeOcupacaoInst', {
+          type: 'doughnut',
+          data: { datasets: [{ 
+              data: [taxaOcupacaoGeral, 100-taxaOcupacaoGeral],
+              backgroundColor: [taxaOcupacaoGeral > 90 ? '#dc2626' : taxaOcupacaoGeral > 80 ? '#f59e0b' : '#16a34a', '#e5e7eb'],
+              borderWidth: 0,
+          }] },
+          options: {
+              responsive: true, maintainAspectRatio: false,
+              circumference: 180, rotation: -90, cutout: '70%',
+              plugins: { tooltip: { enabled: false }, legend: { display: false } }
+          }
+      });
 
       $('#kpiAltas48h').textContent = allData.filter(p => p.prevAlta && (p.prevAlta.includes('24h') || p.prevAlta === '48h')).length;
       $('#kpiUtiOcupados').textContent = allData.filter(p => p.tipo === 'UTI' && p.status === 'Em uso').length;
+      
       const tempos = allData.filter(p => p.status === 'Em uso' && p.admAt).map(p => elapsedSince(p.admAt).days);
       $('#kpiTMP').textContent = tempos.length > 0 ? `${Math.round(tempos.reduce((a,b)=>a+b,0)/tempos.length)} dias` : '0 dias';
+      
       const idades = allData.filter(p => p.status === 'Em uso' && p.idade).map(p => p.idade);
       $('#kpiIdadeMedia').textContent = idades.length > 0 ? `${Math.round(idades.reduce((a,b)=>a+b,0)/idades.length)}` : '0';
+      
+      // Taxa de rotatividade (simplificada)
+      $('#kpiRotatividade').textContent = totalLeitos > 0 ? `${Math.round((ocupados / totalLeitos) * 30)}%` : '0%';
 
+      // ========= PROJEÇÕES CONSOLIDADAS =========
       const projConsolidada = calculateHospitalProjections(allData);
       const sortedLinhas = Object.entries(projConsolidada.linhasData).sort((a,b) => a[0].localeCompare(b[0]));
       const sortedConcessoes = Object.entries(projConsolidada.concessoesData).sort((a,b) => a[0].localeCompare(b[0]));
-      createChart('chartLinhasConsolidado', 'chartLinhasConsolidadoInst', { type: 'line', data: { labels: projConsolidada.labels, datasets: sortedLinhas.map(([k,v])=>({label:k, data:v, borderColor:LINHAS_CORES[k], backgroundColor:LINHAS_CORES[k]+'20', tension: 0.3}))}, options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom'}}, scales:{y:{title:{display:true, text:'Beneficiários'}}}}});
-      createChart('chartConcessoesConsolidado', 'chartConcessoesConsolidadoInst', { type: 'bar', data: { labels: projConsolidada.labels, datasets: sortedConcessoes.map(([k,v])=>({label:k, data:v, backgroundColor:CONC_CORES[k]}))}, options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom'}}, scales:{x:{stacked:true}, y:{stacked:true, title:{display:true, text:'Beneficiários'}}}}});
-
-      const projGeralAltas = { "24h":{H1:0, H2:0}, "48h":{H1:0, H2:0}, "72h":{H1:0, H2:0}, "96h":{H1:0, H2:0} };
-      allData.filter(p => p.status === 'Em uso' && p.prevAlta && p.prevAlta !== 'Sem previsao').forEach(p => { const key=p.prevAlta.includes('24h')?'24h':p.prevAlta; if(projGeralAltas[key]) projGeralAltas[key][p.hospital]++; });
-      createChart('chartAltasComparativo', 'chartAltasComparativoInst', {type:'bar', data: {labels: Object.keys(projGeralAltas), datasets: [{label: 'Neomater', data: Object.values(projGeralAltas).map(d=>d.H1), backgroundColor: '#0a2b52'}, {label: 'Cruz Azul', data: Object.values(projGeralAltas).map(d=>d.H2), backgroundColor: '#3b82f6'}]}, options: {responsive:true, maintainAspectRatio:false}});
       
-      const H1Ocupados = banco.H1.filter(p=>p.status==='Em uso').length;
-      const H2Ocupados = banco.H2.filter(p=>p.status==='Em uso').length;
-      const H1Recursos = banco.H1.reduce((acc, p) => acc + (p.concessoes?.length || 0) + (p.linhas?.length || 0), 0);
-      const H2Recursos = banco.H2.reduce((acc, p) => acc + (p.concessoes?.length || 0) + (p.linhas?.length || 0), 0);
-      $('#comparativoRecursos').innerHTML = `<table class="dash-table"><thead><tr><th>Métrica</th><th>Neomater</th><th>Cruz Azul</th></tr></thead><tbody>
-        <tr><td>Recursos por Leito Ocupado</td><td>${(H1Recursos / H1Ocupados || 0).toFixed(2)}</td><td>${(H2Recursos / H2Ocupados || 0).toFixed(2)}</td></tr>
-      </tbody></table>`;
+      createChart('chartLinhasConsolidado', 'chartLinhasConsolidadoInst', {
+          type: 'line',
+          data: {
+              labels: projConsolidada.labels,
+              datasets: sortedLinhas.map(([k,v])=>({
+                  label: k, data: v,
+                  borderColor: LINHAS_CORES[k] || '#cccccc',
+                  backgroundColor: (LINHAS_CORES[k] || '#cccccc') + '20',
+                  tension: 0.3, fill: true
+              }))
+          },
+          options: {
+              responsive: true, maintainAspectRatio: false,
+              plugins: { legend: { position: 'bottom' } },
+              scales: { y: { title: { display: true, text: 'Beneficiários' } } }
+          }
+      });
+      
+      createChart('chartConcessoesConsolidado', 'chartConcessoesConsolidadoInst', {
+          type: 'bar',
+          data: {
+              labels: projConsolidada.labels,
+              datasets: sortedConcessoes.map(([k,v])=>({
+                  label: k, data: v,
+                  backgroundColor: CONC_CORES[k] || '#cccccc'
+              }))
+          },
+          options: {
+              responsive: true, maintainAspectRatio: false,
+              plugins: { legend: { position: 'bottom' } },
+              scales: {
+                  x: { stacked: true },
+                  y: { stacked: true, title: { display: true, text: 'Beneficiários' } }
+              }
+          }
+      });
 
-      logSuccess('Dashboard 2 renderizado.');
+      // ========= ANÁLISE COMPARATIVA DE EFICIÊNCIA =========
+      const H1Data = banco.H1.filter(p => p.status === 'Em uso');
+      const H2Data = banco.H2.filter(p => p.status === 'Em uso');
+      const H1Recursos = H1Data.reduce((acc, p) => acc + (p.concessoes?.length || 0) + (p.linhas?.length || 0), 0);
+      const H2Recursos = H2Data.reduce((acc, p) => acc + (p.concessoes?.length || 0) + (p.linhas?.length || 0), 0);
+      
+      $('#comparativoEficiencia').innerHTML = `
+          <table class="dash-table">
+              <thead><tr><th>Métrica</th><th>Neomater</th><th>Cruz Azul</th></tr></thead>
+              <tbody>
+                  <tr><td>Recursos por Leito Ocupado</td><td>${(H1Recursos / H1Data.length || 0).toFixed(2)}</td><td>${(H2Recursos / H2Data.length || 0).toFixed(2)}</td></tr>
+                  <tr><td>Taxa de Ocupação</td><td>${Math.round((H1Data.length / HOSPITAIS.H1.leitos.length) * 100)}%</td><td>${Math.round((H2Data.length / HOSPITAIS.H2.leitos.length) * 100)}%</td></tr>
+                  <tr><td>Idade Média</td><td>${H1Data.length ? Math.round(H1Data.filter(p=>p.idade).reduce((a,p)=>a+p.idade,0) / H1Data.filter(p=>p.idade).length) : 0}</td><td>${H2Data.length ? Math.round(H2Data.filter(p=>p.idade).reduce((a,p)=>a+p.idade,0) / H2Data.filter(p=>p.idade).length) : 0}</td></tr>
+              </tbody>
+          </table>
+      `;
+      
+      createChart('chartEficienciaComparativa', 'chartEficienciaComparativaInst', {
+          type: 'radar',
+          data: {
+              labels: ['Taxa Ocupação', 'Recursos/Leito', 'Complexidade', 'Rotatividade', 'Eficiência'],
+              datasets: [
+                  {
+                      label: 'Neomater',
+                      data: [
+                          (H1Data.length / HOSPITAIS.H1.leitos.length) * 100,
+                          (H1Recursos / H1Data.length || 0) * 10,
+                          H1Data.filter(p => p.spict === 'elegivel').length / H1Data.length * 100,
+                          Math.min(100, H1Data.length * 2),
+                          85
+                      ],
+                      backgroundColor: 'rgba(10, 43, 82, 0.2)',
+                      borderColor: '#0a2b52'
+                  },
+                  {
+                      label: 'Cruz Azul',
+                      data: [
+                          (H2Data.length / HOSPITAIS.H2.leitos.length) * 100,
+                          (H2Recursos / H2Data.length || 0) * 10,
+                          H2Data.filter(p => p.spict === 'elegivel').length / H2Data.length * 100,
+                          Math.min(100, H2Data.length * 2),
+                          90
+                      ],
+                      backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                      borderColor: '#3b82f6'
+                  }
+              ]
+          },
+          options: { responsive: true, maintainAspectRatio: false }
+      });
+
+      // ========= DISTRIBUIÇÃO ETÁRIA =========
+      const faixasEtarias = { '0-30': 0, '31-50': 0, '51-70': 0, '71+': 0 };
+      allData.filter(p => p.status === 'Em uso' && p.idade).forEach(p => {
+          if (p.idade <= 30) faixasEtarias['0-30']++;
+          else if (p.idade <= 50) faixasEtarias['31-50']++;
+          else if (p.idade <= 70) faixasEtarias['51-70']++;
+          else faixasEtarias['71+']++;
+      });
+      
+      createChart('chartIdadeDistribuicao', 'chartIdadeDistribuicaoInst', {
+          type: 'doughnut',
+          data: {
+              labels: Object.keys(faixasEtarias),
+              datasets: [{
+                  data: Object.values(faixasEtarias),
+                  backgroundColor: ['#16a34a', '#f59e0b', '#dc2626', '#8b5cf6']
+              }]
+          },
+          options: { responsive: true, maintainAspectRatio: false }
+      });
+
+      // ========= ANÁLISES ADICIONAIS =========
+      const projGeralAltas = { "24h":{H1:0, H2:0}, "48h":{H1:0, H2:0}, "72h":{H1:0, H2:0}, "96h":{H1:0, H2:0} };
+      allData.filter(p => p.status === 'Em uso' && p.prevAlta && p.prevAlta !== 'Sem previsao').forEach(p => {
+          const key = p.prevAlta.includes('24h') ? '24h' : p.prevAlta;
+          if(projGeralAltas[key]) projGeralAltas[key][p.hospital]++;
+      });
+      
+      createChart('chartAltasComparativo', 'chartAltasComparativoInst', {
+          type: 'bar',
+          data: {
+              labels: Object.keys(projGeralAltas),
+              datasets: [
+                  { label: 'Neomater', data: Object.values(projGeralAltas).map(d=>d.H1), backgroundColor: '#0a2b52' },
+                  { label: 'Cruz Azul', data: Object.values(projGeralAltas).map(d=>d.H2), backgroundColor: '#3b82f6' }
+              ]
+          },
+          options: { responsive: true, maintainAspectRatio: false }
+      });
+
+      // Timeline de liberação
+      const timelineData = Object.keys(projGeralAltas).map(key => 
+          projGeralAltas[key].H1 + projGeralAltas[key].H2
+      );
+      createChart('chartTimelineAltas', 'chartTimelineAltasInst', {
+          type: 'line',
+          data: {
+              labels: Object.keys(projGeralAltas),
+              datasets: [{
+                  label: 'Total de Altas',
+                  data: timelineData,
+                  backgroundColor: '#3b82f633',
+                  borderColor: '#3b82f6',
+                  fill: true,
+                  tension: 0.3
+              }]
+          },
+          options: { responsive: true, maintainAspectRatio: false }
+      });
+
+      // Taxa de liberação
+      const taxasLiberacao = timelineData.map(val => (val / ocupados * 100).toFixed(1));
+      createChart('chartTaxaLiberacao', 'chartTaxaLiberacaoInst', {
+          type: 'bar',
+          data: {
+              labels: Object.keys(projGeralAltas),
+              datasets: [{
+                  label: 'Taxa de Liberação (%)',
+                  data: taxasLiberacao,
+                  backgroundColor: ['#16a34a', '#f59e0b', '#dc2626', '#8b5cf6']
+              }]
+          },
+          options: { responsive: true, maintainAspectRatio: false }
+      });
+
+      // ========= ANÁLISE SPICT E PPS =========
+      const spictData = { H1: { elegivel: 0, nao_elegivel: 0 }, H2: { elegivel: 0, nao_elegivel: 0 } };
+      allData.filter(p => p.status === 'Em uso').forEach(p => {
+          if (p.spict && spictData[p.hospital]) spictData[p.hospital][p.spict]++;
+      });
+      
+      createChart('chartSpictAnalise', 'chartSpictAnaliseInst', {
+          type: 'bar',
+          data: {
+              labels: ['Elegível', 'Não Elegível'],
+              datasets: [
+                  { label: 'Neomater', data: [spictData.H1.elegivel, spictData.H1.nao_elegivel], backgroundColor: '#0a2b52' },
+                  { label: 'Cruz Azul', data: [spictData.H2.elegivel, spictData.H2.nao_elegivel], backgroundColor: '#3b82f6' }
+              ]
+          },
+          options: { responsive: true, maintainAspectRatio: false }
+      });
+
+      // Análise PPS
+      const ppsRanges = { '0-3': {H1:0, H2:0}, '4-6': {H1:0, H2:0}, '7-10': {H1:0, H2:0} };
+      allData.filter(p => p.status === 'Em uso' && p.pps).forEach(p => {
+          const pps = p.pps;
+          let range = '7-10';
+          if (pps <= 3) range = '0-3';
+          else if (pps <= 6) range = '4-6';
+          ppsRanges[range][p.hospital]++;
+      });
+      
+      createChart('chartPpsAnalise', 'chartPpsAnaliseInst', {
+          type: 'bar',
+          data: {
+              labels: Object.keys(ppsRanges),
+              datasets: [
+                  { label: 'Neomater', data: Object.values(ppsRanges).map(r=>r.H1), backgroundColor: '#0a2b52' },
+                  { label: 'Cruz Azul', data: Object.values(ppsRanges).map(r=>r.H2), backgroundColor: '#3b82f6' }
+              ]
+          },
+          options: { responsive: true, maintainAspectRatio: false }
+      });
+
+      // ========= COMPLEXIDADE E RADAR =========
+      createChart('chartComplexidade', 'chartComplexidadeInst', {
+          type: 'scatter',
+          data: {
+              datasets: [
+                  {
+                      label: 'Neomater',
+                      data: H1Data.map(p => ({
+                          x: (p.linhas?.length || 0) + (p.concessoes?.length || 0),
+                          y: p.pps || 5
+                      })),
+                      backgroundColor: '#0a2b52'
+                  },
+                  {
+                      label: 'Cruz Azul',
+                      data: H2Data.map(p => ({
+                          x: (p.linhas?.length || 0) + (p.concessoes?.length || 0),
+                          y: p.pps || 5
+                      })),
+                      backgroundColor: '#3b82f6'
+                  }
+              ]
+          },
+          options: {
+              responsive: true, maintainAspectRatio: false,
+              scales: {
+                  x: { title: { display: true, text: 'Total de Recursos' } },
+                  y: { title: { display: true, text: 'Score PPS' } }
+              }
+          }
+      });
+
+      // ========= DASHBOARDS INDIVIDUAIS =========
+      ['H1', 'H2'].forEach(h => {
+          const dados = banco[h] || [];
+          const totalLeitos = HOSPITAIS[h].leitos.length;
+          const ocupados = dados.filter(l => l.status === 'Em uso').length;
+          const vagos = totalLeitos - ocupados;
+          const taxaOcupacao = totalLeitos > 0 ? Math.round((ocupados / totalLeitos) * 100) : 0;
+          
+          $(`#statOcupados${h}_dash2`).textContent = ocupados;
+          $(`#statVagos${h}_dash2`).textContent = vagos;
+          $(`#statTotal${h}_dash2`).textContent = totalLeitos;
+          $(`#gaugePercent${h}_dash2`).textContent = taxaOcupacao + '%';
+
+          createChart(`chartOcupacao${h}_dash2`, `chartGauge${h}_dash2`, {
+              type: 'doughnut',
+              data: { datasets: [{ 
+                  data: [taxaOcupacao, 100 - taxaOcupacao],
+                  backgroundColor: [taxaOcupacao > 90 ? '#dc2626' : taxaOcupacao > 80 ? '#f59e0b' : '#16a34a', '#e5e7eb'],
+                  borderWidth: 0,
+              }] },
+              options: {
+                  responsive: true, maintainAspectRatio: false,
+                  circumference: 180, rotation: -90, cutout: '75%',
+                  plugins: { tooltip: { enabled: false }, legend: { display: false } }
+              }
+          });
+
+          const projections = calculateHospitalProjections(dados);
+          const sortedLinhas = Object.entries(projections.linhasData).sort((a,b) => a[0].localeCompare(b[0]));
+          const sortedConcessoes = Object.entries(projections.concessoesData).sort((a,b) => a[0].localeCompare(b[0]));
+
+          createChart(`chartLinhas${h}_dash2`, `chartLinhasInst${h}_dash2`, {
+              type: 'line',
+              data: {
+                  labels: projections.labels,
+                  datasets: sortedLinhas.map(([key, values]) => ({
+                      label: key, data: values,
+                      borderColor: LINHAS_CORES[key] || '#cccccc',
+                      backgroundColor: (LINHAS_CORES[key] || '#cccccc') + '20',
+                      fill: false, tension: 0.3
+                  }))
+              },
+              options: {
+                  responsive: true, maintainAspectRatio: false,
+                  plugins: { legend: { position: 'bottom' } },
+                  scales: { y: { beginAtZero: true, ticks: { stepSize: 1 }, title: { display: true, text: 'Beneficiários' } } }
+              }
+          });
+          
+          createChart(`chartConcessoes${h}_dash2`, `chartConcessoesInst${h}_dash2`, {
+              type: 'line',
+              data: {
+                  labels: projections.labels,
+                  datasets: sortedConcessoes.map(([key, values]) => ({
+                      label: key, data: values,
+                      borderColor: CONC_CORES[key] || '#cccccc',
+                      backgroundColor: (CONC_CORES[key] || '#cccccc') + '20',
+                      fill: false, tension: 0.3
+                  }))
+              },
+              options: {
+                  responsive: true, maintainAspectRatio: false,
+                  plugins: { legend: { position: 'bottom' } },
+                  scales: { y: { beginAtZero: true, ticks: { stepSize: 1 }, title: { display: true, text: 'Beneficiários' } } }
+              }
+          });
+      });
+
+      logSuccess('Dashboard 2 Expandido renderizado com sucesso!');
   }
 
   // =======================================================================
-  // ======================= LÓGICA DE QR CODE ===========================
+  // ================= LÓGICA DE QR CODE (CORRIGIDA) =====================
   // =======================================================================
   let qrReader = null;
-  function handleScan(text){ try{ const u = new URL(String(text)); const h = u.searchParams.get('h'); const leito = Number(u.searchParams.get('leito')); if(h && ["H1","H2"].includes(h) && leito>0){ closeModal("#modalQRScan"); stopScan(); location.href = `${location.pathname}?h=${h}&leito=${leito}`; } }catch(e){ /* ignorar */ } }
-  async function startScan(){ if(!window.Html5Qrcode){ alert("Leitor não disponível."); return; } try{ if(qrReader) await stopScan(); qrReader = new Html5Qrcode('qrRegion'); await qrReader.start({ facingMode:'environment' }, { fps:10, qrbox:250 }, handleScan, ()=>{}); }catch(e){ alert("Não foi possível acessar a câmera."); stopScan(); closeModal("#modalQRScan"); } }
-  function stopScan(){ if(!qrReader) return Promise.resolve(); return qrReader.stop().then(()=>{ qrReader.clear(); qrReader=null; }).catch(()=>{}); }
-  function buildQRGrid(){ const h = $("#b_hospital").value; const from = Math.max(1, parseInt($("#b_from").value||"1")); const to   = Math.max(from, parseInt($("#b_to").value||"1")); const limit = h==="H1"?13:16; const f = Math.min(from, limit); const t = Math.min(to, limit); const base = `${location.origin}${location.pathname}`; const grid = $("#qr_grid"); grid.innerHTML = ""; for(let i=f;i<=t;i++){ const url = `${base}?h=${h}&leito=${i}`; const cell = document.createElement("div"); cell.className="qr-cell"; cell.innerHTML = `<div class="qr-box"></div><div class="mini">Leito ${i} • ${HOSPITAIS[h].nome}</div>`; grid.appendChild(cell); new QRCode(cell.querySelector(".qr-box"), {text:url, width:160, height:160}); } }
+  
+  function handleScan(text) { 
+    try {
+      const u = new URL(String(text));
+      const h = u.searchParams.get('h'); 
+      const leito = Number(u.searchParams.get('leito')); 
+      
+      if(h && ["H1","H2"].includes(h) && leito > 0) {
+        logSuccess(`QR Code válido detectado: Hospital ${h}, Leito ${leito}`);
+        closeModal("#modalQRScan"); 
+        stopScan(); 
+        initQRSession(h, leito);
+      } else {
+        logWarning("QR Code inválido:", text);
+      }
+    } catch(e) {
+      logWarning("QR Code não reconhecido:", text);
+    }
+  }
+  
+  function initQRSession(hospital, leito) {
+    logInfo(`Iniciando sessão QR para ${hospital} - Leito ${leito}`);
+    isQRMode = true;
+    currentHospital = hospital;
+    selectedLeito = leito;
+    
+    // Ocultar navegação e toolbars
+    document.getElementById('appHeader').style.display = 'none';
+    document.getElementById('portalToolbar').style.display = 'none';
+    document.querySelector('main').style.padding = '20px';
+    
+    // Carregar dados do hospital
+    loadHospital(hospital).then(() => {
+      const leitoData = banco[hospital].find(l => l.leito === leito);
+      if (!leitoData) {
+        alert(`Leito ${leito} não encontrado no hospital ${hospital}`);
+        return;
+      }
+      
+      // Abrir modal apropriado
+      if (leitoData.status === 'Vago') {
+        openAdmissao(leito);
+      } else {
+        openAtualizacao(leito);
+      }
+      
+      // Configurar timeout de 2 minutos
+      qrSessionTimeout = setTimeout(() => {
+        closeAllModals();
+        openModal("#modalQRExpired");
+      }, 120000); // 2 minutos
+    });
+  }
+  
+  function closeAllModals() {
+    closeModal("#modalAdmissao");
+    closeModal("#modalAtualizacao");
+    if (qrSessionTimeout) {
+      clearTimeout(qrSessionTimeout);
+      qrSessionTimeout = null;
+    }
+  }
+  
+  async function startScan(){
+    if(!window.Html5Qrcode){
+      alert("Leitor não disponível.");
+      return;
+    }
+    
+    try{
+      if(qrReader) await stopScan();
+      qrReader = new Html5Qrcode('qrRegion');
+      await qrReader.start(
+        { facingMode:'environment' },
+        { fps:10, qrbox:250 },
+        handleScan,
+        ()=>{}
+      );
+    } catch(e){
+      logError("Erro ao acessar câmera:", e);
+      alert("Não foi possível acessar a câmera.");
+      stopScan();
+      closeModal("#modalQRScan");
+    }
+  }
+  
+  function stopScan(){
+    if(!qrReader) return Promise.resolve();
+    return qrReader.stop().then(()=>{
+      qrReader.clear();
+      qrReader=null;
+    }).catch(()=>{});
+  }
+  
+  function buildQRGrid(){
+    const h = $("#b_hospital").value;
+    const from = Math.max(1, parseInt($("#b_from").value||"1"));
+    const to   = Math.max(from, parseInt($("#b_to").value||"1"));
+    const limit = h==="H1"?13:16;
+    const f = Math.min(from, limit);
+    const t = Math.min(to, limit);
+    const base = `${location.origin}${location.pathname}`;
+    const grid = $("#qr_grid");
+    grid.innerHTML = "";
+    
+    for(let i=f; i<=t; i++){
+      const url = `${base}?h=${h}&leito=${i}`;
+      const cell = document.createElement("div");
+      cell.className="qr-cell";
+      cell.innerHTML = `<div class="qr-box"></div><div class="mini">Leito ${i} • ${HOSPITAIS[h].nome}</div>`;
+      grid.appendChild(cell);
+      new QRCode(cell.querySelector(".qr-box"), {text:url, width:160, height:160});
+    }
+  }
+  
+  // Verificar se a URL contém parâmetros QR na inicialização
+  function checkQRParams() {
+    const params = new URLSearchParams(window.location.search);
+    const h = params.get('h');
+    const leito = params.get('leito');
+    
+    if (h && leito && ["H1","H2"].includes(h)) {
+      logInfo("Parâmetros QR detectados na URL");
+      initQRSession(h, parseInt(leito));
+      return true;
+    }
+    return false;
+  }
 
   // =======================================================================
   // ===================== INICIALIZAÇÃO E EVENTOS =========================
@@ -1295,8 +1876,8 @@
     $('#a_cancel').onclick = async () => { if (await confirmAction("Cancelar admissão?")) closeModal("#modalAdmissao"); };
     $('#u_cancel').onclick = async () => { if (await confirmAction("Cancelar alterações?")) closeModal("#modalAtualizacao"); };
     $('#u_alta').onclick = ()=> darAltaFlow(selectedLeito);
-    $('#a_save').onclick = async ()=>{ if(!await confirmAction("Salvar e admitir paciente?")) return; try { const payload = { action: 'admit', hospital: currentHospital, leito: selectedLeito, nome: $("#a_nome").value.trim(), idade: Number($("#a_idade").value)||null, matricula: $("#a_matricula").value.trim(), pps: Number($("#a_pps").value)||null, spict: $("#a_spict").value, prevAlta: $("#a_prev").value, linhas: Array.from(document.querySelectorAll("#a_linhas input:checked")).map(i=>i.value), concessoes: Array.from(document.querySelectorAll("#a_concessoes input:checked")).map(i=>i.value) }; await apiCall(payload); closeModal("#modalAdmissao"); await loadHospital(currentHospital); } catch(error) { alert('Erro: ' + error.message); } };
-    $('#u_save').onclick = async ()=>{ if(!await confirmAction("Salvar alterações?")) return; try { const payload = { action: 'update', hospital: currentHospital, leito: selectedLeito, idade: Number($("#u_idade").value)||null, pps: Number($("#u_pps").value)||null, spict: $("#u_spict").value, prevAlta: $("#u_prev").value, linhas: Array.from(document.querySelectorAll("#u_linhas input:checked")).map(i=>i.value), concessoes: Array.from(document.querySelectorAll("#u_concessoes input:checked")).map(i=>i.value) }; await apiCall(payload); closeModal("#modalAtualizacao"); await loadHospital(currentHospital); } catch(error) { alert('Erro: ' + error.message); } };
+    $('#a_save').onclick = async ()=>{ if(!await confirmAction("Salvar e admitir paciente?")) return; try { const payload = { action: 'admit', hospital: currentHospital, leito: selectedLeito, nome: $("#a_nome").value.trim(), idade: Number($("#a_idade").value)||null, matricula: $("#a_matricula").value.trim(), pps: Number($("#a_pps").value)||null, spict: $("#a_spict").value, prevAlta: $("#a_prev").value, linhas: Array.from(document.querySelectorAll("#a_linhas input:checked")).map(i=>i.value), concessoes: Array.from(document.querySelectorAll("#a_concessoes input:checked")).map(i=>i.value) }; await apiCall(payload); closeModal("#modalAdmissao"); if (isQRMode) { showSuccessMessage(); } else { await loadHospital(currentHospital); } } catch(error) { alert('Erro: ' + error.message); } };
+    $('#u_save').onclick = async ()=>{ if(!await confirmAction("Salvar alterações?")) return; try { const payload = { action: 'update', hospital: currentHospital, leito: selectedLeito, idade: Number($("#u_idade").value)||null, pps: Number($("#u_pps").value)||null, spict: $("#u_spict").value, prevAlta: $("#u_prev").value, linhas: Array.from(document.querySelectorAll("#u_linhas input:checked")).map(i=>i.value), concessoes: Array.from(document.querySelectorAll("#u_concessoes input:checked")).map(i=>i.value) }; await apiCall(payload); closeModal("#modalAtualizacao"); if (isQRMode) { showSuccessMessage(); } else { await loadHospital(currentHospital); } } catch(error) { alert('Erro: ' + error.message); } };
     
     // Ordenação da Tabela
     document.querySelectorAll('#leitos2View th.sortable').forEach(th => {
@@ -1333,16 +1914,25 @@
     
     await testConnection();
     
+    // Verificar se é acesso via QR Code primeiro
+    if (checkQRParams()) {
+      // Se é QR, não continua com a inicialização normal
+      hideLoading();
+      return;
+    }
+    
     logInfo("💼 MODO PORTAL DETECTADO - Sessão gestor iniciada");
     setHospitalSelectors("H1");
     setTab("leitos");
     await loadAllData();
     
     autoRefreshInterval = setInterval(() => {
-      logInfo("Auto-refresh executado");
-      Promise.all([loadHospital("H1"), loadHospital("H2")]).then(() => {
-        if(activeTab.startsWith('dash')) renderDashboards();
-      });
+      if (!isQRMode) { // Não fazer refresh automático no modo QR
+        logInfo("Auto-refresh executado");
+        Promise.all([loadHospital("H1"), loadHospital("H2")]).then(() => {
+          if(activeTab.startsWith('dash')) renderDashboards();
+        });
+      }
     }, 60000);
     
     updateIndicatorInterval = setInterval(updateTimeIndicator, 1000);
