@@ -291,19 +291,15 @@
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         border-radius: 16px; padding: 20px; color: white; position: relative;
         box-shadow: 0 8px 24px rgba(102, 126, 234, 0.25);
+        text-align: center;
     }
     .modern-kpi-card.trend-up { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
     .modern-kpi-card.trend-down { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
     
-    .modern-gauge-wrapper { position: relative; width: 80px; height: 50px; margin: 0 auto; }
-    .modern-gauge-text { text-align: center; margin-top: 10px; }
-    .modern-value { font-size: 32px; font-weight: 700; }
+    .modern-gauge-wrapper { position: relative; width: 80px; height: 50px; margin: 0 auto 15px; }
+    .modern-value { font-size: 32px; font-weight: 700; margin-bottom: 5px; }
     .modern-label { font-size: 12px; opacity: 0.9; }
-    .modern-trend { font-size: 14px; font-weight: 600; }
-    .modern-icon { font-size: 24px; margin-bottom: 10px; }
-    .modern-rating { color: #ffd700; }
-    .modern-arrows { color: #4ade80; }
-    .modern-mini-chart { height: 30px; margin-top: 8px; }
+    .modern-trend { font-size: 11px; opacity: 0.8; margin-top: 5px; }
     
     .modern-main-chart {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -311,52 +307,56 @@
         box-shadow: 0 12px 32px rgba(102, 126, 234, 0.3);
     }
     .modern-chart-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
-    .modern-chart-header h3 { font-size: 48px; font-weight: 700; margin: 0; }
-    .modern-chart-header p { margin: 5px 0; opacity: 0.9; }
-    .modern-chart-header small { opacity: 0.7; }
+    .modern-chart-header h3 { font-size: 28px; font-weight: 700; margin: 0; }
+    .modern-chart-header p { margin: 5px 0; opacity: 0.9; font-size: 16px; }
+    .modern-chart-header small { opacity: 0.7; font-size: 13px; }
     .modern-chart-tabs { display: flex; gap: 10px; }
     .modern-tab {
         background: rgba(255,255,255,0.2); border: none; color: white;
-        padding: 8px 20px; border-radius: 20px; cursor: pointer;
-        transition: all 0.3s ease;
+        padding: 6px 16px; border-radius: 20px; cursor: pointer;
+        transition: all 0.3s ease; font-size: 12px;
     }
     .modern-tab.active { background: rgba(255,255,255,0.3); }
     .modern-chart-container { height: 200px; }
+    .h-200 { height: 200px; }
     
-    .modern-event-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 16px; padding: 20px; color: white;
-    }
-    .modern-event-card h4 { margin: 0 0 15px 0; }
-    .modern-stats-row {
-        display: flex; justify-content: space-between; margin-top: 15px;
-        font-weight: 600;
-    }
-    
-    .modern-circular-card {
-        background: #fff; border-radius: 16px; padding: 20px; text-align: center;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-    }
-    .modern-circular-chart { position: relative; width: 150px; height: 150px; margin: 0 auto 20px; }
-    .modern-circular-center {
-        position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-        text-align: center;
-    }
-    .modern-circular-value { font-size: 36px; font-weight: 700; color: var(--nav); }
-    .modern-circular-label { font-size: 12px; color: var(--muted); }
-    .modern-progress-bars { text-align: left; }
-    .progress-item { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
-    .progress-bar { flex: 1; height: 6px; background: #f0f0f0; border-radius: 3px; overflow: hidden; }
-    .progress-fill { height: 100%; background: linear-gradient(90deg, #4facfe, #00f2fe); }
-    
-    .modern-dual-kpi {
+    .modern-analysis-card {
         background: #fff; border-radius: 16px; padding: 20px;
         box-shadow: 0 4px 20px rgba(0,0,0,0.1);
     }
-    .dual-kpi-item { margin-bottom: 30px; text-align: center; }
-    .dual-kpi-value { font-size: 48px; font-weight: 700; color: var(--nav); }
-    .dual-kpi-label { font-size: 12px; color: var(--muted); margin-bottom: 10px; }
-    .dual-kpi-chart { height: 40px; }
+    .modern-analysis-card h4 { margin: 0 0 8px 0; color: var(--nav); font-size: 16px; }
+    .modern-analysis-card p { margin: 0 0 15px 0; color: var(--muted); font-size: 13px; }
+    
+    .modern-hospital-card {
+        background: #fff; border-radius: 20px; padding: 24px;
+        box-shadow: 0 8px 28px rgba(0,0,0,0.12);
+        position: relative; overflow: hidden;
+    }
+    .modern-hospital-card.neomater::before {
+        content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+        background: linear-gradient(90deg, var(--nav), var(--nav-2));
+    }
+    .modern-hospital-card.cruz-azul::before {
+        content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+        background: linear-gradient(90deg, #3b82f6, #2563eb);
+    }
+    
+    .modern-hospital-header {
+        display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;
+    }
+    .modern-hospital-header h3 { margin: 0; color: var(--nav); font-size: 18px; }
+    .modern-hospital-gauge { position: relative; width: 80px; height: 50px; }
+    .modern-gauge-text { position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%); text-align: center; }
+    .modern-percent { font-size: 16px; font-weight: 700; color: var(--nav); }
+    .modern-gauge-label { font-size: 10px; color: var(--muted); }
+    
+    .modern-hospital-stats {
+        display: flex; justify-content: space-between; margin-bottom: 20px;
+        background: #f8fafc; border-radius: 12px; padding: 15px;
+    }
+    .modern-stat-item { text-align: center; }
+    .modern-stat-value { display: block; font-size: 20px; font-weight: 700; color: var(--nav); }
+    .modern-stat-label { font-size: 11px; color: var(--muted); }
   </style>
 </head>
 <body>
@@ -718,116 +718,143 @@
     <section id="dash3" class="hidden">
         <h2 style="margin-bottom:20px">Dashboard Visual Moderno: Interface de Gestão Avançada</h2>
         
-        <!-- KPIs em Cards Visuais -->
-        <div class="dash-grid grid-5" style="margin-bottom: 24px;">
+        <!-- KPIs Consolidados com Visual Moderno -->
+        <div class="dash-grid grid-6" style="margin-bottom: 24px;">
             <div class="modern-kpi-card">
                 <div class="modern-gauge-wrapper">
-                    <canvas id="modernGauge1"></canvas>
-                    <div class="modern-gauge-text">
-                        <div class="modern-value" id="modernOcupacao">0%</div>
-                        <div class="modern-label">Taxa Ocupação</div>
-                    </div>
+                    <canvas id="modernGaugeOcupacao"></canvas>
                 </div>
+                <div class="modern-value" id="modernOcupacaoGeral">0%</div>
+                <div class="modern-label">Taxa de Ocupação Geral</div>
             </div>
             <div class="modern-kpi-card trend-up">
-                <div class="modern-icon">💓</div>
-                <div class="modern-value" id="modernBatimentos">76</div>
-                <div class="modern-label">Média Geral</div>
-                <div class="modern-trend">+2.3%</div>
+                <div class="modern-value" id="modernAltas48h">0</div>
+                <div class="modern-label">Altas Previstas (48h)</div>
+                <div class="modern-trend">Próximos 2 dias</div>
             </div>
             <div class="modern-kpi-card">
-                <div class="modern-icon">⭐</div>
-                <div class="modern-value" id="modernQualidade">54</div>
-                <div class="modern-label">Score Qualidade</div>
-                <div class="modern-rating">★★★★☆</div>
+                <div class="modern-value" id="modernUtiOcupados">0</div>
+                <div class="modern-label">Leitos UTI Ocupados</div>
+                <div class="modern-trend">Cuidados intensivos</div>
             </div>
             <div class="modern-kpi-card trend-down">
-                <div class="modern-icon">🏠</div>
-                <div class="modern-value" id="modernDisponibilidade">23</div>
-                <div class="modern-label">Disponíveis</div>
-                <div class="modern-arrows">▲▲▲▲▲</div>
+                <div class="modern-value" id="modernTMP">0 dias</div>
+                <div class="modern-label">Tempo Médio Permanência</div>
+                <div class="modern-trend">Média geral</div>
             </div>
             <div class="modern-kpi-card">
-                <div class="modern-value" id="modernStatus">25.3</div>
-                <div class="modern-label">Status Geral</div>
-                <div class="modern-mini-chart">
-                    <canvas id="miniSparkline"></canvas>
-                </div>
+                <div class="modern-value" id="modernIdadeMedia">0</div>
+                <div class="modern-label">Idade Média Pacientes</div>
+                <div class="modern-trend">Anos</div>
+            </div>
+            <div class="modern-kpi-card">
+                <div class="modern-value" id="modernRotatividade">0%</div>
+                <div class="modern-label">Taxa de Rotatividade</div>
+                <div class="modern-trend">Mensal estimada</div>
             </div>
         </div>
 
-        <!-- Gráfico Principal Estilo Moderno -->
+        <!-- Timeline de Liberação -->
         <div class="modern-main-chart">
             <div class="modern-chart-header">
                 <div>
-                    <h3>$10,452</h3>
-                    <p>Receita consolidada de pacientes ativos</p>
-                    <small>57.36 receita por paciente internado - 17% de crescimento</small>
+                    <h3>Timeline de Liberação</h3>
+                    <p>Projeção de altas consolidada dos dois hospitais</p>
+                    <small>Análise preditiva baseada nas previsões de alta cadastradas</small>
                 </div>
                 <div class="modern-chart-tabs">
-                    <button class="modern-tab active">APERIAN</button>
-                    <button class="modern-tab">DESERUNT</button>
-                    <button class="modern-tab">OCCURRERET</button>
+                    <button class="modern-tab active">LINHA</button>
+                    <button class="modern-tab">ÁREA</button>
+                    <button class="modern-tab">BARRAS</button>
                 </div>
             </div>
             <div class="modern-chart-container">
-                <canvas id="modernMainChart"></canvas>
+                <canvas id="modernTimelineChart"></canvas>
             </div>
         </div>
 
-        <!-- Seção Inferior com Cards Modernos -->
-        <div class="dash-grid grid-3" style="margin-top: 24px;">
-            <!-- Card Eventos/Timeline -->
-            <div class="modern-event-card">
-                <h4>Eventos do Sistema</h4>
-                <div class="modern-chart-container h-250">
-                    <canvas id="modernEventChart"></canvas>
-                </div>
-                <div class="modern-stats-row">
-                    <span>544</span><span>437</span><span>537</span><span>247</span><span>845</span><span>522</span><span>855</span>
+        <!-- Seção Principal com Análises -->
+        <div class="dash-grid grid-2" style="margin-top: 24px;">
+            <!-- Índice de Complexidade -->
+            <div class="modern-analysis-card">
+                <h4>Índice de Complexidade de Cuidados</h4>
+                <p>Correlação entre recursos necessários e score PPS por paciente</p>
+                <div class="modern-chart-container h-300">
+                    <canvas id="modernComplexidadeChart"></canvas>
                 </div>
             </div>
 
-            <!-- Card Central Circular -->
-            <div class="modern-circular-card">
-                <div class="modern-circular-chart">
-                    <canvas id="modernCircularChart"></canvas>
-                    <div class="modern-circular-center">
-                        <div class="modern-circular-value">368</div>
-                        <div class="modern-circular-label">Pacientes Ativos</div>
+            <!-- Radar Performance -->
+            <div class="modern-analysis-card">
+                <h4>Análise Radar - Performance Hospitalar</h4>
+                <p>Comparação multidimensional entre unidades hospitalares</p>
+                <div class="modern-chart-container h-300">
+                    <canvas id="modernRadarChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboards Individuais Modernos -->
+        <div class="dash-grid grid-2" style="margin-top: 24px;">
+            <!-- Neomater Dashboard -->
+            <div class="modern-hospital-card neomater">
+                <div class="modern-hospital-header">
+                    <h3>📊 Neomater</h3>
+                    <div class="modern-hospital-gauge">
+                        <canvas id="modernGaugeH1"></canvas>
+                        <div class="modern-gauge-text">
+                            <div class="modern-percent" id="modernPercentH1">0%</div>
+                            <div class="modern-gauge-label">Ocupação</div>
+                        </div>
                     </div>
                 </div>
-                <div class="modern-progress-bars">
-                    <div class="progress-item">
-                        <span>43,030</span>
-                        <div class="progress-bar"><div class="progress-fill" style="width: 75%"></div></div>
+                <div class="modern-hospital-stats">
+                    <div class="modern-stat-item">
+                        <span class="modern-stat-value" id="modernOcupadosH1">0</span>
+                        <span class="modern-stat-label">Ocupados</span>
                     </div>
-                    <div class="progress-item">
-                        <span>56,456</span>
-                        <div class="progress-bar"><div class="progress-fill" style="width: 60%"></div></div>
+                    <div class="modern-stat-item">
+                        <span class="modern-stat-value" id="modernVagosH1">0</span>
+                        <span class="modern-stat-label">Vagos</span>
                     </div>
-                    <div class="progress-item">
-                        <span>51,843</span>
-                        <div class="progress-bar"><div class="progress-fill" style="width: 45%"></div></div>
+                    <div class="modern-stat-item">
+                        <span class="modern-stat-value" id="modernTotalH1">0</span>
+                        <span class="modern-stat-label">Total</span>
                     </div>
+                </div>
+                <div class="modern-chart-container h-200">
+                    <canvas id="modernLinhasH1"></canvas>
                 </div>
             </div>
 
-            <!-- Card KPIs Duplos -->
-            <div class="modern-dual-kpi">
-                <div class="dual-kpi-item">
-                    <div class="dual-kpi-value">95</div>
-                    <div class="dual-kpi-label">Altas Efetivas</div>
-                    <div class="dual-kpi-chart">
-                        <canvas id="dualChart1"></canvas>
+            <!-- Cruz Azul Dashboard -->
+            <div class="modern-hospital-card cruz-azul">
+                <div class="modern-hospital-header">
+                    <h3>📊 Cruz Azul</h3>
+                    <div class="modern-hospital-gauge">
+                        <canvas id="modernGaugeH2"></canvas>
+                        <div class="modern-gauge-text">
+                            <div class="modern-percent" id="modernPercentH2">0%</div>
+                            <div class="modern-gauge-label">Ocupação</div>
+                        </div>
                     </div>
                 </div>
-                <div class="dual-kpi-item">
-                    <div class="dual-kpi-value">102</div>
-                    <div class="dual-kpi-label">Ocupação Futura</div>
-                    <div class="dual-kpi-chart">
-                        <canvas id="dualChart2"></canvas>
+                <div class="modern-hospital-stats">
+                    <div class="modern-stat-item">
+                        <span class="modern-stat-value" id="modernOcupadosH2">0</span>
+                        <span class="modern-stat-label">Ocupados</span>
                     </div>
+                    <div class="modern-stat-item">
+                        <span class="modern-stat-value" id="modernVagosH2">0</span>
+                        <span class="modern-stat-label">Vagos</span>
+                    </div>
+                    <div class="modern-stat-item">
+                        <span class="modern-stat-value" id="modernTotalH2">0</span>
+                        <span class="modern-stat-label">Total</span>
+                    </div>
+                </div>
+                <div class="modern-chart-container h-200">
+                    <canvas id="modernLinhasH2"></canvas>
                 </div>
             </div>
         </div>
@@ -1937,137 +1964,226 @@
   }
   
   function renderDash3(allData) {
-      logInfo("Renderizando Dashboard 3 Moderno...");
+      logInfo("Renderizando Dashboard 3 Moderno com dados reais...");
       
-      // KPIs Modernos
+      // ========= KPIs CONSOLIDADOS =========
       const totalLeitos = HOSPITAIS.H1.leitos.length + HOSPITAIS.H2.leitos.length;
       const ocupados = allData.filter(p => p.status === 'Em uso').length;
-      const taxaOcupacao = totalLeitos > 0 ? Math.round(ocupados/totalLeitos*100) : 0;
+      const taxaOcupacaoGeral = totalLeitos > 0 ? Math.round(ocupados/totalLeitos*100) : 0;
       
-      $('#modernOcupacao').textContent = `${taxaOcupacao}%`;
-      $('#modernQualidade').textContent = Math.floor(Math.random() * 100);
-      $('#modernDisponibilidade').textContent = totalLeitos - ocupados;
-      $('#modernStatus').textContent = (taxaOcupacao * 0.3).toFixed(1);
+      // Preencher KPIs
+      $('#modernOcupacaoGeral').textContent = `${taxaOcupacaoGeral}%`;
+      $('#modernAltas48h').textContent = allData.filter(p => p.prevAlta && (p.prevAlta.includes('24h') || p.prevAlta === '48h')).length;
+      $('#modernUtiOcupados').textContent = allData.filter(p => p.tipo === 'UTI' && p.status === 'Em uso').length;
       
-      // Gauge moderno
-      createChart('modernGauge1', 'modernGauge1Inst', {
+      const tempos = allData.filter(p => p.status === 'Em uso' && p.admAt).map(p => elapsedSince(p.admAt).days);
+      $('#modernTMP').textContent = tempos.length > 0 ? `${Math.round(tempos.reduce((a,b)=>a+b,0)/tempos.length)}` : '0';
+      
+      const idades = allData.filter(p => p.status === 'Em uso' && p.idade).map(p => p.idade);
+      $('#modernIdadeMedia').textContent = idades.length > 0 ? `${Math.round(idades.reduce((a,b)=>a+b,0)/idades.length)}` : '0';
+      
+      $('#modernRotatividade').textContent = totalLeitos > 0 ? `${Math.round((ocupados / totalLeitos) * 30)}` : '0';
+
+      // Gauge principal
+      createChart('modernGaugeOcupacao', 'modernGaugeOcupacaoInst', {
           type: 'doughnut',
           data: { datasets: [{ 
-              data: [taxaOcupacao, 100-taxaOcupacao],
+              data: [taxaOcupacaoGeral, 100-taxaOcupacaoGeral],
               backgroundColor: ['#fff', 'rgba(255,255,255,0.3)'],
               borderWidth: 0,
           }] },
           options: {
               responsive: true, maintainAspectRatio: false,
-              circumference: 180, rotation: -90, cutout: '80%',
+              circumference: 180, rotation: -90, cutout: '75%',
               plugins: { tooltip: { enabled: false }, legend: { display: false } }
           }
       });
       
-      // Gráfico principal
-      const mainChartLabels = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'];
-      const mainChartData = mainChartLabels.map(() => Math.floor(Math.random() * 1000) + 500);
+      // Timeline de Liberação (dados reais)
+      const projGeralAltas = { "24h":{H1:0, H2:0}, "48h":{H1:0, H2:0}, "72h":{H1:0, H2:0}, "96h":{H1:0, H2:0} };
+      allData.filter(p => p.status === 'Em uso' && p.prevAlta && p.prevAlta !== 'Sem previsao').forEach(p => {
+          const key = p.prevAlta.includes('24h') ? '24h' : p.prevAlta;
+          if(projGeralAltas[key]) projGeralAltas[key][p.hospital]++;
+      });
       
-      createChart('modernMainChart', 'modernMainChartInst', {
+      const timelineData = Object.keys(projGeralAltas).map(key => 
+          projGeralAltas[key].H1 + projGeralAltas[key].H2
+      );
+      
+      createChart('modernTimelineChart', 'modernTimelineChartInst', {
           type: 'line',
           data: {
-              labels: mainChartLabels,
+              labels: Object.keys(projGeralAltas),
               datasets: [{
-                  data: mainChartData,
+                  label: 'Total de Altas',
+                  data: timelineData,
+                  backgroundColor: 'rgba(255,255,255,0.2)',
                   borderColor: 'rgba(255,255,255,0.8)',
-                  backgroundColor: 'rgba(255,255,255,0.1)',
                   fill: true,
                   tension: 0.4,
-                  borderWidth: 3
+                  borderWidth: 3,
+                  pointRadius: 6,
+                  pointBackgroundColor: '#fff'
               }]
           },
-          options: {
-              responsive: true, maintainAspectRatio: false,
+          options: { 
+              responsive: true, 
+              maintainAspectRatio: false,
               plugins: { legend: { display: false } },
               scales: {
-                  x: { display: false },
-                  y: { display: false }
+                  x: { 
+                      ticks: { color: 'rgba(255,255,255,0.8)' },
+                      grid: { color: 'rgba(255,255,255,0.1)' }
+                  },
+                  y: { 
+                      ticks: { color: 'rgba(255,255,255,0.8)', stepSize: 1 },
+                      grid: { color: 'rgba(255,255,255,0.1)' }
+                  }
               }
           }
       });
+
+      // Análise de Complexidade (dados reais)
+      const H1Data = banco.H1.filter(p => p.status === 'Em uso');
+      const H2Data = banco.H2.filter(p => p.status === 'Em uso');
       
-      // Sparkline
-      createChart('miniSparkline', 'miniSparklineInst', {
-          type: 'line',
+      createChart('modernComplexidadeChart', 'modernComplexidadeChartInst', {
+          type: 'scatter',
           data: {
-              labels: ['1', '2', '3', '4', '5', '6'],
-              datasets: [{
-                  data: [20, 25, 22, 28, 26, 30],
-                  borderColor: '#667eea',
-                  borderWidth: 2,
-                  pointRadius: 0,
-                  fill: false
-              }]
+              datasets: [
+                  {
+                      label: 'Neomater',
+                      data: H1Data.map(p => ({
+                          x: (p.linhas?.length || 0) + (p.concessoes?.length || 0),
+                          y: p.pps || 5
+                      })),
+                      backgroundColor: '#667eea',
+                      pointRadius: 8
+                  },
+                  {
+                      label: 'Cruz Azul',
+                      data: H2Data.map(p => ({
+                          x: (p.linhas?.length || 0) + (p.concessoes?.length || 0),
+                          y: p.pps || 5
+                      })),
+                      backgroundColor: '#f093fb',
+                      pointRadius: 8
+                  }
+              ]
           },
           options: {
               responsive: true, maintainAspectRatio: false,
-              plugins: { legend: { display: false } },
-              scales: { x: { display: false }, y: { display: false } }
+              plugins: { legend: { position: 'bottom' } },
+              scales: {
+                  x: { title: { display: true, text: 'Total de Recursos' } },
+                  y: { title: { display: true, text: 'Score PPS' } }
+              }
           }
       });
+
+      // Radar de Performance (dados reais)
+      const H1Recursos = H1Data.reduce((acc, p) => acc + (p.concessoes?.length || 0) + (p.linhas?.length || 0), 0);
+      const H2Recursos = H2Data.reduce((acc, p) => acc + (p.concessoes?.length || 0) + (p.linhas?.length || 0), 0);
       
-      // Gráfico de eventos
-      createChart('modernEventChart', 'modernEventChartInst', {
-          type: 'line',
+      createChart('modernRadarChart', 'modernRadarChartInst', {
+          type: 'radar',
           data: {
-              labels: ['1', '2', '3', '4', '5', '6', '7'],
-              datasets: [{
-                  data: [544, 437, 537, 247, 845, 522, 855],
-                  borderColor: 'rgba(255,255,255,0.8)',
-                  backgroundColor: 'rgba(255,255,255,0.2)',
-                  fill: true,
-                  tension: 0.4
-              }]
+              labels: ['Taxa Ocupação', 'Recursos/Leito', 'Complexidade', 'Rotatividade', 'Eficiência'],
+              datasets: [
+                  {
+                      label: 'Neomater',
+                      data: [
+                          (H1Data.length / HOSPITAIS.H1.leitos.length) * 100,
+                          (H1Recursos / (H1Data.length || 1)) * 10,
+                          (H1Data.filter(p => p.spict === 'elegivel').length / (H1Data.length || 1)) * 100,
+                          Math.min(100, H1Data.length * 2),
+                          85
+                      ],
+                      backgroundColor: 'rgba(102, 126, 234, 0.2)',
+                      borderColor: '#667eea',
+                      borderWidth: 3
+                  },
+                  {
+                      label: 'Cruz Azul',
+                      data: [
+                          (H2Data.length / HOSPITAIS.H2.leitos.length) * 100,
+                          (H2Recursos / (H2Data.length || 1)) * 10,
+                          (H2Data.filter(p => p.spict === 'elegivel').length / (H2Data.length || 1)) * 100,
+                          Math.min(100, H2Data.length * 2),
+                          90
+                      ],
+                      backgroundColor: 'rgba(240, 147, 251, 0.2)',
+                      borderColor: '#f093fb',
+                      borderWidth: 3
+                  }
+              ]
           },
-          options: {
-              responsive: true, maintainAspectRatio: false,
-              plugins: { legend: { display: false } },
-              scales: { x: { display: false }, y: { display: false } }
+          options: { 
+              responsive: true, 
+              maintainAspectRatio: false,
+              plugins: { legend: { position: 'bottom' } },
+              scales: { r: { beginAtZero: true, max: 100 } }
           }
       });
-      
-      // Gráfico circular central
-      createChart('modernCircularChart', 'modernCircularChartInst', {
-          type: 'doughnut',
-          data: {
-              datasets: [{
-                  data: [60, 25, 15],
-                  backgroundColor: ['#4facfe', '#00f2fe', '#667eea'],
+
+      // Dashboards Individuais
+      ['H1', 'H2'].forEach(h => {
+          const dados = banco[h] || [];
+          const totalLeitos = HOSPITAIS[h].leitos.length;
+          const ocupados = dados.filter(l => l.status === 'Em uso').length;
+          const vagos = totalLeitos - ocupados;
+          const taxaOcupacao = totalLeitos > 0 ? Math.round((ocupados / totalLeitos) * 100) : 0;
+          
+          $(`#modernOcupados${h}`).textContent = ocupados;
+          $(`#modernVagos${h}`).textContent = vagos;
+          $(`#modernTotal${h}`).textContent = totalLeitos;
+          $(`#modernPercent${h}`).textContent = taxaOcupacao + '%';
+
+          // Gauges individuais
+          createChart(`modernGauge${h}`, `modernGauge${h}Inst`, {
+              type: 'doughnut',
+              data: { datasets: [{ 
+                  data: [taxaOcupacao, 100 - taxaOcupacao],
+                  backgroundColor: [h === 'H1' ? '#0a2b52' : '#3b82f6', '#e5e7eb'],
                   borderWidth: 0
-              }]
-          },
-          options: {
-              responsive: true, maintainAspectRatio: false,
-              cutout: '75%',
-              plugins: { legend: { display: false } }
-          }
-      });
-      
-      // Gráficos duplos
-      [1, 2].forEach(i => {
-          createChart(`dualChart${i}`, `dualChart${i}Inst`, {
-              type: 'bar',
+              }] },
+              options: {
+                  responsive: true, maintainAspectRatio: false,
+                  circumference: 180, rotation: -90, cutout: '70%',
+                  plugins: { tooltip: { enabled: false }, legend: { display: false } }
+              }
+          });
+
+          // Gráfico de linhas para cada hospital
+          const projections = calculateHospitalProjections(dados);
+          const sortedLinhas = Object.entries(projections.linhasData).sort((a,b) => a[0].localeCompare(b[0]));
+
+          createChart(`modernLinhas${h}`, `modernLinhas${h}Inst`, {
+              type: 'line',
               data: {
-                  labels: ['1', '2', '3', '4', '5'],
-                  datasets: [{
-                      data: Array(5).fill().map(() => Math.floor(Math.random() * 50) + 10),
-                      backgroundColor: i === 1 ? '#4facfe' : '#667eea'
-                  }]
+                  labels: projections.labels.slice(0, 4), // Apenas 4 dias
+                  datasets: sortedLinhas.slice(0, 3).map(([key, values]) => ({ // Apenas 3 linhas
+                      label: key,
+                      data: values.slice(0, 4),
+                      borderColor: LINHAS_CORES[key] || '#cccccc',
+                      backgroundColor: (LINHAS_CORES[key] || '#cccccc') + '20',
+                      fill: false,
+                      tension: 0.3,
+                      borderWidth: 2
+                  }))
               },
               options: {
                   responsive: true, maintainAspectRatio: false,
                   plugins: { legend: { display: false } },
-                  scales: { x: { display: false }, y: { display: false } }
+                  scales: {
+                      x: { display: false },
+                      y: { beginAtZero: true, ticks: { stepSize: 1 }, display: false }
+                  }
               }
           });
       });
-      
-      logSuccess('Dashboard 3 Moderno renderizado com sucesso!');
+
+      logSuccess('Dashboard 3 Moderno renderizado com dados reais!');
   }
 
   // =======================================================================
@@ -2220,6 +2336,13 @@
     // Toggle de Layout e Modo Noturno
     $('#layoutToggle').onchange = (e) => {
       document.body.classList.toggle('layout-v2', e.target.checked);
+      
+      // Se voltou para layout normal (v1), fechar o menu lateral
+      if (!e.target.checked) {
+        $('#side-menu').classList.remove('open');
+        document.body.classList.remove('side-menu-open');
+      }
+      
       route();
     };
     
