@@ -112,6 +112,36 @@
     .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
     input:checked + .slider { background-color: #3b82f6; }
     input:checked + .slider:before { transform: translateX(16px); }
+    
+    .switch-label { font-size: 12px; color: #dbe7f5; margin-left: 4px; }
+    
+    /* =================== MODO NOTURNO =================== */
+    body.night-mode {
+      --nav: #1a1a2e;
+      --nav-2: #16213e;
+      --bg: #0f0f23;
+      --bg-deep: #16213e;
+      --card: #1a1a2e;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --border: #374151;
+    }
+    
+    body.night-mode .kpi-card,
+    body.night-mode .dashboard-card,
+    body.night-mode .metric-card {
+      background: #1a1a2e;
+      color: #e5e7eb;
+    }
+    
+    body.night-mode .field {
+      background: #16213e;
+      border-color: #374151;
+    }
+    
+    body.night-mode .stat-box {
+      background: #16213e;
+    }
 
     /* =================== LAYOUT GERAL =================== */
     main{max-width:1600px;margin:18px auto 100px;padding:0 24px}
@@ -255,6 +285,78 @@
     .kpi-grid-value { font-size: 24px; font-weight: 700; color: var(--nav); }
     .kpi-grid-label { font-size: 12px; color: var(--muted); }
     .kpi-grid-trend { font-size: 12px; margin-top: 5px; }
+    
+    /* =================== DASHBOARD 3 MODERNO =================== */
+    .modern-kpi-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 16px; padding: 20px; color: white; position: relative;
+        box-shadow: 0 8px 24px rgba(102, 126, 234, 0.25);
+    }
+    .modern-kpi-card.trend-up { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+    .modern-kpi-card.trend-down { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+    
+    .modern-gauge-wrapper { position: relative; width: 80px; height: 50px; margin: 0 auto; }
+    .modern-gauge-text { text-align: center; margin-top: 10px; }
+    .modern-value { font-size: 32px; font-weight: 700; }
+    .modern-label { font-size: 12px; opacity: 0.9; }
+    .modern-trend { font-size: 14px; font-weight: 600; }
+    .modern-icon { font-size: 24px; margin-bottom: 10px; }
+    .modern-rating { color: #ffd700; }
+    .modern-arrows { color: #4ade80; }
+    .modern-mini-chart { height: 30px; margin-top: 8px; }
+    
+    .modern-main-chart {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 20px; padding: 30px; color: white; margin-bottom: 24px;
+        box-shadow: 0 12px 32px rgba(102, 126, 234, 0.3);
+    }
+    .modern-chart-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+    .modern-chart-header h3 { font-size: 48px; font-weight: 700; margin: 0; }
+    .modern-chart-header p { margin: 5px 0; opacity: 0.9; }
+    .modern-chart-header small { opacity: 0.7; }
+    .modern-chart-tabs { display: flex; gap: 10px; }
+    .modern-tab {
+        background: rgba(255,255,255,0.2); border: none; color: white;
+        padding: 8px 20px; border-radius: 20px; cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    .modern-tab.active { background: rgba(255,255,255,0.3); }
+    .modern-chart-container { height: 200px; }
+    
+    .modern-event-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 16px; padding: 20px; color: white;
+    }
+    .modern-event-card h4 { margin: 0 0 15px 0; }
+    .modern-stats-row {
+        display: flex; justify-content: space-between; margin-top: 15px;
+        font-weight: 600;
+    }
+    
+    .modern-circular-card {
+        background: #fff; border-radius: 16px; padding: 20px; text-align: center;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+    .modern-circular-chart { position: relative; width: 150px; height: 150px; margin: 0 auto 20px; }
+    .modern-circular-center {
+        position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+        text-align: center;
+    }
+    .modern-circular-value { font-size: 36px; font-weight: 700; color: var(--nav); }
+    .modern-circular-label { font-size: 12px; color: var(--muted); }
+    .modern-progress-bars { text-align: left; }
+    .progress-item { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+    .progress-bar { flex: 1; height: 6px; background: #f0f0f0; border-radius: 3px; overflow: hidden; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, #4facfe, #00f2fe); }
+    
+    .modern-dual-kpi {
+        background: #fff; border-radius: 16px; padding: 20px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+    .dual-kpi-item { margin-bottom: 30px; text-align: center; }
+    .dual-kpi-value { font-size: 48px; font-weight: 700; color: var(--nav); }
+    .dual-kpi-label { font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+    .dual-kpi-chart { height: 40px; }
   </style>
 </head>
 <body>
@@ -276,6 +378,10 @@
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10M12 20V4M6 20V14"/></svg>
       <span>Dash Geral 2</span>
     </a>
+    <a href="#" class="side-menu-item" data-tab="dash3">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18M7 16l4-4 4 4 4-4"/></svg>
+      <span>Dash Geral 3</span>
+    </a>
   </div>
 
   <header id="appHeader">
@@ -289,8 +395,14 @@
         </div>
       </div>
       <div class="layout-switcher">
+        <span class="switch-label">Layout:</span>
         <label class="switch">
           <input type="checkbox" id="layoutToggle">
+          <span class="slider"></span>
+        </label>
+        <span class="switch-label">Modo:</span>
+        <label class="switch">
+          <input type="checkbox" id="nightModeToggle">
           <span class="slider"></span>
         </label>
       </div>
@@ -301,6 +413,7 @@
       <button class="tab" data-tab="leitos2">Leitos (Tabela)</button>
       <button class="tab" data-tab="dash1">Dash Geral</button>
       <button class="tab" data-tab="dash2">Dash Geral 2</button>
+      <button class="tab" data-tab="dash3">Dash Geral 3</button>
     </nav>
 
     <div class="header-right">
@@ -485,7 +598,7 @@
             <!-- Distribuição Etária -->
             <div class="metric-card">
                 <div class="metric-title">Perfil Demográfico</div>
-                <div class="metric-subtitle">Distribuição etária dos pacientes por hospital</div>
+                <div class="metric-subtitle">Distribuição por faixa etária dos pacientes internados</div>
                 <div class="chart-container h-250">
                     <canvas id="chartIdadeDistribuicao"></canvas>
                 </div>
@@ -525,7 +638,7 @@
             <!-- Análise de Complexidade -->
             <div class="metric-card">
                 <div class="metric-title">Índice de Complexidade de Cuidados</div>
-                <div class="metric-subtitle">Análise da demanda de recursos por paciente</div>
+                <div class="metric-subtitle">Correlação entre recursos necessários (linhas + concessões) e score PPS. Cada ponto representa um paciente: eixo X = total de recursos, eixo Y = score PPS (0-10)</div>
                 <div class="chart-container h-300">
                     <canvas id="chartComplexidade"></canvas>
                 </div>
@@ -597,6 +710,124 @@
                 <div>
                     <h4>Projeção de Concessões</h4>
                     <div class="chart-container h-250"><canvas id="chartConcessoesH2_dash2"></canvas></div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <section id="dash3" class="hidden">
+        <h2 style="margin-bottom:20px">Dashboard Visual Moderno: Interface de Gestão Avançada</h2>
+        
+        <!-- KPIs em Cards Visuais -->
+        <div class="dash-grid grid-5" style="margin-bottom: 24px;">
+            <div class="modern-kpi-card">
+                <div class="modern-gauge-wrapper">
+                    <canvas id="modernGauge1"></canvas>
+                    <div class="modern-gauge-text">
+                        <div class="modern-value" id="modernOcupacao">0%</div>
+                        <div class="modern-label">Taxa Ocupação</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modern-kpi-card trend-up">
+                <div class="modern-icon">💓</div>
+                <div class="modern-value" id="modernBatimentos">76</div>
+                <div class="modern-label">Média Geral</div>
+                <div class="modern-trend">+2.3%</div>
+            </div>
+            <div class="modern-kpi-card">
+                <div class="modern-icon">⭐</div>
+                <div class="modern-value" id="modernQualidade">54</div>
+                <div class="modern-label">Score Qualidade</div>
+                <div class="modern-rating">★★★★☆</div>
+            </div>
+            <div class="modern-kpi-card trend-down">
+                <div class="modern-icon">🏠</div>
+                <div class="modern-value" id="modernDisponibilidade">23</div>
+                <div class="modern-label">Disponíveis</div>
+                <div class="modern-arrows">▲▲▲▲▲</div>
+            </div>
+            <div class="modern-kpi-card">
+                <div class="modern-value" id="modernStatus">25.3</div>
+                <div class="modern-label">Status Geral</div>
+                <div class="modern-mini-chart">
+                    <canvas id="miniSparkline"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráfico Principal Estilo Moderno -->
+        <div class="modern-main-chart">
+            <div class="modern-chart-header">
+                <div>
+                    <h3>$10,452</h3>
+                    <p>Receita consolidada de pacientes ativos</p>
+                    <small>57.36 receita por paciente internado - 17% de crescimento</small>
+                </div>
+                <div class="modern-chart-tabs">
+                    <button class="modern-tab active">APERIAN</button>
+                    <button class="modern-tab">DESERUNT</button>
+                    <button class="modern-tab">OCCURRERET</button>
+                </div>
+            </div>
+            <div class="modern-chart-container">
+                <canvas id="modernMainChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Seção Inferior com Cards Modernos -->
+        <div class="dash-grid grid-3" style="margin-top: 24px;">
+            <!-- Card Eventos/Timeline -->
+            <div class="modern-event-card">
+                <h4>Eventos do Sistema</h4>
+                <div class="modern-chart-container h-250">
+                    <canvas id="modernEventChart"></canvas>
+                </div>
+                <div class="modern-stats-row">
+                    <span>544</span><span>437</span><span>537</span><span>247</span><span>845</span><span>522</span><span>855</span>
+                </div>
+            </div>
+
+            <!-- Card Central Circular -->
+            <div class="modern-circular-card">
+                <div class="modern-circular-chart">
+                    <canvas id="modernCircularChart"></canvas>
+                    <div class="modern-circular-center">
+                        <div class="modern-circular-value">368</div>
+                        <div class="modern-circular-label">Pacientes Ativos</div>
+                    </div>
+                </div>
+                <div class="modern-progress-bars">
+                    <div class="progress-item">
+                        <span>43,030</span>
+                        <div class="progress-bar"><div class="progress-fill" style="width: 75%"></div></div>
+                    </div>
+                    <div class="progress-item">
+                        <span>56,456</span>
+                        <div class="progress-bar"><div class="progress-fill" style="width: 60%"></div></div>
+                    </div>
+                    <div class="progress-item">
+                        <span>51,843</span>
+                        <div class="progress-bar"><div class="progress-fill" style="width: 45%"></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card KPIs Duplos -->
+            <div class="modern-dual-kpi">
+                <div class="dual-kpi-item">
+                    <div class="dual-kpi-value">95</div>
+                    <div class="dual-kpi-label">Altas Efetivas</div>
+                    <div class="dual-kpi-chart">
+                        <canvas id="dualChart1"></canvas>
+                    </div>
+                </div>
+                <div class="dual-kpi-item">
+                    <div class="dual-kpi-value">102</div>
+                    <div class="dual-kpi-label">Ocupação Futura</div>
+                    <div class="dual-kpi-chart">
+                        <canvas id="dualChart2"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1036,7 +1267,7 @@
   }
   
   function route(){
-    const sections = ["leitosView","leitos2View","dash1","dash2"];
+    const sections = ["leitosView","leitos2View","dash1","dash2","dash3"];
     sections.forEach(id => {
       const el = $(`#${id}`);
       if(el) el.classList.add("hidden");
@@ -1247,11 +1478,19 @@
 
   async function renderDashboards() {
       logInfo("Renderizando dashboards...");
+      
+      // Mostrar loading
+      showLoading();
+      
       await loadAllData();
       const allData = [...banco.H1, ...banco.H2];
 
       if (activeTab === 'dash1') renderDash1();
       if (activeTab === 'dash2') renderDash2(allData);
+      if (activeTab === 'dash3') renderDash3(allData);
+      
+      // Ocultar loading após renderização
+      hideLoading();
   }
   
   function calculateHospitalProjections(hospitalData) {
@@ -1438,38 +1677,54 @@
                       label: 'Neomater',
                       data: [
                           (H1Data.length / HOSPITAIS.H1.leitos.length) * 100,
-                          (H1Recursos / H1Data.length || 0) * 10,
-                          H1Data.filter(p => p.spict === 'elegivel').length / H1Data.length * 100,
+                          (H1Recursos / (H1Data.length || 1)) * 10,
+                          (H1Data.filter(p => p.spict === 'elegivel').length / (H1Data.length || 1)) * 100,
                           Math.min(100, H1Data.length * 2),
                           85
                       ],
                       backgroundColor: 'rgba(10, 43, 82, 0.2)',
-                      borderColor: '#0a2b52'
+                      borderColor: '#0a2b52',
+                      borderWidth: 2
                   },
                   {
                       label: 'Cruz Azul',
                       data: [
                           (H2Data.length / HOSPITAIS.H2.leitos.length) * 100,
-                          (H2Recursos / H2Data.length || 0) * 10,
-                          H2Data.filter(p => p.spict === 'elegivel').length / H2Data.length * 100,
+                          (H2Recursos / (H2Data.length || 1)) * 10,
+                          (H2Data.filter(p => p.spict === 'elegivel').length / (H2Data.length || 1)) * 100,
                           Math.min(100, H2Data.length * 2),
                           90
                       ],
                       backgroundColor: 'rgba(59, 130, 246, 0.2)',
-                      borderColor: '#3b82f6'
+                      borderColor: '#3b82f6',
+                      borderWidth: 2
                   }
               ]
           },
-          options: { responsive: true, maintainAspectRatio: false }
+          options: { 
+              responsive: true, 
+              maintainAspectRatio: false,
+              plugins: {
+                  legend: {
+                      position: 'bottom'
+                  }
+              },
+              scales: {
+                  r: {
+                      beginAtZero: true,
+                      max: 100
+                  }
+              }
+          }
       });
 
       // ========= DISTRIBUIÇÃO ETÁRIA =========
-      const faixasEtarias = { '0-30': 0, '31-50': 0, '51-70': 0, '71+': 0 };
+      const faixasEtarias = { '0-30 anos': 0, '31-50 anos': 0, '51-70 anos': 0, '71+ anos': 0 };
       allData.filter(p => p.status === 'Em uso' && p.idade).forEach(p => {
-          if (p.idade <= 30) faixasEtarias['0-30']++;
-          else if (p.idade <= 50) faixasEtarias['31-50']++;
-          else if (p.idade <= 70) faixasEtarias['51-70']++;
-          else faixasEtarias['71+']++;
+          if (p.idade <= 30) faixasEtarias['0-30 anos']++;
+          else if (p.idade <= 50) faixasEtarias['31-50 anos']++;
+          else if (p.idade <= 70) faixasEtarias['51-70 anos']++;
+          else faixasEtarias['71+ anos']++;
       });
       
       createChart('chartIdadeDistribuicao', 'chartIdadeDistribuicaoInst', {
@@ -1680,6 +1935,140 @@
 
       logSuccess('Dashboard 2 Expandido renderizado com sucesso!');
   }
+  
+  function renderDash3(allData) {
+      logInfo("Renderizando Dashboard 3 Moderno...");
+      
+      // KPIs Modernos
+      const totalLeitos = HOSPITAIS.H1.leitos.length + HOSPITAIS.H2.leitos.length;
+      const ocupados = allData.filter(p => p.status === 'Em uso').length;
+      const taxaOcupacao = totalLeitos > 0 ? Math.round(ocupados/totalLeitos*100) : 0;
+      
+      $('#modernOcupacao').textContent = `${taxaOcupacao}%`;
+      $('#modernQualidade').textContent = Math.floor(Math.random() * 100);
+      $('#modernDisponibilidade').textContent = totalLeitos - ocupados;
+      $('#modernStatus').textContent = (taxaOcupacao * 0.3).toFixed(1);
+      
+      // Gauge moderno
+      createChart('modernGauge1', 'modernGauge1Inst', {
+          type: 'doughnut',
+          data: { datasets: [{ 
+              data: [taxaOcupacao, 100-taxaOcupacao],
+              backgroundColor: ['#fff', 'rgba(255,255,255,0.3)'],
+              borderWidth: 0,
+          }] },
+          options: {
+              responsive: true, maintainAspectRatio: false,
+              circumference: 180, rotation: -90, cutout: '80%',
+              plugins: { tooltip: { enabled: false }, legend: { display: false } }
+          }
+      });
+      
+      // Gráfico principal
+      const mainChartLabels = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'];
+      const mainChartData = mainChartLabels.map(() => Math.floor(Math.random() * 1000) + 500);
+      
+      createChart('modernMainChart', 'modernMainChartInst', {
+          type: 'line',
+          data: {
+              labels: mainChartLabels,
+              datasets: [{
+                  data: mainChartData,
+                  borderColor: 'rgba(255,255,255,0.8)',
+                  backgroundColor: 'rgba(255,255,255,0.1)',
+                  fill: true,
+                  tension: 0.4,
+                  borderWidth: 3
+              }]
+          },
+          options: {
+              responsive: true, maintainAspectRatio: false,
+              plugins: { legend: { display: false } },
+              scales: {
+                  x: { display: false },
+                  y: { display: false }
+              }
+          }
+      });
+      
+      // Sparkline
+      createChart('miniSparkline', 'miniSparklineInst', {
+          type: 'line',
+          data: {
+              labels: ['1', '2', '3', '4', '5', '6'],
+              datasets: [{
+                  data: [20, 25, 22, 28, 26, 30],
+                  borderColor: '#667eea',
+                  borderWidth: 2,
+                  pointRadius: 0,
+                  fill: false
+              }]
+          },
+          options: {
+              responsive: true, maintainAspectRatio: false,
+              plugins: { legend: { display: false } },
+              scales: { x: { display: false }, y: { display: false } }
+          }
+      });
+      
+      // Gráfico de eventos
+      createChart('modernEventChart', 'modernEventChartInst', {
+          type: 'line',
+          data: {
+              labels: ['1', '2', '3', '4', '5', '6', '7'],
+              datasets: [{
+                  data: [544, 437, 537, 247, 845, 522, 855],
+                  borderColor: 'rgba(255,255,255,0.8)',
+                  backgroundColor: 'rgba(255,255,255,0.2)',
+                  fill: true,
+                  tension: 0.4
+              }]
+          },
+          options: {
+              responsive: true, maintainAspectRatio: false,
+              plugins: { legend: { display: false } },
+              scales: { x: { display: false }, y: { display: false } }
+          }
+      });
+      
+      // Gráfico circular central
+      createChart('modernCircularChart', 'modernCircularChartInst', {
+          type: 'doughnut',
+          data: {
+              datasets: [{
+                  data: [60, 25, 15],
+                  backgroundColor: ['#4facfe', '#00f2fe', '#667eea'],
+                  borderWidth: 0
+              }]
+          },
+          options: {
+              responsive: true, maintainAspectRatio: false,
+              cutout: '75%',
+              plugins: { legend: { display: false } }
+          }
+      });
+      
+      // Gráficos duplos
+      [1, 2].forEach(i => {
+          createChart(`dualChart${i}`, `dualChart${i}Inst`, {
+              type: 'bar',
+              data: {
+                  labels: ['1', '2', '3', '4', '5'],
+                  datasets: [{
+                      data: Array(5).fill().map(() => Math.floor(Math.random() * 50) + 10),
+                      backgroundColor: i === 1 ? '#4facfe' : '#667eea'
+                  }]
+              },
+              options: {
+                  responsive: true, maintainAspectRatio: false,
+                  plugins: { legend: { display: false } },
+                  scales: { x: { display: false }, y: { display: false } }
+              }
+          });
+      });
+      
+      logSuccess('Dashboard 3 Moderno renderizado com sucesso!');
+  }
 
   // =======================================================================
   // ================= LÓGICA DE QR CODE (CORRIGIDA) =====================
@@ -1828,10 +2217,14 @@
       }
     });
     
-    // Toggle de Layout
+    // Toggle de Layout e Modo Noturno
     $('#layoutToggle').onchange = (e) => {
       document.body.classList.toggle('layout-v2', e.target.checked);
       route();
+    };
+    
+    $('#nightModeToggle').onchange = (e) => {
+      document.body.classList.toggle('night-mode', e.target.checked);
     };
 
     // Menu Lateral (Hamburger)
