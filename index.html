@@ -3091,7 +3091,107 @@ function setupEventListeners() {
   setHospitalSelectors("H1");
   setTab("leitos");
   await loadAllData();
-function   
+function function showColorPaletteSelector() {
+  // Criar modal temporário para seleção de paletas
+  const modal = document.createElement('div');
+  modal.className = 'backdrop';
+  modal.style.display = 'flex';
+  modal.innerHTML = `
+    <div class="modal" style="max-width: 600px;">
+      <header>
+        <strong>🎨 Selecionar Paleta de Cores</strong>
+        <button class="btn" onclick="this.closest('.backdrop').remove()">Fechar</button>
+      </header>
+      <div class="content">
+        <div style="display: grid; gap: 15px;">
+          ${Object.entries(COLOR_PALETTES).map(([key, palette]) => `
+            <div class="palette-option" style="
+              border: 2px solid var(--border); 
+              border-radius: 12px; 
+              padding: 15px; 
+              cursor: pointer; 
+              transition: all 0.3s ease;
+              background: var(--card);
+            " data-palette="${key}">
+              <h4 style="margin: 0 0 10px 0; color: var(--text-white);">${palette.name}</h4>
+              <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+                ${Object.values(palette.colors).map(color => 
+                  `<div style="width: 30px; height: 30px; background: ${color}; border-radius: 6px; border: 2px solid var(--border);"></div>`
+                ).join('')}
+              </div>
+              <div style="font-size: 12px; color: var(--text-muted);">Clique para aplicar</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn" onclick="applyColorPalette('default'); this.closest('.backdrop').remove();">Padrão</button>
+        <button class="btn" onclick="this.closest('.backdrop').remove();">Cancelar</button>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  
+  // Adicionar eventos de clique nas opções
+  modal.querySelectorAll('.palette-option').forEach(option => {
+    option.addEventListener('click', function() {
+      const palette = this.dataset.palette;
+      applyColorPalette(palette);
+      modal.remove();
+      
+      // Feedback visual
+      const message = document.createElement('div');
+      message.style.cssText = `
+        position: fixed; top: 20px; right: 20px; z-index: 9999;
+        background: var(--gradient-button); color: var(--text-white);
+        padding: 15px 20px; border-radius: 12px; font-weight: 600;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+      `;
+      message.textContent = `Paleta "${COLOR_PALETTES[palette].name}" aplicada!`;
+      document.body.appendChild(message);
+      
+      setTimeout(() => message.remove(), 3000);
+    });
+    
+    // Hover effects
+    option.addEventListener('mouseenter', function() {
+      this.style.borderColor = 'var(--text-accent)';
+      this.style.transform = 'translateY(-2px)';
+      this.style.boxShadow = '0 4px 16px rgba(96, 165, 250, 0.3)';
+    });
+    
+    option.addEventListener('mouseleave', function() {
+      this.style.borderColor = 'var(--border)';
+      this.style.transform = 'translateY(0)';
+      this.style.boxShadow = 'none';
+    });
+  });
+}
+
+// Função de inicialização
+(async function init(){
+  logInfo("=== INICIALIZANDO ARCHIPELAGO DASHBOARD CORRIGIDO ===");
+  showLoading();
+  
+  // Aguardar um pouco para garantir que o DOM esteja pronto
+  await new Promise(resolve => setTimeout(resolve, 100));
+  
+  setupEventListeners();
+  
+  await testConnection();
+  
+  // Verificar se é acesso via QR Code primeiro
+  if (checkQRParams()) {
+    hideLoading();
+    return;
+  }
+  
+  logInfo("💼 MODO PORTAL DETECTADO - Sessão gestor iniciada");
+  setHospitalSelectors("H1");
+  setTab("leitos");
+  await loadAllData();
+  
   // Inicializar sistema de cores
   initColorSystem();
   
