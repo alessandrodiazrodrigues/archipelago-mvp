@@ -15,13 +15,13 @@
       --primary-blue:#4a90e2;  /* Azul da barra superior (padrão principal) */
       --dark-blue:#0a2b52;     /* Azul da sidebar (fundos e contrastes) */
       --darker-blue:#083052;   /* Azul mais escuro (backgrounds) */
-      --bg:#eaf1f9;
-      --bg-deep:#d9e7fb;
-      --card:#ffffff;
-      --text:#1f2937;
+      --bg:#0f1419;            /* Fundo geral escuro azulado */
+      --bg-deep:#1a1f2e;       /* Fundo mais escuro */
+      --card:#1e293b;          /* Cards escuros */
+      --text:#e2e8f0;          /* Texto claro */
       --text-white:#ffffff;    /* Branco para Dashboard 2 */
-      --muted:#6b7280;
-      --border:#e5e7eb;
+      --muted:#94a3b8;         /* Texto secundário claro */
+      --border:#334155;        /* Bordas escuras */
       --ok:#16a34a;
       --warn:#f59e0b;
       --danger:#dc2626;
@@ -39,6 +39,7 @@
       background: linear-gradient(180deg, var(--bg) 0%, var(--bg-deep) 100%);
       transition: padding-left 0.3s ease;
       padding-left: 300px; /* Sidebar mais larga */
+      min-height: 100vh;
     }
 
     /* =================== LOADING OVERLAY =================== */
@@ -251,24 +252,25 @@
       #side-menu { left: -300px; }
     }
 
+    /* Dashboard Cards Escuros */
     .dashboard-card {
       background: var(--card); 
       border: 1px solid var(--border); 
       border-radius: 16px;
       padding: 24px; 
-      box-shadow: var(--shadow-1);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
       transition: all 0.3s ease;
     }
     
     .dashboard-card:hover {
-      box-shadow: var(--shadow-2);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
       transform: translateY(-2px);
     }
     
     .dashboard-card h3 {
       margin: 0 0 20px 0; 
       font-size: 20px; 
-      color: var(--primary-blue); 
+      color: var(--text-white); 
       text-align: center;
       padding-bottom: 15px; 
       border-bottom: 2px solid var(--primary-blue);
@@ -278,11 +280,11 @@
     .dashboard-card h4 { 
       margin: 24px 0 12px 0; 
       font-size: 16px; 
-      color: var(--text); 
+      color: var(--text-white); 
       font-weight: 700;
     }
     
-    /* KPI Cards */
+    /* KPI Cards Escuros */
     .kpi-card {
         background: var(--card); 
         border: 1px solid var(--border); 
@@ -295,13 +297,13 @@
     
     .kpi-card:hover {
         transform: translateY(-2px);
-        box-shadow: var(--shadow-2);
+        box-shadow: 0 8px 32px rgba(0,0,0,0.4);
     }
     
     .kpi-value { 
         font-size: 42px; 
         font-weight: 800; 
-        color: var(--primary-blue); 
+        color: var(--text-white); 
         margin-bottom: 8px;
         line-height: 1;
     }
@@ -315,24 +317,33 @@
         letter-spacing: 0.5px;
     }
 
-    /* Dashboard 2 - Texto Branco */
+    /* Dashboard 2 - Fundo Escuro Completo */
+    #dash2 {
+        background: var(--darker-blue);
+        border-radius: 20px;
+        padding: 24px;
+        margin: -24px;
+        margin-bottom: 24px;
+    }
+    
+    #dash2 .metric-card {
+        background: var(--card);
+        border-color: var(--border);
+    }
+    
     #dash2 .dashboard-card h3,
     #dash2 .dashboard-card h4,
     #dash2 .kpi-label,
     #dash2 .metric-title,
     #dash2 .dash-table th,
-    #dash2 .dash-table td {
+    #dash2 .dash-table td,
+    #dash2 h2 {
         color: var(--text-white) !important;
     }
     
-    #dash2 .dashboard-card {
-        background: var(--darker-blue);
-        border-color: rgba(255,255,255,0.1);
-    }
-    
     #dash2 .kpi-card {
-        background: var(--dark-blue);
-        border-color: rgba(255,255,255,0.1);
+        background: var(--card);
+        border-color: var(--border);
     }
     
     #dash2 .kpi-value {
@@ -535,13 +546,6 @@
       </svg>
       <span>Dashboard Executivo</span>
     </a>
-    
-    <a href="#" class="side-menu-item" data-tab="dash3">
-      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M3 3v18h18M7 16l4-4 4 4 4-4"/>
-      </svg>
-      <span>Dash Geral 3</span>
-    </a>
 
     <!-- Configurações na parte inferior -->
     <div id="sidebar-settings">
@@ -673,12 +677,6 @@
                 <canvas id="chartSpictAnalise"></canvas>
             </div>
         </div>
-    </section>
-    
-    <!-- Dashboard 3 - Mantido como estava -->
-    <section id="dash3" class="hidden">
-        <h2 style="margin-bottom:20px">Dashboard Visual Moderno</h2>
-        <!-- Conteúdo do Dashboard 3 permanece igual -->
     </section>
   </main>
 
@@ -1236,7 +1234,6 @@
 
       if (activeTab === 'dash1') renderDash1();
       if (activeTab === 'dash2') renderDash2(allData);
-      if (activeTab === 'dash3') renderDash3(allData);
       
       hideLoading();
   }
@@ -1306,23 +1303,28 @@
           hospitalCard.innerHTML = `
               <h3>${HOSPITAIS[h].nome}</h3>
               
-              <!-- Stats header com nova ordem -->
-              <div style="display: flex; justify-content: space-between; margin-bottom: 20px; background: #f8fafc; border-radius: 12px; padding: 15px;">
-                  <div style="text-align: center;">
-                      <div style="font-size: 24px; font-weight: 700; color: var(--primary-blue);">${totalLeitos}</div>
-                      <div style="font-size: 11px; color: var(--muted); text-transform: uppercase;">Total Leitos</div>
+              <!-- Header com gauge meia rosca e stats -->
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
+                  <div style="position: relative; width: 120px; height: 80px;">
+                      <canvas id="chartOcupacao${h}" width="120" height="80"></canvas>
+                      <div style="position: absolute; bottom: 5px; left: 50%; transform: translateX(-50%); text-align: center;">
+                          <div style="font-size: 18px; font-weight: 700; color: var(--text-white);">${taxaOcupacao}%</div>
+                          <div style="font-size: 10px; color: var(--muted);">Ocupação</div>
+                      </div>
                   </div>
-                  <div style="text-align: center;">
-                      <div style="font-size: 24px; font-weight: 700; color: var(--primary-blue);">${ocupados}</div>
-                      <div style="font-size: 11px; color: var(--muted); text-transform: uppercase;">Ocupados</div>
-                  </div>
-                  <div style="text-align: center;">
-                      <div style="font-size: 24px; font-weight: 700; color: var(--primary-blue);">${vagos}</div>
-                      <div style="font-size: 11px; color: var(--muted); text-transform: uppercase;">Vagos</div>
-                  </div>
-                  <div style="text-align: center;">
-                      <div style="font-size: 24px; font-weight: 700; color: var(--primary-blue);">${taxaOcupacao}%</div>
-                      <div style="font-size: 11px; color: var(--muted); text-transform: uppercase;">Taxa Ocupação</div>
+                  <div style="display: flex; gap: 20px;">
+                      <div style="text-align: center;">
+                          <div style="font-size: 24px; font-weight: 700; color: var(--text-white);">${totalLeitos}</div>
+                          <div style="font-size: 11px; color: var(--muted); text-transform: uppercase;">Total Leitos</div>
+                      </div>
+                      <div style="text-align: center;">
+                          <div style="font-size: 24px; font-weight: 700; color: var(--text-white);">${ocupados}</div>
+                          <div style="font-size: 11px; color: var(--muted); text-transform: uppercase;">Ocupados</div>
+                      </div>
+                      <div style="text-align: center;">
+                          <div style="font-size: 24px; font-weight: 700; color: var(--text-white);">${vagos}</div>
+                          <div style="font-size: 11px; color: var(--muted); text-transform: uppercase;">Vagos</div>
+                      </div>
                   </div>
               </div>
               
@@ -1337,6 +1339,24 @@
           `;
           
           dashContainer.appendChild(hospitalCard);
+          
+          // Criar gauge meia rosca
+          createChart(`chartOcupacao${h}`, `chartGauge${h}`, { 
+              type: 'doughnut', 
+              data: { datasets: [{ 
+                  data: [taxaOcupacao, 100 - taxaOcupacao], 
+                  backgroundColor: [taxaOcupacao > 90 ? '#dc2626' : taxaOcupacao > 80 ? '#f59e0b' : '#16a34a', '#334155'], 
+                  borderWidth: 0, 
+              }] }, 
+              options: { 
+                  responsive: true, 
+                  maintainAspectRatio: false, 
+                  circumference: 180, 
+                  rotation: -90, 
+                  cutout: '75%', 
+                  plugins: { tooltip: { enabled: false }, legend: { display: false } } 
+              } 
+          });
           
           // Renderizar gráficos
           const projections = calculateHospitalProjections(dados);
@@ -1646,9 +1666,7 @@
   }
   
   function renderDash3(allData) {
-      logInfo("Renderizando Dashboard 3...");
-      // Dashboard 3 mantido como estava
-      logSuccess('Dashboard 3 renderizado.');
+      logInfo("Dashboard 3 foi removido conforme solicitado.");
   }
 
   // =======================================================================
