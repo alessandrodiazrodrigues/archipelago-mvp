@@ -19,9 +19,9 @@
   <style>
     /* =================== VARIAVEIS GLOBAIS - CORES CONFIGURAVEIS =================== */
     :root {
-      /* Layout Principal */
-      --nav-sidebar: #0a0f1c;
-      --nav-header: #1e40af;
+      /* Layout Principal - CORES ORIGINAIS DO PROJETO */
+      --nav-sidebar: #0a2b52;
+      --nav-header: #083052;
       --bg-primary: #0a0f1c;
       --bg-secondary: #060b14;
       --card: #1a1f2e;
@@ -124,17 +124,43 @@
       box-shadow: 0 4px 12px rgba(96, 165, 250, 0.2);
     }
 
+    @media (max-width: 1024px) {
+      body { padding-left: 0; }
+      #side-menu { left: -300px; }
+      #side-menu.open { left: 0; }
+    }
+
     /* =================== MENU LATERAL (300px) =================== */
     #side-menu {
       position: fixed; top: 0; left: 0; width: 300px; height: 100%;
-      background: linear-gradient(180deg, var(--card) 0%, var(--bg-primary) 100%);
+      background: linear-gradient(180deg, var(--nav-sidebar) 0%, var(--bg-primary) 100%);
       box-shadow: 6px 0 30px rgba(0,0,0,0.4);
       border-right: 1px solid var(--border);
       backdrop-filter: blur(10px); z-index: 1001; padding-top: 80px;
-      transition: left 0.3s ease;
+      transition: left 0.3s ease; display: flex; flex-direction: column;
     }
 
     body { padding-left: 300px; }
+
+    .menu-header {
+      position: absolute; top: 20px; left: 20px; right: 20px;
+      display: flex; justify-content: flex-end;
+    }
+
+    .close-menu-btn {
+      background: rgba(96, 165, 250, 0.1); border: 1px solid var(--border);
+      color: var(--text); border-radius: 8px; padding: 8px 12px;
+      cursor: pointer; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.5px; transition: all 0.3s ease; font-size: 12px;
+    }
+
+    .close-menu-btn:hover {
+      background: rgba(96, 165, 250, 0.2);
+    }
+
+    .menu-items {
+      flex: 1; padding: 0 0 120px 0; overflow-y: auto;
+    }
 
     .side-menu-item {
       display: flex; align-items: center; gap: 15px;
@@ -153,6 +179,45 @@
       background: rgba(96, 165, 250, 0.2);
       border-left-color: var(--text-accent);
       color: var(--text-accent);
+    }
+
+    .menu-footer {
+      position: absolute; bottom: 20px; left: 20px; right: 20px;
+    }
+
+    .settings-menu-btn {
+      width: 100%; background: rgba(96, 165, 250, 0.1); 
+      border: 1px solid var(--border); color: var(--text); 
+      border-radius: 12px; padding: 15px; cursor: pointer; 
+      font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; 
+      transition: all 0.3s ease; display: flex; align-items: center; 
+      justify-content: center; gap: 10px; position: relative;
+    }
+
+    .settings-menu-btn:hover {
+      background: rgba(96, 165, 250, 0.2);
+    }
+
+    .settings-dropdown-menu {
+      display: none; position: absolute; bottom: 110%; left: 0; right: 0;
+      background: var(--card); border-radius: 12px; box-shadow: var(--shadow);
+      overflow: hidden; border: 1px solid var(--border); margin-bottom: 10px;
+    }
+
+    .settings-dropdown-menu.show { display: block; }
+
+    .settings-dropdown-item {
+      padding: 12px 15px; color: var(--text); font-size: 14px;
+      cursor: pointer; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.5px; border-bottom: 1px solid var(--border);
+    }
+
+    .settings-dropdown-item:last-child {
+      border-bottom: none;
+    }
+
+    .settings-dropdown-item:hover {
+      background: var(--card-hover);
     }
 
     /* =================== MAIN CONTENT =================== */
@@ -529,31 +594,49 @@
 
   <!-- Menu Lateral -->
   <div id="side-menu">
-    <a href="#" class="side-menu-item active" data-tab="leitos">
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M2.5 12a.5.5 0 0 1 .5-.5h18a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/>
-        <path d="M20 16H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2zM9 8H7v6h2V8z"/>
-      </svg>
-      <span>Leitos (Cards)</span>
-    </a>
-    <a href="#" class="side-menu-item" data-tab="dash1">
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M12 20v-6M12 8V2M4.93 4.93l4.24 4.24M14.83 14.83l4.24 4.24M17.66 6.34l-4.24 4.24M6.34 17.66l-4.24 4.24M22 12h-6M8 12H2"/>
-      </svg>
-      <span>Dash Hospitais</span>
-    </a>
-    <a href="#" class="side-menu-item" data-tab="dash2">
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M18 20V10M12 20V4M6 20V14"/>
-      </svg>
-      <span>Dashboard Executivo</span>
-    </a>
-    <a href="#" class="side-menu-item" data-tab="dash3">
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M3 3v18h18M7 16l4-4 4 4 4-4"/>
-      </svg>
-      <span>Dash Geral 3</span>
-    </a>
+    <!-- Header do Menu com Botão Fechar -->
+    <div class="menu-header">
+      <button class="close-menu-btn" id="closeMenuBtn">
+        ← Fechar
+      </button>
+    </div>
+
+    <!-- Items do Menu -->
+    <div class="menu-items">
+      <a href="#" class="side-menu-item active" data-tab="leitos">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M2.5 12a.5.5 0 0 1 .5-.5h18a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/>
+          <path d="M20 16H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2zM9 8H7v6h2V8z"/>
+        </svg>
+        <span>Leitos (Cards)</span>
+      </a>
+      <a href="#" class="side-menu-item" data-tab="dash1">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 20v-6M12 8V2M4.93 4.93l4.24 4.24M14.83 14.83l4.24 4.24M17.66 6.34l-4.24 4.24M6.34 17.66l-4.24 4.24M22 12h-6M8 12H2"/>
+        </svg>
+        <span>Dash Hospitais</span>
+      </a>
+      <a href="#" class="side-menu-item" data-tab="dash2">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 20V10M12 20V4M6 20V14"/>
+        </svg>
+        <span>Dashboard Executivo</span>
+      </a>
+    </div>
+
+    <!-- Footer do Menu com Configurações -->
+    <div class="menu-footer">
+      <button class="settings-menu-btn" id="settingsMenuBtn">
+        <span>⚙️</span>
+        <span>Configurações</span>
+        <div class="settings-dropdown-menu" id="settingsMenuDropdown">
+          <div class="settings-dropdown-item" id="btnReadQR">Ler QR Code</div>
+          <div class="settings-dropdown-item" id="btnPrintQR">Imprimir QR Codes</div>
+          <div class="settings-dropdown-item" id="btnCores">Configurar Cores</div>
+          <div class="settings-dropdown-item" id="btnSaveToCloud">Salvar na Nuvem</div>
+        </div>
+      </button>
+    </div>
   </div>
 
   <!-- Header -->
@@ -568,14 +651,6 @@
     <div class="header-right">
       <span id="lastUpdateInfo"></span>
       <button class="header-btn" id="refreshBtn">Atualizar</button>
-      <button class="header-btn" id="settingsBtn">
-        <span>⚙️</span>
-        <div class="dropdown-menu" id="settingsDropdown">
-          <div class="dropdown-item" id="btnReadQR">Ler QR Code</div>
-          <div class="dropdown-item" id="btnPrintQR">Imprimir QR Codes</div>
-          <div class="dropdown-item" id="btnCores">Configurar Cores</div>
-        </div>
-      </button>
     </div>
   </header>
 
@@ -765,12 +840,6 @@
           <canvas id="chartSpictAnalise"></canvas>
         </div>
       </div>
-    </section>
-
-    <!-- Dashboard Geral 3 (mantém como estava) -->
-    <section id="dash3" class="hidden">
-      <h2 style="margin-bottom:20px; color: var(--text-white);">Dashboard Visual Moderno: Interface de Gestão Avançada</h2>
-      <p style="color: var(--text-muted); text-align: center;">Este dashboard mantém o design avançado original</p>
     </section>
   </main>
 
@@ -1827,10 +1896,29 @@ function renderDash2(allData) {
       options: { 
         responsive: true, 
         maintainAspectRatio: false,
-        plugins: { legend: { labels: { color: 'var(--text-white)' } } },
+        plugins: { 
+          legend: { 
+            labels: { 
+              color: 'var(--text-white)',
+              font: { size: 12 }
+            }
+          }
+        },
         scales: {
-          x: { ticks: { color: 'var(--text-white)' } },
-          y: { ticks: { color: 'var(--text-white)' } }
+          x: { 
+            ticks: { 
+              color: 'var(--text-white)',
+              font: { size: 11 }
+            },
+            grid: { color: 'rgba(255,255,255,0.1)' }
+          },
+          y: { 
+            ticks: { 
+              color: 'var(--text-white)',
+              font: { size: 11 }
+            },
+            grid: { color: 'rgba(255,255,255,0.1)' }
+          }
         }
       }
     });
@@ -1863,10 +1951,29 @@ function renderDash2(allData) {
       options: { 
         responsive: true, 
         maintainAspectRatio: false,
-        plugins: { legend: { labels: { color: 'var(--text-white)' } } },
+        plugins: { 
+          legend: { 
+            labels: { 
+              color: 'var(--text-white)',
+              font: { size: 12 }
+            }
+          }
+        },
         scales: {
-          x: { ticks: { color: 'var(--text-white)' } },
-          y: { ticks: { color: 'var(--text-white)' } }
+          x: { 
+            ticks: { 
+              color: 'var(--text-white)',
+              font: { size: 11 }
+            },
+            grid: { color: 'rgba(255,255,255,0.1)' }
+          },
+          y: { 
+            ticks: { 
+              color: 'var(--text-white)',
+              font: { size: 11 }
+            },
+            grid: { color: 'rgba(255,255,255,0.1)' }
+          }
         }
       }
     });
@@ -1913,18 +2020,34 @@ function renderDash2(allData) {
         plugins: { 
           legend: { 
             position: 'right',
-            labels: { color: 'var(--text-white)' }
+            labels: { 
+              color: 'var(--text-white)',
+              font: { size: 11 }
+            }
           }
         },
         scales: {
           x: { 
             stacked: true,
-            ticks: { color: 'var(--text-white)' }
+            ticks: { 
+              color: 'var(--text-white)',
+              font: { size: 10 }
+            },
+            grid: { color: 'rgba(255,255,255,0.1)' }
           },
           y: { 
             stacked: true, 
-            title: { display: true, text: 'Concessões', color: 'var(--text-white)' },
-            ticks: { color: 'var(--text-white)' }
+            title: { 
+              display: true, 
+              text: 'Concessões', 
+              color: 'var(--text-white)',
+              font: { size: 12 }
+            },
+            ticks: { 
+              color: 'var(--text-white)',
+              font: { size: 10 }
+            },
+            grid: { color: 'rgba(255,255,255,0.1)' }
           }
         }
       }
@@ -1958,18 +2081,34 @@ function renderDash2(allData) {
         plugins: { 
           legend: { 
             position: 'right',
-            labels: { color: 'var(--text-white)' }
+            labels: { 
+              color: 'var(--text-white)',
+              font: { size: 11 }
+            }
           }
         },
         scales: {
           x: { 
             stacked: true,
-            ticks: { color: 'var(--text-white)' }
+            ticks: { 
+              color: 'var(--text-white)',
+              font: { size: 10 }
+            },
+            grid: { color: 'rgba(255,255,255,0.1)' }
           },
           y: { 
             stacked: true, 
-            title: { display: true, text: 'Cuidados', color: 'var(--text-white)' },
-            ticks: { color: 'var(--text-white)' }
+            title: { 
+              display: true, 
+              text: 'Cuidados', 
+              color: 'var(--text-white)',
+              font: { size: 12 }
+            },
+            ticks: { 
+              color: 'var(--text-white)',
+              font: { size: 10 }
+            },
+            grid: { color: 'rgba(255,255,255,0.1)' }
           }
         }
       }
@@ -1997,10 +2136,29 @@ function renderDash2(allData) {
       options: { 
         responsive: true, 
         maintainAspectRatio: false,
-        plugins: { legend: { labels: { color: 'var(--text-white)' } } },
+        plugins: { 
+          legend: { 
+            labels: { 
+              color: 'var(--text-white)',
+              font: { size: 12 }
+            }
+          }
+        },
         scales: {
-          x: { ticks: { color: 'var(--text-white)' } },
-          y: { ticks: { color: 'var(--text-white)' } }
+          x: { 
+            ticks: { 
+              color: 'var(--text-white)',
+              font: { size: 11 }
+            },
+            grid: { color: 'rgba(255,255,255,0.1)' }
+          },
+          y: { 
+            ticks: { 
+              color: 'var(--text-white)',
+              font: { size: 11 }
+            },
+            grid: { color: 'rgba(255,255,255,0.1)' }
+          }
         }
       }
     });
@@ -2023,10 +2181,29 @@ function renderDash2(allData) {
       options: { 
         responsive: true, 
         maintainAspectRatio: false,
-        plugins: { legend: { labels: { color: 'var(--text-white)' } } },
+        plugins: { 
+          legend: { 
+            labels: { 
+              color: 'var(--text-white)',
+              font: { size: 12 }
+            }
+          }
+        },
         scales: {
-          x: { ticks: { color: 'var(--text-white)' } },
-          y: { ticks: { color: 'var(--text-white)' } }
+          x: { 
+            ticks: { 
+              color: 'var(--text-white)',
+              font: { size: 11 }
+            },
+            grid: { color: 'rgba(255,255,255,0.1)' }
+          },
+          y: { 
+            ticks: { 
+              color: 'var(--text-white)',
+              font: { size: 11 }
+            },
+            grid: { color: 'rgba(255,255,255,0.1)' }
+          }
         }
       }
     });
@@ -2045,8 +2222,8 @@ function renderDash3(allData) {
 // =======================================================================
 const colorConfig = {
   layout: {
-    'nav-sidebar': '#0a0f1c',
-    'nav-header': '#1e40af', 
+    'nav-sidebar': '#0a2b52',
+    'nav-header': '#083052', 
     'card': '#1a1f2e',
     'bg-primary': '#0a0f1c',
     'text-white': '#ffffff',
@@ -2138,8 +2315,8 @@ function applyColors() {
 function resetColors() {
   const defaultColors = {
     layout: {
-      'nav-sidebar': '#0a0f1c',
-      'nav-header': '#1e40af', 
+      'nav-sidebar': '#0a2b52',
+      'nav-header': '#083052', 
       'card': '#1a1f2e',
       'bg-primary': '#0a0f1c',
       'text-white': '#ffffff',
@@ -2465,28 +2642,55 @@ function setupEventListeners() {
     } 
   };
 
-  $('#settingsBtn').onclick = () => $('#settingsDropdown').classList.toggle('show');
+  // Menu Lateral - Fechar
+  $('#closeMenuBtn').onclick = () => {
+    $('#side-menu').classList.toggle('open');
+  };
+
+  // Configurações no Menu Lateral
+  $('#settingsMenuBtn').onclick = () => {
+    $('#settingsMenuDropdown').classList.toggle('show');
+  };
 
   $('#btnReadQR').onclick = () => { 
-    $('#settingsDropdown').classList.remove('show'); 
+    $('#settingsMenuDropdown').classList.remove('show'); 
     openModal("#modalQRScan"); 
     startScan(); 
   };
 
   $('#btnPrintQR').onclick = () => { 
-    $('#settingsDropdown').classList.remove('show'); 
+    $('#settingsMenuDropdown').classList.remove('show'); 
     openModal("#modalBulkQR"); 
   };
 
   $('#btnCores').onclick = () => { 
-    $('#settingsDropdown').classList.remove('show'); 
+    $('#settingsMenuDropdown').classList.remove('show'); 
     openModal("#modalCores"); 
+  };
+
+  $('#btnSaveToCloud').onclick = async () => {
+    $('#settingsMenuDropdown').classList.remove('show');
+    const userCode = prompt('Digite seu código único para salvar as cores na nuvem:');
+    if (!userCode) return;
+    
+    try {
+      await apiCall({
+        action: 'save_colors',
+        user_id: userCode.trim(),
+        colors: JSON.stringify(colorConfig)
+      });
+      alert('✅ Cores salvas na nuvem com sucesso!');
+    } catch(error) {
+      alert('❌ Erro ao salvar: ' + error.message);
+    }
   };
   
   // Fechar dropdowns se clicar fora
   window.onclick = (event) => {
-      if (!event.target.closest('.header-btn')) {
-          if ($('#settingsDropdown').classList.contains('show')) $('#settingsDropdown').classList.remove('show');
+      if (!event.target.closest('.settings-menu-btn')) {
+          if ($('#settingsMenuDropdown').classList.contains('show')) {
+            $('#settingsMenuDropdown').classList.remove('show');
+          }
       }
   };
   
