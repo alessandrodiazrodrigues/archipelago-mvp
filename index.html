@@ -933,7 +933,7 @@
   </div>
   
 <script>
-  const API_URL = 'https://script.google.com/macros/s/AKfycbzn8BlUD8by0GykYlJa1pmbYtuXOr8aEUzOOJhpfSGl-i1x8LhAnGSRzqdyV2lANnIP/exec';
+  const API_URL = 'https://script.google.com/macros/s/AKfycbxoleU3gSTq8psiFtVrTedgH0ZGksrAbsJPxfp9SWB7HHZRPdFAPvcfKMQH6AKuL5Gx/exec';
 
   function logInfo(message, data = null) { console.log(`🔵 [Archipelago] ${message}`, data || ''); }
   function logSuccess(message, data = null) { console.log(`🟢 [SUCCESS] ${message}`, data || ''); }
@@ -1043,16 +1043,55 @@
       logError(`Falha na conexão: HTTP ${res.status}`);
       return false;
     } catch(error) {
-      logError("Erro ao testar conexão:", error);
-      return false;
+      logError("Erro ao testar conexão (usando dados mockados):", error);
+      return false; // Continuar com dados mockados
     }
   }
   
-  async function loadAllData() {
-    await Promise.all([
-        loadHospital('H1'),
-        loadHospital('H2')
-    ]);
+  // Dados mockados para demonstração
+  function generateMockData() {
+    logInfo("Gerando dados mockados para demonstração...");
+    
+    const mockH1 = [
+      { leito: 1, hospital: 'H1', tipo: 'Enfermaria/Apto', status: 'Em uso', nome: 'João Silva Santos', idade: 72, matricula: '123456', pps: 6, spict: 'elegivel', prevAlta: '24h Ouro', complexidade: 'II', admAt: new Date(Date.now() - 2*86400000).toISOString(), linhas: ['Geriatria', 'Cardiologia'], concessoes: ['PAD', 'Fisioterapia'] },
+      { leito: 2, hospital: 'H1', tipo: 'Enfermaria/Apto', status: 'Vago', nome: null, idade: null, matricula: null, pps: null, spict: null, prevAlta: null, complexidade: null, admAt: null, linhas: [], concessoes: [] },
+      { leito: 3, hospital: 'H1', tipo: 'Enfermaria/Apto', status: 'Em uso', nome: 'Maria Oliveira', idade: 65, matricula: '789012', pps: 4, spict: 'nao_elegivel', prevAlta: '48h', complexidade: 'I', admAt: new Date(Date.now() - 1*86400000).toISOString(), linhas: ['APS'], concessoes: ['Curativos'] },
+      { leito: 4, hospital: 'H1', tipo: 'Enfermaria/Apto', status: 'Em uso', nome: 'Pedro Costa', idade: 58, matricula: '345678', pps: 8, spict: 'elegivel', prevAlta: '72h', complexidade: 'III', admAt: new Date(Date.now() - 4*86400000).toISOString(), linhas: ['Pneumologia', 'Neurologia'], concessoes: ['Aspiracoes', 'Fonoaudiologia'] },
+      { leito: 5, hospital: 'H1', tipo: 'Enfermaria/Apto', status: 'Vago', nome: null, idade: null, matricula: null, pps: null, spict: null, prevAlta: null, complexidade: null, admAt: null, linhas: [], concessoes: [] },
+      { leito: 6, hospital: 'H1', tipo: 'Enfermaria/Apto', status: 'Em uso', nome: 'Ana Ferreira', idade: 78, matricula: '901234', pps: 3, spict: 'elegivel', prevAlta: '24h 2R', complexidade: 'II', admAt: new Date(Date.now() - 3*86400000).toISOString(), linhas: ['Melhor Cuidado'], concessoes: ['PAD'] },
+      { leito: 7, hospital: 'H1', tipo: 'Enfermaria/Apto', status: 'Vago', nome: null, idade: null, matricula: null, pps: null, spict: null, prevAlta: null, complexidade: null, admAt: null, linhas: [], concessoes: [] },
+      { leito: 8, hospital: 'H1', tipo: 'Enfermaria/Apto', status: 'Em uso', nome: 'Carlos Souza', idade: 82, matricula: '567890', pps: 7, spict: 'elegivel', prevAlta: '96h', complexidade: 'III', admAt: new Date(Date.now() - 6*86400000).toISOString(), linhas: ['Assistencia', 'Cardiologia'], concessoes: ['Fisioterapia', 'Curativos'] },
+      { leito: 9, hospital: 'H1', tipo: 'Enfermaria/Apto', status: 'Vago', nome: null, idade: null, matricula: null, pps: null, spict: null, prevAlta: null, complexidade: null, admAt: null, linhas: [], concessoes: [] },
+      { leito: 10, hospital: 'H1', tipo: 'Enfermaria/Apto', status: 'Em uso', nome: 'Luiza Santos', idade: 69, matricula: '234567', pps: 5, spict: 'nao_elegivel', prevAlta: '24h 3R', complexidade: 'I', admAt: new Date(Date.now() - 1*86400000).toISOString(), linhas: ['APS', 'Assistencia'], concessoes: ['PAD'] },
+      { leito: 11, hospital: 'H1', tipo: 'UTI', status: 'Em uso', nome: 'Roberto Lima', idade: 75, matricula: '890123', pps: 9, spict: 'elegivel', prevAlta: 'SP', complexidade: 'III', admAt: new Date(Date.now() - 8*86400000).toISOString(), linhas: ['Pneumologia', 'Cardiologia'], concessoes: ['Aspiracoes', 'Fisioterapia', 'Fonoaudiologia'] },
+      { leito: 12, hospital: 'H1', tipo: 'UTI', status: 'Vago', nome: null, idade: null, matricula: null, pps: null, spict: null, prevAlta: null, complexidade: null, admAt: null, linhas: [], concessoes: [] },
+      { leito: 13, hospital: 'H1', tipo: 'UTI', status: 'Em uso', nome: 'Helena Rocha', idade: 84, matricula: '456789', pps: 8, spict: 'elegivel', prevAlta: 'SP', complexidade: 'III', admAt: new Date(Date.now() - 12*86400000).toISOString(), linhas: ['Neurologia', 'Melhor Cuidado'], concessoes: ['Aspiracoes', 'PAD'] }
+    ];
+
+    const mockH2 = [
+      { leito: 1, hospital: 'H2', tipo: 'Enfermaria/Apto', status: 'Em uso', nome: 'Francisco Alves', idade: 68, matricula: '111222', pps: 5, spict: 'nao_elegivel', prevAlta: '48h', complexidade: 'I', admAt: new Date(Date.now() - 2*86400000).toISOString(), linhas: ['Geriatria'], concessoes: ['Fisioterapia'] },
+      { leito: 2, hospital: 'H2', tipo: 'Enfermaria/Apto', status: 'Em uso', nome: 'Josefa Miranda', idade: 76, matricula: '333444', pps: 6, spict: 'elegivel', prevAlta: '24h Ouro', complexidade: 'II', admAt: new Date(Date.now() - 1*86400000).toISOString(), linhas: ['Cardiologia', 'APS'], concessoes: ['PAD', 'Curativos'] },
+      { leito: 3, hospital: 'H2', tipo: 'Enfermaria/Apto', status: 'Vago', nome: null, idade: null, matricula: null, pps: null, spict: null, prevAlta: null, complexidade: null, admAt: null, linhas: [], concessoes: [] },
+      { leito: 4, hospital: 'H2', tipo: 'Enfermaria/Apto', status: 'Em uso', nome: 'Antônio Dias', idade: 73, matricula: '555666', pps: 7, spict: 'elegivel', prevAlta: '72h', complexidade: 'II', admAt: new Date(Date.now() - 5*86400000).toISOString(), linhas: ['Pneumologia'], concessoes: ['Aspiracoes', 'Fisioterapia'] },
+      { leito: 5, hospital: 'H2', tipo: 'Enfermaria/Apto', status: 'Em uso', nome: 'Rosa Pereira', idade: 81, matricula: '777888', pps: 4, spict: 'nao_elegivel', prevAlta: '24h 2R', complexidade: 'I', admAt: new Date(Date.now() - 3*86400000).toISOString(), linhas: ['Assistencia'], concessoes: ['Curativos'] },
+      { leito: 6, hospital: 'H2', tipo: 'Enfermaria/Apto', status: 'Vago', nome: null, idade: null, matricula: null, pps: null, spict: null, prevAlta: null, complexidade: null, admAt: null, linhas: [], concessoes: [] },
+      { leito: 7, hospital: 'H2', tipo: 'Enfermaria/Apto', status: 'Em uso', nome: 'José Barbosa', idade: 70, matricula: '999000', pps: 6, spict: 'elegivel', prevAlta: '96h', complexidade: 'III', admAt: new Date(Date.now() - 7*86400000).toISOString(), linhas: ['Neurologia', 'Melhor Cuidado'], concessoes: ['Fonoaudiologia', 'PAD'] },
+      { leito: 8, hospital: 'H2', tipo: 'Enfermaria/Apto', status: 'Vago', nome: null, idade: null, matricula: null, pps: null, spict: null, prevAlta: null, complexidade: null, admAt: null, linhas: [], concessoes: [] },
+      { leito: 9, hospital: 'H2', tipo: 'Enfermaria/Apto', status: 'Em uso', nome: 'Tereza Gomes', idade: 67, matricula: '121212', pps: 3, spict: 'nao_elegivel', prevAlta: '24h 3R', complexidade: 'I', admAt: new Date(Date.now() - 2*86400000).toISOString(), linhas: ['APS'], concessoes: ['Curativos'] },
+      { leito: 10, hospital: 'H2', tipo: 'Enfermaria/Apto', status: 'Em uso', nome: 'Manuel Ribeiro', idade: 79, matricula: '343434', pps: 8, spict: 'elegivel', prevAlta: 'SP', complexidade: 'III', admAt: new Date(Date.now() - 10*86400000).toISOString(), linhas: ['Cardiologia', 'Pneumologia'], concessoes: ['Aspiracoes', 'Fisioterapia'] },
+      { leito: 11, hospital: 'H2', tipo: 'Enfermaria/Apto', status: 'Vago', nome: null, idade: null, matricula: null, pps: null, spict: null, prevAlta: null, complexidade: null, admAt: null, linhas: [], concessoes: [] },
+      { leito: 12, hospital: 'H2', tipo: 'Enfermaria/Apto', status: 'Em uso', nome: 'Isabel Castro', idade: 74, matricula: '565656', pps: 5, spict: 'elegivel', prevAlta: '48h', complexidade: 'II', admAt: new Date(Date.now() - 4*86400000).toISOString(), linhas: ['Geriatria', 'Assistencia'], concessoes: ['PAD'] },
+      { leito: 13, hospital: 'H2', tipo: 'Enfermaria/Apto', status: 'Vago', nome: null, idade: null, matricula: null, pps: null, spict: null, prevAlta: null, complexidade: null, admAt: null, linhas: [], concessoes: [] },
+      { leito: 14, hospital: 'H2', tipo: 'Enfermaria/Apto', status: 'Em uso', nome: 'Paulo Martins', idade: 66, matricula: '787878', pps: 7, spict: 'elegivel', prevAlta: '72h', complexidade: 'II', admAt: new Date(Date.now() - 6*86400000).toISOString(), linhas: ['Melhor Cuidado'], concessoes: ['Fisioterapia', 'Fonoaudiologia'] },
+      { leito: 15, hospital: 'H2', tipo: 'Enfermaria/Apto', status: 'Vago', nome: null, idade: null, matricula: null, pps: null, spict: null, prevAlta: null, complexidade: null, admAt: null, linhas: [], concessoes: [] },
+      { leito: 16, hospital: 'H2', tipo: 'Enfermaria/Apto', status: 'Em uso', nome: 'Márcia Vieira', idade: 71, matricula: '909090', pps: 4, spict: 'nao_elegivel', prevAlta: '24h Ouro', complexidade: 'I', admAt: new Date(Date.now() - 1*86400000).toISOString(), linhas: ['APS', 'Cardiologia'], concessoes: ['PAD', 'Curativos'] }
+    ];
+
+    banco.H1 = mockH1;
+    banco.H2 = mockH2;
+    
+    logSuccess("Dados mockados carregados com sucesso!");
+    return true;
   }
 
   async function loadHospital(h) {
