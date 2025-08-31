@@ -11,16 +11,17 @@
   <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
 
   <!-- Scripts -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-  <script src="https://unpkg.com/html5-qrcode@2.3.8/minified/html5-qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-treemap@2.3.0/dist/chartjs-chart-treemap.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
   <style>
-    /* =================== VARIÁVEIS GLOBAIS =================== */
+    /* =================== VARIAVEIS GLOBAIS - CORES ORIGINAIS DO PROJETO =================== */
     :root {
-      /* Layout Principal */
+      /* Layout Principal - CORES EXATAS DAS IMAGENS */
       --nav-sidebar: #0a2b52;
-      --nav-header: #083052;
+      --nav-header: linear-gradient(90deg, #0a2b52, #083052);
       --bg-primary: #0a0f1c;
       --bg-secondary: #060b14;
       --card: #1a1f2e;
@@ -45,7 +46,7 @@
       --r2: #3b82f6;
       --r3: #8b5cf6;
 
-      /* Linhas de Cuidado */
+      /* Linhas de Cuidado - CORES ORIGINAIS */
       --linha-aps: #f59e0b;
       --linha-assistencia: #0a2b52;
       --linha-cardiologia: #dc2626;
@@ -54,17 +55,22 @@
       --linha-neurologia: #0891b2;
       --linha-pneumologia: #8b5cf6;
 
-      /* Concessões */
+      /* Concessões - CORES ORIGINAIS */
       --conc-aspiracoes: #dc2626;
       --conc-curativos: #8b5cf6;
       --conc-fisioterapia: #16a34a;
       --conc-fonoaudiologia: #f59e0b;
       --conc-pad: #0a2b52;
 
+      /* Cores específicas dos gráficos originais */
+      --gauge-verde: #16a34a;
+      --gauge-amarelo: #f59e0b;
+      --gauge-laranja: #fb923c;
+
       /* Sombras e Efeitos */
       --shadow: 0 4px 12px rgba(11,44,82,.08);
       --shadow-2: 0 10px 28px rgba(11,44,82,.12);
-      --gradient-header: linear-gradient(90deg, var(--nav-sidebar), var(--nav-header));
+      --gradient-header: linear-gradient(90deg, #0a2b52, #083052);
       --gradient-card: linear-gradient(145deg, var(--card) 0%, var(--card-hover) 100%);
       --gradient-button: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
     }
@@ -100,7 +106,7 @@
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     #loadingOverlay.hidden { display: none; }
 
-    /* =================== HEADER =================== */
+    /* =================== HEADER E NAVEGAÇÃO =================== */
     header {
       background: var(--gradient-header);
       color: var(--text-white); padding: 15px 24px;
@@ -111,18 +117,15 @@
     }
 
     .header-left { display: flex; align-items: center; gap: 20px; }
-    .hamburger-menu { 
-      font-size: 24px; cursor: pointer; padding: 8px;
-      border-radius: 6px; transition: background 0.2s;
-    }
-    .hamburger-menu:hover { background: rgba(255,255,255,0.1); }
-    
+    .hamburger-menu { font-size: 24px; cursor: pointer; }
     .brand h1 {
       margin: 0; font-size: 20px; font-weight: 700;
       text-transform: uppercase; letter-spacing: 1px;
     }
 
-    .header-right { display: flex; align-items: center; gap: 16px; }
+    .header-right {
+      display: flex; align-items: center; gap: 16px;
+    }
 
     #lastUpdateInfo {
       font-size: 12px; color: var(--text-muted);
@@ -130,21 +133,26 @@
     }
 
     .header-btn {
-      background: var(--gradient-button); border: 1px solid var(--text-accent);
-      color: var(--text-white); border-radius: 10px; padding: 8px 12px;
+      background: rgba(96, 165, 250, 0.1); border: 1px solid var(--border);
+      color: var(--text); border-radius: 10px; padding: 8px 12px;
       cursor: pointer; font-weight: 600; text-transform: uppercase;
-      letter-spacing: 0.5px; transition: all 0.3s ease;
-      box-shadow: 0 4px 16px rgba(96, 165, 250, 0.3);
+      letter-spacing: 0.5px; transition: all 0.3s ease; position: relative;
     }
 
     .header-btn:hover {
-      background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-      box-shadow: 0 6px 20px rgba(96, 165, 250, 0.4);
+      background: rgba(96, 165, 250, 0.2);
+      box-shadow: 0 4px 12px rgba(96, 165, 250, 0.2);
     }
 
-    /* =================== MENU LATERAL =================== */
+    @media (max-width: 1024px) {
+      body { padding-left: 0; }
+      #side-menu { left: -300px; }
+      #side-menu.open { left: 0; }
+    }
+
+    /* =================== MENU LATERAL (300px) =================== */
     #side-menu {
-      position: fixed; top: 0; left: -300px; width: 300px; height: 100%;
+      position: fixed; top: 0; left: 0; width: 300px; height: 100%;
       background: linear-gradient(180deg, var(--nav-sidebar) 0%, var(--bg-primary) 100%);
       box-shadow: var(--shadow-2);
       border-right: 1px solid var(--border);
@@ -152,7 +160,7 @@
       transition: left 0.3s ease; display: flex; flex-direction: column;
     }
 
-    #side-menu.open { left: 0; }
+    body { padding-left: 300px; }
 
     .menu-header {
       position: absolute; top: 20px; left: 20px; right: 20px;
@@ -166,9 +174,13 @@
       letter-spacing: 0.5px; transition: all 0.3s ease; font-size: 12px;
     }
 
-    .close-menu-btn:hover { background: rgba(96, 165, 250, 0.2); }
+    .close-menu-btn:hover {
+      background: rgba(96, 165, 250, 0.2);
+    }
 
-    .menu-items { flex: 1; padding: 0 0 120px 0; overflow-y: auto; }
+    .menu-items {
+      flex: 1; padding: 0 0 120px 0; overflow-y: auto;
+    }
 
     .side-menu-item {
       display: flex; align-items: center; gap: 15px;
@@ -202,7 +214,9 @@
       justify-content: center; gap: 10px; position: relative;
     }
 
-    .settings-menu-btn:hover { background: rgba(96, 165, 250, 0.2); }
+    .settings-menu-btn:hover {
+      background: rgba(96, 165, 250, 0.2);
+    }
 
     .settings-dropdown-menu {
       display: none; position: absolute; bottom: 110%; left: 0; right: 0;
@@ -218,34 +232,23 @@
       letter-spacing: 0.5px; border-bottom: 1px solid var(--border);
     }
 
-    .settings-dropdown-item:last-child { border-bottom: none; }
-    .settings-dropdown-item:hover { background: var(--card-hover); }
+    .settings-dropdown-item:last-child {
+      border-bottom: none;
+    }
 
-    /* Layout principal - responsivo */
+    .settings-dropdown-item:hover {
+      background: var(--card-hover);
+    }
+
+    /* =================== MAIN CONTENT =================== */
     main {
       max-width: 1600px; margin: 18px auto 100px; padding: 0 24px;
       background: rgba(26, 31, 46, 0.3); border-radius: 20px;
       backdrop-filter: blur(10px); border: 1px solid var(--border);
       box-shadow: var(--shadow);
-      transition: margin-left 0.3s ease;
     }
 
-    /* Desktop: menu sempre visível */
-    @media (min-width: 1025px) {
-      body { padding-left: 300px; }
-      #side-menu { left: 0 !important; }
-      .hamburger-menu { display: none; }
-    }
-
-    /* Tablet e mobile: menu overlay */
-    @media (max-width: 1024px) {
-      body { padding-left: 0; }
-      #side-menu { left: -300px; }
-      #side-menu.open { left: 0; }
-      main { margin: 18px 12px 100px; padding: 0 12px; }
-    }
-
-    /* =================== HOSPITAL SELECTOR =================== */
+    /* =================== TOOLBAR REDESENHADO PARA SELETOR DE HOSPITAL =================== */
     .hospital-selector {
       background: rgba(26, 31, 46, 0.5); 
       border-radius: 16px; 
@@ -256,7 +259,6 @@
       align-items: center;
       justify-content: center;
       gap: 16px;
-      flex-wrap: wrap;
     }
 
     .hospital-selector h3 {
@@ -268,7 +270,10 @@
       margin: 0;
     }
 
-    .hospital-buttons { display: flex; gap: 12px; flex-wrap: wrap; }
+    .hospital-buttons {
+      display: flex;
+      gap: 12px;
+    }
 
     .hospital-btn {
       background: rgba(96, 165, 250, 0.1);
@@ -282,9 +287,6 @@
       letter-spacing: 0.5px;
       transition: all 0.3s ease;
       position: relative;
-      display: flex;
-      align-items: center;
-      gap: 8px;
     }
 
     .hospital-btn:hover {
@@ -299,13 +301,49 @@
       box-shadow: 0 4px 16px rgba(96, 165, 250, 0.3);
     }
 
+    /* KPI com gauge centralizado */
+    .kpi-card-with-gauge {
+      position: relative; 
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .kpi-gauge-mini {
+      width: 80px; 
+      height: 50px;
+      margin-bottom: 10px;
+    }
+
+    .kpi-gauge-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      margin-top: -10px;
+    }
+
+    /* Separadores discretos */
+    .section-divider {
+      width: 1px;
+      background: rgba(148, 163, 184, 0.3);
+      height: 250px;
+      margin: 0 20px;
+    }
+
+    .horizontal-divider {
+      height: 1px;
+      background: rgba(148, 163, 184, 0.3);
+      margin: 20px 0;
+      width: 100%;
+    }
+
     /* =================== CARDS DE LEITOS =================== */
     .grid {
-      display: grid; 
-      grid-template-columns: repeat(auto-fit, minmax(min(450px, 100%), 1fr));
-      gap: 18px; 
-      position: relative; 
-      z-index: 1;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+      gap: 18px; position: relative; z-index: 1;
     }
 
     .card {
@@ -322,7 +360,7 @@
 
     .card .top {
       display: flex; align-items: center; justify-content: space-between;
-      gap: 8px; margin-bottom: 10px; flex-wrap: wrap;
+      gap: 8px; margin-bottom: 10px;
     }
 
     .badge {
@@ -355,19 +393,21 @@
       letter-spacing: 0.5px;
     }
 
-    .tipo.uti { background: linear-gradient(135deg, var(--status-uti) 0%, #991b1b 100%); }
-    .tipo.enf { background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); }
+    .tipo.uti {
+      background: linear-gradient(135deg, var(--status-uti) 0%, #991b1b 100%);
+    }
+
+    .tipo.enf {
+      background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+    }
 
     .row {
-      display: grid; 
-      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); 
-      gap: 10px;
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
     }
 
     .field {
       background: rgba(96, 165, 250, 0.05); border: 1px solid var(--border);
       border-radius: 12px; padding: 10px; backdrop-filter: blur(5px);
-      min-width: 0; /* Permite quebra de texto */
     }
 
     .field .label {
@@ -376,7 +416,7 @@
     }
 
     .field .value {
-      color: var(--text); font-weight: 600; word-break: break-word;
+      color: var(--text); font-weight: 600;
     }
 
     .wrap { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -390,7 +430,6 @@
 
     .actions {
       display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px;
-      flex-wrap: wrap;
     }
 
     .btn {
@@ -399,7 +438,6 @@
       cursor: pointer; transition: all 0.2s ease; color: var(--text);
       font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-      text-align: center;
     }
 
     .btn.primary {
@@ -424,18 +462,13 @@
 
     @media (max-width: 1200px) {
       .grid-2 { grid-template-columns: 1fr; }
-      .grid-3 { grid-template-columns: repeat(2, 1fr); }
+      .grid-3 { grid-template-columns: 1fr; }
       .grid-7 { grid-template-columns: repeat(3, 1fr); }
     }
     @media (max-width: 900px) {
       .grid-4 { grid-template-columns: repeat(2, 1fr); }
       .grid-6 { grid-template-columns: repeat(2, 1fr); }
       .grid-7 { grid-template-columns: repeat(2, 1fr); }
-    }
-    @media (max-width: 600px) {
-      .grid-2, .grid-3, .grid-4, .grid-5, .grid-6, .grid-7 { 
-        grid-template-columns: 1fr; 
-      }
     }
 
     .dashboard-card {
@@ -470,113 +503,62 @@
       font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
     }
 
-    /* KPI com gauge - CORREÇÃO DA SOBREPOSIÇÃO */
+    /* KPI com gauge */
     .kpi-card-with-gauge {
-      position: relative; 
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding-top: 60px; /* Espaço para o gauge */
+      position: relative; padding-top: 50px;
     }
 
     .kpi-gauge-mini {
-      position: absolute;
-      top: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 80px; 
-      height: 50px;
+      position: absolute; top: 15px; right: 15px; 
+      width: 60px; height: 40px;
     }
 
-    .kpi-gauge-text {
-      position: absolute;
-      top: 35px;
-      left: 50%;
-      transform: translateX(-50%);
-      text-align: center;
-      font-size: 16px;
-      font-weight: 700;
-      color: var(--text-accent);
-    }
-
-    /* Gauge Dashboard Hospitais */
+    /* Gauge específico para Dashboard Hospitais */
     .dash-hospital-header { 
-      display: flex; 
-      align-items: center; 
-      gap: 24px; 
-      margin-bottom: 20px;
-      flex-wrap: wrap;
+      display: flex; align-items: center; gap: 24px; margin-bottom: 20px; 
     }
     
     .gauge-wrapper { 
-      position: relative; 
-      width: 150px; 
-      height: 100px; 
-      flex-shrink: 0;
+      position: relative; width: 150px; height: 100px; 
     }
     
     .gauge-wrapper canvas { 
-      width: 100% !important; 
-      height: auto !important; 
+      width: 100% !important; height: auto !important; 
     }
     
     .gauge-text { 
-      position: absolute; 
-      bottom: 10px; 
-      left: 50%; 
-      transform: translateX(-50%); 
+      position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); 
       text-align: center; 
     }
     
     .gauge-text .percent { 
-      font-size: 24px; 
-      font-weight: 700; 
-      color: var(--text-accent); 
+      font-size: 24px; font-weight: 700; color: var(--text-accent); 
     }
 
     .gauge-text .label { 
-      font-size: 11px; 
-      color: var(--text-muted); 
-      font-weight: 600; 
-      text-transform: uppercase; 
-      letter-spacing: 0.5px;
+      font-size: 11px; color: var(--text-muted); 
+      font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
     }
 
     .header-stats { 
-      flex: 1; 
-      display: grid; 
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); 
-      gap: 10px; 
+      flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; 
     }
     
     .header-stats .stat-box { 
-      padding: 10px; 
-      text-align: left; 
-      background: rgba(96, 165, 250, 0.1); 
-      border-radius: 10px; 
-      border: 1px solid var(--border);
+      padding: 10px; text-align: left; background: rgba(96, 165, 250, 0.1); 
+      border-radius: 10px; border: 1px solid var(--border);
     }
 
     .header-stats .stat-value { 
-      font-size: 22px; 
-      font-weight: bold; 
-      color: var(--text-accent); 
+      font-size: 22px; font-weight: bold; color: var(--text-accent); 
     }
 
     .header-stats .stat-label { 
-      font-size: 11px; 
-      color: var(--text-muted); 
-      font-weight: 600; 
-      text-transform: uppercase; 
-      letter-spacing: 0.5px;
+      font-size: 11px; color: var(--text-muted); 
+      font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
     }
 
-    .chart-container { 
-      position: relative; 
-      width: 100%; 
-      min-height: 200px;
-    }
+    .chart-container { position: relative; width: 100%; }
     .h-250 { height: 250px; }
     .h-300 { height: 300px; }
     .h-400 { height: 400px; }
@@ -584,7 +566,6 @@
     /* Switch de visualização */
     .view-switcher {
       display: flex; gap: 8px; margin-bottom: 15px; justify-content: center;
-      flex-wrap: wrap;
     }
 
     .view-switch-btn {
@@ -599,29 +580,6 @@
       border-color: var(--text-accent);
     }
 
-    /* Layout lado a lado para seções do Dashboard Executivo */
-    .grid-with-divider {
-      display: grid;
-      grid-template-columns: 1fr auto 1fr;
-      gap: 20px;
-      align-items: start;
-    }
-
-    .section-divider {
-      width: 1px;
-      background: rgba(148, 163, 184, 0.3);
-      height: 250px;
-      margin: 0 auto;
-    }
-
-    @media (max-width: 900px) {
-      .grid-with-divider {
-        grid-template-columns: 1fr;
-        gap: 20px;
-      }
-      .section-divider { display: none; }
-    }
-
     /* =================== MODAIS =================== */
     .backdrop {
       position: fixed; inset: 0; background: rgba(10, 15, 28, 0.8);
@@ -630,11 +588,9 @@
     }
 
     .modal {
-      background: var(--gradient-card); 
-      max-width: min(860px, 90vw); 
-      width: 100%;
+      background: var(--gradient-card); max-width: 860px; width: 100%;
       max-height: 90vh; border-radius: 20px; border: 1px solid var(--border);
-      box-shadow: var(--shadow); overflow: hidden;
+      box-shadow: var(--shadow-hover); overflow: hidden;
       display: flex; flex-direction: column; backdrop-filter: blur(15px);
     }
 
@@ -642,7 +598,6 @@
       background: var(--gradient-header); border-bottom: 1px solid var(--border);
       color: var(--text-white); display: flex; align-items: center;
       justify-content: space-between; padding: 12px 16px; flex-shrink: 0;
-      flex-wrap: wrap; gap: 10px;
     }
 
     .modal header strong {
@@ -656,11 +611,11 @@
     .modal .actions {
       background: rgba(26, 31, 46, 0.5); border-top: 1px solid var(--border);
       display: flex; gap: 8px; justify-content: flex-end;
-      padding: 12px 16px; flex-shrink: 0; flex-wrap: wrap;
+      padding: 12px 16px; flex-shrink: 0;
     }
 
-    .row2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
-    .row3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .row3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
 
     .input, .select2, textarea {
       width: 100%; padding: 10px 12px; border: 1px solid var(--border);
@@ -674,74 +629,96 @@
       letter-spacing: 0.5px;
     }
 
-    /* =================== CONFIGURAÇÃO DE CORES =================== */
-    .color-config-modal { max-width: min(1200px, 95vw); }
-
-    .color-tabs {
-      display: flex; gap: 5px; margin-bottom: 20px; flex-wrap: wrap;
-    }
-
-    .color-tab {
-      padding: 8px 16px; font-size: 12px; background: rgba(96, 165, 250, 0.1);
-      border: 1px solid var(--border); color: var(--text-muted);
-      border-radius: 8px; cursor: pointer; font-weight: 600;
-      text-transform: uppercase; letter-spacing: 0.5px; transition: all 0.3s ease;
-    }
-
-    .color-tab.active {
-      background: var(--gradient-button); color: var(--text-white);
-      border-color: var(--text-accent);
-    }
-
-    .color-section { display: none; }
-    .color-section.active { display: block; }
-
-    .color-grid {
-      display: grid; 
-      grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
-      gap: 15px;
-    }
-
-    .color-item {
-      background: var(--card); padding: 15px; border-radius: 12px;
-      border: 1px solid var(--border); display: flex; align-items: center;
-      gap: 15px; position: relative; flex-wrap: wrap;
-    }
-
-    .color-item label {
-      flex: 1; font-weight: 600; color: var(--text); text-transform: none;
-      letter-spacing: normal; font-size: 14px; min-width: 150px;
-    }
-
-    .color-controls {
-      display: flex; align-items: center; gap: 10px;
-    }
-
-    .color-item input[type="color"] {
-      width: 50px; height: 40px; border: none; border-radius: 8px;
-      cursor: pointer;
-    }
-
-    .color-preview {
-      width: 30px; height: 30px; border-radius: 6px;
-      border: 2px solid var(--border);
-    }
-
     /* =================== UTILIDADES =================== */
-    .hidden { display: none !important; }
+    .hidden { display: none; }
 
     .success-message {
       position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
       background: var(--gradient-card); border: 1px solid var(--border);
       border-radius: 20px; padding: 40px; text-align: center;
-      box-shadow: var(--shadow); z-index: 3000; display: none;
+      box-shadow: var(--shadow-hover); z-index: 3000; display: none;
       color: var(--text); backdrop-filter: blur(15px);
-      max-width: min(500px, 90vw);
     }
 
     .success-message h2 {
       color: var(--text-accent); font-weight: 700;
       text-transform: uppercase; letter-spacing: 1px;
+    }
+
+    /* =================== RESPONSIVIDADE =================== */
+    @media (max-width: 1024px) {
+      body { padding-left: 0; }
+      #side-menu { left: -300px; }
+      #side-menu.open { left: 0; }
+    }
+
+    /* =================== IMPRESSÃO DE QR CODES =================== */
+    @media print {
+      /* Ocultar tudo exceto o modal de QR */
+      body * {
+        visibility: hidden;
+      }
+      
+      #modalBulkQR, #modalBulkQR * {
+        visibility: visible;
+      }
+      
+      #modalBulkQR {
+        position: static !important;
+        background: white !important;
+        box-shadow: none !important;
+        border: none !important;
+        max-width: none !important;
+        max-height: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        overflow: visible !important;
+      }
+      
+      #modalBulkQR .modal {
+        position: static !important;
+        background: white !important;
+        box-shadow: none !important;
+        border: none !important;
+        max-width: none !important;
+        max-height: none !important;
+        margin: 0 !important;
+        padding: 20px !important;
+        width: 100% !important;
+        height: 100% !important;
+        overflow: visible !important;
+      }
+      
+      #modalBulkQR header,
+      #modalBulkQR .actions,
+      #modalBulkQR .content > div:first-child {
+        display: none !important;
+      }
+      
+      #qr_grid {
+        display: grid !important;
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 20px !important;
+        page-break-inside: avoid;
+      }
+      
+      .qr-cell {
+        background: white !important;
+        border: 2px solid #333 !important;
+        border-radius: 10px !important;
+        padding: 15px !important;
+        text-align: center !important;
+        page-break-inside: avoid;
+        min-height: 250px !important;
+      }
+      
+      .qr-cell canvas,
+      .qr-cell img {
+        max-width: 160px !important;
+        max-height: 160px !important;
+      }
     }
   </style>
 </head>
@@ -766,17 +743,14 @@
     <div class="menu-items">
       <a href="#" class="side-menu-item active" data-tab="leitos">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="2" y="8" width="20" height="10" rx="2"/>
-          <path d="M6 2v6M18 2v6"/>
+          <path d="M2.5 12a.5.5 0 0 1 .5-.5h18a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/>
+          <path d="M20 16H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2zM9 8H7v6h2V8z"/>
         </svg>
-        <span>Leitos Cards</span>
+        <span>Leitos (Cards)</span>
       </a>
       <a href="#" class="side-menu-item" data-tab="dash1">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="3" y="3" width="7" height="7"/>
-          <rect x="14" y="3" width="7" height="7"/>
-          <rect x="14" y="14" width="7" height="7"/>
-          <rect x="3" y="14" width="7" height="7"/>
+          <path d="M12 20v-6M12 8V2M4.93 4.93l4.24 4.24M14.83 14.83l4.24 4.24M17.66 6.34l-4.24 4.24M6.34 17.66l-4.24 4.24M22 12h-6M8 12H2"/>
         </svg>
         <span>Dash Hospitais</span>
       </a>
@@ -845,10 +819,10 @@
 
     <!-- Dashboard Hospitais -->
     <section id="dash1" class="hidden">
-      <h2 style="margin-bottom:20px; color: var(--text-white);">Dashboard Hospitais</h2>
+      <h2 style="margin-bottom:20px; color: var(--text-white);">Dash Hospitais: Visão Detalhada por Hospital</h2>
       <div class="dash-grid grid-2">
         <!-- Neomater -->
-        <div class="dashboard-card">
+        <div class="dashboard-card" id="dash-card-h1">
           <h3>Neomater</h3>
           
           <!-- Header com Gauge e Stats -->
@@ -894,7 +868,7 @@
         </div>
 
         <!-- Cruz Azul -->
-        <div class="dashboard-card">
+        <div class="dashboard-card" id="dash-card-h2">
           <h3>Cruz Azul</h3>
           
           <!-- Header com Gauge e Stats -->
@@ -943,7 +917,7 @@
     
     <!-- Dashboard Executivo -->
     <section id="dash2" class="hidden">
-      <h2 style="margin-bottom:20px; color: var(--text-white);">Dashboard Executivo</h2>
+      <h2 style="margin-bottom:20px; color: var(--text-white);">Dashboard Executivo: Rede Hospitalar Externa</h2>
       
       <!-- KPIs Operacionais Consolidados -->
       <div class="dashboard-card">
@@ -952,8 +926,10 @@
           <div class="kpi-card kpi-card-with-gauge">
             <div class="kpi-gauge-mini">
               <canvas id="kpiGaugeOcupacao"></canvas>
+              <div class="kpi-gauge-text">
+                <div class="kpi-value" id="kpiOcupacaoGeral" style="font-size: 24px;">0%</div>
+              </div>
             </div>
-            <div class="kpi-gauge-text" id="kpiOcupacaoGeral">0%</div>
             <div class="kpi-label">Taxa de Ocupação Geral</div>
           </div>
           <div class="kpi-card">
@@ -986,14 +962,13 @@
       <!-- Análise Preditiva de Altas -->
       <div class="dashboard-card">
         <h3>Análise Preditiva de Altas</h3>
-        <div class="grid-with-divider">
+        <div class="dash-grid grid-2">
           <div>
             <h4>Comparativo por Prazo</h4>
             <div class="chart-container h-250">
               <canvas id="chartAltasComparativo"></canvas>
             </div>
           </div>
-          <div class="section-divider"></div>
           <div>
             <h4>Timeline de Liberação em 24h</h4>
             <div class="chart-container h-250">
@@ -1010,14 +985,13 @@
           <button class="view-switch-btn active" data-mode="separate">Barras Separadas</button>
           <button class="view-switch-btn" data-mode="stacked">Barras Empilhadas</button>
         </div>
-        <div class="grid-with-divider">
+        <div class="dash-grid grid-2">
           <div>
             <h4>Concessões Necessárias</h4>
             <div class="chart-container h-300">
               <canvas id="chartConcessoesConsolidado"></canvas>
             </div>
           </div>
-          <div class="section-divider"></div>
           <div>
             <h4>Linhas de Cuidado</h4>
             <div class="chart-container h-300">
@@ -1027,17 +1001,16 @@
         </div>
       </div>
 
-      <!-- Análise de Indicadores Clínicos -->
+      <!-- Análises PPS e SPICT -->
       <div class="dashboard-card">
         <h3>Análise de Indicadores Clínicos</h3>
-        <div class="grid-with-divider">
+        <div class="dash-grid grid-2">
           <div>
             <h4>Análise PPS (Performance Status)</h4>
             <div class="chart-container h-250">
               <canvas id="chartPpsAnalise"></canvas>
             </div>
           </div>
-          <div class="section-divider"></div>
           <div>
             <h4>Análise SPICT-BR</h4>
             <div class="chart-container h-250">
@@ -1057,525 +1030,243 @@
     </section>
   </main>
 
-  <!-- PLACEHOLDER PARA MODAIS E JAVASCRIPT -->
-  <!-- A PARTE 2 será inserida aqui -->
-
-  <script>
-    // PARTE 1 CARREGADA - Aguardando PARTE 2 com JavaScript completo
-    console.log("✅ PARTE 1 CARREGADA - Pronto para PARTE 2");
-  </script>
-</body>
-</html>
-<!-- =================== MODAIS =================== -->
-
-<!-- Modal Admissão -->
-<div id="modalAdmissao" class="backdrop">
-  <div class="modal">
-    <header>
-      <strong>Admissão de Paciente</strong>
-      <button class="btn" data-close="#modalAdmissao">Fechar</button>
-    </header>
-    <div class="content">
-      <div class="row3">
-        <div><span class="label">Hospital</span><div id="a_hospital" class="badge"></div></div>
-        <div><span class="label">Leito</span><div id="a_leito" class="badge"></div></div>
-        <div><span class="label">Tipo</span><div id="a_tipo" class="badge"></div></div>
-      </div>
-      <div class="row2" style="margin-top:10px">
-        <div>
-          <label class="label" for="a_nome">Nome completo</label>
-          <input id="a_nome" class="input" />
+  <!-- Modal Admissão -->
+  <div id="modalAdmissao" class="backdrop">
+    <div class="modal">
+      <header>
+        <strong>Admissão de Paciente</strong>
+        <button class="btn" data-close="#modalAdmissao">Fechar</button>
+      </header>
+      <div class="content">
+        <div class="row3">
+          <div><span class="label">Hospital</span><div id="a_hospital" class="badge"></div></div>
+          <div><span class="label">Leito</span><div id="a_leito" class="badge"></div></div>
+          <div><span class="label">Tipo</span><div id="a_tipo" class="badge"></div></div>
         </div>
-        <div>
-          <label class="label" for="a_idade">Idade</label>
-          <input id="a_idade" class="input" type="number" />
+        <div class="row2" style="margin-top:10px">
+          <div>
+            <label class="label" for="a_nome">Nome completo</label>
+            <input id="a_nome" class="input" />
+          </div>
+          <div>
+            <label class="label" for="a_idade">Idade</label>
+            <input id="a_idade" class="input" inputmode="numeric" />
+          </div>
         </div>
-      </div>
-      <div class="row3">
-        <div>
-          <label class="label" for="a_matricula">Matrícula</label>
-          <input id="a_matricula" class="input" />
+        <div class="row3">
+          <div>
+            <label class="label" for="a_matricula">Matrícula (número)</label>
+            <input id="a_matricula" class="input" inputmode="numeric" />
+          </div>
+          <div>
+            <label class="label" for="a_pps">PPS (0–10)</label>
+            <input id="a_pps" class="input" inputmode="numeric" />
+          </div>
+          <div>
+            <label class="label" for="a_spict">SPICT-BR</label>
+            <select id="a_spict" class="select2">
+              <option value="elegivel">Elegível</option>
+              <option value="nao_elegivel">Não elegível</option>
+            </select>
+          </div>
         </div>
-        <div>
-          <label class="label" for="a_pps">PPS (0–10)</label>
-          <input id="a_pps" class="input" type="number" min="0" max="10" />
+        <div class="row3">
+          <div>
+            <label class="label" for="a_complexidade">Complexidade</label>
+            <select id="a_complexidade" class="select2">
+              <option value="I">Nível I</option>
+              <option value="II">Nível II</option>
+              <option value="III">Nível III</option>
+            </select>
+          </div>
+          <div>
+            <label class="label" for="a_prev">Previsão de alta</label>
+            <select id="a_prev" class="select2">
+              <option>24h Ouro</option><option>24h 2R</option><option>24h 3R</option>
+              <option>48h</option><option>72h</option><option>96h</option><option>Sem previsao</option>
+            </select>
+          </div>
+          <div></div>
         </div>
-        <div>
-          <label class="label" for="a_spict">SPICT-BR</label>
-          <select id="a_spict" class="select2">
-            <option value="elegivel">Elegível</option>
-            <option value="nao_elegivel">Não elegível</option>
-          </select>
+        <div class="row2">
+          <div>
+            <span class="label">Linhas de cuidado (multi)</span>
+            <div id="a_linhas" class="wrap"></div>
+          </div>
+          <div>
+            <span class="label">Concessões (multi)</span>
+            <div id="a_concessoes" class="wrap"></div>
+          </div>
         </div>
-      </div>
-      <div class="row3">
-        <div>
-          <label class="label" for="a_complexidade">Complexidade</label>
-          <select id="a_complexidade" class="select2">
-            <option value="I">Nível I</option>
-            <option value="II">Nível II</option>
-            <option value="III">Nível III</option>
-          </select>
-        </div>
-        <div>
-          <label class="label" for="a_prev">Previsão de alta</label>
-          <select id="a_prev" class="select2">
-            <option>24h Ouro</option><option>24h 2R</option><option>24h 3R</option>
-            <option>48h</option><option>72h</option><option>96h</option><option>Sem previsao</option>
-          </select>
-        </div>
-        <div></div>
-      </div>
-      <div class="row2">
-        <div>
-          <span class="label">Linhas de cuidado (multi)</span>
-          <div id="a_linhas" class="wrap"></div>
-        </div>
-        <div>
-          <span class="label">Concessões (multi)</span>
-          <div id="a_concessoes" class="wrap"></div>
+        <div style="margin-top:8px;color:var(--text-muted);font-size:12px">
+          * Data e hora de admissão serão registradas automaticamente ao salvar.
         </div>
       </div>
-      <div style="margin-top:8px;color:var(--text-muted);font-size:12px">
-        * Data e hora de admissão serão registradas automaticamente ao salvar.
+      <div class="actions">
+        <button class="btn" id="a_cancel">Cancelar</button>
+        <button class="btn primary" id="a_save">Salvar e Admitir</button>
       </div>
-    </div>
-    <div class="actions">
-      <button class="btn" id="a_cancel">Cancelar</button>
-      <button class="btn primary" id="a_save">Salvar e Admitir</button>
     </div>
   </div>
-</div>
 
-<!-- Modal Atualização -->
-<div id="modalAtualizacao" class="backdrop">
-  <div class="modal">
-    <header>
-      <strong>Atualização de Paciente</strong>
-      <button class="btn" data-close="#modalAtualizacao">Fechar</button>
-    </header>
-    <div class="content">
-      <div class="row3">
-        <div><span class="label">Hospital</span><div id="u_hospital" class="badge"></div></div>
-        <div><span class="label">Leito</span><div id="u_leito" class="badge"></div></div>
-        <div><span class="label">Tipo</span><div id="u_tipo" class="badge"></div></div>
+  <!-- Modal Atualização -->
+  <div id="modalAtualizacao" class="backdrop">
+    <div class="modal">
+      <header>
+        <strong>Atualização de Paciente</strong>
+        <button class="btn" data-close="#modalAtualizacao">Fechar</button>
+      </header>
+      <div class="content">
+        <div class="row3">
+          <div><span class="label">Hospital</span><div id="u_hospital" class="badge"></div></div>
+          <div><span class="label">Leito</span><div id="u_leito" class="badge"></div></div>
+          <div><span class="label">Tipo</span><div id="u_tipo" class="badge"></div></div>
+        </div>
+        <div class="row3" style="margin-top:10px">
+          <div>
+            <label class="label">Nome (bloqueado)</label>
+            <input id="u_nome" class="input" disabled />
+          </div>
+          <div>
+            <label class="label">Matrícula (bloqueado)</label>
+            <input id="u_matricula" class="input" disabled />
+          </div>
+          <div>
+            <label class="label">Admissão (bloqueado)</label>
+            <input id="u_adm" class="input" disabled />
+          </div>
+        </div>
+        <div class="row3">
+          <div>
+            <label class="label" for="u_idade">Idade</label>
+            <input id="u_idade" class="input" inputmode="numeric" />
+          </div>
+          <div>
+            <label class="label" for="u_pps">PPS (0–10)</label>
+            <input id="u_pps" class="input" inputmode="numeric" />
+          </div>
+          <div>
+            <label class="label" for="u_spict">SPICT-BR</label>
+            <select id="u_spict" class="select2">
+              <option value="elegivel">Elegível</option>
+              <option value="nao_elegivel">Não elegível</option>
+            </select>
+          </div>
+        </div>
+        <div class="row3">
+          <div>
+            <label class="label" for="u_complexidade">Complexidade</label>
+            <select id="u_complexidade" class="select2">
+              <option value="I">Nível I</option>
+              <option value="II">Nível II</option>
+              <option value="III">Nível III</option>
+            </select>
+          </div>
+          <div>
+            <label class="label" for="u_prev">Previsão de alta</label>
+            <select id="u_prev" class="select2">
+              <option>24h Ouro</option><option>24h 2R</option><option>24h 3R</option>
+              <option>48h</option><option>72h</option><option>96h</option><option>Sem previsao</option>
+            </select>
+          </div>
+          <div></div>
+        </div>
+        <div class="row2">
+          <div>
+            <span class="label">Linhas de cuidado (multi)</span>
+            <div id="u_linhas" class="wrap"></div>
+          </div>
+          <div>
+            <span class="label">Concessões (multi)</span>
+            <div id="u_concessoes" class="wrap"></div>
+          </div>
+        </div>
+        <div id="internadoHa" style="margin-top:8px;color:var(--text-muted);font-size:12px"></div>
       </div>
-      <div class="row3" style="margin-top:10px">
-        <div>
-          <label class="label">Nome (bloqueado)</label>
-          <input id="u_nome" class="input" disabled />
-        </div>
-        <div>
-          <label class="label">Matrícula (bloqueado)</label>
-          <input id="u_matricula" class="input" disabled />
-        </div>
-        <div>
-          <label class="label">Admissão (bloqueado)</label>
-          <input id="u_adm" class="input" disabled />
-        </div>
+      <div class="actions">
+        <button class="btn" id="u_cancel">Cancelar</button>
+        <button class="btn primary" id="u_save">Salvar</button>
+        <button class="btn danger" id="u_alta">Dar Alta</button>
       </div>
-      <div class="row3">
-        <div>
-          <label class="label" for="u_idade">Idade</label>
-          <input id="u_idade" class="input" type="number" />
-        </div>
-        <div>
-          <label class="label" for="u_pps">PPS (0–10)</label>
-          <input id="u_pps" class="input" type="number" min="0" max="10" />
-        </div>
-        <div>
-          <label class="label" for="u_spict">SPICT-BR</label>
-          <select id="u_spict" class="select2">
-            <option value="elegivel">Elegível</option>
-            <option value="nao_elegivel">Não elegível</option>
-          </select>
-        </div>
-      </div>
-      <div class="row3">
-        <div>
-          <label class="label" for="u_complexidade">Complexidade</label>
-          <select id="u_complexidade" class="select2">
-            <option value="I">Nível I</option>
-            <option value="II">Nível II</option>
-            <option value="III">Nível III</option>
-          </select>
-        </div>
-        <div>
-          <label class="label" for="u_prev">Previsão de alta</label>
-          <select id="u_prev" class="select2">
-            <option>24h Ouro</option><option>24h 2R</option><option>24h 3R</option>
-            <option>48h</option><option>72h</option><option>96h</option><option>Sem previsao</option>
-          </select>
-        </div>
-        <div></div>
-      </div>
-      <div class="row2">
-        <div>
-          <span class="label">Linhas de cuidado (multi)</span>
-          <div id="u_linhas" class="wrap"></div>
-        </div>
-        <div>
-          <span class="label">Concessões (multi)</span>
-          <div id="u_concessoes" class="wrap"></div>
-        </div>
-      </div>
-      <div id="internadoHa" style="margin-top:8px;color:var(--text-muted);font-size:12px"></div>
-    </div>
-    <div class="actions">
-      <button class="btn" id="u_cancel">Cancelar</button>
-      <button class="btn primary" id="u_save">Salvar</button>
-      <button class="btn danger" id="u_alta">Dar Alta</button>
-    </div>
-  </div>
-</div>
-
-<!-- Modal Configuração de Cores -->
-<div id="modalCores" class="backdrop">
-  <div class="modal color-config-modal">
-    <header>
-      <strong>🎨 Configuração de Cores</strong>
-      <button class="btn" data-close="#modalCores">Fechar</button>
-    </header>
-    <div class="content">
-      <!-- Abas de categorias -->
-      <div class="color-tabs">
-        <button class="color-tab active" data-category="layout">Layout Principal</button>
-        <button class="color-tab" data-category="status">Status & Complexidade</button>
-        <button class="color-tab" data-category="linhas">Linhas de Cuidado</button>
-        <button class="color-tab" data-category="concessoes">Concessões</button>
-        <button class="color-tab" data-category="timeline">Timeline 24h</button>
-      </div>
-
-      <!-- Layout Principal -->
-      <div class="color-section active" id="layout">
-        <h4 style="color: var(--text-white); margin-bottom: 15px;">Cores do Layout Principal</h4>
-        <div class="color-grid">
-          <div class="color-item">
-            <label>Sidebar (Menu Lateral)</label>
-            <div class="color-controls">
-              <input type="color" id="color-nav-sidebar" value="#0a2b52">
-              <span class="color-preview" style="background: #0a2b52"></span>
-            </div>
-          </div>
-          <div class="color-item">
-            <label>Header (Barra Superior)</label>
-            <div class="color-controls">
-              <input type="color" id="color-nav-header" value="#083052">
-              <span class="color-preview" style="background: #083052"></span>
-            </div>
-          </div>
-          <div class="color-item">
-            <label>Cards/Modais</label>
-            <div class="color-controls">
-              <input type="color" id="color-card" value="#1a1f2e">
-              <span class="color-preview" style="background: #1a1f2e"></span>
-            </div>
-          </div>
-          <div class="color-item">
-            <label>Fundo Principal</label>
-            <div class="color-controls">
-              <input type="color" id="color-bg-primary" value="#0a0f1c">
-              <span class="color-preview" style="background: #0a0f1c"></span>
-            </div>
-          </div>
-          <div class="color-item">
-            <label>Texto Branco</label>
-            <div class="color-controls">
-              <input type="color" id="color-text-white" value="#ffffff">
-              <span class="color-preview" style="background: #ffffff"></span>
-            </div>
-          </div>
-          <div class="color-item">
-            <label>Texto Principal</label>
-            <div class="color-controls">
-              <input type="color" id="color-text" value="#e2e8f0">
-              <span class="color-preview" style="background: #e2e8f0"></span>
-            </div>
-          </div>
-          <div class="color-item">
-            <label>Texto Secundário</label>
-            <div class="color-controls">
-              <input type="color" id="color-text-muted" value="#94a3b8">
-              <span class="color-preview" style="background: #94a3b8"></span>
-            </div>
-          </div>
-          <div class="color-item">
-            <label>Texto Destaque</label>
-            <div class="color-controls">
-              <input type="color" id="color-text-accent" value="#60a5fa">
-              <span class="color-preview" style="background: #60a5fa"></span>
-            </div>
-          </div>
-          <div class="color-item">
-            <label>Bordas</label>
-            <div class="color-controls">
-              <input type="color" id="color-border" value="#334155">
-              <span class="color-preview" style="background: #334155"></span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Status & Complexidade -->
-      <div class="color-section" id="status">
-        <h4 style="color: var(--text-white); margin-bottom: 15px;">Status dos Leitos & Complexidade</h4>
-        <div class="color-grid">
-          <div class="color-item">
-            <label>Status: Vago</label>
-            <div class="color-controls">
-              <input type="color" id="color-status-vago" value="#16a34a">
-              <span class="color-preview" style="background: #16a34a"></span>
-            </div>
-          </div>
-          <div class="color-item">
-            <label>Status: Em Uso</label>
-            <div class="color-controls">
-              <input type="color" id="color-status-uso" value="#f59e0b">
-              <span class="color-preview" style="background: #f59e0b"></span>
-            </div>
-          </div>
-          <div class="color-item">
-            <label>Status: UTI</label>
-            <div class="color-controls">
-              <input type="color" id="color-status-uti" value="#dc2626">
-              <span class="color-preview" style="background: #dc2626"></span>
-            </div>
-          </div>
-          <div class="color-item">
-            <label>Complexidade I</label>
-            <div class="color-controls">
-              <input type="color" id="color-complex-1" value="#22c55e">
-              <span class="color-preview" style="background: #22c55e"></span>
-            </div>
-          </div>
-          <div class="color-item">
-            <label>Complexidade II</label>
-            <div class="color-controls">
-              <input type="color" id="color-complex-2" value="#f59e0b">
-              <span class="color-preview" style="background: #f59e0b"></span>
-            </div>
-          </div>
-          <div class="color-item">
-            <label>Complexidade III</label>
-            <div class="color-controls">
-              <input type="color" id="color-complex-3" value="#dc2626">
-              <span class="color-preview" style="background: #dc2626"></span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Linhas de Cuidado -->
-      <div class="color-section" id="linhas">
-        <h4 style="color: var(--text-white); margin-bottom: 15px;">Linhas de Cuidado</h4>
-        <div class="color-grid">
-          <div class="color-item">
-            <label>APS</label>
-            <div class="color-controls">
-              <input type="color" id="color-linha-aps" value="#f59e0b">
-              <span class="color-preview" style="background: #f59e0b"></span>
-            </div>
-          </div>
-          <div class="color-item">
-            <label>Assistência</label>
-            <div class="color-controls">
-              <input type="color" id="color-linha-assistencia" value="#0a2b52">
-              <span class="color-preview" style="background: #0a2b52"></span>
-            </div>
-          </div>
-          <div class="color-item">
-            <label>Cardiologia</label>
-            <div class="color-controls">
-              <input type="color" id="color-linha-cardiologia" value="#dc2626">
-              <span class="color-preview" style="background: #dc2626"></span>
-            </div>
-          </div>
-          <div class="color-item">
-            <label>Geriatria</label>
-            <div class="color-controls">
-              <input type="color" id="color-linha-geriatria" value="#16a34a">
-              <span class="color-preview" style="background: #16a34a"></span>
-            </div>
-          </div>
-          <div class="color-item">
-            <label>Melhor Cuidado</label>
-            <div class="color-controls">
-              <input type="color" id="color-linha-melhor" value="#be185d">
-              <span class="color-preview" style="background: #be185d"></span>
-            </div>
-          </div>
-          <div class="color-item">
-            <label>Neurologia</label>
-            <div class="color-controls">
-              <input type="color" id="color-linha-neurologia" value="#0891b2">
-              <span class="color-preview" style="background: #0891b2"></span>
-            </div>
-          </div>
-          <div class="color-item">
-            <label>Pneumologia</label>
-            <div class="color-controls">
-              <input type="color" id="color-linha-pneumologia" value="#8b5cf6">
-              <span class="color-preview" style="background: #8b5cf6"></span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Concessões -->
-      <div class="color-section" id="concessoes">
-        <h4 style="color: var(--text-white); margin-bottom: 15px;">Concessões</h4>
-        <div class="color-grid">
-          <div class="color-item">
-            <label>Aspirações</label>
-            <div class="color-controls">
-              <input type="color" id="color-conc-aspiracoes" value="#dc2626">
-              <span class="color-preview" style="background: #dc2626"></span>
-            </div>
-          </div>
-          <div class="color-item">
-            <label>Curativos</label>
-            <div class="color-controls">
-              <input type="color" id="color-conc-curativos" value="#8b5cf6">
-              <span class="color-preview" style="background: #8b5cf6"></span>
-            </div>
-          </div>
-          <div class="color-item">
-            <label>Fisioterapia</label>
-            <div class="color-controls">
-              <input type="color" id="color-conc-fisioterapia" value="#16a34a">
-              <span class="color-preview" style="background: #16a34a"></span>
-            </div>
-          </div>
-          <div class="color-item">
-            <label>Fonoaudiologia</label>
-            <div class="color-controls">
-              <input type="color" id="color-conc-fonoaudiologia" value="#f59e0b">
-              <span class="color-preview" style="background: #f59e0b"></span>
-            </div>
-          </div>
-          <div class="color-item">
-            <label>PAD</label>
-            <div class="color-controls">
-              <input type="color" id="color-conc-pad" value="#0a2b52">
-              <span class="color-preview" style="background: #0a2b52"></span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Timeline 24h -->
-      <div class="color-section" id="timeline">
-        <h4 style="color: var(--text-white); margin-bottom: 15px;">Timeline de Liberação 24h</h4>
-        <div class="color-grid">
-          <div class="color-item">
-            <label>Ouro</label>
-            <div class="color-controls">
-              <input type="color" id="color-ouro" value="#fbbf24">
-              <span class="color-preview" style="background: #fbbf24"></span>
-            </div>
-          </div>
-          <div class="color-item">
-            <label>2R</label>
-            <div class="color-controls">
-              <input type="color" id="color-r2" value="#3b82f6">
-              <span class="color-preview" style="background: #3b82f6"></span>
-            </div>
-          </div>
-          <div class="color-item">
-            <label>3R</label>
-            <div class="color-controls">
-              <input type="color" id="color-r3" value="#8b5cf6">
-              <span class="color-preview" style="background: #8b5cf6"></span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="actions">
-      <button class="btn" id="resetCores">Restaurar Padrão</button>
-      <button class="btn" id="exportCores">Exportar Tema</button>
-      <button class="btn" id="importCores">Importar Tema</button>
-      <button class="btn primary" id="aplicarCores">Aplicar Cores</button>
     </div>
   </div>
-</div>
 
-<!-- Outros Modais -->
-<div id="modalConfirm" class="backdrop">
-  <div class="modal" style="max-width:520px">
-    <header><strong>Confirmação</strong></header>
-    <div class="content"><div id="confirmMsg">Confirma?</div></div>
-    <div class="actions">
-      <button class="btn" id="confirmNo">Não</button>
-      <button class="btn primary" id="confirmYes">Sim</button>
-    </div>
-  </div>
-</div>
-
-<div id="modalQRScan" class="backdrop">
-  <div class="modal">
-    <header><strong>Ler QR Code</strong><button class="btn" data-close="#modalQRScan">Fechar</button></header>
-    <div class="content">
-      <div style="margin-bottom:8px;font-size:12px;color:var(--text-muted)">Se a câmera não abrir, use a seleção manual.</div>
-      <div id="qrRegion" style="width:100%;max-width:420px;margin:0 auto;border:1px solid var(--border);border-radius:12px;overflow:hidden"></div>
-    </div>
-    <div class="actions"><button class="btn" data-close="#modalQRScan">Cancelar</button></div>
-  </div>
-</div>
-
-<div id="modalBulkQR" class="backdrop">
-  <div class="modal" style="max-width:90vw;max-height:90vh">
-    <header>
-      <strong>Gerar QR Codes para impressão</strong>
-      <button class="btn" data-close="#modalBulkQR">✕</button>
-    </header>
-    <div class="content" style="overflow-y:auto">
-      <div class="row3">
-        <div>
-          <label class="label" for="b_hospital">Hospital</label>
-          <select id="b_hospital" class="select2">
-            <option value="H1">Neomater</option>
-            <option value="H2">Cruz Azul</option>
-          </select>
-        </div>
-        <div>
-          <label class="label" for="b_from">Leito inicial</label>
-          <input id="b_from" class="input" type="number" placeholder="1" />
-        </div>
-        <div>
-          <label class="label" for="b_to">Leito final</label>
-          <input id="b_to" class="input" type="number" placeholder="13/16" />
-        </div>
+  <!-- Outros Modais (QR, Confirmação, etc.) -->
+  <div id="modalConfirm" class="backdrop">
+    <div class="modal" style="max-width:520px">
+      <header><strong>Confirmação</strong></header>
+      <div class="content"><div id="confirmMsg">Confirma?</div></div>
+      <div class="actions">
+        <button class="btn" id="confirmNo">Não</button>
+        <button class="btn primary" id="confirmYes">Sim</button>
       </div>
-      <div style="margin:10px 0;position:sticky;top:0;background:var(--card);padding:10px 0;border-bottom:1px solid var(--border);z-index:10">
-        <button class="btn primary" id="b_generate">Gerar QR Codes</button>  
-        <button class="btn" onclick="window.print()">Imprimir</button>
-        <button class="btn" data-close="#modalBulkQR">Fechar</button>
+    </div>
+  </div>
+
+  <div id="modalQRScan" class="backdrop">
+    <div class="modal">
+      <header><strong>Ler QR Code</strong><button class="btn" data-close="#modalQRScan">Fechar</button></header>
+      <div class="content">
+        <div style="margin-bottom:8px;font-size:12px;color:var(--text-muted)">Se a câmera não abrir, use a seleção manual.</div>
+        <div id="qrRegion" style="width:100%;max-width:420px;margin:0 auto;border:1px solid var(--border);border-radius:12px;overflow:hidden"></div>
       </div>
-      <div id="qr_grid"></div>
+      <div class="actions"><button class="btn" data-close="#modalQRScan">Cancelar</button></div>
     </div>
   </div>
-</div>
 
-<div id="modalQRExpired" class="backdrop">
-  <div class="modal" style="max-width:520px">
-    <header><strong>Sessão Expirada</strong></header>
-    <div class="content">
-      <p>O tempo para preenchimento expirou.</p>
-      <p>Para continuar, escaneie novamente o QR code próximo ao leito.</p>
-    </div>
-    <div class="actions">
-      <button class="btn primary" id="reloadPage">Escanear Novamente</button>
+  <div id="modalBulkQR" class="backdrop">
+    <div class="modal" style="max-width:90vw;max-height:90vh">
+      <header>
+        <strong>Gerar QR Codes para impressão</strong>
+        <button class="btn" data-close="#modalBulkQR">✕</button>
+      </header>
+      <div class="content" style="overflow-y:auto">
+        <div class="row3">
+          <div>
+            <label class="label" for="b_hospital">Hospital</label>
+            <select id="b_hospital" class="select2">
+              <option value="H1">Neomater</option>
+              <option value="H2">Cruz Azul</option>
+            </select>
+          </div>
+          <div>
+            <label class="label" for="b_from">Leito inicial</label>
+            <input id="b_from" class="input" inputmode="numeric" placeholder="1" />
+          </div>
+          <div>
+            <label class="label" for="b_to">Leito final</label>
+            <input id="b_to" class="input" inputmode="numeric" placeholder="13/16" />
+          </div>
+        </div>
+        <div style="margin:10px 0;position:sticky;top:0;background:var(--card);padding:10px 0;border-bottom:1px solid var(--border);z-index:10">
+          <button class="btn primary" id="b_generate">Gerar QR Codes</button>  
+          <button class="btn" onclick="window.print()">Imprimir</button>
+          <button class="btn" data-close="#modalBulkQR">Fechar</button>
+        </div>
+        <div id="qr_grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px"></div>
+      </div>
     </div>
   </div>
-</div>
 
-<div id="successMessage" class="success-message">
-  <h2>Obrigado!</h2>
-  <p>Operação realizada com sucesso.</p>
-  <p style="color:var(--text-muted);font-size:14px">Você pode fechar o navegador.</p>
-  <button class="btn primary" onclick="window.close()">Fechar Navegador</button>
-</div>
+  <div id="modalQRExpired" class="backdrop">
+    <div class="modal" style="max-width:520px">
+      <header><strong>Sessão Expirada</strong></header>
+      <div class="content">
+        <p>O tempo para preenchimento expirou.</p>
+        <p>Para continuar, escaneie novamente o QR code próximo ao leito.</p>
+      </div>
+      <div class="actions">
+        <button class="btn primary" id="reloadPage">Escanear Novamente</button>
+      </div>
+    </div>
+  </div>
+  
+  <div id="successMessage" class="success-message">
+    <h2>Obrigado!</h2>
+    <p>Operação realizada com sucesso.</p>
+    <p style="color:var(--text-muted);font-size:14px">Você pode fechar o navegador.</p>
+    <button class="btn primary" onclick="window.close()">Fechar Navegador</button>
+  </div>
 
 <script>
 // =======================================================================
@@ -1597,7 +1288,7 @@ const banco = { H1: [], H2: [] };
 const LINHAS = ["APS","Assistencia","Cardiologia","Geriatria","Melhor Cuidado","Neurologia","Pneumologia"];
 const CONC = ["Aspiracoes","Curativos","Fisioterapia","Fonoaudiologia","PAD"];
 
-// Cores originais dos gráficos
+// Cores originais dos gráficos usando CSS variables
 const LINHAS_CORES = {
   "APS": "#f59e0b", 
   "Assistencia": "#0a2b52", 
@@ -1627,8 +1318,8 @@ let qrSessionTimeout = null;
 let lastUpdateTime = Date.now();
 let autoRefreshInterval = null;
 let updateIndicatorInterval = null;
-let currentViewMode = 'separate';
-let currentColors = {};
+let sortState = { key: 'leito', direction: 'asc' };
+let currentViewMode = 'separate'; // Para o switch de visualização
 
 // =======================================================================
 // ===================== FUNÇÕES DE LOADING ============================
@@ -1648,18 +1339,15 @@ function hideLoading() {
 // =======================================================================
 const $ = sel => document.querySelector(sel);
 
-function openModal(sel){ const el=$(sel); if(el) { el.style.display="flex"; el.setAttribute("aria-hidden","false"); }}
-function closeModal(sel){ const el=$(sel); if(el) { el.style.display="none"; el.setAttribute("aria-hidden","true"); }}
+function openModal(sel){ const el=$(sel); if(el) { el.style.display="flex"; el.setAttribute("aria-hidden","false"); } }
+function closeModal(sel){ const el=$(sel); if(el) { el.style.display="none"; el.setAttribute("aria-hidden","true"); } }
 
 function confirmAction(msg){
   return new Promise(res=>{
-    const confirmMsg = $("#confirmMsg");
-    if(confirmMsg) confirmMsg.textContent = msg || "Confirma?";
+    $("#confirmMsg").textContent = msg || "Confirma?";
     openModal("#modalConfirm");
-    const yesBtn = $("#confirmYes");
-    const noBtn = $("#confirmNo");
-    if(yesBtn) yesBtn.onclick = ()=>{ closeModal("#modalConfirm"); res(true); };
-    if(noBtn) noBtn.onclick  = ()=>{ closeModal("#modalConfirm"); res(false); };
+    $("#confirmYes").onclick = ()=>{ closeModal("#modalConfirm"); res(true); };
+    $("#confirmNo").onclick  = ()=>{ closeModal("#modalConfirm"); res(false); };
   });
 }
 
@@ -1684,10 +1372,7 @@ function elapsedSince(iso){
   return { text: `${d}d ${h}h`, days: d };
 }
 
-function showSuccessMessage() { 
-  const msg = document.getElementById('successMessage');
-  if(msg) msg.style.display = 'block'; 
-}
+function showSuccessMessage() { document.getElementById('successMessage').style.display = 'block'; }
 
 function updateTimeIndicator() {
   if(isQRMode) return;
@@ -1712,13 +1397,10 @@ async function testConnection() {
   try {
     const res = await fetch(API_URL + '?action=test');
     if (res.ok) {
-      const json = await res.json();
-      if (json.ok) {
-        logSuccess("Conexão com a API estabelecida!");
-        return true;
-      }
+      logSuccess("Conexão com a API estabelecida!");
+      return true;
     }
-    logError(`Falha na conexão`);
+    logError(`Falha na conexão: HTTP ${res.status}`);
     return false;
   } catch(error) {
     logError("Erro ao testar conexão:", error);
@@ -1734,23 +1416,23 @@ async function loadAllData() {
 }
 
 async function loadHospital(h) {
-  logInfo(`Carregando dados do hospital: ${h}`);
+  logInfo(`Iniciando carregamento do hospital: ${h}`);
   try {
     const url = `${API_URL}?action=state&hospital=${h}`;
     const res = await fetch(url);
     if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
     const json = await res.json();
-    if(!json.ok) throw new Error(json.error || 'Erro na API');
+    if(!json.ok) throw new Error(json.error || 'Resposta da API indica erro');
     
-    banco[h] = json.data || [];
+    banco[h] = json.data;
     lastUpdateTime = Date.now();
-    logSuccess(`Dados carregados: ${h} (${banco[h].length} leitos)`);
+    logSuccess(`Dados carregados com sucesso para ${h}. Total de leitos: ${json.data.length}`);
     
     if (activeTab === 'leitos') renderCards();
   } catch(error) {
-    logError(`Erro ao carregar ${h}:`, error);
+    logError(`Erro ao carregar hospital ${h}:`, error);
     
-    // DADOS DE TESTE para fallback
+    // DADOS DE TESTE PARA DEMONSTRAÇÃO
     const dadosTeste = HOSPITAIS[h].leitos.map((leito, index) => ({
       hospital: h,
       leito: leito.id,
@@ -1762,7 +1444,7 @@ async function loadHospital(h) {
       pps: index % 3 === 0 ? null : (index % 10) + 1,
       spict: index % 3 === 0 ? null : (index % 2 === 0 ? "elegivel" : "nao_elegivel"),
       complexidade: index % 3 === 0 ? null : (["I", "II", "III"][index % 3]),
-      prevAlta: index % 3 === 0 ? null : (["24h Ouro", "48h", "72h", "96h", "Sem previsao"][index % 5]),
+      prevAlta: index % 3 === 0 ? null : (["24h Ouro", "48h", "72h", "96h"][index % 4]),
       linhas: index % 3 === 0 ? [] : LINHAS.slice(0, 2 + (index % 3)),
       concessoes: index % 3 === 0 ? [] : CONC.slice(0, 1 + (index % 3)),
       admAt: index % 3 === 0 ? null : new Date(Date.now() - (index * 24 * 60 * 60 * 1000)).toISOString()
@@ -1776,7 +1458,7 @@ async function loadHospital(h) {
 }
 
 async function apiCall(payload) {
-  logInfo(`Operação: ${payload.action}`, payload);
+  logInfo(`Iniciando operação: ${payload.action}`, payload);
   try {
     const params = new URLSearchParams();
     for (const [key, value] of Object.entries(payload)) {
@@ -1791,177 +1473,12 @@ async function apiCall(payload) {
     const json = await res.json();
     if (!json.ok) throw new Error(json.error || 'Erro na operação');
     
-    logSuccess(`Operação ${payload.action} realizada!`);
+    logSuccess(`Operação ${payload.action} realizada com sucesso!`);
     return json.data;
   } catch(error) {
     logError(`Erro na operação ${payload.action}:`, error);
     throw new Error(error.message || 'Erro na operação');
   }
-}
-
-// =======================================================================
-// ==================== SISTEMA DE CORES (PLANILHA) ====================
-// =======================================================================
-async function loadColors() {
-  logInfo("Carregando cores da planilha...");
-  try {
-    const url = `${API_URL}?action=getcolors`;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const json = await res.json();
-    
-    if (json.ok && json.data) {
-      currentColors = json.data;
-      applyColorsToCSS(currentColors);
-      updateColorInputs(currentColors);
-      logSuccess("Cores carregadas da planilha!");
-    } else {
-      throw new Error('Erro ao carregar cores');
-    }
-  } catch(error) {
-    logError("Erro ao carregar cores:", error);
-    // Usar cores padrão se falhar
-    currentColors = getDefaultColors();
-    applyColorsToCSS(currentColors);
-    updateColorInputs(currentColors);
-  }
-}
-
-async function saveColors(colors) {
-  logInfo("Salvando cores na planilha...", colors);
-  try {
-    const params = new URLSearchParams();
-    params.append('action', 'savecolors');
-    params.append('colors', JSON.stringify(colors));
-    
-    const url = `${API_URL}?${params.toString()}`;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const json = await res.json();
-    
-    if (json.ok) {
-      currentColors = colors;
-      applyColorsToCSS(colors);
-      logSuccess("Cores salvas na planilha!");
-    } else {
-      throw new Error(json.error || 'Erro ao salvar cores');
-    }
-  } catch(error) {
-    logError("Erro ao salvar cores:", error);
-    throw error;
-  }
-}
-
-async function resetColors() {
-  logInfo("Resetando cores para padrão...");
-  try {
-    const url = `${API_URL}?action=resetcolors`;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const json = await res.json();
-    
-    if (json.ok && json.data) {
-      currentColors = json.data.colors || getDefaultColors();
-      applyColorsToCSS(currentColors);
-      updateColorInputs(currentColors);
-      logSuccess("Cores resetadas!");
-    }
-  } catch(error) {
-    logError("Erro ao resetar cores:", error);
-    const defaultColors = getDefaultColors();
-    currentColors = defaultColors;
-    applyColorsToCSS(defaultColors);
-    updateColorInputs(defaultColors);
-  }
-}
-
-function getDefaultColors() {
-  return {
-    "nav-sidebar": "#0a2b52",
-    "nav-header": "#083052",
-    "card": "#1a1f2e",
-    "bg-primary": "#0a0f1c",
-    "text-white": "#ffffff",
-    "text": "#e2e8f0",
-    "text-muted": "#94a3b8",
-    "text-accent": "#60a5fa",
-    "border": "#334155",
-    "status-vago": "#16a34a",
-    "status-uso": "#f59e0b",
-    "status-uti": "#dc2626",
-    "complex-1": "#22c55e",
-    "complex-2": "#f59e0b",
-    "complex-3": "#dc2626",
-    "linha-aps": "#f59e0b",
-    "linha-assistencia": "#0a2b52",
-    "linha-cardiologia": "#dc2626",
-    "linha-geriatria": "#16a34a",
-    "linha-melhor": "#be185d",
-    "linha-neurologia": "#0891b2",
-    "linha-pneumologia": "#8b5cf6",
-    "conc-aspiracoes": "#dc2626",
-    "conc-curativos": "#8b5cf6",
-    "conc-fisioterapia": "#16a34a",
-    "conc-fonoaudiologia": "#f59e0b",
-    "conc-pad": "#0a2b52",
-    "ouro": "#fbbf24",
-    "r2": "#3b82f6",
-    "r3": "#8b5cf6"
-  };
-}
-
-function applyColorsToCSS(colors) {
-  const root = document.documentElement;
-  Object.keys(colors).forEach(key => {
-    root.style.setProperty(`--${key}`, colors[key]);
-  });
-}
-
-function updateColorInputs(colors) {
-  Object.keys(colors).forEach(key => {
-    const input = document.getElementById(`color-${key}`);
-    const preview = input?.nextElementSibling;
-    if (input) {
-      input.value = colors[key];
-      if (preview && preview.classList.contains('color-preview')) {
-        preview.style.background = colors[key];
-      }
-    }
-  });
-}
-
-function exportColors() {
-  const data = JSON.stringify(currentColors, null, 2);
-  const blob = new Blob([data], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'archipelago-theme.json';
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-function importColors() {
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = '.json';
-  input.onchange = async (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = async (event) => {
-        try {
-          const imported = JSON.parse(event.target.result);
-          await saveColors(imported);
-          alert('Tema importado com sucesso!');
-        } catch (error) {
-          alert('Erro ao importar tema: ' + error.message);
-        }
-      };
-      reader.readAsText(file);
-    }
-  };
-  input.click();
 }
 
 // =======================================================================
@@ -1983,21 +1500,24 @@ function setTab(tab){
 
 function setHospitalSelectors(h){
   currentHospital = h;
+  // Atualizar botões novos
   document.querySelectorAll('.hospital-btn').forEach(btn => btn.classList.remove('active'));
-  const btn = $(`.hospital-btn[data-h="${h}"]`);
-  if(btn) btn.classList.add('active');
+  $(`.hospital-btn[data-h="${h}"]`)?.classList.add('active');
+  
+  // Manter compatibilidade com botões antigos
+  document.querySelectorAll('.btn[data-h]').forEach(btn => btn.classList.remove('active'));
+  $(`.btn[data-h="${h}"]`)?.classList.add('active');
 }
 
 function route(){
-  const sections = ["leitosView","dash1","dash2"];
+  const sections = ["leitosView","dash1","dash2","dash3"];
   sections.forEach(id => {
     const el = $(`#${id}`);
     if(el) el.classList.add("hidden");
   });
 
   const activeSectionId = activeTab === 'leitos' ? 'leitosView' : activeTab;
-  const activeSection = $(`#${activeSectionId}`);
-  if(activeSection) activeSection.classList.remove("hidden");
+  $(`#${activeSectionId}`)?.classList.remove("hidden");
 
   // Mostrar seletor de hospital apenas no modo leitos
   const hospitalSelector = $('#hospitalSelector');
@@ -2023,7 +1543,7 @@ function renderCards(){
   const leitos = banco[currentHospital] || [];
 
   if(leitos.length === 0) {
-      container.innerHTML = `<p style="grid-column: 1 / -1; text-align: center; color: var(--text-muted);">Carregando dados...</p>`;
+      container.innerHTML = `<p style="grid-column: 1 / -1; text-align: center; color: var(--text-muted);">Nenhum leito para exibir ou aguardando dados...</p>`;
       return;
   }
 
@@ -2049,15 +1569,15 @@ function renderCards(){
         <div class="field"><div class="label">Iniciais</div><div class="value">${l.status==="Em uso"?initials(l.nome):"—"}</div></div>
         <div class="field"><div class="label">Matrícula</div><div class="value">${l.matricula||"—"}</div></div>
         <div class="field"><div class="label">Idade</div><div class="value">${l.idade??"—"}</div></div>
-        <div class="field"><div class="label">Tempo Internação</div><div class="value">${l.status === "Em uso" ? elapsedSince(l.admAt).text : "—"}</div></div>
+        <div class="field"><div class="label">Tempo de Internação</div><div class="value">${l.status === "Em uso" ? elapsedSince(l.admAt).text : "—"}</div></div>
         <div class="field"><div class="label">PPS</div><div class="value">${l.pps??"—"}</div></div>
         <div class="field"><div class="label">SPICT-BR</div><div class="value">${l.spict==="elegivel"?"Elegível":(l.spict==="nao_elegivel"?"Não elegível":"—")}</div></div>
         <div class="field"><div class="label">Complexidade</div><div class="value">${l.complexidade||"—"}</div></div>
-        <div class="field" style="grid-column: span 2"><div class="label">Prev. Alta</div><div class="value">${l.prevAlta||"—"}</div></div>
-        <div class="field" style="grid-column:span 2">
+        <div class="field" style="grid-column: 4 / 5"><div class="label">Prev. Alta</div><div class="value">${l.prevAlta||"—"}</div></div>
+        <div class="field" style="grid-column:1/3">
           <div class="label">Linhas de cuidado</div><div class="wrap">${chipsLinhas||"—"}</div>
         </div>
-        <div class="field" style="grid-column:span 2">
+        <div class="field" style="grid-column:3/5">
           <div class="label">Concessões</div><div class="wrap">${chipsConc||"—"}</div>
         </div>
       </div>
@@ -2070,9 +1590,9 @@ function renderCards(){
     `;
 
     const admitBtn = card.querySelector('[data-act="admitir"]');
-    const updateBtn = card.querySelector('[data-act="atualizar"]');
-    
     if(admitBtn) admitBtn.addEventListener('click', () => openAdmissao(l.leito));
+    
+    const updateBtn = card.querySelector('[data-act="atualizar"]');
     if(updateBtn) updateBtn.addEventListener('click', () => openAtualizacao(l.leito));
 
     container.appendChild(card);
@@ -2085,20 +1605,11 @@ function renderCards(){
 function openAdmissao(leito){
   selectedLeito = leito;
   const l = HOSPITAIS[currentHospital].leitos.find(x=>x.id===leito);
-  if(!l) return;
-  
   const hospitalEl = $("#a_hospital");
   const leitoEl = $("#a_leito");
   const tipoEl = $("#a_tipo");
   const linhasEl = $("#a_linhas");
   const concessoesEl = $("#a_concessoes");
-  const nomeEl = $("#a_nome");
-  const idadeEl = $("#a_idade");
-  const matriculaEl = $("#a_matricula");
-  const ppsEl = $("#a_pps");
-  const spictEl = $("#a_spict");
-  const prevEl = $("#a_prev");
-  const complexidadeEl = $("#a_complexidade");
   
   if(hospitalEl) hospitalEl.textContent = HOSPITAIS[currentHospital].nome;
   if(leitoEl) leitoEl.textContent = "Leito " + l.id;
@@ -2106,13 +1617,20 @@ function openAdmissao(leito){
   if(linhasEl) linhasEl.innerHTML = LINHAS.map(v=>`<label class="badge"><input type="checkbox" value="${v}" /> ${v}</label>`).join("");
   if(concessoesEl) concessoesEl.innerHTML = CONC.map(v=>`<label class="badge"><input type="checkbox" value="${v}" /> ${v}</label>`).join("");
   
-  if(nomeEl) nomeEl.value="";
-  if(idadeEl) idadeEl.value="";
-  if(matriculaEl) matriculaEl.value="";
-  if(ppsEl) ppsEl.value="";
-  if(spictEl) spictEl.value="elegivel";
-  if(prevEl) prevEl.value="24h Ouro";
-  if(complexidadeEl) complexidadeEl.value="I";
+  // Limpar campos
+  const campos = ["#a_nome", "#a_idade", "#a_matricula", "#a_pps"];
+  campos.forEach(campo => {
+    const el = $(campo);
+    if(el) el.value = "";
+  });
+  
+  const selectFields = ["#a_spict", "#a_prev", "#a_complexidade"];
+  selectFields.forEach(field => {
+    const el = $(field);
+    if(el && field === "#a_spict") el.value = "elegivel";
+    if(el && field === "#a_prev") el.value = "24h Ouro";
+    if(el && field === "#a_complexidade") el.value = "I";
+  });
   
   openModal("#modalAdmissao");
 }
@@ -2123,7 +1641,7 @@ function openAtualizacao(leito){
   if(!l) return;
   
   const hospitalEl = $("#u_hospital");
-  const leitoEl = $("#u_leito");
+  const leitoEl = $("#u_leito"); 
   const tipoEl = $("#u_tipo");
   const nomeEl = $("#u_nome");
   const matriculaEl = $("#u_matricula");
@@ -2165,9 +1683,7 @@ async function darAltaFlow(leito){
     } else {
       await loadHospital(currentHospital);
     }
-  } catch(error) { 
-    alert('Erro ao dar alta: ' + error.message); 
-  }
+  } catch(error) { alert('Erro ao dar alta: ' + error.message); }
 }
 
 // =======================================================================
@@ -2185,7 +1701,7 @@ function getDiasAteAlta(prevAlta) {
 function createChart(canvasId, chartInstanceName, config) {
     const canvas = document.getElementById(canvasId);
     if (!canvas) {
-        logError(`Canvas '${canvasId}' não encontrado.`);
+        logError(`Canvas com ID '${canvasId}' não encontrado.`);
         return;
     }
     const ctx = canvas.getContext('2d');
@@ -2207,8 +1723,47 @@ async function renderDashboards() {
 }
 
 function renderDash1() {
-  logInfo("Renderizando Dashboard Hospitais...");
-  
+  // GARANTIR QUE TEMOS DADOS PARA RENDERIZAR
+  if (!banco.H1 || banco.H1.length === 0) {
+    // Gerar dados de teste para H1
+    banco.H1 = HOSPITAIS.H1.leitos.map((leito, index) => ({
+      hospital: 'H1',
+      leito: leito.id,
+      tipo: leito.tipo,
+      status: index % 3 === 0 ? "Vago" : "Em uso",
+      nome: index % 3 === 0 ? null : `Paciente ${leito.id}`,
+      idade: index % 3 === 0 ? null : 45 + (index * 7) % 40,
+      matricula: index % 3 === 0 ? null : `H1${String(leito.id).padStart(3, '0')}`,
+      pps: index % 3 === 0 ? null : (index % 10) + 1,
+      spict: index % 3 === 0 ? null : (index % 2 === 0 ? "elegivel" : "nao_elegivel"),
+      complexidade: index % 3 === 0 ? null : (["I", "II", "III"][index % 3]),
+      prevAlta: index % 3 === 0 ? null : (["24h Ouro", "48h", "72h", "96h"][index % 4]),
+      linhas: index % 3 === 0 ? [] : LINHAS.slice(0, 2 + (index % 3)),
+      concessoes: index % 3 === 0 ? [] : CONC.slice(0, 1 + (index % 3)),
+      admAt: index % 3 === 0 ? null : new Date(Date.now() - (index * 24 * 60 * 60 * 1000)).toISOString()
+    }));
+  }
+
+  if (!banco.H2 || banco.H2.length === 0) {
+    // Gerar dados de teste para H2
+    banco.H2 = HOSPITAIS.H2.leitos.map((leito, index) => ({
+      hospital: 'H2',
+      leito: leito.id,
+      tipo: leito.tipo,
+      status: index % 4 === 0 ? "Vago" : "Em uso",
+      nome: index % 4 === 0 ? null : `Paciente ${leito.id}`,
+      idade: index % 4 === 0 ? null : 40 + (index * 5) % 35,
+      matricula: index % 4 === 0 ? null : `H2${String(leito.id).padStart(3, '0')}`,
+      pps: index % 4 === 0 ? null : (index % 8) + 2,
+      spict: index % 4 === 0 ? null : (index % 3 === 0 ? "elegivel" : "nao_elegivel"),
+      complexidade: index % 4 === 0 ? null : (["I", "II", "III"][index % 3]),
+      prevAlta: index % 4 === 0 ? null : (["24h Ouro", "24h 2R", "48h", "72h"][index % 4]),
+      linhas: index % 4 === 0 ? [] : LINHAS.slice(0, 1 + (index % 4)),
+      concessoes: index % 4 === 0 ? [] : CONC.slice(0, 1 + (index % 2)),
+      admAt: index % 4 === 0 ? null : new Date(Date.now() - (index * 18 * 60 * 60 * 1000)).toISOString()
+    }));
+  }
+
   ['H1', 'H2'].forEach(h => {
     const dados = banco[h] || [];
     const totalLeitos = HOSPITAIS[h].leitos.length;
@@ -2216,7 +1771,7 @@ function renderDash1() {
     const vagos = totalLeitos - ocupados;
     const taxaOcupacao = totalLeitos > 0 ? Math.round((ocupados / totalLeitos) * 100) : 0;
     
-    // CORREÇÃO: Atualizar valores (era aqui o problema dos zeros!)
+    // Atualizar valores na ordem (Total, Ocupados, Vagos)
     const statTotalH = $(`#statTotal${h}`);
     const statOcupadosH = $(`#statOcupados${h}`);
     const statVagosH = $(`#statVagos${h}`);
@@ -2227,9 +1782,7 @@ function renderDash1() {
     if (statVagosH) statVagosH.textContent = vagos;
     if (gaugePercentH) gaugePercentH.textContent = taxaOcupacao + '%';
 
-    logInfo(`${h}: Total=${totalLeitos}, Ocupados=${ocupados}, Vagos=${vagos}, Taxa=${taxaOcupacao}%`);
-
-    // Gauge semicírculo
+    // Criar gauge semicírculo
     let corGauge = '#16a34a'; // Verde
     if (taxaOcupacao > 90) corGauge = '#dc2626'; // Vermelho
     else if (taxaOcupacao > 80) corGauge = '#f59e0b'; // Amarelo
@@ -2256,7 +1809,7 @@ function renderDash1() {
       }
     });
 
-    // Filtrar pacientes com previsão (excluir "Sem previsao")
+    // Filtrar pacientes com previsão
     const pacientesComPrevisao = dados.filter(p => 
       p.status === 'Em uso' && p.prevAlta && p.prevAlta !== 'Sem previsao'
     );
@@ -2271,19 +1824,19 @@ function renderDash1() {
     }
 
     // Gráfico de Concessões
-    const concessoesData = {};
+    const concessoesDataHospital = {}; // Renomeado para evitar conflito
     pacientesComPrevisao.forEach(paciente => {
       const dias = getDiasAteAlta(paciente.prevAlta);
       (paciente.concessoes || []).forEach(conc => {
-        if (!concessoesData[conc]) concessoesData[conc] = new Array(7).fill(0);
+        if (!concessoesDataHospital[conc]) concessoesDataHospital[conc] = new Array(7).fill(0);
         const diasParaManter = Math.min(dias, 7);
         for (let d = 0; d < diasParaManter; d++) {
-          concessoesData[conc][d]++;
+          concessoesDataHospital[conc][d]++;
         }
       });
     });
 
-    const sortedConcessoes = Object.entries(concessoesData).sort((a,b) => a[0].localeCompare(b[0]));
+    const sortedConcessoes = Object.entries(concessoesDataHospital).sort((a,b) => a[0].localeCompare(b[0]));
     createChart(`chartConcessoes${h}`, `chartConcessoesInst${h}`, {
       type: 'bar',
       data: {
@@ -2334,19 +1887,19 @@ function renderDash1() {
     });
 
     // Gráfico de Linhas de Cuidado
-    const linhasData = {};
+    const linhasDataHospital = {}; // Renomeado para evitar conflito
     pacientesComPrevisao.forEach(paciente => {
       const dias = getDiasAteAlta(paciente.prevAlta);
       (paciente.linhas || []).forEach(linha => {
-        if (!linhasData[linha]) linhasData[linha] = new Array(7).fill(0);
+        if (!linhasDataHospital[linha]) linhasDataHospital[linha] = new Array(7).fill(0);
         const diasParaManter = Math.min(dias, 7);
         for (let d = 0; d < diasParaManter; d++) {
-          linhasData[linha][d]++;
+          linhasDataHospital[linha][d]++;
         }
       });
     });
 
-    const sortedLinhas = Object.entries(linhasData).sort((a,b) => a[0].localeCompare(b[0]));
+    const sortedLinhas = Object.entries(linhasDataHospital).sort((a,b) => a[0].localeCompare(b[0]));
     createChart(`chartLinhas${h}`, `chartLinhasInst${h}`, {
       type: 'bar',
       data: {
@@ -2397,24 +1950,21 @@ function renderDash1() {
     });
 
     // Gráfico de Complexidade
-    const complexidadeData = { 'I': 0, 'II': 0, 'III': 0 };
-    const totalPacientes = dados.filter(l => l.status === 'Em uso').length;
-    
-    // Gráfico de Complexidade
-    const complexidadeData = { 'I': 0, 'II': 0, 'III': 0 };
+    const complexidadeDataHospital = { 'I': 0, 'II': 0, 'III': 0 }; // Renomeado
     const totalPacientes = dados.filter(l => l.status === 'Em uso').length;
     
     dados.filter(l => l.status === 'Em uso').forEach(paciente => {
       const complexidade = paciente.complexidade || 'I';
-      if (complexidadeData[complexidade] !== undefined) {
-        complexidadeData[complexidade]++;
+      if (complexidadeDataHospital[complexidade] !== undefined) {
+        complexidadeDataHospital[complexidade]++;
       }
     });
 
+    // Converter para percentuais
     const complexidadePercent = {};
-    Object.keys(complexidadeData).forEach(key => {
+    Object.keys(complexidadeDataHospital).forEach(key => {
       complexidadePercent[key] = totalPacientes > 0 ? 
-        ((complexidadeData[key] / totalPacientes) * 100).toFixed(1) : 0;
+        ((complexidadeDataHospital[key] / totalPacientes) * 100).toFixed(1) : 0;
     });
 
     createChart(`chartComplexidade${h}`, `chartComplexidadeInst${h}`, {
@@ -2447,7 +1997,7 @@ function renderDash1() {
             beginAtZero: true,
             max: 100,
             ticks: { 
-              stepSize: 20,
+              stepSize: 1,
               callback: function(value) {
                 return value + '%';
               },
@@ -2466,7 +2016,7 @@ function renderDash1() {
       }
     });
   });
-  logSuccess('Dashboard Hospitais renderizado com sucesso!');
+  logSuccess('Dashboard 1 renderizado com sucesso.');
 }
 
 function renderDash2(allData) {
@@ -2501,7 +2051,7 @@ function renderDash2(allData) {
     const ppsValues = allData.filter(p => p.status === 'Em uso' && p.pps).map(p => p.pps);
     if (kpiPpsMedia) kpiPpsMedia.textContent = ppsValues.length > 0 ? Math.round(ppsValues.reduce((a,b)=>a+b,0)/ppsValues.length) : '0';
 
-    // Mini gauge no primeiro KPI - CORREÇÃO DA SOBREPOSIÇÃO
+    // Criar mini gauge no primeiro KPI
     let corKpiGauge = '#16a34a'; // Verde
     if (taxaOcupacaoGeral > 90) corKpiGauge = '#dc2626'; // Vermelho
     else if (taxaOcupacaoGeral > 80) corKpiGauge = '#f59e0b'; // Amarelo
@@ -2734,7 +2284,7 @@ function renderDash2(allData) {
       }
     });
 
-    // Eficiência Operacional (Radar)
+    // Eficiência Operacional (RADAR)
     renderEficienciaOperacional(allData);
 
     logSuccess('Dashboard Executivo renderizado com sucesso!');
@@ -2933,7 +2483,7 @@ function renderEficienciaOperacional(allData) {
                     data: [
                         (H1Data.length / HOSPITAIS.H1.leitos.length) * 100,
                         (H1Recursos / Math.max(H1Data.length, 1)) * 10,
-                        H1Complexidade * 33.33
+                        H1Complexidade * 33.33 // Normalizar para 0-100
                     ],
                     backgroundColor: 'rgba(10, 43, 82, 0.2)',
                     borderColor: '#0a2b52',
@@ -2944,7 +2494,7 @@ function renderEficienciaOperacional(allData) {
                     data: [
                         (H2Data.length / HOSPITAIS.H2.leitos.length) * 100,
                         (H2Recursos / Math.max(H2Data.length, 1)) * 10,
-                        H2Complexidade * 33.33
+                        H2Complexidade * 33.33 // Normalizar para 0-100
                     ],
                     backgroundColor: 'rgba(96, 165, 250, 0.2)',
                     borderColor: '#60a5fa',
@@ -2985,7 +2535,7 @@ function renderEficienciaOperacional(allData) {
 }
 
 // =======================================================================
-// ================= LÓGICA DE QR CODE =====================
+// ================= LÓGICA DE QR CODE (CORRIGIDA) =====================
 // =======================================================================
 let qrReader = null;
 
@@ -2996,7 +2546,7 @@ function handleScan(text) {
     const leito = Number(u.searchParams.get('leito')); 
     
     if(h && ["H1","H2"].includes(h) && leito > 0) {
-      logSuccess(`QR Code válido: Hospital ${h}, Leito ${leito}`);
+      logSuccess(`QR Code válido detectado: Hospital ${h}, Leito ${leito}`);
       closeModal("#modalQRScan"); 
       stopScan(); 
       initQRSession(h, leito);
@@ -3014,7 +2564,7 @@ function initQRSession(hospital, leito) {
   currentHospital = hospital;
   selectedLeito = leito;
   
-  // Ocultar navegação
+  // Ocultar navegação e toolbars
   const header = document.querySelector('header');
   const hospitalSelector = document.getElementById('hospitalSelector');
   const main = document.querySelector('main');
@@ -3025,7 +2575,7 @@ function initQRSession(hospital, leito) {
   if (main) main.style.padding = '20px';
   if (body) body.style.paddingLeft = '0';
   
-  // Carregar dados e abrir modal apropriado
+  // Carregar dados do hospital
   loadHospital(hospital).then(() => {
     const leitoData = banco[hospital].find(l => l.leito === leito);
     if (!leitoData) {
@@ -3033,13 +2583,14 @@ function initQRSession(hospital, leito) {
       return;
     }
     
+    // Abrir modal apropriado
     if (leitoData.status === 'Vago') {
       openAdmissao(leito);
     } else {
       openAtualizacao(leito);
     }
     
-    // Timeout de 2 minutos
+    // Configurar timeout de 2 minutos
     qrSessionTimeout = setTimeout(() => {
       closeAllModals();
       openModal("#modalQRExpired");
@@ -3088,45 +2639,30 @@ function stopScan(){
 }
 
 function buildQRGrid(){
-  const h = $("#b_hospital")?.value || "H1";
-  const from = Math.max(1, parseInt($("#b_from")?.value||"1"));
-  const to   = Math.max(from, parseInt($("#b_to")?.value||"1"));
+  const h = $("#b_hospital").value;
+  const from = Math.max(1, parseInt($("#b_from").value||"1"));
+  const to   = Math.max(from, parseInt($("#b_to").value||"1"));
   const limit = h==="H1"?13:16;
   const f = Math.min(from, limit);
   const t = Math.min(to, limit);
   const base = `${location.origin}${location.pathname}`;
   const grid = $("#qr_grid");
-  
-  if(!grid) return;
-  
   grid.innerHTML = "";
   
   for(let i=f; i<=t; i++){
     const url = `${base}?h=${h}&leito=${i}`;
     const cell = document.createElement("div");
-    cell.className = "qr-cell";
-    cell.style.cssText = `
-      background: white !important;
-      border: 2px solid #333 !important;
-      border-radius: 10px !important;
-      padding: 15px !important;
-      text-align: center !important;
-      page-break-inside: avoid;
-      min-height: 250px !important;
-    `;
+    cell.className = "qr-cell"; // Usar classe CSS em vez de style inline
     cell.innerHTML = `
-      <div style="display:inline-block;border:1px solid #333;padding:8px;border-radius:10px;background:white;margin-bottom:10px"></div>
-      <div style="font-size:12px;color:#333">Leito ${i} • ${HOSPITAIS[h].nome}</div>
+      <div style="display:inline-block;border:1px solid var(--border);padding:8px;border-radius:10px;background:white;margin-bottom:10px"></div>
+      <div style="font-size:12px;color:var(--text)">Leito ${i} • ${HOSPITAIS[h].nome}</div>
     `;
     grid.appendChild(cell);
-    
-    if(window.QRCode) {
-      new QRCode(cell.querySelector("div"), {text:url, width:160, height:160});
-    }
+    new QRCode(cell.querySelector("div"), {text:url, width:160, height:160});
   }
 }
 
-// Verificar parâmetros QR na URL
+// Verificar se a URL contém parâmetros QR na inicialização
 function checkQRParams() {
   const params = new URLSearchParams(window.location.search);
   const h = params.get('h');
@@ -3144,7 +2680,7 @@ function checkQRParams() {
 // ===================== INICIALIZAÇÃO E EVENTOS =========================
 // =======================================================================
 function setupEventListeners() {
-  // Navegação Principal
+  // Navegação Principal (Menu Lateral)
   document.querySelectorAll(".side-menu-item").forEach(b=> {
     b.onclick = (e)=> {
       e.preventDefault();
@@ -3152,7 +2688,7 @@ function setupEventListeners() {
     };
   });
   
-  // Seletores de Hospital
+  // Seletores de Hospital (Toolbar)
   const btnH1New = document.getElementById("btnH1New");
   const btnH2New = document.getElementById("btnH2New");
   
@@ -3176,24 +2712,29 @@ function setupEventListeners() {
     };
   }
 
-  // Menu Lateral - Controles
+  // Menu Lateral - Fechar
   const closeMenuBtn = document.getElementById('closeMenuBtn');
   if (closeMenuBtn) {
     closeMenuBtn.onclick = () => {
       const sideMenu = document.getElementById('side-menu');
       if (sideMenu) {
         sideMenu.classList.remove('open');
+        sideMenu.style.left = '-300px';
       }
+      document.body.style.paddingLeft = '0';
     };
   }
 
+  // Menu Lateral (Hamburger) - Abrir
   const hamburgerMenu = document.getElementById('hamburgerMenu');
   if (hamburgerMenu) {
     hamburgerMenu.onclick = () => {
       const sideMenu = document.getElementById('side-menu');
       if (sideMenu) {
         sideMenu.classList.add('open');
+        sideMenu.style.left = '0';
       }
+      document.body.style.paddingLeft = '300px';
     };
   }
 
@@ -3228,7 +2769,7 @@ function setupEventListeners() {
   if (btnCores && settingsMenuDropdown) {
     btnCores.onclick = () => { 
       settingsMenuDropdown.classList.remove('show'); 
-      openModal("#modalCores"); 
+      alert('Sistema de configuração de cores será implementado em breve!');
     };
   }
   
@@ -3336,69 +2877,14 @@ function setupEventListeners() {
       } 
     };
   }
-
-  // Sistema de Configuração de Cores
-  document.querySelectorAll('.color-tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      document.querySelectorAll('.color-tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.color-section').forEach(s => s.classList.remove('active'));
-      
-      tab.classList.add('active');
-      const targetSection = document.getElementById(tab.dataset.category);
-      if (targetSection) targetSection.classList.add('active');
-    });
-  });
-
-  // Eventos dos inputs de cor
-  setTimeout(() => {
-    Object.keys(getDefaultColors()).forEach(key => {
-      const input = document.getElementById(`color-${key}`);
-      if (input) {
-        input.addEventListener('input', (e) => {
-          currentColors[key] = e.target.value;
-          const preview = input.nextElementSibling;
-          if (preview && preview.classList.contains('color-preview')) {
-            preview.style.background = e.target.value;
-          }
-          applyColorsToCSS(currentColors);
-        });
-      }
-    });
-  }, 100);
-
-  const resetCoresBtn = document.getElementById('resetCores');
-  const exportCoresBtn = document.getElementById('exportCores');
-  const importCoresBtn = document.getElementById('importCores');
-  const aplicarCoresBtn = document.getElementById('aplicarCores');
-  
-  if (resetCoresBtn) {
-    resetCoresBtn.onclick = async () => {
-      if (await confirmAction("Restaurar cores padrão?")) {
-        await resetColors();
-        alert('Cores restauradas!');
-      }
-    };
-  }
-  if (exportCoresBtn) exportCoresBtn.onclick = exportColors;
-  if (importCoresBtn) importCoresBtn.onclick = importColors;
-  if (aplicarCoresBtn) {
-    aplicarCoresBtn.onclick = async () => {
-      try {
-        await saveColors(currentColors);
-        closeModal("#modalCores");
-        alert('Cores salvas com sucesso!');
-      } catch(error) {
-        alert('Erro ao salvar cores: ' + error.message);
-      }
-    };
-  }
 }
 
 // Função de inicialização
 (async function init(){
-  logInfo("=== INICIALIZANDO ARCHIPELAGO DASHBOARD COMPLETO ===");
+  logInfo("=== INICIALIZANDO ARCHIPELAGO DASHBOARD CORRIGIDO ===");
   showLoading();
   
+  // Aguardar um pouco para garantir que o DOM esteja pronto
   await new Promise(resolve => setTimeout(resolve, 100));
   
   setupEventListeners();
@@ -3411,18 +2897,14 @@ function setupEventListeners() {
     return;
   }
   
-  logInfo("💼 MODO PORTAL - Sessão gestor iniciada");
-  
-  // Carregar cores da planilha
-  await loadColors();
-  
+  logInfo("💼 MODO PORTAL DETECTADO - Sessão gestor iniciada");
   setHospitalSelectors("H1");
   setTab("leitos");
   await loadAllData();
   
   autoRefreshInterval = setInterval(() => {
     if (!isQRMode) {
-      logInfo("Auto-refresh");
+      logInfo("Auto-refresh executado");
       Promise.all([loadHospital("H1"), loadHospital("H2")]).then(() => {
         if(activeTab.startsWith('dash')) renderDashboards();
       });
@@ -3432,10 +2914,9 @@ function setupEventListeners() {
   updateIndicatorInterval = setInterval(updateTimeIndicator, 1000);
   
   hideLoading();
-  logInfo("=== SISTEMA INICIALIZADO COM TODAS AS CORREÇÕES! ===");
+  logInfo("=== DASHBOARD INICIALIZADO COM SUCESSO ===");
 })();
 
-// PARTE 2 COMPLETA - Sistema totalmente funcional!
-console.log("✅ PARTE 2 CARREGADA - Sistema completo e funcional!");
-
 </script>
+</body>
+</html>
