@@ -3270,9 +3270,9 @@
             padding-top: 80px;
         }
         
-        /* Sidebar colapsada - PARCIAL (não desaparece totalmente) */
+        /* Sidebar colapsada - DESAPARECE COMPLETAMENTE */
         .layout-v3 #side-menu.collapsed {
-            left: -200px; /* Deixa 50px visíveis */
+            left: -250px; /* ESCONDE TOTALMENTE */
         }
         
         /* Body COM sidebar */
@@ -3280,9 +3280,9 @@
             padding-left: 250px;
         }
         
-        /* Body COM sidebar colapsada */
+        /* Body COM sidebar colapsada - SEM padding */
         .layout-v3 body.sidebar-collapsed {
-            padding-left: 50px; /* Mantém espaço para a parte visível */
+            padding-left: 0; /* SEM espaço quando escondida */
         }
         
         /* GARANTIR QUE HEADER SEMPRE APAREÇA */
@@ -3609,7 +3609,7 @@ function setupAllEvents() {
     console.log('✅ [V3 COMPLETE] Eventos configurados');
 }
 
-// 3. COLAPSAR SIDEBAR (PARCIALMENTE)
+// 3. COLAPSAR SIDEBAR (COMPLETAMENTE)
 function collapseSidebar() {
     if (!document.body.classList.contains('layout-v3')) return;
     
@@ -3617,14 +3617,14 @@ function collapseSidebar() {
     const body = document.body;
     
     if (sideMenu) {
-        // Colapsar PARCIALMENTE (não desaparece totalmente)
+        // Colapsar COMPLETAMENTE (desaparece totalmente)
         sideMenu.classList.add('collapsed');
         body.classList.remove('side-menu-open');
         body.classList.add('sidebar-collapsed');
         
         sidebarState.isCollapsed = true;
         
-        console.log('📌 [V3 COMPLETE] Sidebar colapsada PARCIALMENTE');
+        console.log('🚪 [V3 COMPLETE] Sidebar ESCONDIDA COMPLETAMENTE');
     }
 }
 
