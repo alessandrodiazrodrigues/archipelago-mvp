@@ -1415,6 +1415,58 @@ async function loadAllData() {
   ]);
 }
 
+function processarDadosLeito(dadosBrutos) {
+  // Função para processar e mapear corretamente os dados de cada leito
+  return dadosBrutos.map(leito => {
+    // Se os dados vierem da API como objeto estruturado
+    if (typeof leito === 'object' && leito !== null) {
+      return {
+        hospital: leito.hospital || leito.H || '',
+        leito: parseInt(leito.leito || leito.bed || leito.id || 0),
+        tipo: leito.tipo || leito.type || 'Enfermaria/Apto',
+        status: leito.status || 'Vago',
+        nome: leito.nome || leito.name || null,
+        idade: parseInt(leito.idade || leito.age || 0) || null,
+        matricula: leito.matricula || leito.registration || null,
+        pps: parseInt(leito.pps || 0) || null,
+        spict: leito.spict || 'nao_elegivel',
+        complexidade: leito.complexidade || leito.complexity || null,
+        prevAlta: leito.prevAlta || leito.discharge || null,
+        linhas: Array.isArray(leito.linhas) ? leito.linhas : 
+                (typeof leito.linhas === 'string' && leito.linhas !== 'Sem previsao') ? 
+                leito.linhas.split(',').map(l => l.trim()).filter(l => l && l !== 'Sem previsao') : [],
+        concessoes: Array.isArray(leito.concessoes) ? leito.concessoes : 
+                   (typeof leito.concessoes === 'string') ? 
+                   leito.concessoes.split(',').map(c => c.trim()).filter(c => c) : [],
+        admAt: leito.admAt || leito.admission || null
+      };
+    }
+    
+    // Se os dados vierem como array (da planilha)
+    if (Array.isArray(leito)) {
+      return {
+        hospital: leito[0] || '',
+        leito: parseInt(leito[1]) || 0,
+        tipo: leito[2] || 'Enfermaria/Apto', 
+        status: leito[3] || 'Vago',
+        nome: leito[4] || null,
+        matricula: leito[5] || null,
+        idade: parseInt(leito[6]) || null,
+        admAt: leito[7] || null,
+        pps: parseInt(leito[8]) || null,
+        spict: leito[9] || 'nao_elegivel',
+        complexidade: leito[10] || null,  // Coluna K = complexidade
+        prevAlta: leito[11] || null,      // Coluna L = prevAlta  
+        linhas: (leito[12] && leito[12] !== 'Sem previsao') ? 
+               leito[12].split(',').map(l => l.trim()).filter(l => l) : [],
+        concessoes: leito[13] ? 
+                   leito[13].split(',').map(c => c.trim()).filter(c => c) : []
+      };
+    }
+    
+    return leito; // Retorna como está se não conseguir processar
+  });
+}
 async function loadHospital(h) {
   logInfo(`Iniciando carregamento do hospital: ${h}`);
   try {
@@ -1424,37 +1476,65 @@ async function loadHospital(h) {
     const json = await res.json();
     if(!json.ok) throw new Error(json.error || 'Resposta da API indica erro');
     
-    banco[h] = json.data;
+    // CORREÇÃO: Processar dados corretamente
+    banco[h] = processarDadosLeito(json.data);
     lastUpdateTime = Date.now();
-    logSuccess(`Dados carregados com sucesso para ${h}. Total de leitos: ${json.data.length}`);
+    logSuccess(`Dados carregados com sucesso para ${h}. Total de leitos: ${banco[h].length}`);
     
     if (activeTab === 'leitos') renderCards();
   } catch(error) {
     logError(`Erro ao carregar hospital ${h}:`, error);
     
-    // DADOS DE TESTE CORRIGIDOS PARA DEMONSTRAÇÃO
-    const dadosTeste = HOSPITAIS[h].leitos.map((leito, index) => {
+    // DADOS DE TESTE CORRIGIDOS - SIMULANDO ESTRUTURA DA PLANILHA
+    const dadosTesteEstruturados = [];
+    
+    // Simular dados como se viessem da planilha (baseado na imagem que você mostrou)
+    HOSPITAIS[h].leitos.forEach((leito, index) => {
       const isOcupado = index % 3 !== 0;
-      return {
-        hospital: h,
-        leito: leito.id,
-        tipo: leito.tipo,
-        status: isOcupado ? "Em uso" : "Vago",
-        nome: isOcupado ? `Paciente ${leito.id}` : null,
-        idade: isOcupado ? 45 + (index * 7) % 40 : null,
-        matricula: isOcupado ? `${h}${String(leito.id).padStart(3, '0')}` : null,
-        pps: isOcupado ? (index % 10) + 1 : null,
-        spict: isOcupado ? (index % 2 === 0 ? "elegivel" : "nao_elegivel") : null,
-        complexidade: isOcupado ? (["I", "II", "III"][index % 3]) : null,
-        prevAlta: isOcupado ? (["24h Ouro", "48h", "72h", "96h", "Sem previsao"][index % 5]) : null,
-        linhas: isOcupado ? LINHAS.slice(0, Math.max(1, (index % 4))) : [],
-        concessoes: isOcupado ? CONC.slice(0, Math.max(1, (index % 3))) : [],
-        admAt: isOcupado ? new Date(Date.now() - (index * 24 * 60 * 60 * 1000)).toISOString() : null
-      };
+      
+      if (isOcupado) {
+        // Dados de exemplo baseados na sua planilha
+        const exemplosPacientes = [
+          ["H1", 1, "Enfermaria/Apto", "Em uso", "Patricia Santos Costa", "894599", 84, "2025-08-20T19:38:25.902Z", 8, "elegivel", "II", "Sem previsao", "Pneumologia", "Curativos"],
+          ["H1", 2, "Enfermaria/Apto", "Em uso", "Lucas Mendes Costa", "523668", 89, "2025-08-22T19:38:25.902Z", 10, "nao_elegivel", "I", "24h Ouro", "Melhor Cuidado,Geriatria", "Fisioterapia,Fonoaudiologia"],
+          ["H1", 3, "Enfermaria/Apto", "Em uso", "Mariana Pereira", "948198", 80, "2025-08-27T19:38:25.902Z", 2, "elegivel", "II", "48h", "APS", "Fisioterapia"],
+        ];
+        
+        const exemploBase = exemplosPacientes[index % exemplosPacientes.length];
+        
+        dadosTesteEstruturados.push([
+          h,                                           // hospital
+          leito.id,                                   // leito  
+          leito.tipo,                                 // tipo
+          "Em uso",                                   // status
+          `${exemploBase[4].split(' ')[0]} ${leito.id}`, // nome
+          `${h}${String(leito.id).padStart(6, '0')}`, // matricula
+          45 + (index * 7) % 40,                      // idade
+          new Date(Date.now() - (index * 24 * 60 * 60 * 1000)).toISOString(), // admAt
+          (index % 10) + 1,                          // pps
+          index % 2 === 0 ? "elegivel" : "nao_elegivel", // spict
+          ["I", "II", "III"][index % 3],             // complexidade (posição 10)
+          ["24h Ouro", "48h", "72h", "96h", "Sem previsao"][index % 5], // prevAlta (posição 11)
+          LINHAS.slice(0, Math.max(1, (index % 4))).join(','), // linhas (posição 12)
+          CONC.slice(0, Math.max(1, (index % 3))).join(',')    // concessoes (posição 13)
+        ]);
+      } else {
+        // Leito vago
+        dadosTesteEstruturados.push([
+          h, leito.id, leito.tipo, "Vago", null, null, null, null, null, null, null, null, "", ""
+        ]);
+      }
     });
     
-    banco[h] = dadosTeste;
-    logWarning(`Usando dados de teste para ${h}`);
+    // Processar os dados de teste através da função de mapeamento
+    banco[h] = processarDadosLeito(dadosTesteEstruturados);
+    logWarning(`Usando dados de teste estruturados para ${h}. Total: ${banco[h].length}`);
+    
+    // Debug: Mostrar estrutura do primeiro paciente
+    const primeiroPaciente = banco[h].find(p => p.status === 'Em uso');
+    if (primeiroPaciente) {
+      logInfo(`Exemplo de paciente processado:`, primeiroPaciente);
+    }
     
     if (activeTab === 'leitos') renderCards();
   }
