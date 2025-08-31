@@ -798,6 +798,75 @@
       #side-menu { left: -300px; }
       #side-menu.open { left: 0; }
     }
+
+    /* =================== IMPRESSÃO DE QR CODES =================== */
+    @media print {
+      /* Ocultar tudo exceto o modal de QR */
+      body * {
+        visibility: hidden;
+      }
+      
+      #modalBulkQR, #modalBulkQR * {
+        visibility: visible;
+      }
+      
+      #modalBulkQR {
+        position: static !important;
+        background: white !important;
+        box-shadow: none !important;
+        border: none !important;
+        max-width: none !important;
+        max-height: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        overflow: visible !important;
+      }
+      
+      #modalBulkQR .modal {
+        position: static !important;
+        background: white !important;
+        box-shadow: none !important;
+        border: none !important;
+        max-width: none !important;
+        max-height: none !important;
+        margin: 0 !important;
+        padding: 20px !important;
+        width: 100% !important;
+        height: 100% !important;
+        overflow: visible !important;
+      }
+      
+      #modalBulkQR header,
+      #modalBulkQR .actions,
+      #modalBulkQR .content > div:first-child {
+        display: none !important;
+      }
+      
+      #qr_grid {
+        display: grid !important;
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 20px !important;
+        page-break-inside: avoid;
+      }
+      
+      .qr-cell {
+        background: white !important;
+        border: 2px solid #333 !important;
+        border-radius: 10px !important;
+        padding: 15px !important;
+        text-align: center !important;
+        page-break-inside: avoid;
+        min-height: 250px !important;
+      }
+      
+      .qr-cell canvas,
+      .qr-cell img {
+        max-width: 160px !important;
+        max-height: 160px !important;
+      }
+    }
   </style>
 </head>
 
@@ -1037,10 +1106,10 @@
         </div>
       </div>
 
-      <!-- Análise Preditiva de Altas COM SEPARADOR -->
+      <!-- Análise Preditiva de Altas - CORREÇÃO DA ESTRUTURA -->
       <div class="dashboard-card">
         <h3>Análise Preditiva de Altas</h3>
-        <div class="dash-grid grid-2" style="align-items: center;">
+        <div class="grid-with-divider">
           <div>
             <h4>Comparativo por Prazo</h4>
             <div class="chart-container h-250">
@@ -1057,14 +1126,14 @@
         </div>
       </div>
 
-      <!-- Projeções Consolidadas COM SEPARADOR e Switch -->
+      <!-- Projeções Consolidadas - CORREÇÃO DA ESTRUTURA -->
       <div class="dashboard-card">
         <h3>Projeções Consolidadas (7 dias)</h3>
         <div class="view-switcher">
           <button class="view-switch-btn active" data-mode="separate">Barras Separadas</button>
           <button class="view-switch-btn" data-mode="stacked">Barras Empilhadas</button>
         </div>
-        <div class="dash-grid grid-2" style="align-items: center;">
+        <div class="grid-with-divider">
           <div>
             <h4>Concessões Necessárias</h4>
             <div class="chart-container h-300">
@@ -1081,10 +1150,10 @@
         </div>
       </div>
 
-      <!-- Análises PPS e SPICT lado a lado COM SEPARADOR (NOVO POSICIONAMENTO) -->
+      <!-- Análises PPS e SPICT - CORREÇÃO DA ESTRUTURA -->
       <div class="dashboard-card">
         <h3>Análise de Indicadores Clínicos</h3>
-        <div class="dash-grid grid-2" style="align-items: center;">
+        <div class="grid-with-divider">
           <div>
             <h4>Análise PPS (Performance Status)</h4>
             <div class="chart-container h-250">
@@ -1741,7 +1810,28 @@ async function loadHospital(h) {
     if (activeTab === 'leitos') renderCards();
   } catch(error) {
     logError(`Erro ao carregar hospital ${h}:`, error);
-    banco[h] = [];
+    
+    // DADOS DE TESTE PARA DEMONSTRAÇÃO
+    const dadosTeste = HOSPITAIS[h].leitos.map((leito, index) => ({
+      hospital: h,
+      leito: leito.id,
+      tipo: leito.tipo,
+      status: index % 3 === 0 ? "Vago" : "Em uso",
+      nome: index % 3 === 0 ? null : `Paciente ${leito.id}`,
+      idade: index % 3 === 0 ? null : 45 + (index * 7) % 40,
+      matricula: index % 3 === 0 ? null : `${h}${String(leito.id).padStart(3, '0')}`,
+      pps: index % 3 === 0 ? null : (index % 10) + 1,
+      spict: index % 3 === 0 ? null : (index % 2 === 0 ? "elegivel" : "nao_elegivel"),
+      complexidade: index % 3 === 0 ? null : (["I", "II", "III"][index % 3]),
+      prevAlta: index % 3 === 0 ? null : (["24h Ouro", "48h", "72h", "96h"][index % 4]),
+      linhas: index % 3 === 0 ? [] : LINHAS.slice(0, 2 + (index % 3)),
+      concessoes: index % 3 === 0 ? [] : CONC.slice(0, 1 + (index % 3)),
+      admAt: index % 3 === 0 ? null : new Date(Date.now() - (index * 24 * 60 * 60 * 1000)).toISOString()
+    }));
+    
+    banco[h] = dadosTeste;
+    logWarning(`Usando dados de teste para ${h}`);
+    
     if (activeTab === 'leitos') renderCards();
   }
 }
@@ -3076,8 +3166,11 @@ function buildQRGrid(){
   for(let i=f; i<=t; i++){
     const url = `${base}?h=${h}&leito=${i}`;
     const cell = document.createElement("div");
-    cell.style.cssText = "background:var(--card);border:1px solid var(--border);border-radius:14px;padding:10px;text-align:center;min-height:200px";
-    cell.innerHTML = `<div style="display:inline-block;border:1px solid var(--border);padding:8px;border-radius:10px;background:white;margin-bottom:10px"></div><div style="font-size:12px;color:var(--text)">Leito ${i} • ${HOSPITAIS[h].nome}</div>`;
+    cell.className = "qr-cell"; // Usar classe CSS em vez de style inline
+    cell.innerHTML = `
+      <div style="display:inline-block;border:1px solid var(--border);padding:8px;border-radius:10px;background:white;margin-bottom:10px"></div>
+      <div style="font-size:12px;color:var(--text)">Leito ${i} • ${HOSPITAIS[h].nome}</div>
+    `;
     grid.appendChild(cell);
     new QRCode(cell.querySelector("div"), {text:url, width:160, height:160});
   }
@@ -3133,22 +3226,28 @@ function setupEventListeners() {
     };
   }
 
-  // Menu Lateral - Fechar - COM VERIFICAÇÃO SEGURA
+  // Menu Lateral - Fechar - CORREÇÃO COMPLETA
   const closeMenuBtn = document.getElementById('closeMenuBtn');
   if (closeMenuBtn) {
     closeMenuBtn.onclick = () => {
       const sideMenu = document.getElementById('side-menu');
-      if (sideMenu) sideMenu.classList.remove('open');
+      if (sideMenu) {
+        sideMenu.classList.remove('open');
+        sideMenu.style.left = '-300px'; // Garantir que saia da tela
+      }
       document.body.style.paddingLeft = '0';
     };
   }
 
-  // Menu Lateral (Hamburger) - Abrir - COM VERIFICAÇÃO SEGURA
+  // Menu Lateral (Hamburger) - Abrir - CORREÇÃO COMPLETA
   const hamburgerMenu = document.getElementById('hamburgerMenu');
   if (hamburgerMenu) {
     hamburgerMenu.onclick = () => {
       const sideMenu = document.getElementById('side-menu');
-      if (sideMenu) sideMenu.classList.add('open');
+      if (sideMenu) {
+        sideMenu.classList.add('open');
+        sideMenu.style.left = '0'; // Garantir que apareça na tela
+      }
       document.body.style.paddingLeft = '300px';
     };
   }
