@@ -857,7 +857,7 @@
   <!-- Header -->
   <header>
     <div class="header-left">
-      <div class="hamburger-menu">☰</div>
+      <div class="hamburger-menu" id="hamburgerMenu">☰</div>
       <div class="brand">
         <h1>Archipelago Dashboard</h1>
       </div>
@@ -1296,205 +1296,8 @@
           <div class="color-grid">
             <div class="color-item">
               <label>Sidebar (Menu Lateral)</label>
-              <div class="color-controls">
-                <input type="color" id="color-nav-sidebar" value="#0a0f1c">
-                <span class="color-preview" style="background: #0a0f1c"></span>
-                <div class="color-palette" data-target="color-nav-sidebar">
-                  <div class="palette-color" style="background: #0a0f1c" data-color="#0a0f1c"></div>
-                  <div class="palette-color" style="background: #000000" data-color="#000000"></div>
-                  <div class="palette-color" style="background: #1e3a8a" data-color="#1e3a8a"></div>
-                  <div class="palette-color" style="background: #1f2937" data-color="#1f2937"></div>
-                  <div class="palette-color" style="background: #374151" data-color="#374151"></div>
-                </div>
-                <button class="example-btn" data-example="nav-sidebar">Ver Exemplo</button>
-              </div>
-            </div>
-            <div class="color-item">
-              <label>Header (Barra Superior)</label>
-              <div class="color-controls">
-                <input type="color" id="color-nav-header" value="#1e40af">
-                <span class="color-preview" style="background: #1e40af"></span>
-                <div class="color-palette" data-target="color-nav-header">
-                  <div class="palette-color" style="background: #1e40af" data-color="#1e40af"></div>
-                  <div class="palette-color" style="background: #2563eb" data-color="#2563eb"></div>
-                  <div class="palette-color" style="background: #3b82f6" data-color="#3b82f6"></div>
-                  <div class="palette-color" style="background: #0ea5e9" data-color="#0ea5e9"></div>
-                  <div class="palette-color" style="background: #059669" data-color="#059669"></div>
-                </div>
-                <button class="example-btn" data-example="nav-header">Ver Exemplo</button>
-              </div>
-            </div>
-            <div class="color-item">
-              <label>Cards/Modais</label>
-              <div class="color-controls">
-                <input type="color" id="color-card" value="#1a1f2e">
-                <span class="color-preview" style="background: #1a1f2e"></span>
-                <div class="color-palette" data-target="color-card">
-                  <div class="palette-color" style="background: #1a1f2e" data-color="#1a1f2e"></div>
-                  <div class="palette-color" style="background: #ffffff" data-color="#ffffff"></div>
-                  <div class="palette-color" style="background: #f8fafc" data-color="#f8fafc"></div>
-                  <div class="palette-color" style="background: #e2e8f0" data-color="#e2e8f0"></div>
-                  <div class="palette-color" style="background: #334155" data-color="#334155"></div>
-                </div>
-                <button class="example-btn" data-example="card">Ver Exemplo</button>
-              </div>
-            </div>
-            <div class="color-item">
-              <label>Texto Destaque</label>
-              <div class="color-controls">
-                <input type="color" id="color-text-accent" value="#60a5fa">
-                <span class="color-preview" style="background: #60a5fa"></span>
-                <div class="color-palette" data-target="color-text-accent">
-                  <div class="palette-color" style="background: #60a5fa" data-color="#60a5fa"></div>
-                  <div class="palette-color" style="background: #3b82f6" data-color="#3b82f6"></div>
-                  <div class="palette-color" style="background: #8b5cf6" data-color="#8b5cf6"></div>
-                  <div class="palette-color" style="background: #10b981" data-color="#10b981"></div>
-                  <div class="palette-color" style="background: #f59e0b" data-color="#f59e0b"></div>
-                </div>
-                <button class="example-btn" data-example="text-accent">Ver Exemplo</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Status & Complexidade -->
-        <div class="color-section" id="status">
-          <h4 style="color: var(--text-white); margin-bottom: 15px;">Status dos Leitos & Complexidade</h4>
-          <div class="color-grid">
-            <div class="color-item">
-              <label>Status: Vago</label>
-              <div class="color-controls">
-                <input type="color" id="color-status-vago" value="#16a34a">
-                <span class="color-preview" style="background: #16a34a"></span>
-                <div class="color-palette" data-target="color-status-vago">
-                  <div class="palette-color" style="background: #16a34a" data-color="#16a34a"></div>
-                  <div class="palette-color" style="background: #22c55e" data-color="#22c55e"></div>
-                  <div class="palette-color" style="background: #10b981" data-color="#10b981"></div>
-                  <div class="palette-color" style="background: #059669" data-color="#059669"></div>
-                  <div class="palette-color" style="background: #047857" data-color="#047857"></div>
-                </div>
-                <button class="example-btn" data-example="status-vago">Ver Exemplo</button>
-              </div>
-            </div>
-            <div class="color-item">
-              <label>Status: Em Uso</label>
-              <div class="color-controls">
-                <input type="color" id="color-status-uso" value="#f59e0b">
-                <span class="color-preview" style="background: #f59e0b"></span>
-                <div class="color-palette" data-target="color-status-uso">
-                  <div class="palette-color" style="background: #f59e0b" data-color="#f59e0b"></div>
-                  <div class="palette-color" style="background: #fbbf24" data-color="#fbbf24"></div>
-                  <div class="palette-color" style="background: #fb923c" data-color="#fb923c"></div>
-                  <div class="palette-color" style="background: #f97316" data-color="#f97316"></div>
-                  <div class="palette-color" style="background: #ea580c" data-color="#ea580c"></div>
-                </div>
-                <button class="example-btn" data-example="status-uso">Ver Exemplo</button>
-              </div>
-            </div>
-            <div class="color-item">
-              <label>Status: UTI</label>
-              <div class="color-controls">
-                <input type="color" id="color-status-uti" value="#dc2626">
-                <span class="color-preview" style="background: #dc2626"></span>
-                <div class="color-palette" data-target="color-status-uti">
-                  <div class="palette-color" style="background: #dc2626" data-color="#dc2626"></div>
-                  <div class="palette-color" style="background: #ef4444" data-color="#ef4444"></div>
-                  <div class="palette-color" style="background: #f87171" data-color="#f87171"></div>
-                  <div class="palette-color" style="background: #991b1b" data-color="#991b1b"></div>
-                  <div class="palette-color" style="background: #7f1d1d" data-color="#7f1d1d"></div>
-                </div>
-                <button class="example-btn" data-example="status-uti">Ver Exemplo</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Linhas de Cuidado -->
-        <div class="color-section" id="linhas">
-          <h4 style="color: var(--text-white); margin-bottom: 15px;">Linhas de Cuidado</h4>
-          <div class="color-grid">
-            <div class="color-item">
-              <label>APS</label>
-              <div class="color-controls">
-                <input type="color" id="color-linha-aps" value="#f59e0b">
-                <span class="color-preview" style="background: #f59e0b"></span>
-                <div class="color-palette" data-target="color-linha-aps">
-                  <div class="palette-color" style="background: #f59e0b" data-color="#f59e0b"></div>
-                  <div class="palette-color" style="background: #fbbf24" data-color="#fbbf24"></div>
-                  <div class="palette-color" style="background: #fb923c" data-color="#fb923c"></div>
-                  <div class="palette-color" style="background: #f97316" data-color="#f97316"></div>
-                </div>
-                <button class="example-btn" data-example="linha-aps">Ver Exemplo</button>
-              </div>
-            </div>
-            <div class="color-item">
-              <label>Cardiologia</label>
-              <div class="color-controls">
-                <input type="color" id="color-linha-cardiologia" value="#dc2626">
-                <span class="color-preview" style="background: #dc2626"></span>
-                <div class="color-palette" data-target="color-linha-cardiologia">
-                  <div class="palette-color" style="background: #dc2626" data-color="#dc2626"></div>
-                  <div class="palette-color" style="background: #ef4444" data-color="#ef4444"></div>
-                  <div class="palette-color" style="background: #f87171" data-color="#f87171"></div>
-                  <div class="palette-color" style="background: #991b1b" data-color="#991b1b"></div>
-                </div>
-                <button class="example-btn" data-example="linha-cardiologia">Ver Exemplo</button>
-              </div>
-            </div>
-            <div class="color-item">
-              <label>Geriatria</label>
-              <div class="color-controls">
-                <input type="color" id="color-linha-geriatria" value="#16a34a">
-                <span class="color-preview" style="background: #16a34a"></span>
-                <div class="color-palette" data-target="color-linha-geriatria">
-                  <div class="palette-color" style="background: #16a34a" data-color="#16a34a"></div>
-                  <div class="palette-color" style="background: #22c55e" data-color="#22c55e"></div>
-                  <div class="palette-color" style="background: #10b981" data-color="#10b981"></div>
-                  <div class="palette-color" style="background: #059669" data-color="#059669"></div>
-                </div>
-                <button class="example-btn" data-example="linha-geriatria">Ver Exemplo</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Concessões -->
-        <div class="color-section" id="concessoes">
-          <h4 style="color: var(--text-white); margin-bottom: 15px;">Concessões</h4>
-          <div class="color-grid">
-            <div class="color-item">
-              <label>Fisioterapia</label>
-              <div class="color-controls">
-                <input type="color" id="color-conc-fisioterapia" value="#16a34a">
-                <span class="color-preview" style="background: #16a34a"></span>
-                <div class="color-palette" data-target="color-conc-fisioterapia">
-                  <div class="palette-color" style="background: #16a34a" data-color="#16a34a"></div>
-                  <div class="palette-color" style="background: #22c55e" data-color="#22c55e"></div>
-                  <div class="palette-color" style="background: #10b981" data-color="#10b981"></div>
-                  <div class="palette-color" style="background: #059669" data-color="#059669"></div>
-                </div>
-                <button class="example-btn" data-example="conc-fisioterapia">Ver Exemplo</button>
-              </div>
-            </div>
-            <div class="color-item">
-              <label>PAD</label>
-              <div class="color-controls">
-                <input type="color" id="color-conc-pad" value="#0a2b52">
-                <span class="color-preview" style="background: #0a2b52"></span>
-                <div class="color-palette" data-target="color-conc-pad">
-                  <div class="palette-color" style="background: #0a2b52" data-color="#0a2b52"></div>
-                  <div class="palette-color" style="background: #1e40af" data-color="#1e40af"></div>
-                  <div class="palette-color" style="background: #2563eb" data-color="#2563eb"></div>
-                  <div class="palette-color" style="background: #3b82f6" data-color="#3b82f6"></div>
-                </div>
-                <button class="example-btn" data-example="conc-pad">Ver Exemplo</button>
-              </div>
-            </div>
-          </div>
-        </div>="color-item">
-              <label>Sidebar (Menu Lateral)</label>
-              <input type="color" id="color-nav-sidebar" value="#0a0f1c">
-              <span class="color-preview" style="background: #0a0f1c"></span>
+              <input type="color" id="color-nav-sidebar" value="#0a2b52">
+              <span class="color-preview" style="background: #0a2b52"></span>
             </div>
             <div class="color-item">
               <label>Header (Barra Superior)</label>
@@ -1656,45 +1459,18 @@
           <div class="color-grid">
             <div class="color-item">
               <label>Ouro</label>
-              <div class="color-controls">
-                <input type="color" id="color-ouro" value="#fbbf24">
-                <span class="color-preview" style="background: #fbbf24"></span>
-                <div class="color-palette" data-target="color-ouro">
-                  <div class="palette-color" style="background: #fbbf24" data-color="#fbbf24"></div>
-                  <div class="palette-color" style="background: #f59e0b" data-color="#f59e0b"></div>
-                  <div class="palette-color" style="background: #d97706" data-color="#d97706"></div>
-                  <div class="palette-color" style="background: #b45309" data-color="#b45309"></div>
-                </div>
-                <button class="example-btn" data-example="ouro">Ver Exemplo</button>
-              </div>
+              <input type="color" id="color-ouro" value="#fbbf24">
+              <span class="color-preview" style="background: #fbbf24"></span>
             </div>
             <div class="color-item">
               <label>2R</label>
-              <div class="color-controls">
-                <input type="color" id="color-r2" value="#3b82f6">
-                <span class="color-preview" style="background: #3b82f6"></span>
-                <div class="color-palette" data-target="color-r2">
-                  <div class="palette-color" style="background: #3b82f6" data-color="#3b82f6"></div>
-                  <div class="palette-color" style="background: #2563eb" data-color="#2563eb"></div>
-                  <div class="palette-color" style="background: #1d4ed8" data-color="#1d4ed8"></div>
-                  <div class="palette-color" style="background: #1e40af" data-color="#1e40af"></div>
-                </div>
-                <button class="example-btn" data-example="r2">Ver Exemplo</button>
-              </div>
+              <input type="color" id="color-r2" value="#3b82f6">
+              <span class="color-preview" style="background: #3b82f6"></span>
             </div>
             <div class="color-item">
               <label>3R</label>
-              <div class="color-controls">
-                <input type="color" id="color-r3" value="#8b5cf6">
-                <span class="color-preview" style="background: #8b5cf6"></span>
-                <div class="color-palette" data-target="color-r3">
-                  <div class="palette-color" style="background: #8b5cf6" data-color="#8b5cf6"></div>
-                  <div class="palette-color" style="background: #7c3aed" data-color="#7c3aed"></div>
-                  <div class="palette-color" style="background: #6d28d9" data-color="#6d28d9"></div>
-                  <div class="palette-color" style="background: #5b21b6" data-color="#5b21b6"></div>
-                </div>
-                <button class="example-btn" data-example="r3">Ver Exemplo</button>
-              </div>
+              <input type="color" id="color-r3" value="#8b5cf6">
+              <span class="color-preview" style="background: #8b5cf6"></span>
             </div>
           </div>
         </div>
@@ -1705,31 +1481,13 @@
           <div class="color-grid">
             <div class="color-item">
               <label>Gráfico Principal</label>
-              <div class="color-controls">
-                <input type="color" id="color-grafico-1" value="#60a5fa">
-                <span class="color-preview" style="background: #60a5fa"></span>
-                <div class="color-palette" data-target="color-grafico-1">
-                  <div class="palette-color" style="background: #60a5fa" data-color="#60a5fa"></div>
-                  <div class="palette-color" style="background: #3b82f6" data-color="#3b82f6"></div>
-                  <div class="palette-color" style="background: #2563eb" data-color="#2563eb"></div>
-                  <div class="palette-color" style="background: #1d4ed8" data-color="#1d4ed8"></div>
-                </div>
-                <button class="example-btn" data-example="grafico-1">Ver Exemplo</button>
-              </div>
+              <input type="color" id="color-grafico-1" value="#60a5fa">
+              <span class="color-preview" style="background: #60a5fa"></span>
             </div>
             <div class="color-item">
               <label>Gráfico Secundário</label>
-              <div class="color-controls">
-                <input type="color" id="color-grafico-2" value="#8b5cf6">
-                <span class="color-preview" style="background: #8b5cf6"></span>
-                <div class="color-palette" data-target="color-grafico-2">
-                  <div class="palette-color" style="background: #8b5cf6" data-color="#8b5cf6"></div>
-                  <div class="palette-color" style="background: #7c3aed" data-color="#7c3aed"></div>
-                  <div class="palette-color" style="background: #6d28d9" data-color="#6d28d9"></div>
-                  <div class="palette-color" style="background: #5b21b6" data-color="#5b21b6"></div>
-                </div>
-                <button class="example-btn" data-example="grafico-2">Ver Exemplo</button>
-              </div>
+              <input type="color" id="color-grafico-2" value="#8b5cf6">
+              <span class="color-preview" style="background: #8b5cf6"></span>
             </div>
           </div>
         </div>
@@ -2051,10 +1809,13 @@ function route(){
   $(`#${activeSectionId}`)?.classList.remove("hidden");
 
   // Mostrar seletor de hospital apenas no modo leitos
-  if (activeTab === 'leitos') {
-    $('#hospitalSelector').style.display = 'flex';
-  } else {
-    $('#hospitalSelector').style.display = 'none';
+  const hospitalSelector = $('#hospitalSelector');
+  if (hospitalSelector) {
+    if (activeTab === 'leitos') {
+      hospitalSelector.style.display = 'flex';
+    } else {
+      hospitalSelector.style.display = 'none';
+    }
   }
 
   if(activeTab === "leitos") renderCards();
@@ -2217,10 +1978,15 @@ function renderDash1() {
     const taxaOcupacao = totalLeitos > 0 ? Math.round((ocupados / totalLeitos) * 100) : 0;
     
     // CORREÇÃO: Atualizar valores na NOVA ORDEM (Total, Ocupados, Vagos)
-    $(`#statTotalH${h}`).textContent = totalLeitos;
-    $(`#statOcupadosH${h}`).textContent = ocupados;
-    $(`#statVagosH${h}`).textContent = vagos;
-    $(`#gaugePercent${h}`).textContent = taxaOcupacao + '%';
+    const statTotalH = $(`#statTotalH${h}`);
+    const statOcupadosH = $(`#statOcupadosH${h}`);
+    const statVagosH = $(`#statVagosH${h}`);
+    const gaugePercentH = $(`#gaugePercent${h}`);
+    
+    if (statTotalH) statTotalH.textContent = totalLeitos;
+    if (statOcupadosH) statOcupadosH.textContent = ocupados;
+    if (statVagosH) statVagosH.textContent = vagos;
+    if (gaugePercentH) gaugePercentH.textContent = taxaOcupacao + '%';
 
     // Criar gauge semicírculo (meia rosca) COM CORES CORRETAS
     let corGauge = '#16a34a'; // Verde
@@ -2467,21 +2233,29 @@ function renderDash2(allData) {
     const ocupados = allData.filter(p => p.status === 'Em uso').length;
     const taxaOcupacaoGeral = totalLeitos > 0 ? Math.round((ocupados / totalLeitos) * 100) : 0;
     
-    $('#kpiOcupacaoGeral').textContent = `${taxaOcupacaoGeral}%`;
-    $('#kpiLeitosOcupados').textContent = ocupados;
+    const kpiOcupacaoGeral = $('#kpiOcupacaoGeral');
+    const kpiLeitosOcupados = $('#kpiLeitosOcupados');
+    const kpiTMP = $('#kpiTMP');
+    const kpiRotatividade = $('#kpiRotatividade');
+    const kpiAltas24h = $('#kpiAltas24h');
+    const kpiSpictPercent = $('#kpiSpictPercent');
+    const kpiPpsMedia = $('#kpiPpsMedia');
+    
+    if (kpiOcupacaoGeral) kpiOcupacaoGeral.textContent = `${taxaOcupacaoGeral}%`;
+    if (kpiLeitosOcupados) kpiLeitosOcupados.textContent = ocupados;
     
     const tempos = allData.filter(p => p.status === 'Em uso' && p.admAt).map(p => elapsedSince(p.admAt).days);
-    $('#kpiTMP').textContent = tempos.length > 0 ? `${Math.round(tempos.reduce((a,b)=>a+b,0)/tempos.length)} dias` : '0 dias';
+    if (kpiTMP) kpiTMP.textContent = tempos.length > 0 ? `${Math.round(tempos.reduce((a,b)=>a+b,0)/tempos.length)} dias` : '0 dias';
     
-    $('#kpiRotatividade').textContent = totalLeitos > 0 ? `${Math.round((ocupados / totalLeitos) * 30)}%` : '0%';
-    $('#kpiAltas24h').textContent = allData.filter(p => p.prevAlta && p.prevAlta.includes('24h')).length;
+    if (kpiRotatividade) kpiRotatividade.textContent = totalLeitos > 0 ? `${Math.round((ocupados / totalLeitos) * 30)}%` : '0%';
+    if (kpiAltas24h) kpiAltas24h.textContent = allData.filter(p => p.prevAlta && p.prevAlta.includes('24h')).length;
     
     const spictElegiveis = allData.filter(p => p.status === 'Em uso' && p.spict === 'elegivel').length;
     const totalPacientes = allData.filter(p => p.status === 'Em uso').length;
-    $('#kpiSpictPercent').textContent = totalPacientes > 0 ? `${Math.round((spictElegiveis / totalPacientes) * 100)}%` : '0%';
+    if (kpiSpictPercent) kpiSpictPercent.textContent = totalPacientes > 0 ? `${Math.round((spictElegiveis / totalPacientes) * 100)}%` : '0%';
     
     const ppsValues = allData.filter(p => p.status === 'Em uso' && p.pps).map(p => p.pps);
-    $('#kpiPpsMedia').textContent = ppsValues.length > 0 ? Math.round(ppsValues.reduce((a,b)=>a+b,0)/ppsValues.length) : '0';
+    if (kpiPpsMedia) kpiPpsMedia.textContent = ppsValues.length > 0 ? Math.round(ppsValues.reduce((a,b)=>a+b,0)/ppsValues.length) : '0';
 
     // CORREÇÃO: Criar MINI GAUGE no primeiro KPI (Taxa de Ocupação Geral)
     let corKpiGauge = '#16a34a'; // Verde
@@ -3038,7 +2812,7 @@ function initColorConfig() {
   
   // Aguardar que o DOM esteja pronto para configurar os eventos
   setTimeout(() => {
-    // Configurar inputs de cor COM PALETAS
+    // Configurar inputs de cor
     Object.keys(colorConfig).forEach(category => {
       Object.keys(colorConfig[category]).forEach(colorKey => {
         const input = document.getElementById(`color-${colorKey}`);
@@ -3053,106 +2827,7 @@ function initColorConfig() {
         }
       });
     });
-
-    // Configurar paletas de cores
-    document.querySelectorAll('.color-palette').forEach(palette => {
-      const targetInputId = palette.dataset.target;
-      palette.querySelectorAll('.palette-color').forEach(colorDiv => {
-        colorDiv.addEventListener('click', () => {
-          const color = colorDiv.dataset.color;
-          const input = document.getElementById(targetInputId);
-          if (input) {
-            input.value = color;
-            const preview = input.nextElementSibling;
-            if (preview) preview.style.background = color;
-            
-            // Atualizar configuração
-            Object.keys(colorConfig).forEach(category => {
-              Object.keys(colorConfig[category]).forEach(colorKey => {
-                if (`color-${colorKey}` === targetInputId) {
-                  colorConfig[category][colorKey] = color;
-                }
-              });
-            });
-            
-            applyColors();
-          }
-        });
-      });
-    });
-
-    // Configurar botões de exemplo
-    document.querySelectorAll('.example-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const example = btn.dataset.example;
-        showColorExample(example);
-      });
-    });
   }, 100);
-}
-
-function showColorExample(colorType) {
-  // Função para mostrar exemplo visual da cor
-  let exampleText = '';
-  let exampleColor = '';
-  
-  switch(colorType) {
-    case 'nav-sidebar':
-      exampleText = 'Esta cor será aplicada ao menu lateral (sidebar)';
-      exampleColor = colorConfig.layout['nav-sidebar'];
-      break;
-    case 'nav-header':
-      exampleText = 'Esta cor será aplicada à barra superior (header)';
-      exampleColor = colorConfig.layout['nav-header'];
-      break;
-    case 'card':
-      exampleText = 'Esta cor será aplicada aos cards e modais';
-      exampleColor = colorConfig.layout.card;
-      break;
-    case 'text-accent':
-      exampleText = 'Esta cor será aplicada aos textos de destaque';
-      exampleColor = colorConfig.layout['text-accent'];
-      break;
-    case 'status-vago':
-      exampleText = 'Esta cor representa leitos VAGOS';
-      exampleColor = colorConfig.status['status-vago'];
-      break;
-    case 'status-uso':
-      exampleText = 'Esta cor representa leitos EM USO';
-      exampleColor = colorConfig.status['status-uso'];
-      break;
-    case 'status-uti':
-      exampleText = 'Esta cor representa leitos UTI';
-      exampleColor = colorConfig.status['status-uti'];
-      break;
-    default:
-      exampleText = `Exemplo de cor para ${colorType}`;
-      exampleColor = '#60a5fa';
-  }
-  
-  // Criar preview temporário
-  const preview = document.createElement('div');
-  preview.style.cssText = `
-    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-    background: ${exampleColor}; color: white; padding: 30px; border-radius: 12px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.5); z-index: 3000;
-    text-align: center; font-weight: 600; max-width: 300px;
-  `;
-  preview.innerHTML = `
-    <h3 style="margin: 0 0 15px 0;">Preview da Cor</h3>
-    <p style="margin: 0 0 20px 0;">${exampleText}</p>
-    <button onclick="this.parentElement.remove()" style="
-      background: rgba(255,255,255,0.2); border: none; color: white;
-      padding: 8px 16px; border-radius: 6px; cursor: pointer;
-    ">Fechar Preview</button>
-  `;
-  
-  document.body.appendChild(preview);
-  
-  // Remover automaticamente após 5 segundos
-  setTimeout(() => {
-    if (preview.parentElement) preview.remove();
-  }, 5000);
 }
 
 function applyColors() {
@@ -3283,80 +2958,6 @@ function importColors() {
   input.click();
 }
 
-function applyPreset(preset) {
-  const presets = {
-    default: {
-      layout: {
-        'nav-sidebar': '#0a2b52',
-        'nav-header': '#083052', 
-        'card': '#1a1f2e',
-        'bg-primary': '#0a0f1c',
-        'text-white': '#ffffff',
-        'text': '#e2e8f0',
-        'text-muted': '#94a3b8',
-        'text-accent': '#60a5fa',
-        'border': '#334155'
-      },
-      status: colorConfig.status,
-      linhas: colorConfig.linhas,
-      concessoes: colorConfig.concessoes,
-      timeline: colorConfig.timeline,
-      graficos: colorConfig.graficos
-    },
-    blue: {
-      layout: { ...colorConfig.layout, 'nav-header': '#2563eb', 'text-accent': '#3b82f6' },
-      status: colorConfig.status,
-      linhas: colorConfig.linhas,
-      concessoes: colorConfig.concessoes,
-      timeline: colorConfig.timeline,
-      graficos: colorConfig.graficos
-    },
-    green: {
-      layout: { ...colorConfig.layout, 'nav-header': '#059669', 'text-accent': '#10b981' },
-      status: { ...colorConfig.status, 'status-vago': '#059669' },
-      linhas: colorConfig.linhas,
-      concessoes: colorConfig.concessoes,
-      timeline: colorConfig.timeline,
-      graficos: colorConfig.graficos
-    },
-    purple: {
-      layout: { ...colorConfig.layout, 'nav-header': '#7c3aed', 'text-accent': '#8b5cf6' },
-      status: colorConfig.status,
-      linhas: colorConfig.linhas,
-      concessoes: colorConfig.concessoes,
-      timeline: colorConfig.timeline,
-      graficos: colorConfig.graficos
-    },
-    dark: {
-      layout: { ...colorConfig.layout, 'nav-sidebar': '#000000', 'bg-primary': '#000000', 'card': '#111111' },
-      status: colorConfig.status,
-      linhas: colorConfig.linhas,
-      concessoes: colorConfig.concessoes,
-      timeline: colorConfig.timeline,
-      graficos: colorConfig.graficos
-    }
-  };
-  
-  if (presets[preset]) {
-    Object.assign(colorConfig, presets[preset]);
-    
-    // Atualizar inputs
-    Object.keys(colorConfig).forEach(category => {
-      Object.keys(colorConfig[category]).forEach(colorKey => {
-        const input = document.getElementById(`color-${colorKey}`);
-        const preview = input?.nextElementSibling;
-        if (input) {
-          input.value = colorConfig[category][colorKey];
-          if (preview) preview.style.background = colorConfig[category][colorKey];
-        }
-      });
-    });
-    
-    applyColors();
-    alert(`Tema ${preset} aplicado!`);
-  }
-}
-
 // =======================================================================
 // ================= LÓGICA DE QR CODE (CORRIGIDA) =====================
 // =======================================================================
@@ -3388,10 +2989,15 @@ function initQRSession(hospital, leito) {
   selectedLeito = leito;
   
   // Ocultar navegação e toolbars
-  document.querySelector('header').style.display = 'none';
-  document.getElementById('portalToolbar').style.display = 'none';
-  document.querySelector('main').style.padding = '20px';
-  document.body.style.paddingLeft = '0';
+  const header = document.querySelector('header');
+  const hospitalSelector = document.getElementById('hospitalSelector');
+  const main = document.querySelector('main');
+  const body = document.body;
+  
+  if (header) header.style.display = 'none';
+  if (hospitalSelector) hospitalSelector.style.display = 'none';
+  if (main) main.style.padding = '20px';
+  if (body) body.style.paddingLeft = '0';
   
   // Carregar dados do hospital
   loadHospital(hospital).then(() => {
@@ -3495,165 +3101,235 @@ function checkQRParams() {
 // ===================== INICIALIZAÇÃO E EVENTOS =========================
 // =======================================================================
 function setupEventListeners() {
-  // Navegação Principal (Menu Lateral)
-  document.querySelectorAll(".side-menu-item").forEach(b=> b.onclick = (e)=> {
-    e.preventDefault();
-    setTab(b.dataset.tab);
+  // Navegação Principal (Menu Lateral) - COM VERIFICAÇÃO SEGURA
+  document.querySelectorAll(".side-menu-item").forEach(b=> {
+    b.onclick = (e)=> {
+      e.preventDefault();
+      setTab(b.dataset.tab);
+    };
   });
   
-  // Seletores de Hospital (Toolbar)
-  $("#btnH1").onclick = ()=>{ setHospitalSelectors("H1"); loadHospital("H1"); };
-  $("#btnH2").onclick = ()=>{ setHospitalSelectors("H2"); loadHospital("H2"); };
-
-  // Botões do Header
-  $('#refreshBtn').onclick = () => { 
-    logInfo("Refresh manual"); 
-    if (activeTab.startsWith('dash')) { 
-      renderDashboards() 
-    } else { 
-      loadHospital(currentHospital) 
-    } 
-  };
-
-  // CORREÇÃO: Menu Lateral - Fechar (CORRIGIR FUNCIONALIDADE)
-  $('#closeMenuBtn').onclick = () => {
-    $('#side-menu').classList.remove('open');
-    document.body.style.paddingLeft = '0';
-  };
-
-  // Menu Lateral (Hamburger) - Abrir
-  $('.hamburger-menu').onclick = () => {
-    $('#side-menu').classList.add('open');
-    document.body.style.paddingLeft = '300px';
-  };
-
-  // Configurações no Menu Lateral
-  $('#settingsMenuBtn').onclick = () => {
-    $('#settingsMenuDropdown').classList.toggle('show');
-  };
-
-  $('#btnReadQR').onclick = () => { 
-    $('#settingsMenuDropdown').classList.remove('show'); 
-    openModal("#modalQRScan"); 
-    startScan(); 
-  };
-
-  $('#btnPrintQR').onclick = () => { 
-    $('#settingsMenuDropdown').classList.remove('show'); 
-    openModal("#modalBulkQR"); 
-  };
-
-  $('#btnCores').onclick = () => { 
-    $('#settingsMenuDropdown').classList.remove('show'); 
-    openModal("#modalCores"); 
-  };
+  // Seletores de Hospital (Toolbar) - COM VERIFICAÇÃO SEGURA
+  const btnH1New = document.getElementById("btnH1New");
+  const btnH2New = document.getElementById("btnH2New");
   
-  // Fechar dropdowns se clicar fora
+  if (btnH1New) {
+    btnH1New.onclick = ()=>{ setHospitalSelectors("H1"); loadHospital("H1"); };
+  }
+  if (btnH2New) {
+    btnH2New.onclick = ()=>{ setHospitalSelectors("H2"); loadHospital("H2"); };
+  }
+
+  // Botões do Header - COM VERIFICAÇÃO SEGURA
+  const refreshBtn = document.getElementById('refreshBtn');
+  if (refreshBtn) {
+    refreshBtn.onclick = () => { 
+      logInfo("Refresh manual"); 
+      if (activeTab.startsWith('dash')) { 
+        renderDashboards() 
+      } else { 
+        loadHospital(currentHospital) 
+      } 
+    };
+  }
+
+  // Menu Lateral - Fechar - COM VERIFICAÇÃO SEGURA
+  const closeMenuBtn = document.getElementById('closeMenuBtn');
+  if (closeMenuBtn) {
+    closeMenuBtn.onclick = () => {
+      const sideMenu = document.getElementById('side-menu');
+      if (sideMenu) sideMenu.classList.remove('open');
+      document.body.style.paddingLeft = '0';
+    };
+  }
+
+  // Menu Lateral (Hamburger) - Abrir - COM VERIFICAÇÃO SEGURA
+  const hamburgerMenu = document.getElementById('hamburgerMenu');
+  if (hamburgerMenu) {
+    hamburgerMenu.onclick = () => {
+      const sideMenu = document.getElementById('side-menu');
+      if (sideMenu) sideMenu.classList.add('open');
+      document.body.style.paddingLeft = '300px';
+    };
+  }
+
+  // Configurações no Menu Lateral - COM VERIFICAÇÃO SEGURA
+  const settingsMenuBtn = document.getElementById('settingsMenuBtn');
+  const settingsMenuDropdown = document.getElementById('settingsMenuDropdown');
+  
+  if (settingsMenuBtn && settingsMenuDropdown) {
+    settingsMenuBtn.onclick = () => {
+      settingsMenuDropdown.classList.toggle('show');
+    };
+  }
+
+  const btnReadQR = document.getElementById('btnReadQR');
+  if (btnReadQR && settingsMenuDropdown) {
+    btnReadQR.onclick = () => { 
+      settingsMenuDropdown.classList.remove('show'); 
+      openModal("#modalQRScan"); 
+      startScan(); 
+    };
+  }
+
+  const btnPrintQR = document.getElementById('btnPrintQR');
+  if (btnPrintQR && settingsMenuDropdown) {
+    btnPrintQR.onclick = () => { 
+      settingsMenuDropdown.classList.remove('show'); 
+      openModal("#modalBulkQR"); 
+    };
+  }
+
+  const btnCores = document.getElementById('btnCores');
+  if (btnCores && settingsMenuDropdown) {
+    btnCores.onclick = () => { 
+      settingsMenuDropdown.classList.remove('show'); 
+      openModal("#modalCores"); 
+    };
+  }
+  
+  // Fechar dropdowns se clicar fora - COM VERIFICAÇÃO SEGURA
   window.onclick = (event) => {
       if (!event.target.closest('.settings-menu-btn')) {
-          if ($('#settingsMenuDropdown').classList.contains('show')) {
-            $('#settingsMenuDropdown').classList.remove('show');
+          if (settingsMenuDropdown && settingsMenuDropdown.classList.contains('show')) {
+            settingsMenuDropdown.classList.remove('show');
           }
       }
   };
 
-  // Ações dos Modais
-  document.querySelectorAll("[data-close]").forEach(b=> b.onclick = ()=> closeModal(b.getAttribute("data-close")) );
-  $("#b_generate").onclick = buildQRGrid;
-  $("#reloadPage").onclick = ()=> location.reload();
+  // Ações dos Modais - COM VERIFICAÇÃO SEGURA
+  document.querySelectorAll("[data-close]").forEach(b=> {
+    b.onclick = ()=> closeModal(b.getAttribute("data-close"));
+  });
 
-  // Modal de Admissão
-  $('#a_cancel').onclick = async () => { if (await confirmAction("Cancelar admissão?")) closeModal("#modalAdmissao"); };
-  $('#a_save').onclick = async ()=>{ 
-    if(!await confirmAction("Salvar e admitir paciente?")) return; 
-    try { 
-      const payload = { 
-        action: 'admit', 
-        hospital: currentHospital, 
-        leito: selectedLeito, 
-        nome: $("#a_nome").value.trim(), 
-        idade: Number($("#a_idade").value)||null, 
-        matricula: $("#a_matricula").value.trim(), 
-        pps: Number($("#a_pps").value)||null, 
-        spict: $("#a_spict").value, 
-        complexidade: $("#a_complexidade").value,
-        prevAlta: $("#a_prev").value, 
-        linhas: Array.from(document.querySelectorAll("#a_linhas input:checked")).map(i=>i.value), 
-        concessoes: Array.from(document.querySelectorAll("#a_concessoes input:checked")).map(i=>i.value) 
-      }; 
-      await apiCall(payload); 
-      closeModal("#modalAdmissao"); 
-      if (isQRMode) { 
-        showSuccessMessage(); 
-      } else { 
-        await loadHospital(currentHospital); 
+  const bGenerate = document.getElementById("b_generate");
+  if (bGenerate) bGenerate.onclick = buildQRGrid;
+  
+  const reloadPage = document.getElementById("reloadPage");
+  if (reloadPage) reloadPage.onclick = ()=> location.reload();
+
+  // Modal de Admissão - COM VERIFICAÇÃO SEGURA
+  const aCancelBtn = document.getElementById('a_cancel');
+  const aSaveBtn = document.getElementById('a_save');
+  
+  if (aCancelBtn) {
+    aCancelBtn.onclick = async () => { 
+      if (await confirmAction("Cancelar admissão?")) closeModal("#modalAdmissao"); 
+    };
+  }
+  
+  if (aSaveBtn) {
+    aSaveBtn.onclick = async ()=>{ 
+      if(!await confirmAction("Salvar e admitir paciente?")) return; 
+      try { 
+        const payload = { 
+          action: 'admit', 
+          hospital: currentHospital, 
+          leito: selectedLeito, 
+          nome: $("#a_nome")?.value.trim() || '', 
+          idade: Number($("#a_idade")?.value)||null, 
+          matricula: $("#a_matricula")?.value.trim() || '', 
+          pps: Number($("#a_pps")?.value)||null, 
+          spict: $("#a_spict")?.value || 'elegivel', 
+          complexidade: $("#a_complexidade")?.value || 'I',
+          prevAlta: $("#a_prev")?.value || '24h Ouro', 
+          linhas: Array.from(document.querySelectorAll("#a_linhas input:checked")).map(i=>i.value), 
+          concessoes: Array.from(document.querySelectorAll("#a_concessoes input:checked")).map(i=>i.value) 
+        }; 
+        await apiCall(payload); 
+        closeModal("#modalAdmissao"); 
+        if (isQRMode) { 
+          showSuccessMessage(); 
+        } else { 
+          await loadHospital(currentHospital); 
+        } 
+      } catch(error) { 
+        alert('Erro: ' + error.message); 
       } 
-    } catch(error) { 
-      alert('Erro: ' + error.message); 
-    } 
-  };
+    };
+  }
 
-  // Modal de Atualização
-  $('#u_cancel').onclick = async () => { if (await confirmAction("Cancelar alterações?")) closeModal("#modalAtualizacao"); };
-  $('#u_alta').onclick = ()=> darAltaFlow(selectedLeito);
-  $('#u_save').onclick = async ()=>{ 
-    if(!await confirmAction("Salvar alterações?")) return; 
-    try { 
-      const payload = { 
-        action: 'update', 
-        hospital: currentHospital, 
-        leito: selectedLeito, 
-        idade: Number($("#u_idade").value)||null, 
-        pps: Number($("#u_pps").value)||null, 
-        spict: $("#u_spict").value,
-        complexidade: $("#u_complexidade").value, 
-        prevAlta: $("#u_prev").value, 
-        linhas: Array.from(document.querySelectorAll("#u_linhas input:checked")).map(i=>i.value), 
-        concessoes: Array.from(document.querySelectorAll("#u_concessoes input:checked")).map(i=>i.value) 
-      }; 
-      await apiCall(payload); 
-      closeModal("#modalAtualizacao"); 
-      if (isQRMode) { 
-        showSuccessMessage(); 
-      } else { 
-        await loadHospital(currentHospital); 
+  // Modal de Atualização - COM VERIFICAÇÃO SEGURA
+  const uCancelBtn = document.getElementById('u_cancel');
+  const uAltaBtn = document.getElementById('u_alta');
+  const uSaveBtn = document.getElementById('u_save');
+  
+  if (uCancelBtn) {
+    uCancelBtn.onclick = async () => { 
+      if (await confirmAction("Cancelar alterações?")) closeModal("#modalAtualizacao"); 
+    };
+  }
+  
+  if (uAltaBtn) {
+    uAltaBtn.onclick = ()=> darAltaFlow(selectedLeito);
+  }
+  
+  if (uSaveBtn) {
+    uSaveBtn.onclick = async ()=>{ 
+      if(!await confirmAction("Salvar alterações?")) return; 
+      try { 
+        const payload = { 
+          action: 'update', 
+          hospital: currentHospital, 
+          leito: selectedLeito, 
+          idade: Number($("#u_idade")?.value)||null, 
+          pps: Number($("#u_pps")?.value)||null, 
+          spict: $("#u_spict")?.value || 'elegivel',
+          complexidade: $("#u_complexidade")?.value || 'I', 
+          prevAlta: $("#u_prev")?.value || '24h Ouro', 
+          linhas: Array.from(document.querySelectorAll("#u_linhas input:checked")).map(i=>i.value), 
+          concessoes: Array.from(document.querySelectorAll("#u_concessoes input:checked")).map(i=>i.value) 
+        }; 
+        await apiCall(payload); 
+        closeModal("#modalAtualizacao"); 
+        if (isQRMode) { 
+          showSuccessMessage(); 
+        } else { 
+          await loadHospital(currentHospital); 
+        } 
+      } catch(error) { 
+        alert('Erro: ' + error.message); 
       } 
-    } catch(error) { 
-      alert('Erro: ' + error.message); 
-    } 
-  };
+    };
+  }
 
-  // Sistema de Configuração de Cores
+  // Sistema de Configuração de Cores - COM VERIFICAÇÃO SEGURA
   document.querySelectorAll('.color-tab').forEach(tab => {
     tab.addEventListener('click', () => {
       document.querySelectorAll('.color-tab').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.color-section').forEach(s => s.classList.remove('active'));
       
       tab.classList.add('active');
-      document.getElementById(tab.dataset.category).classList.add('active');
+      const targetSection = document.getElementById(tab.dataset.category);
+      if (targetSection) targetSection.classList.add('active');
     });
   });
 
-  $('#resetCores').onclick = resetColors;
-  $('#exportCores').onclick = exportColors;
-  $('#importCores').onclick = importColors;
-  $('#aplicarCores').onclick = () => {
-    applyColors();
-    closeModal("#modalCores");
-    alert('Cores aplicadas com sucesso!');
-  };
-
-  document.querySelectorAll('.preset-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      applyPreset(btn.dataset.preset);
-    });
-  });
+  const resetCoresBtn = document.getElementById('resetCores');
+  const exportCoresBtn = document.getElementById('exportCores');
+  const importCoresBtn = document.getElementById('importCores');
+  const aplicarCoresBtn = document.getElementById('aplicarCores');
+  
+  if (resetCoresBtn) resetCoresBtn.onclick = resetColors;
+  if (exportCoresBtn) exportCoresBtn.onclick = exportColors;
+  if (importCoresBtn) importCoresBtn.onclick = importColors;
+  if (aplicarCoresBtn) {
+    aplicarCoresBtn.onclick = () => {
+      applyColors();
+      closeModal("#modalCores");
+      alert('Cores aplicadas com sucesso!');
+    };
+  }
 }
 
 // Função de inicialização
 (async function init(){
   logInfo("=== INICIALIZANDO ARCHIPELAGO DASHBOARD CORRIGIDO ===");
   showLoading();
+  
+  // Aguardar um pouco para garantir que o DOM esteja pronto
+  await new Promise(resolve => setTimeout(resolve, 100));
+  
   setupEventListeners();
   
   await testConnection();
@@ -3684,7 +3360,7 @@ function setupEventListeners() {
   updateIndicatorInterval = setInterval(updateTimeIndicator, 1000);
   
   hideLoading();
-  logInfo("=== TODAS AS 12 CORREÇÕES APLICADAS COM SUCESSO ===");
+  logInfo("=== TODAS AS CORREÇÕES APLICADAS COM SUCESSO ===");
 })();
 
 </script>
