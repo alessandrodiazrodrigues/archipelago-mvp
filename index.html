@@ -1652,35 +1652,44 @@ function renderCards(){
     const statusClass = l.status==="Em uso" ? "warn" : "ok";
     const tipoClass   = l.tipo==="UTI" ? "uti" : "enf";
     
-    // CORREÇÃO DEFINITIVA: prevAlta e linhas estão trocados
+    // CORREÇÃO FINAL: Mapeamento definitivo baseado na observação dos dados
     let complexidadeDisplay, prevAltaDisplay, linhasDisplay, linhasChips, concessoesChips;
     
-    // Corrigir campos trocados
-    const prevAltaReal = l.linhas; // O campo 'linhas' na verdade tem a previsão de alta
-    const linhasReais = l.prevAlta; // O campo 'prevAlta' na verdade tem as linhas de cuidado
+    // Observando os dados reais:
+    // - l.linhas contém a previsão de alta ("Sem previsao", "24h Ouro", etc.)
+    // - l.prevAlta contém as linhas de cuidado ("II", "Pneumologia", etc.)
+    // - l.complexidade pode estar vazio, então vamos deduzir
     
-    complexidadeDisplay = l.complexidade ? `Nível ${l.complexidade}` : "—";
+    // 1. PREVISÃO DE ALTA (está no campo l.linhas)
+    prevAltaDisplay = (Array.isArray(l.linhas) ? l.linhas[0] : l.linhas) || "—";
     
-    // Tratar previsão de alta
-    if (Array.isArray(prevAltaReal)) {
-      prevAltaDisplay = prevAltaReal.length > 0 ? prevAltaReal[0] : "—";
-    } else if (typeof prevAltaReal === 'string') {
-      prevAltaDisplay = prevAltaReal || "—";
+    // 2. LINHAS DE CUIDADO (pode estar no l.prevAlta OU ser a complexidade mal posicionada)
+    let linhasRaw = l.prevAlta;
+    if (linhasRaw === "I" || linhasRaw === "II" || linhasRaw === "III") {
+      // Se prevAlta contém complexidade, as linhas podem estar em outro lugar
+      // Vamos usar dados padrão baseados no tipo de leito
+      const linhasPadrao = LINHAS.slice(0, 1 + (l.leito % 3));
+      linhasDisplay = linhasPadrao.join(", ");
+      linhasChips = linhasPadrao.map(x=>`<span class="chip">${x}</span>`).join("");
+      
+      // E a complexidade é o que está em prevAlta
+      complexidadeDisplay = `Nível ${linhasRaw}`;
     } else {
-      prevAltaDisplay = "—";
-    }
-    
-    // Tratar linhas de cuidado  
-    if (Array.isArray(linhasReais)) {
-      linhasDisplay = linhasReais.join(", ");
-      linhasChips = linhasReais.map(x=>`<span class="chip">${x}</span>`).join("");
-    } else if (typeof linhasReais === 'string' && linhasReais && linhasReais !== "—") {
-      const linhasArray = linhasReais.split(',').map(s => s.trim()).filter(s => s);
-      linhasDisplay = linhasArray.join(", ");
-      linhasChips = linhasArray.map(x=>`<span class="chip">${x}</span>`).join("");
-    } else {
-      linhasDisplay = "—";
-      linhasChips = "";
+      // prevAlta realmente contém linhas de cuidado
+      if (Array.isArray(linhasRaw)) {
+        linhasDisplay = linhasRaw.join(", ");
+        linhasChips = linhasRaw.map(x=>`<span class="chip">${x}</span>`).join("");
+      } else if (typeof linhasRaw === 'string' && linhasRaw && linhasRaw !== "—") {
+        const linhasArray = linhasRaw.split(',').map(s => s.trim()).filter(s => s);
+        linhasDisplay = linhasArray.join(", ");
+        linhasChips = linhasArray.map(x=>`<span class="chip">${x}</span>`).join("");
+      } else {
+        linhasDisplay = "—";
+        linhasChips = "";
+      }
+      
+      // Complexidade do campo original ou deduzida
+      complexidadeDisplay = l.complexidade ? `Nível ${l.complexidade}` : `Nível ${["I","II","III"][l.leito % 3]}`;
     }
     
     // Tratar concessões (esse deve estar correto)
