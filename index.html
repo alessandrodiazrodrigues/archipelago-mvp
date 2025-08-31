@@ -12,20 +12,20 @@
 
   <style>
     :root{
-      --primary-blue:#4a90e2;  /* Azul da barra superior (padrão principal) */
-      --dark-blue:#0a2b52;     /* Azul da sidebar (fundos e contrastes) */
-      --darker-blue:#083052;   /* Azul mais escuro (backgrounds) */
-      --bg:#0f1419;            /* Fundo geral escuro azulado */
-      --bg-deep:#1a1f2e;       /* Fundo mais escuro */
-      --card:#1e293b;          /* Cards escuros */
-      --text:#e2e8f0;          /* Texto claro */
-      --text-white:#ffffff;    /* Branco para Dashboard 2 */
-      --muted:#94a3b8;         /* Texto secundário claro */
-      --border:#334155;        /* Bordas escuras */
+      --primary-blue:#4a90e2;
+      --dark-blue:#0a2b52;
+      --darker-blue:#083052;
+      --bg:#0f1419;
+      --bg-deep:#1a1f2e;
+      --card:#1e293b;
+      --text:#e2e8f0;
+      --text-white:#ffffff;
+      --muted:#94a3b8;
+      --border:#334155;
       --ok:#16a34a;
       --warn:#f59e0b;
       --danger:#dc2626;
-      --gold:#fbbf24;          /* Cor ouro para 24h Ouro */
+      --gold:#fbbf24;
       --blue-veil:#4f86ff33;
       --shadow-1:0 4px 12px rgba(11,44,82,.08);
       --shadow-2:0 10px 28px rgba(11,44,82,.12);
@@ -38,11 +38,10 @@
       color:var(--text);
       background: linear-gradient(180deg, var(--bg) 0%, var(--bg-deep) 100%);
       transition: padding-left 0.3s ease;
-      padding-left: 300px; /* Sidebar mais larga */
+      padding-left: 300px;
       min-height: 100vh;
     }
 
-    /* =================== LOADING OVERLAY =================== */
     #loadingOverlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(234, 241, 249, 0.95); backdrop-filter: blur(3px);
@@ -60,7 +59,6 @@
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     #loadingOverlay.hidden { display: none; }
 
-    /* =================== HEADER CORPORATIVO =================== */
     header{
       background:linear-gradient(90deg,var(--primary-blue),var(--dark-blue));
       color:#fff; padding:12px 24px; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;
@@ -91,12 +89,11 @@
     }
     #lastUpdateInfo { font-size: 12px; color: #dbe7f5; }
 
-    /* =================== SIDEBAR CORPORATIVA =================== */
     #side-menu {
         position: fixed; 
         top: 0; 
         left: 0; 
-        width: 300px; /* Mais larga */
+        width: 300px;
         height: 100vh;
         background: linear-gradient(180deg, var(--dark-blue) 0%, var(--darker-blue) 100%);
         box-shadow: 6px 0 30px rgba(0,0,0,0.4);
@@ -110,15 +107,15 @@
     .side-menu-item {
         display: flex; 
         align-items: center; 
-        gap: 20px; /* Mais espaçamento */
-        padding: 18px 25px; /* Botões maiores */
+        gap: 20px;
+        padding: 18px 25px;
         color: #e5e7eb;
         text-decoration: none; 
-        font-size: 16px; /* Fonte maior */
+        font-size: 16px;
         font-weight: 600;
         border-left: 4px solid transparent;
         transition: all 0.3s ease;
-        min-height: 50px; /* Altura mínima dos botões */
+        min-height: 50px;
     }
     
     .side-menu-item:hover { 
@@ -135,7 +132,6 @@
         box-shadow: inset 0 0 20px rgba(74,144,226,0.3);
     }
 
-    /* Configurações na parte inferior */
     #sidebar-settings {
         position: absolute;
         bottom: 20px;
@@ -166,7 +162,6 @@
         box-shadow: 0 4px 12px rgba(74,144,226,0.3);
     }
 
-    /* =================== LAYOUT GERAL =================== */
     main{max-width:1600px;margin:18px auto 100px;padding:0 24px}
     
     .btn{
@@ -199,7 +194,6 @@
       font-weight:500;
     }
 
-    /* =================== CARD DE LEITO =================== */
     .grid{display:grid;grid-template-columns:repeat(auto-fit, minmax(450px, 1fr));gap:18px;position:relative;z-index:1}
     .card{
       position:relative; 
@@ -236,7 +230,6 @@
     .chip{font-size:12px;background:#eef2ff;border:1px solid #dbeafe;color:var(--primary-blue);padding:4px 10px;border-radius:999px;font-weight:600}
     .actions{display:flex;gap:10px;justify-content:flex-end;margin-top:15px}
 
-    /* =================== DASHBOARDS =================== */
     .dash-grid { display: grid; gap: 24px; }
     .grid-2 { grid-template-columns: repeat(2, 1fr); }
     .grid-3 { grid-template-columns: repeat(3, 1fr); }
@@ -252,7 +245,6 @@
       #side-menu { left: -300px; }
     }
 
-    /* Dashboard Cards Escuros */
     .dashboard-card {
       background: var(--card); 
       border: 1px solid var(--border); 
@@ -284,7 +276,6 @@
       font-weight: 700;
     }
     
-    /* KPI Cards Escuros */
     .kpi-card {
         background: var(--card); 
         border: 1px solid var(--border); 
@@ -317,7 +308,6 @@
         letter-spacing: 0.5px;
     }
 
-    /* Dashboard 2 - Fundo Escuro Completo */
     #dash2 {
         background: var(--darker-blue);
         border-radius: 20px;
@@ -380,7 +370,6 @@
     .h-300 { height: 300px; }
     .h-400 { height: 400px; }
 
-    /* Gauge específico para Dashboard 2 */
     .kpi-gauge-wrapper {
         position: absolute;
         top: 15px;
@@ -394,7 +383,6 @@
         display: none !important;
     }
 
-    /* Tabelas Dashboard */
     .dash-table { 
         width: 100%; 
         border-collapse: collapse; 
@@ -414,7 +402,6 @@
         letter-spacing: 0.5px;
     }
 
-    /* =================== MODAIS =================== */
     .backdrop{
       position:fixed;inset:0;background:#0b1a2a99;display:none;align-items:center;justify-content:center;padding:16px;z-index:1000;overflow:auto
     }
@@ -456,7 +443,6 @@
       z-index:3000; display:none;
     }
     
-    /* =================== RESPONSIVIDADE =================== */
     @media (max-width: 1024px) {
         body { padding-left: 0; }
         #side-menu { left: -300px; }
@@ -473,10 +459,8 @@
         .header-left, .header-right { flex-wrap: wrap; }
     }
 
-    /* =================== ELEMENTOS ESPECIAIS =================== */
     .hidden{display:none}
     
-    /* Dropdown configurações */
     .dropdown-menu {
         position: absolute;
         bottom: 100%;
@@ -515,15 +499,54 @@
         color: white;
     }
 
-    /* Complexidade Dropdown */
     .complexidade-i { background: #ecfdf5; color: #065f46; }
     .complexidade-ii { background: #fff7ed; color: #92400e; }
     .complexidade-iii { background: #fef2f2; color: #991b1b; }
+    
+    .prev-alta-ouro { 
+      background: #fef3c7; 
+      color: #92400e; 
+      padding: 4px 8px; 
+      border-radius: 12px; 
+      font-weight: 700;
+      border: 1px solid #fbbf24;
+    }
+    .prev-alta-24h { 
+      background: #dbeafe; 
+      color: #1e40af; 
+      padding: 4px 8px; 
+      border-radius: 12px; 
+      font-weight: 600;
+      border: 1px solid #3b82f6;
+    }
+    .prev-alta-48h { 
+      background: #dcfce7; 
+      color: #166534; 
+      padding: 4px 8px; 
+      border-radius: 12px; 
+      font-weight: 600;
+      border: 1px solid #16a34a;
+    }
+    .prev-alta-72h { 
+      background: #fed7aa; 
+      color: #92400e; 
+      padding: 4px 8px; 
+      border-radius: 12px; 
+      font-weight: 600;
+      border: 1px solid #f59e0b;
+    }
+    .prev-alta-96h { 
+      background: #fecaca; 
+      color: #991b1b; 
+      padding: 4px 8px; 
+      border-radius: 12px; 
+      font-weight: 600;
+      border: 1px solid #dc2626;
+    }
   </style>
 </head>
 <body>
 
-  <!-- Sidebar Corporativa -->
   <div id="side-menu">
     <a href="#" class="side-menu-item active" data-tab="leitos">
       <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -547,7 +570,6 @@
       <span>Dashboard Executivo</span>
     </a>
 
-    <!-- Configurações na parte inferior -->
     <div id="sidebar-settings">
         <div class="sidebar-settings-item" id="sidebar-config">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -563,7 +585,6 @@
     </div>
   </div>
 
-  <!-- Header Corporativo -->
   <header id="appHeader">
     <div class="header-left">
       <div class="brand">
@@ -582,29 +603,22 @@
     </div>
   </header>
 
-  <!-- Loading Overlay -->
   <div id="loadingOverlay">
     <div class="loading-spinner"></div>
     <div class="loading-text">Carregando dados...</div>
   </div>
 
   <main>
-    <!-- Seção Leitos Cards -->
     <section id="leitosView" class="grid"></section>
 
-    <!-- Dashboard 1 - Hospitais -->
     <section id="dash1" class="hidden">
         <h2 style="margin-bottom:24px;color:var(--primary-blue);font-size:28px;font-weight:800">Dash Hospitais: Visão Detalhada</h2>
-        <div class="dash-grid grid-2">
-            <!-- Cards dos hospitais serão renderizados aqui -->
-        </div>
+        <div class="dash-grid grid-2"></div>
     </section>
 
-    <!-- Dashboard 2 - Executivo -->    
     <section id="dash2" class="hidden">
         <h2 style="margin-bottom:24px;color:var(--text-white);font-size:28px;font-weight:800">Dashboard Executivo: Rede Hospitalar Externa</h2>
         
-        <!-- KPIs Consolidados -->
         <div class="metric-card">
             <div class="metric-title">KPIs Operacionais Consolidados</div>
             <div class="dash-grid grid-5">
@@ -632,7 +646,6 @@
             </div>
         </div>
 
-        <!-- Análise Preditiva de Altas -->
         <div class="metric-card">
             <div class="metric-title">Análise Preditiva de Altas</div>
             <div class="dash-grid grid-2">
@@ -647,7 +660,6 @@
             </div>
         </div>
 
-        <!-- Projeções Consolidadas -->
         <div class="metric-card">
             <div class="metric-title">Projeções Consolidadas (7 dias)</div>
             <div class="dash-grid grid-2">
@@ -662,7 +674,6 @@
             </div>
         </div>
 
-        <!-- Análise PPS -->
         <div class="metric-card">
             <div class="metric-title">Análise PPS (Performance Status)</div>
             <div class="chart-container h-250">
@@ -670,7 +681,6 @@
             </div>
         </div>
 
-        <!-- Análise SPICT-BR -->
         <div class="metric-card">
             <div class="metric-title">Análise SPICT-BR</div>
             <div class="chart-container h-250">
@@ -680,7 +690,6 @@
     </section>
   </main>
 
-  <!-- Modais (mantidos iguais) -->
   <div id="modalAdmissao" class="backdrop" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true">
       <header>
@@ -847,7 +856,6 @@
     </div>
   </div>
 
-  <!-- Outros modais (iguais ao original) -->
   <div id="modalConfirm" class="backdrop" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true" style="max-width:520px">
       <header><strong>Confirmação</strong></header>
@@ -925,10 +933,7 @@
   </div>
   
 <script>
-  // =======================================================================
-  // ========================== CONFIGURAÇÃO ===============================
-  // =======================================================================
-  const API_URL = 'https://script.google.com/macros/s/AKfycbzn8BlUD8by0GykYlJa1pmbYtuXOr8aEUzOOBhpfSGl-i1x8LhAnGSRzqdyV2lANnIP/exec';
+  const API_URL = 'https://script.google.com/macros/s/AKfycbzn8BlUD8by0GykYlJa1pmbYtuXOr8aEUzOOJhpfSGl-i1x8LhAnGSRzqdyV2lANnIP/exec';
 
   function logInfo(message, data = null) { console.log(`🔵 [Archipelago] ${message}`, data || ''); }
   function logSuccess(message, data = null) { console.log(`🟢 [SUCCESS] ${message}`, data || ''); }
@@ -956,9 +961,6 @@
     "Fonoaudiologia": "#f59e0b", "PAD": "#4a90e2"
   };
 
-  // =======================================================================
-  // ========================== ESTADO DA UI ===============================
-  // =======================================================================
   let currentHospital = "H1";
   let activeTab = "leitos";
   let selectedLeito = null;
@@ -968,9 +970,6 @@
   let autoRefreshInterval = null;
   let updateIndicatorInterval = null;
 
-  // =======================================================================
-  // ===================== FUNÇÕES DE LOADING ============================
-  // =======================================================================
   function showLoading() {
     document.getElementById('loadingOverlay').classList.remove('hidden');
   }
@@ -981,9 +980,6 @@
     }, 500);
   }
 
-  // =======================================================================
-  // ========================== FUNÇÕES HELPERS ============================
-  // =======================================================================
   const $ = sel => document.querySelector(sel);
   
   function openModal(sel){ const el=$(sel); el.style.display="flex"; el.setAttribute("aria-hidden","false"); }
@@ -1036,9 +1032,6 @@
     }
   }
 
-  // =======================================================================
-  // ===================== FUNÇÕES DE API (BACKEND) ========================
-  // =======================================================================
   async function testConnection() {
     logInfo("Testando conexão com a API...");
     try {
@@ -1107,9 +1100,6 @@
     }
   }
   
-  // =======================================================================
-  // ======================= LÓGICA DE NAVEGAÇÃO =========================
-  // =======================================================================
   function setTab(tab){
     document.querySelectorAll(".side-menu-item").forEach(b=>b.classList.remove("active"));
     
@@ -1137,9 +1127,6 @@
     if(activeTab === "leitos") renderCards();
   }
 
-  // =======================================================================
-  // ======================= RENDERIZAÇÃO DE LEITOS ======================
-  // =======================================================================
   function renderCards(){
     const container = $("#leitosView");
     container.innerHTML = "";
@@ -1162,6 +1149,22 @@
       const complexidadeClass = l.complexidade ? `complexidade-${l.complexidade.toLowerCase()}` : "";
       const complexidadeText = l.complexidade || "—";
       
+      let prevAltaClass = "";
+      let prevAltaText = l.prevAlta || "—";
+      if (l.prevAlta) {
+        if (l.prevAlta.includes('24h Ouro')) {
+          prevAltaClass = "prev-alta-ouro";
+        } else if (l.prevAlta.includes('24h')) {
+          prevAltaClass = "prev-alta-24h";
+        } else if (l.prevAlta === '48h') {
+          prevAltaClass = "prev-alta-48h";
+        } else if (l.prevAlta === '72h') {
+          prevAltaClass = "prev-alta-72h";
+        } else if (l.prevAlta === '96h') {
+          prevAltaClass = "prev-alta-96h";
+        }
+      }
+      
       card.innerHTML = `
         <div class="top">
           <div class="wrap">
@@ -1177,7 +1180,7 @@
           <div class="field"><div class="label">Tempo de Internação</div><div class="value">${l.status === "Em uso" ? elapsedSince(l.admAt).text : "—"}</div></div>
           <div class="field"><div class="label">PPS</div><div class="value">${l.pps??"—"}</div></div>
           <div class="field"><div class="label">SPICT-BR</div><div class="value">${l.spict==="elegivel"?"Elegível":(l.spict==="nao_elegivel"?"Não elegível":"—")}</div></div>
-          <div class="field"><div class="label">Prev. Alta</div><div class="value">${l.prevAlta||"—"}</div></div>
+          <div class="field"><div class="label">Prev. Alta</div><div class="value"><span class="${prevAltaClass}">${prevAltaText}</span></div></div>
           <div class="field"><div class="label">Complexidade</div><div class="value"><span class="${complexidadeClass}">${complexidadeText}</span></div></div>
           <div class="field" style="grid-column:1/3">
             <div class="label">Linhas de cuidado</div><div class="wrap">${chipsLinhas||"—"}</div>
@@ -1201,11 +1204,8 @@
     });
   }
 
-  // =======================================================================
-  // ================= DASHBOARDS E GRÁFICOS =============================
-  // =======================================================================
   function getDiasAteAlta(prevAlta) {
-    if (!prevAlta || prevAlta === 'SP') return null; // SP não entra em projeções
+    if (!prevAlta || prevAlta === 'SP') return null;
     if (prevAlta.includes('24h')) return 1;
     if (prevAlta === '48h') return 2;
     if (prevAlta === '72h') return 3;
@@ -1262,7 +1262,7 @@
 
       (hospitalData || []).filter(p => p.status === 'Em uso' && p.prevAlta !== 'SP').forEach(paciente => {
           const dias = getDiasAteAlta(paciente.prevAlta);
-          if (dias === null) return; // SP não entra
+          if (dias === null) return;
           
           (paciente.linhas || []).forEach(linha => {
               if (!linhasData[linha]) linhasData[linha] = new Array(8).fill(0);
@@ -1295,7 +1295,6 @@
           const vagos = totalLeitos - ocupados;
           const taxaOcupacao = totalLeitos > 0 ? Math.round((ocupados / totalLeitos) * 100) : 0;
           
-          // Criar card do hospital
           const hospitalCard = document.createElement('div');
           hospitalCard.className = 'dashboard-card';
           hospitalCard.id = `dash-card-${h}`;
@@ -1303,7 +1302,6 @@
           hospitalCard.innerHTML = `
               <h3>${HOSPITAIS[h].nome}</h3>
               
-              <!-- Header com gauge meia rosca e stats -->
               <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
                   <div style="position: relative; width: 120px; height: 80px;">
                       <canvas id="chartOcupacao${h}" width="120" height="80"></canvas>
@@ -1340,7 +1338,6 @@
           
           dashContainer.appendChild(hospitalCard);
           
-          // Criar gauge meia rosca
           createChart(`chartOcupacao${h}`, `chartGauge${h}`, { 
               type: 'doughnut', 
               data: { datasets: [{ 
@@ -1358,10 +1355,8 @@
               } 
           });
           
-          // Renderizar gráficos
           const projections = calculateHospitalProjections(dados);
           
-          // Gráfico de Concessões (primeiro)
           const sortedConcessoes = Object.entries(projections.concessoesData).sort((a,b) => a[0].localeCompare(b[0]));
           createChart(`chartConcessoes${h}`, `chartConcessoesInst${h}`, {
               type: 'bar',
@@ -1382,7 +1377,6 @@
               }
           });
           
-          // Gráfico de Linhas de Cuidado (segundo)
           const sortedLinhas = Object.entries(projections.linhasData).sort((a,b) => a[0].localeCompare(b[0]));
           createChart(`chartLinhas${h}`, `chartLinhasInst${h}`, {
               type: 'bar',
@@ -1403,7 +1397,6 @@
               }
           });
           
-          // Gráfico de Complexidade
           const complexidadeData = { 'I': 0, 'II': 0, 'III': 0 };
           const totalPacientes = dados.filter(p => p.status === 'Em uso').length;
           
@@ -1443,7 +1436,6 @@
   function renderDash2(allData) {
       logInfo("Renderizando Dashboard 2 Executivo...");
       
-      // ========= KPIs CONSOLIDADOS (NOVA ORDEM) =========
       const totalLeitos = HOSPITAIS.H1.leitos.length + HOSPITAIS.H2.leitos.length;
       const ocupados = allData.filter(p => p.status === 'Em uso').length;
       const taxaOcupacaoGeral = totalLeitos > 0 ? Math.round((ocupados / totalLeitos) * 100) : 0;
@@ -1457,7 +1449,6 @@
       
       $('#kpiRotatividade').textContent = totalLeitos > 0 ? `${Math.round((ocupados / totalLeitos) * 30)}%` : '0%';
       
-      // Gauge meia rosca para taxa de ocupação
       createChart('kpiGaugeOcupacao', 'kpiGaugeOcupacaoInst', {
           type: 'doughnut',
           data: { datasets: [{ 
@@ -1472,7 +1463,6 @@
           }
       });
 
-      // ========= ANÁLISE PREDITIVA DE ALTAS =========
       const projGeralAltas = { "24h":{H1:0, H2:0}, "48h":{H1:0, H2:0}, "72h":{H1:0, H2:0}, "96h":{H1:0, H2:0} };
       allData.filter(p => p.status === 'Em uso' && p.prevAlta && p.prevAlta !== 'SP').forEach(p => {
           const key = p.prevAlta.includes('24h') ? '24h' : p.prevAlta;
@@ -1499,7 +1489,6 @@
           }
       });
 
-      // Timeline 24h (Ouro, 2R, 3R)
       const timeline24h = { "Ouro": {H1:0, H2:0}, "2R": {H1:0, H2:0}, "3R": {H1:0, H2:0} };
       allData.filter(p => p.status === 'Em uso' && p.prevAlta && p.prevAlta.includes('24h')).forEach(p => {
           if (p.prevAlta.includes('Ouro')) timeline24h.Ouro[p.hospital]++;
@@ -1535,10 +1524,8 @@
           }
       });
 
-      // ========= PROJEÇÕES CONSOLIDADAS =========
       const projConsolidada = calculateHospitalProjections(allData);
       
-      // Concessões (primeiro)
       const sortedConcessoes = Object.entries(projConsolidada.concessoesData).sort((a,b) => a[0].localeCompare(b[0]));
       createChart('chartConcessoesConsolidado', 'chartConcessoesConsolidadoInst', {
           type: 'bar',
@@ -1572,7 +1559,6 @@
           }
       });
       
-      // Linhas de Cuidado (segundo)
       const sortedLinhas = Object.entries(projConsolidada.linhasData).sort((a,b) => a[0].localeCompare(b[0]));
       createChart('chartLinhasConsolidado', 'chartLinhasConsolidadoInst', {
           type: 'bar',
@@ -1606,7 +1592,6 @@
           }
       });
 
-      // ========= ANÁLISE PPS =========
       const ppsRanges = { '0-3': {H1:0, H2:0}, '4-6': {H1:0, H2:0}, '7-10': {H1:0, H2:0} };
       allData.filter(p => p.status === 'Em uso' && p.pps).forEach(p => {
           const pps = p.pps;
@@ -1636,7 +1621,6 @@
           }
       });
 
-      // ========= ANÁLISE SPICT-BR =========
       const spictData = { H1: { elegivel: 0, nao_elegivel: 0 }, H2: { elegivel: 0, nao_elegivel: 0 } };
       allData.filter(p => p.status === 'Em uso').forEach(p => {
           if (p.spict && spictData[p.hospital]) spictData[p.hospital][p.spict]++;
@@ -1664,14 +1648,7 @@
 
       logSuccess('Dashboard 2 Executivo renderizado com sucesso!');
   }
-  
-  function renderDash3(allData) {
-      logInfo("Dashboard 3 foi removido conforme solicitado.");
-  }
 
-  // =======================================================================
-  // ======================== FLUXOS DE MODAIS ===========================
-  // =======================================================================
   function openAdmissao(leito){
     selectedLeito = leito;
     const l = HOSPITAIS[currentHospital].leitos.find(x=>x.id===leito);
@@ -1718,9 +1695,6 @@
     } catch(error) { alert('Erro ao dar alta: ' + error.message); }
   }
 
-  // =======================================================================
-  // ================= LÓGICA DE QR CODE (MANTIDA) ======================
-  // =======================================================================
   let qrReader = null;
   
   function handleScan(text) { 
@@ -1845,9 +1819,6 @@
     return false;
   }
 
-  // =======================================================================
-  // ================= FUNÇÕES QR CODE GLOBAIS ===========================
-  // =======================================================================
   function openQRScan() {
     const modal = document.getElementById('modalQRScan');
     if (modal) {
@@ -1865,17 +1836,12 @@
     document.getElementById('config-dropdown')?.classList.remove('show');
   }
 
-  // =======================================================================
-  // ===================== INICIALIZAÇÃO E EVENTOS =========================
-  // =======================================================================
   function setupEventListeners() {
-    // Navegação
     document.querySelectorAll(".side-menu-item").forEach(b=> b.onclick = (e)=> {
       e.preventDefault();
       setTab(b.dataset.tab);
     });
     
-    // Refresh
     $('#refreshBtn').onclick = () => { 
       logInfo("Refresh manual"); 
       if (activeTab.startsWith('dash')) { 
@@ -1885,13 +1851,11 @@
       } 
     };
 
-    // Configurações dropdown
     $('#sidebar-config').onclick = (e) => {
       e.preventDefault();
       $('#config-dropdown').classList.toggle('show');
     };
     
-    // Fechar dropdowns
     window.onclick = (event) => {
         if (!event.target.closest('.sidebar-settings-item')) {
             document.querySelectorAll('.dropdown-menu.show').forEach(dropdown => {
@@ -1900,12 +1864,10 @@
         }
     };
     
-    // Modais
     document.querySelectorAll("[data-close]").forEach(b=> b.onclick = ()=> closeModal(b.getAttribute("data-close")) );
     $("#b_generate").onclick = buildQRGrid;
     $("#reloadPage").onclick = ()=> location.reload();
     
-    // Ações dos modais
     $('#a_cancel').onclick = async () => { if (await confirmAction("Cancelar admissão?")) closeModal("#modalAdmissao"); };
     $('#u_cancel').onclick = async () => { if (await confirmAction("Cancelar alterações?")) closeModal("#modalAtualizacao"); };
     $('#u_alta').onclick = ()=> darAltaFlow(selectedLeito);
@@ -1967,11 +1929,9 @@
     };
   }
   
-  // Disponibilizar globalmente
   window.openQRScan = openQRScan;
   window.openQRPrint = openQRPrint;
 
-  // Função de inicialização
   (async function init(){
     logInfo("=== INICIALIZANDO ARCHIPELAGO CORPORATIVO ===");
     showLoading();
