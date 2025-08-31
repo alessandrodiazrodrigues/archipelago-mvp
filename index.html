@@ -3245,19 +3245,15 @@
 <!-- ============ FIM DO PROJETO - LAYOUT V3 COMPLETO ================== -->
 <!-- ===================================================================== -->
 
-
-
-
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="utf-8">
-    <title>Archipelago V3 - Layout Funcionando Restaurado</title>
+    <title>Archipelago V3 - Sidebar Funcionando Corretamente</title>
     <style>
-        /* ============== RESTAURAR LAYOUT V3 QUE FUNCIONAVA ============== */
+        /* ============== CORREÇÃO COMPLETA DA SIDEBAR V3 ============== */
         
-        /* 1. BARRA LATERAL FUNCIONAL (como estava funcionando) */
+        /* 1. SIDEBAR POSICIONAMENTO CORRETO */
         .layout-v3 #side-menu {
             position: fixed;
             top: 0;
@@ -3273,47 +3269,70 @@
             padding-top: 80px;
         }
         
-        /* Sidebar colapsada - APENAS left negativo */
+        /* Sidebar TOTALMENTE escondida quando colapsada */
         .layout-v3 #side-menu.collapsed {
-            left: -200px; /* Não esconder completamente */
+            left: -250px; /* Esconder COMPLETAMENTE */
         }
         
-        /* Body com sidebar aberta */
+        /* Body COM sidebar aberta */
         .layout-v3 body.side-menu-open {
             padding-left: 250px;
         }
         
-        /* Body com sidebar colapsada */
+        /* Body SEM sidebar (quando colapsada) */
         .layout-v3 body.sidebar-collapsed {
-            padding-left: 50px; /* Manter um pouco de espaço */
+            padding-left: 0; /* SEM padding quando escondida */
         }
         
-        /* 2. BOTÕES NA PARTE INFERIOR DA SIDEBAR */
+        /* 2. BOTÃO <<< NA PARTE SUPERIOR DA SIDEBAR */
         #sidebar-collapse-btn {
             position: absolute;
-            bottom: 70px;
-            left: 20px;
-            right: 20px;
-            background: rgba(96, 165, 250, 0.1);
-            border: 1px solid var(--v3-border);
-            color: var(--v3-text);
+            top: 20px; /* PARTE SUPERIOR, não inferior */
+            right: 15px;
+            background: rgba(220, 38, 38, 0.1);
+            border: 1px solid rgba(220, 38, 38, 0.3);
+            color: rgba(220, 38, 38, 0.8);
             border-radius: 8px;
-            padding: 12px;
+            padding: 8px 12px;
             cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            text-align: center;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            font-size: 16px;
+            font-weight: bold;
             transition: all 0.3s ease;
+            line-height: 1;
         }
         
         #sidebar-collapse-btn:hover {
-            background: rgba(96, 165, 250, 0.2);
-            box-shadow: 0 4px 12px rgba(96, 165, 250, 0.2);
+            background: rgba(220, 38, 38, 0.2);
+            color: rgba(220, 38, 38, 1);
+            transform: scale(1.1);
         }
         
-        /* Configurações na parte inferior */
+        /* 3. BOTÃO HAMBURGER (três linhas) SEMPRE VISÍVEL NO HEADER */
+        #hamburger-menu {
+            font-size: 24px;
+            cursor: pointer;
+            color: white;
+            padding: 8px;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+        
+        #hamburger-menu:hover {
+            background: rgba(255,255,255,0.1);
+            transform: scale(1.1);
+        }
+        
+        /* Mostrar hamburger apenas quando sidebar está colapsada ou em mobile */
+        .layout-v3 #hamburger-menu {
+            display: none;
+        }
+        
+        .layout-v3.sidebar-collapsed #hamburger-menu,
+        .layout-v3.mobile-view #hamburger-menu {
+            display: block;
+        }
+        
+        /* 4. CONFIGURAÇÕES NA PARTE INFERIOR */
         #sidebar-settings {
             position: absolute;
             bottom: 20px;
@@ -3344,60 +3363,6 @@
             color: var(--v3-text-accent);
             background: rgba(96, 165, 250, 0.1);
             box-shadow: 0 4px 12px rgba(96, 165, 250, 0.2);
-        }
-        
-        /* 3. BOTÃO DE EXPANDIR QUANDO COLAPSADA */
-        #sidebar-expand-btn {
-            position: fixed;
-            left: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: var(--v3-gradient-button);
-            border: 1px solid var(--v3-border-light);
-            color: white;
-            border-radius: 0 8px 8px 0;
-            padding: 15px 10px;
-            cursor: pointer;
-            z-index: 1000;
-            display: none;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(96, 165, 250, 0.3);
-            font-weight: 600;
-            writing-mode: vertical-lr;
-            text-orientation: mixed;
-        }
-        
-        .layout-v3.sidebar-collapsed #sidebar-expand-btn {
-            display: block;
-        }
-        
-        #sidebar-expand-btn:hover {
-            left: 5px;
-            box-shadow: 0 6px 16px rgba(96, 165, 250, 0.4);
-        }
-        
-        /* 4. CORREÇÃO DO GAUGE KPI (esconder o problemático) */
-        .kpi-gauge-wrapper {
-            display: none !important;
-        }
-        
-        #kpiGaugeOcupacao {
-            display: none !important;
-        }
-        
-        .kpi-card {
-            text-align: left;
-            position: relative;
-        }
-        
-        .kpi-value {
-            font-size: 36px;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-        
-        .layout-v3 .kpi-value {
-            color: var(--v3-text-accent);
         }
         
         /* 5. DROPDOWN CONFIGURAÇÕES */
@@ -3435,50 +3400,52 @@
             color: var(--v3-text-accent);
         }
         
-        /* 6. BOTÕES DASHBOARD 3 FUNCIONAIS */
-        .modern-tab {
-            background: rgba(255,255,255,0.2);
-            border: 1px solid rgba(255,255,255,0.3);
-            color: rgba(255,255,255,0.8);
-            padding: 8px 16px;
-            border-radius: 20px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        .modern-tab:hover {
-            background: rgba(255,255,255,0.3);
-            color: white;
-            transform: translateY(-2px);
-        }
-        
-        .modern-tab.active {
-            background: rgba(255,255,255,0.4);
-            color: white;
-            border-color: rgba(255,255,255,0.5);
-        }
-        
-        /* 7. LAYOUT RESPONSIVO */
+        /* 6. RESPONSIVIDADE MOBILE */
         @media (max-width: 1024px) {
-            .layout-v3 #side-menu {
-                left: -250px;
+            .layout-v3 {
+                /* Forçar mobile view */
             }
             
             .layout-v3 body {
-                padding-left: 0;
+                padding-left: 0 !important;
             }
             
-            .layout-v3 body.side-menu-open {
-                padding-left: 0;
+            .layout-v3 #hamburger-menu {
+                display: block !important;
+            }
+            
+            .layout-v3 #side-menu {
+                left: -250px;
             }
             
             .layout-v3 #side-menu.open {
                 left: 0;
             }
+        }
+        
+        /* 7. ANIMAÇÕES SUAVES */
+        .layout-v3 body {
+            transition: padding-left 0.3s ease;
+        }
+        
+        /* 8. CORREÇÃO GAUGE KPI */
+        .kpi-gauge-wrapper {
+            display: none !important;
+        }
+        
+        #kpiGaugeOcupacao {
+            display: none !important;
+        }
+        
+        .layout-v3 .kpi-card {
+            text-align: left;
+        }
+        
+        .layout-v3 .kpi-value {
+            color: var(--v3-text-accent);
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 8px;
         }
     </style>
 </head>
@@ -3486,54 +3453,62 @@
 
 <script>
 // ===================================================================
-// ============= RESTAURAR LAYOUT V3 QUE FUNCIONAVA =================
+// =============== SIDEBAR V3 FUNCIONAMENTO CORRETO ================
 // ===================================================================
 
-console.log('🔄 [V3 RESTORE] Restaurando layout que funcionava...');
+console.log('🔧 [V3 SIDEBAR] Aplicando correção completa...');
+
+// Estado da sidebar
+let sidebarState = {
+    isCollapsed: false,
+    isMobile: window.innerWidth <= 1024
+};
 
 // Função principal de inicialização
-function restoreWorkingLayout() {
+function initializeSidebar() {
     if (!document.body.classList.contains('layout-v3')) {
-        console.log('⏳ [V3 RESTORE] Aguardando Layout V3...');
+        console.log('⏳ [V3 SIDEBAR] Aguardando Layout V3...');
         return;
     }
     
-    console.log('🛠️ [V3 RESTORE] Aplicando correções mínimas...');
+    console.log('🛠️ [V3 SIDEBAR] Inicializando sidebar corrigida...');
     
-    // 1. Criar elementos da sidebar
+    // 1. Criar elementos necessários
     createSidebarElements();
     
     // 2. Configurar eventos
-    setupEvents();
+    setupSidebarEvents();
     
-    // 3. Corrigir Dashboard 3 (se necessário)
-    setTimeout(fixDash3Timeline, 1000);
+    // 3. Detectar mobile
+    handleResponsive();
     
-    console.log('✅ [V3 RESTORE] Layout restaurado com sucesso!');
+    console.log('✅ [V3 SIDEBAR] Sidebar inicializada corretamente!');
 }
 
-// Criar elementos da sidebar (versão simplificada)
+// Criar elementos da sidebar
 function createSidebarElements() {
     const sideMenu = document.getElementById('side-menu');
     if (!sideMenu) return;
     
-    // Remover elementos existentes
-    const existingCollapse = document.getElementById('sidebar-collapse-btn');
-    const existingSettings = document.getElementById('sidebar-settings');
-    const existingExpand = document.getElementById('sidebar-expand-btn');
+    // Limpar elementos antigos
+    const oldElements = [
+        'sidebar-collapse-btn',
+        'sidebar-settings',
+        'sidebar-expand-btn'
+    ];
+    oldElements.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.remove();
+    });
     
-    if (existingCollapse) existingCollapse.remove();
-    if (existingSettings) existingSettings.remove();
-    if (existingExpand) existingExpand.remove();
-    
-    // Botão de colapsar
+    // Botão de colapsar na PARTE SUPERIOR
     const collapseBtn = document.createElement('button');
     collapseBtn.id = 'sidebar-collapse-btn';
     collapseBtn.innerHTML = '&laquo;&laquo;&laquo;';
-    collapseBtn.title = 'Ocultar menu lateral';
+    collapseBtn.title = 'Fechar menu lateral';
     sideMenu.appendChild(collapseBtn);
     
-    // Configurações
+    // Configurações na PARTE INFERIOR
     const settingsSection = document.createElement('div');
     settingsSection.id = 'sidebar-settings';
     settingsSection.innerHTML = `
@@ -3551,62 +3526,111 @@ function createSidebarElements() {
     `;
     sideMenu.appendChild(settingsSection);
     
-    // Botão de expandir
-    const expandBtn = document.createElement('button');
-    expandBtn.id = 'sidebar-expand-btn';
-    expandBtn.innerHTML = '&raquo;&raquo;&raquo;';
-    expandBtn.title = 'Mostrar menu lateral';
-    document.body.appendChild(expandBtn);
-    
-    console.log('✅ [V3 RESTORE] Elementos criados');
+    console.log('✅ [V3 SIDEBAR] Elementos criados');
 }
 
-// Configurar eventos (versão simplificada)
-function setupEvents() {
-    // Toggle sidebar simples
-    function toggleSidebar() {
-        const sideMenu = document.getElementById('side-menu');
-        const body = document.body;
-        
-        if (sideMenu && body.classList.contains('layout-v3')) {
-            const isCollapsed = sideMenu.classList.contains('collapsed');
-            
-            if (isCollapsed) {
-                // Expandir
-                sideMenu.classList.remove('collapsed');
-                body.classList.remove('sidebar-collapsed');
-                body.classList.add('side-menu-open');
-                console.log('✅ [V3 RESTORE] Sidebar expandida');
-            } else {
-                // Colapsar (mas não esconder completamente)
-                sideMenu.classList.add('collapsed');
-                body.classList.add('sidebar-collapsed');
-                body.classList.remove('side-menu-open');
-                console.log('✅ [V3 RESTORE] Sidebar colapsada (parcialmente)');
-            }
-        }
+// Configurar eventos da sidebar
+function setupSidebarEvents() {
+    // Botão de colapsar (<<<)
+    const collapseBtn = document.getElementById('sidebar-collapse-btn');
+    if (collapseBtn) {
+        collapseBtn.addEventListener('click', collapseSidebar);
     }
     
-    // Event listeners
-    const collapseBtn = document.getElementById('sidebar-collapse-btn');
-    const expandBtn = document.getElementById('sidebar-expand-btn');
+    // Botão hamburger (☰)
+    const hamburger = document.getElementById('hamburger-menu');
+    if (hamburger) {
+        hamburger.addEventListener('click', expandSidebar);
+    }
+    
+    // Configurações dropdown
     const configBtn = document.getElementById('sidebar-config');
-    
-    if (collapseBtn) collapseBtn.onclick = toggleSidebar;
-    if (expandBtn) expandBtn.onclick = toggleSidebar;
-    
     if (configBtn) {
         configBtn.addEventListener('click', function(e) {
             e.preventDefault();
             const dropdown = document.getElementById('config-dropdown');
             if (dropdown) {
                 dropdown.classList.toggle('show');
-                console.log('✅ [V3 RESTORE] Configurações dropdown');
             }
         });
     }
     
-    console.log('✅ [V3 RESTORE] Eventos configurados');
+    console.log('✅ [V3 SIDEBAR] Eventos configurados');
+}
+
+// Colapsar sidebar COMPLETAMENTE
+function collapseSidebar() {
+    if (!document.body.classList.contains('layout-v3')) return;
+    
+    const sideMenu = document.getElementById('side-menu');
+    const body = document.body;
+    
+    if (sideMenu) {
+        // Esconder COMPLETAMENTE
+        sideMenu.classList.add('collapsed');
+        body.classList.remove('side-menu-open');
+        body.classList.add('sidebar-collapsed');
+        
+        sidebarState.isCollapsed = true;
+        
+        console.log('🔒 [V3 SIDEBAR] Sidebar colapsada COMPLETAMENTE');
+    }
+}
+
+// Expandir sidebar
+function expandSidebar() {
+    if (!document.body.classList.contains('layout-v3')) return;
+    
+    const sideMenu = document.getElementById('side-menu');
+    const body = document.body;
+    
+    if (sideMenu) {
+        if (sidebarState.isMobile) {
+            // Mobile: overlay
+            sideMenu.classList.remove('collapsed');
+            sideMenu.classList.add('open');
+            body.classList.remove('sidebar-collapsed');
+        } else {
+            // Desktop: push content
+            sideMenu.classList.remove('collapsed');
+            body.classList.remove('sidebar-collapsed');
+            body.classList.add('side-menu-open');
+        }
+        
+        sidebarState.isCollapsed = false;
+        
+        console.log('🔓 [V3 SIDEBAR] Sidebar expandida');
+    }
+}
+
+// Responsividade
+function handleResponsive() {
+    function checkMobile() {
+        const wasMobile = sidebarState.isMobile;
+        sidebarState.isMobile = window.innerWidth <= 1024;
+        
+        const body = document.body;
+        
+        if (sidebarState.isMobile !== wasMobile) {
+            if (sidebarState.isMobile) {
+                body.classList.add('mobile-view');
+                body.classList.remove('side-menu-open');
+                console.log('📱 [V3 SIDEBAR] Modo mobile ativado');
+            } else {
+                body.classList.remove('mobile-view');
+                if (!sidebarState.isCollapsed) {
+                    body.classList.add('side-menu-open');
+                }
+                console.log('🖥️ [V3 SIDEBAR] Modo desktop ativado');
+            }
+        }
+    }
+    
+    // Check inicial
+    checkMobile();
+    
+    // Listener para resize
+    window.addEventListener('resize', checkMobile);
 }
 
 // Funções QR Code
@@ -3616,7 +3640,8 @@ function openQRScan() {
         modal.style.display = 'flex';
         if (window.startScan) window.startScan();
     }
-    document.getElementById('config-dropdown').classList.remove('show');
+    document.getElementById('config-dropdown')?.classList.remove('show');
+    console.log('📱 [V3 SIDEBAR] QR Scan aberto');
 }
 
 function openQRPrint() {
@@ -3624,37 +3649,8 @@ function openQRPrint() {
     if (modal) {
         modal.style.display = 'flex';
     }
-    document.getElementById('config-dropdown').classList.remove('show');
-}
-
-// Corrigir Dashboard 3 Timeline (versão simplificada)
-function fixDash3Timeline() {
-    const timelineContainer = document.querySelector('.modern-main-chart');
-    if (!timelineContainer) return;
-    
-    const buttons = timelineContainer.querySelectorAll('.modern-tab');
-    const canvas = timelineContainer.querySelector('canvas');
-    
-    buttons.forEach((button, index) => {
-        button.addEventListener('click', function() {
-            // Remover active de todos
-            buttons.forEach(btn => btn.classList.remove('active'));
-            
-            // Adicionar active ao clicado
-            button.classList.add('active');
-            
-            // Simular mudança de gráfico
-            if (canvas && window.Chart) {
-                const chart = Chart.getChart(canvas);
-                if (chart) {
-                    console.log(`📊 [V3 RESTORE] Timeline mudou para: ${button.textContent}`);
-                    // Apenas visual feedback - chart continua igual
-                }
-            }
-        });
-    });
-    
-    console.log('✅ [V3 RESTORE] Dashboard 3 Timeline corrigido');
+    document.getElementById('config-dropdown')?.classList.remove('show');
+    console.log('🖨️ [V3 SIDEBAR] QR Print aberto');
 }
 
 // Observer para Layout V3
@@ -3662,7 +3658,7 @@ const layoutObserver = new MutationObserver(function(mutations) {
     mutations.forEach(function(mutation) {
         if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
             if (document.body.classList.contains('layout-v3')) {
-                setTimeout(restoreWorkingLayout, 200);
+                setTimeout(initializeSidebar, 200);
             }
         }
     });
@@ -3673,7 +3669,7 @@ layoutObserver.observe(document.body, {
     attributeFilter: ['class']
 });
 
-// Fechar dropdowns
+// Fechar dropdowns clicando fora
 document.addEventListener('click', function(e) {
     if (!e.target.closest('.sidebar-settings-item')) {
         document.querySelectorAll('.dropdown-menu.show').forEach(dropdown => {
@@ -3682,56 +3678,37 @@ document.addEventListener('click', function(e) {
     }
 });
 
+// Fechar sidebar mobile clicando fora
+document.addEventListener('click', function(e) {
+    if (sidebarState.isMobile && !sidebarState.isCollapsed) {
+        const sideMenu = document.getElementById('side-menu');
+        const hamburger = document.getElementById('hamburger-menu');
+        
+        if (sideMenu && !sideMenu.contains(e.target) && !hamburger?.contains(e.target)) {
+            collapseSidebar();
+        }
+    }
+});
+
 // Disponibilizar funções globalmente
 window.openQRScan = openQRScan;
 window.openQRPrint = openQRPrint;
+window.collapseSidebar = collapseSidebar;
+window.expandSidebar = expandSidebar;
 
 // Inicializar
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', restoreWorkingLayout);
+    document.addEventListener('DOMContentLoaded', initializeSidebar);
 } else {
-    restoreWorkingLayout();
+    initializeSidebar();
 }
 
-console.log('🏆 [V3 RESTORE] Layout funcionando restaurado!');
+console.log('🎯 [V3 SIDEBAR] Sidebar V3 corrigida e funcionando!');
 
 </script>
 
 </body>
 </html>
 
-<!-- ===================================================================== -->
-<!-- ================ LAYOUT V3 FUNCIONANDO RESTAURADO ================== -->
-<!-- ===================================================================== -->
 
-<!--
-🎯 VOLTANDO AO QUE FUNCIONAVA:
 
-✅ SIDEBAR FUNCIONAL
-- Colapsa para left: -200px (não desaparece totalmente)
-- Body mantém padding-left: 50px quando colapsada
-- Header e main sempre visíveis
-
-✅ BOTÕES NA PARTE INFERIOR
-- <<< na parte inferior da sidebar
-- Configurações com ícone correto
-- Dropdown funcional
-
-✅ GAUGE KPI CORRIGIDO
-- display: none no gauge problemático
-- Números limpos e visíveis
-
-✅ DASHBOARD 3 TIMELINE
-- Botões com visual feedback
-- Estados active funcionais
-- Click listeners corretos
-
-✅ VERSÃO SIMPLIFICADA
-- Sem over-engineering
-- Apenas o essencial que funciona
-- CSS e JS minimalistas
-
-RESTAURADO: Layout que estava funcionando bem!
-REMOVIDO: Todas as complicações que quebraram
-MANTIDO: Apenas as funcionalidades essenciais
--->
