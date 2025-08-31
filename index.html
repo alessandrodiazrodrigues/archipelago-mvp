@@ -2,1207 +2,186 @@
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Archipelago — Gestão de Leitos (MVP)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Archipelago — Dashboard Ultimate (Prevent Senior)</title>
+  <!-- Versão Ultimate (Layout Prevent Senior) – 31/08/2025 -->
 
-  <!-- Google Fonts - Open Sans para Layout V3 -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
-
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-treemap@2.3.0/dist/chartjs-chart-treemap.min.js"></script>
-  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-
+  <!-- ======= ESTILOS ======= -->
   <style>
-    /* =================== VARIÁVEIS GLOBAIS =================== */
     :root{
-      --nav:#0a2b52;
+      --nav:#0a2b52;          /* azul escuro Prevent */
       --nav-2:#083052;
-      --bg:#eaf1f9;
-      --bg-deep:#d9e7fb;
+      --bg:#eaf1f9;           /* base do fundo */
+      --bg-deep:#d9e7fb;      /* variação do fundo */
       --card:#ffffff;
-      --text:#1f2937;
+      --text:#111827;
       --muted:#6b7280;
       --border:#e5e7eb;
-      --ok:#16a34a;
-      --warn:#f59e0b;
-      --danger:#dc2626;
-      --blue-veil:#4f86ff33;
-      --shadow-1:0 4px 12px rgba(11,44,82,.08);
-      --shadow-2:0 10px 28px rgba(11,44,82,.12);
+      --ok:#16a34a;           /* VAGO */
+      --warn:#f59e0b;         /* EM USO */
+      --danger:#dc2626;       /* UTI / ações críticas */
+      --blue-veil:#4f86ff33;  /* véu azul translúcido */
+      --shadow-1:0 10px 22px rgba(11,44,82,.10);
+      --shadow-2:0 18px 48px rgba(11,44,82,.14);
+      --accent:#0ea5e9;       /* azul claro para detalhes */
     }
 
-    /* =================== LAYOUT V3 CORPORATIVO - VARIÁVEIS =================== */
-    .layout-v3 {
-      --v3-primary: #022e50;
-      --v3-primary-light: #60a5fa;
-      --v3-primary-dark: #1e40af;
-      --v3-bg-primary: #0a0f1c;
-      --v3-bg-secondary: #060b14;
-      --v3-bg-tertiary: #1a1f2e;
-      --v3-card: #1a1f2e;
-      --v3-card-hover: #242938;
-      --v3-text: #e2e8f0;
-      --v3-text-muted: #94a3b8;
-      --v3-text-accent: #60a5fa;
-      --v3-border: #334155;
-      --v3-border-light: #475569;
-      --v3-shadow: 0 4px 20px rgba(0,0,0,0.25);
-      --v3-shadow-hover: 0 8px 32px rgba(0,0,0,0.35);
-      --v3-gradient-header: linear-gradient(135deg, #022e50 0%, #1e40af 100%);
-      --v3-gradient-card: linear-gradient(145deg, #1a1f2e 0%, #242938 100%);
-      --v3-gradient-button: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
-    }
-
-    /* =================== BASE STYLES =================== */
     *{box-sizing:border-box}
-    html,body{height:100%; margin:0; padding:0; overflow-x: hidden;}
+    html,body{height:100%}
     body{
-      font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Helvetica Neue,Arial;
+      margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Helvetica Neue,Arial;
       color:var(--text);
-      background: linear-gradient(180deg, var(--bg) 0%, var(--bg-deep) 100%);
-      transition: padding-left 0.3s ease, background 0.3s ease;
+      background:
+        radial-gradient(1200px 600px at 15% -10%, #cfe2ff 0%, transparent 55%),
+        radial-gradient(1000px 500px at 85% 0%, #c9dffe 0%, transparent 60%),
+        linear-gradient(180deg, var(--bg) 0%, var(--bg-deep) 100%);
     }
 
-    /* =================== LAYOUT V3 - TIPOGRAFIA CORPORATIVA =================== */
-    .layout-v3 {
-      font-family: 'Open Sans', sans-serif;
-      background: linear-gradient(180deg, var(--v3-bg-primary) 0%, var(--v3-bg-secondary) 100%);
-      color: var(--v3-text);
-    }
-
-    .layout-v3 h1, .layout-v3 h2, .layout-v3 h3, .layout-v3 h4 {
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-
-    .layout-v3 .corporate-text {
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    /* =================== LOADING OVERLAY =================== */
-    #loadingOverlay {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(234, 241, 249, 0.95); backdrop-filter: blur(3px);
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      z-index: 2000; transition: opacity 0.3s ease;
-    }
-
-    .layout-v3 #loadingOverlay {
-      background: rgba(10, 15, 28, 0.95);
-    }
-
-    .loading-spinner {
-      width: 60px; height: 60px; border: 3px solid #e5e7eb;
-      border-top: 3px solid var(--nav); border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-    }
-
-    .layout-v3 .loading-spinner {
-      border-color: var(--v3-border);
-      border-top-color: var(--v3-primary-light);
-    }
-
-    .loading-text {
-      margin-top: 15px; font-size: 16px; color: var(--nav); font-weight: 500;
-    }
-
-    .layout-v3 .loading-text {
-      color: var(--v3-text);
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    #loadingOverlay.hidden { display: none; }
-
-    /* =================== HEADER E NAVEGAÇÃO =================== */
+    /* Header */
     header{
       background:linear-gradient(90deg,var(--nav),var(--nav-2));
-      color:#fff; padding:12px 24px; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;
+      color:#fff; padding:12px 16px; display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;
       box-shadow:0 6px 18px rgba(8,48,82,.20);
-      position:sticky; top: 0; z-index:100;
+      position:relative; z-index:5;
     }
-
-    /* Layout V3 - Header Corporativo */
-    .layout-v3 header {
-      background: var(--v3-gradient-header);
-      box-shadow: 0 6px 24px rgba(0,0,0,0.3);
-      border-bottom: 1px solid var(--v3-border);
-      backdrop-filter: blur(10px);
-    }
-
-    .header-left, .header-right { display: flex; align-items: center; gap: 16px; }
     .brand{display:flex; align-items:center; gap:10px}
     .logo{width:40px;height:40px;border-radius:10px;background:#fff1;display:grid;place-items:center;border:1px solid #ffffff33;backdrop-filter:blur(2px)}
     .logo::after{content:"PS";font-weight:700}
-
-    .layout-v3 .logo {
-      background: var(--v3-gradient-button);
-      border-color: var(--v3-border-light);
-      font-weight: 700;
-    }
-
-    .title h1{margin:0;font-size:18px}
-    .title small{display:block;color:#dbe7f5; font-size: 12px;}
-
-    .layout-v3 .title h1 {
-      font-size: 20px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-
-    .layout-v3 .title small {
-      color: var(--v3-text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      font-weight: 400;
-    }
+    .title h1{margin:0;font-size:18px;letter-spacing:.5px}
+    .title small{display:block;color:#dbe7f5}
 
     nav.tabs{display:flex;gap:8px;flex-wrap:wrap}
     .tab{background:#ffffff1a;border:1px solid #ffffff33;color:#fff;padding:8px 12px;border-radius:10px;cursor:pointer;user-select:none}
     .tab.active{background:#fff;color:var(--nav);border-color:#fff}
 
-    .layout-v3 .tab {
-      background: rgba(96, 165, 250, 0.1);
-      border-color: var(--v3-border);
-      color: var(--v3-text);
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      transition: all 0.3s ease;
-    }
-
-    .layout-v3 .tab.active {
-      background: var(--v3-gradient-button);
-      color: white;
-      box-shadow: 0 4px 12px rgba(96, 165, 250, 0.3);
-    }
-
-    .header-btn { background: #ffffff1a; border: 1px solid #ffffff33; color: #fff; border-radius: 10px; padding: 8px 12px; cursor: pointer; position: relative; }
-    .header-btn:hover { background: #ffffff2a; }
-
-    .layout-v3 .header-btn {
-      background: rgba(96, 165, 250, 0.1);
-      border-color: var(--v3-border);
-      color: var(--v3-text);
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      transition: all 0.3s ease;
-    }
-
-    .layout-v3 .header-btn:hover {
-      background: rgba(96, 165, 250, 0.2);
-      box-shadow: 0 4px 12px rgba(96, 165, 250, 0.2);
-    }
-
-    .dropdown-menu { display: none; position: absolute; top: 110%; right: 0; background: white; border-radius: 10px; box-shadow: var(--shadow-2); overflow: hidden; z-index: 110; min-width: 180px; }
-    .dropdown-menu.show { display: block; }
-    .dropdown-item { padding: 10px 15px; color: var(--text); font-size: 14px; cursor: pointer; }
-    .dropdown-item:hover { background-color: #f3f4f6; }
-
-    .layout-v3 .dropdown-menu {
-      background: var(--v3-card);
-      box-shadow: var(--v3-shadow);
-      border: 1px solid var(--v3-border);
-    }
-
-    .layout-v3 .dropdown-item {
-      color: var(--v3-text);
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .layout-v3 .dropdown-item:hover {
-      background: var(--v3-card-hover);
-    }
-
-    /* =================== LAYOUT V2: MENU LATERAL =================== */
-    #hamburger-menu { font-size: 24px; cursor: pointer; display: none; }
-    #side-menu {
-        position: fixed; top: 0; left: -260px; width: 250px; height: 100%;
-        background: var(--nav); color: white;
-        box-shadow: 6px 0 20px rgba(8,48,82,.25);
-        transition: left 0.3s ease; z-index: 1001; padding-top: 80px;
-    }
-
-    /* Layout V3 - Menu Lateral Corporativo */
-    .layout-v3 #side-menu {
-        background: linear-gradient(180deg, var(--v3-bg-tertiary) 0%, var(--v3-bg-primary) 100%);
-        box-shadow: 6px 0 30px rgba(0,0,0,0.4);
-        border-right: 1px solid var(--v3-border);
-        backdrop-filter: blur(10px);
-    }
-
-    #side-menu.open { left: 0; }
-    body.side-menu-open { padding-left: 250px; }
-    .side-menu-item {
-        display: flex; align-items: center; gap: 15px;
-        padding: 15px 20px; color: #e5e7eb;
-        text-decoration: none; font-size: 14px;
-        border-left: 4px solid transparent;
-        transition: all 0.3s ease;
-    }
-    .side-menu-item:hover { background: #ffffff1a; border-left-color: #3b82f6; }
-    .side-menu-item.active { background: #ffffff2a; border-left-color: #fff; font-weight: 600; color: #fff;}
-
-    .layout-v3 .side-menu-item {
-        color: var(--v3-text);
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        border-left-color: transparent;
-    }
-
-    .layout-v3 .side-menu-item:hover {
-        background: rgba(96, 165, 250, 0.1);
-        border-left-color: var(--v3-primary-light);
-    }
-
-    .layout-v3 .side-menu-item.active {
-        background: rgba(96, 165, 250, 0.2);
-        border-left-color: var(--v3-primary-light);
-        color: var(--v3-text-accent);
-    }
-
-    .layout-v2 .tabs { display: none; }
-    .layout-v2 #hamburger-menu { display: block; }
-    .layout-v2 #v1-header-buttons { display: none; }
-    #v2-header-buttons { display: none; }
-    .layout-v2 #v2-header-buttons { display: flex; }
-
-    /* Layout V3 - Menu obrigatório */
-    .layout-v3 .tabs { display: none; }
-    .layout-v3 #hamburger-menu { display: block; }
-    .layout-v3 #v1-header-buttons { display: none; }
-    .layout-v3 #v2-header-buttons { display: flex; }
-    .layout-v3 #side-menu { left: 0; } /* Menu sempre aberto no V3 */
-    .layout-v3 body { padding-left: 250px; }
-
-    /* =================== LAYOUT SWITCHER =================== */
-    .layout-switcher { display: flex; align-items: center; gap: 12px; }
-
-    .layout-dropdown {
-        appearance: none;
-        background: #ffffff1a;
-        border: 1px solid #ffffff33;
-        color: #fff;
-        padding: 6px 10px;
-        border-radius: 8px;
-        cursor: pointer;
-        font-size: 12px;
-    }
-
-    .layout-v3 .layout-dropdown {
-        background: rgba(96, 165, 250, 0.1);
-        border-color: var(--v3-border);
-        color: var(--v3-text);
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    .switch { position: relative; display: inline-block; width: 38px; height: 22px; }
-    .switch input { opacity: 0; width: 0; height: 0; }
-    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ffffff33; transition: .4s; border-radius: 34px; }
-    .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
-    input:checked + .slider { background-color: #3b82f6; }
-    input:checked + .slider:before { transform: translateX(16px); }
-    
-    .switch-label { font-size: 12px; color: #dbe7f5; margin-left: 4px; }
-
-    .layout-v3 .switch-label {
-        color: var(--v3-text-muted);
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    
-    /* =================== MODO NOTURNO =================== */
-    body.night-mode {
-      --nav: #1a1a2e;
-      --nav-2: #16213e;
-      --bg: #0f0f23;
-      --bg-deep: #16213e;
-      --card: #1a1a2e;
-      --text: #e5e7eb;
-      --muted: #9ca3af;
-      --border: #374151;
-    }
-    
-    body.night-mode .kpi-card,
-    body.night-mode .dashboard-card,
-    body.night-mode .metric-card {
-      background: #1a1a2e;
-      color: #e5e7eb;
-    }
-    
-    body.night-mode .field {
-      background: #16213e;
-      border-color: #374151;
-    }
-    
-    body.night-mode .stat-box {
-      background: #16213e;
-    }
-
-    /* Layout V3 não usa modo noturno - tema escuro permanente */
-    .layout-v3 #nightModeToggle {
-        display: none;
-    }
-
-    /* =================== LAYOUT GERAL =================== */
-    main{max-width:1600px;margin:18px auto 100px;padding:0 24px}
-
-    .layout-v3 main {
-        background: rgba(26, 31, 46, 0.3);
-        border-radius: 20px;
-        backdrop-filter: blur(10px);
-        border: 1px solid var(--v3-border);
-        box-shadow: var(--v3-shadow);
-    }
-
+    main{max-width:1380px;margin:18px auto 120px;padding:0 16px}
     .toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:8px}
     .toolbar .row{display:flex;gap:8px;flex-wrap:wrap}
-    .btn{appearance:none;border:1px solid var(--border);background:#fff;padding:10px 14px;border-radius:12px;cursor:pointer;transition: all 0.2s ease;}
+    .btn{appearance:none;border:1px solid var(--border);background:#fff;padding:10px 14px;border-radius:12px;cursor:pointer}
     .btn.primary{background:var(--nav);border-color:var(--nav);color:#fff}
     .btn.danger{background:var(--danger);border-color:var(--danger);color:#fff}
-    .btn.hospital{ background:var(--nav); border-color:var(--nav); color:#fff; transition: all 0.2s ease; }
-    .btn.hospital.active{ background:#1e40af; border-color:#1e40af; box-shadow:0 0 0 3px rgba(30,64,175,0.3); transform: translateY(-1px); }
-    .btn.hospital:hover{ background:#1e40af; }
-
-    .layout-v3 .btn {
-        background: var(--v3-card);
-        border-color: var(--v3-border);
-        color: var(--v3-text);
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-    }
-
-    .layout-v3 .btn.primary {
-        background: var(--v3-gradient-button);
-        border-color: var(--v3-primary-light);
-        color: white;
-        box-shadow: 0 4px 16px rgba(96, 165, 250, 0.3);
-    }
-
-    .layout-v3 .btn.danger {
-        background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
-        border-color: #dc2626;
-        color: white;
-        box-shadow: 0 4px 16px rgba(220, 38, 38, 0.3);
-    }
-
-    .layout-v3 .btn.hospital {
-        background: var(--v3-gradient-button);
-        border-color: var(--v3-primary-light);
-        color: white;
-    }
-
-    .layout-v3 .btn.hospital.active {
-        background: var(--v3-gradient-header);
-        box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.4);
-    }
-
+    .btn.ghost{background:#ffffffcc;border-color:#ffffff66}
     .select{appearance:none;border:1px solid var(--border);background:#fff;padding:10px 12px;border-radius:12px}
 
-    .layout-v3 .select {
-        background: var(--v3-card);
-        border-color: var(--v3-border);
-        color: var(--v3-text);
-        font-weight: 600;
-    }
+    /* Grid de cards (Leitos – Cards) */
+    .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;position:relative;z-index:1}
+    @media (max-width:1000px){.grid{grid-template-columns:1fr}}
 
-    #lastUpdateInfo { font-size: 12px; color: #dbe7f5; }
-
-    .layout-v3 #lastUpdateInfo {
-        color: var(--v3-text-muted);
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    /* =================== CARD DE LEITO =================== */
-    .grid{display:grid;grid-template-columns:repeat(auto-fit, minmax(450px, 1fr));gap:18px;position:relative;z-index:1}
-    .card{
-      position:relative; background:var(--card); 
-      border-radius:20px; padding:16px;
-      box-shadow: var(--shadow-1), var(--shadow-2), 0 0 0 1px rgba(255,255,255,.6) inset;
-      transform:translateY(0); transition:transform .18s ease, box-shadow .18s ease;
-      border: 2px solid transparent;
-      background-clip: padding-box;
-      border-image: linear-gradient(to bottom, #FFFFFF, #E5E7EB) 1;
-    }
-
-    .layout-v3 .card {
-        background: var(--v3-gradient-card);
-        border-radius: 16px;
-        box-shadow: var(--v3-shadow);
-        border: 1px solid var(--v3-border);
-        backdrop-filter: blur(10px);
-    }
-
-    .card:hover{
-      transform:translateY(-4px);
-      box-shadow: 0 16px 38px rgba(11,44,82,.16), 0 26px 64px rgba(11,44,82,.18), 0 0 0 1px rgba(255,255,255,.7) inset;
-    }
-
-    .layout-v3 .card:hover {
-        transform: translateY(-6px);
-        box-shadow: var(--v3-shadow-hover);
-        border-color: var(--v3-border-light);
-    }
+    .card{position:relative;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:16px;box-shadow:var(--shadow-1),var(--shadow-2),0 0 0 1px rgba(255,255,255,.6) inset;transform:translateY(0);transition:transform .18s ease, box-shadow .18s ease, filter .18s ease}
+    .card::before{content:"";position:absolute;inset:-8px -8px -16px -8px;border-radius:24px;background:radial-gradient(500px 220px at 30% -20%, var(--blue-veil), transparent 70%);z-index:-1;filter:blur(8px)}
+    .card:hover{transform:translateY(-2px);box-shadow:0 16px 38px rgba(11,44,82,.16),0 26px 64px rgba(11,44,82,.18),0 0 0 1px rgba(255,255,255,.7) inset;filter:saturate(1.02)}
 
     .card .top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
     .badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:#f9fafb;color:var(--muted);font-size:12px}
-
-    .layout-v3 .badge {
-        background: rgba(96, 165, 250, 0.1);
-        border-color: var(--v3-border);
-        color: var(--v3-text-accent);
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
     .status{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;color:#111;border:1px solid var(--border);background:#fff}
     .status.ok{background:#ecfdf5;border-color:#bbf7d0;color:#065f46}
     .status.warn{background:#fff7ed;border-color:#fed7aa;color:#92400e}
-
-    .layout-v3 .status {
-        background: var(--v3-card);
-        border-color: var(--v3-border);
-        color: var(--v3-text);
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    .layout-v3 .status.ok {
-        background: rgba(34, 197, 94, 0.1);
-        border-color: rgba(34, 197, 94, 0.3);
-        color: #22c55e;
-    }
-
-    .layout-v3 .status.warn {
-        background: rgba(245, 158, 11, 0.1);
-        border-color: rgba(245, 158, 11, 0.3);
-        color: #f59e0b;
-    }
-
     .tipo{font-size:12px;color:#fff;background:#6b7280;border-radius:999px;padding:4px 8px}
     .tipo.uti{background:var(--danger)}
     .tipo.enf{background:#0ea5e9}
-
-    .layout-v3 .tipo {
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    .layout-v3 .tipo.uti {
-        background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
-    }
-
-    .layout-v3 .tipo.enf {
-        background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
-    }
 
     .row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
     .field{background:#f9fafb;border:1px solid var(--border);border-radius:12px;padding:10px}
     .field .label{font-size:11px;color:#6b7280}
     .field .value{font-weight:600}
-
-    .layout-v3 .field {
-        background: rgba(96, 165, 250, 0.05);
-        border-color: var(--v3-border);
-        backdrop-filter: blur(5px);
-    }
-
-    .layout-v3 .field .label {
-        color: var(--v3-text-muted);
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    .layout-v3 .field .value {
-        color: var(--v3-text);
-        font-weight: 600;
-    }
-
     .wrap{display:flex;flex-wrap:wrap;gap:6px}
     .chip{font-size:12px;background:#eef2ff;border:1px solid #dbeafe;color:#1e40af;padding:2px 8px;border-radius:999px}
-
-    .layout-v3 .chip {
-        background: rgba(96, 165, 250, 0.1);
-        border-color: var(--v3-border);
-        color: var(--v3-text-accent);
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
     .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
 
-    /* =================== TABELA DE LEITOS =================== */
+    /* Tabela */
     table{width:100%;border-collapse:separate;border-spacing:0 10px}
     th,td{background:#fff;border:1px solid var(--border);padding:10px;border-radius:10px}
     th{font-size:12px;color:#6b7280;text-align:left}
-    th.sortable { cursor: pointer; user-select: none; }
-    th.sortable:hover { background-color: #f9fafb; }
     td{font-size:13px}
     .hidden{display:none}
 
-    .layout-v3 table th,
-    .layout-v3 table td {
-        background: var(--v3-card);
-        border-color: var(--v3-border);
-        color: var(--v3-text);
-    }
-
-    .layout-v3 table th {
-        color: var(--v3-text-muted);
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    .layout-v3 table th.sortable:hover {
-        background: var(--v3-card-hover);
-    }
-
-    /* =================== MODAIS =================== */
+    /* Modais */
     .backdrop{position:fixed;inset:0;background:#0b1a2a99;display:none;align-items:center;justify-content:center;padding:16px;z-index:1000;overflow:auto}
-
-    .layout-v3 .backdrop {
-        background: rgba(10, 15, 28, 0.8);
-        backdrop-filter: blur(10px);
-    }
-
-    .modal{background:#fff;max-width:860px;width:100%;max-height:90vh;border-radius:20px;border:1px solid var(--border);box-shadow:0 10px 28px rgba(0,0,0,.25);overflow:hidden;display:flex;flex-direction:column}
-
-    .layout-v3 .modal {
-        background: var(--v3-gradient-card);
-        border-color: var(--v3-border);
-        box-shadow: var(--v3-shadow-hover);
-        backdrop-filter: blur(15px);
-    }
-
-    .modal header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);flex-shrink:0}
-
-    .layout-v3 .modal header {
-        background: var(--v3-gradient-header);
-        border-color: var(--v3-border);
-        color: white;
-    }
-
-    .layout-v3 .modal header strong {
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-    }
-
-    .modal .content{padding:16px;overflow-y:auto;flex:1}
-    .modal .actions{display:flex;gap:8px;justify-content:flex-end;padding:12px 16px;border-top:1px solid var(--border);flex-shrink:0}
-
-    .layout-v3 .modal .actions {
-        background: rgba(26, 31, 46, 0.5);
-        border-color: var(--v3-border);
-    }
-
+    .modal{background:#fff;max-width:920px;width:100%;border-radius:20px;border:1px solid var(--border);box-shadow:0 10px 28px rgba(0,0,0,.25);max-height:90vh;overflow:auto}
+    .modal header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border)}
+    .modal .content{padding:16px}
+    .modal .actions{display:flex;gap:8px;justify-content:flex-end;padding:12px 16px;border-top:1px solid var(--border)}
     .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
     .row3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
     .input,.select2,textarea{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:12px}
-
-    .layout-v3 .input,
-    .layout-v3 .select2,
-    .layout-v3 textarea {
-        background: var(--v3-card);
-        border-color: var(--v3-border);
-        color: var(--v3-text);
-        font-weight: 600;
-    }
-
     .label{font-size:12px;color:#6b7280;margin-bottom:4px;display:block}
+    .danger{color:var(--danger)}
 
-    .layout-v3 .label {
-        color: var(--v3-text-muted);
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    
-    .qr-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-height:none;overflow:visible}
-    .qr-cell{background:#fff;border:1px solid var(--border);border-radius:14px;padding:10px;text-align:center;min-height:200px}
-
-    .layout-v3 .qr-cell {
-        background: var(--v3-card);
-        border-color: var(--v3-border);
-    }
-
+    /* QR em massa: rolável + imprimível */
+    .qr-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-height:70vh;overflow:auto;padding-right:6px}
+    .qr-cell{background:#fff;border:1px solid var(--border);border-radius:14px;padding:10px;text-align:center}
     .qr-box{display:inline-block;border:1px solid var(--border);padding:8px;border-radius:10px;background:#fff}
 
-    .layout-v3 .qr-box {
-        background: white;
-        border-color: var(--v3-border);
-    }
-    
-    .success-message{
-      position:fixed; top:50%;left:50%; transform:translate(-50%,-50%);
-      background:#fff; border:1px solid var(--border); border-radius:20px;
-      padding:40px; text-align:center; box-shadow:0 10px 28px rgba(0,0,0,.25);
-      z-index:3000; display:none;
-    }
-
-    .layout-v3 .success-message {
-        background: var(--v3-gradient-card);
-        border-color: var(--v3-border);
-        color: var(--v3-text);
-        box-shadow: var(--v3-shadow-hover);
-    }
-
-    .layout-v3 .success-message h2 {
-        color: var(--v3-text-accent);
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-    }
-    
-    /* =================== DASHBOARDS =================== */
-    .dash-grid { display: grid; gap: 24px; }
-    .grid-2 { grid-template-columns: repeat(2, 1fr); }
-    @media (max-width: 1200px) { .grid-2 { grid-template-columns: 1fr; } }
-    .grid-3 { grid-template-columns: repeat(3, 1fr); }
-    @media (max-width: 1200px) { .grid-3 { grid-template-columns: 1fr; } }
-    .grid-4 { grid-template-columns: repeat(4, 1fr); }
-    @media (max-width: 900px) { .grid-4 { grid-template-columns: repeat(2, 1fr); } }
-    .grid-5 { grid-template-columns: repeat(5, 1fr); }
-    @media (max-width: 1000px) { .grid-5 { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); } }
-    .grid-6 { grid-template-columns: repeat(6, 1fr); }
-    @media (max-width: 1400px) { .grid-6 { grid-template-columns: repeat(3, 1fr); } }
-    @media (max-width: 900px) { .grid-6 { grid-template-columns: repeat(2, 1fr); } }
-    .span-2 { grid-column: span 2; }
-    @media (max-width: 1200px) { .span-2 { grid-column: span 1; } }
-
-    .dashboard-card {
-      background: #fff; border: 1px solid var(--border); border-radius: 16px;
-      padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    }
-
-    .layout-v3 .dashboard-card {
-        background: var(--v3-gradient-card);
-        border-color: var(--v3-border);
-        box-shadow: var(--v3-shadow);
-        backdrop-filter: blur(10px);
-    }
-
-    .dashboard-card h3 {
-      margin: 0 0 15px 0; font-size: 18px; color: var(--nav); text-align: center;
-      padding-bottom: 10px; border-bottom: 1px solid var(--border);
-    }
-
-    .layout-v3 .dashboard-card h3 {
-        color: var(--v3-text-accent);
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        border-color: var(--v3-border);
-    }
-
-    .dashboard-card h4 { margin: 20px 0 10px 0; font-size: 14px; color: var(--text); }
-
-    .layout-v3 .dashboard-card h4 {
-        color: var(--v3-text);
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    
-    .kpi-card {
-        background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 15px; text-align: center; position: relative;
-    }
-
-    .layout-v3 .kpi-card {
-        background: var(--v3-gradient-card);
-        border-color: var(--v3-border);
-        box-shadow: var(--v3-shadow);
-        backdrop-filter: blur(10px);
-    }
-
-    .kpi-value { font-size: 36px; font-weight: 700; color: var(--nav); }
-
-    .layout-v3 .kpi-value {
-        color: var(--v3-text-accent);
-    }
-
-    .kpi-label { font-size: 13px; color: var(--muted); margin-top: 5px; }
-
-    .layout-v3 .kpi-label {
-        color: var(--v3-text-muted);
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    .kpi-gauge-wrapper { position: absolute; top: 10px; right: 10px; width: 60px; height: 40px; }
-    
-    .metric-card {
-        background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-bottom: 20px;
-    }
-
-    .layout-v3 .metric-card {
-        background: var(--v3-gradient-card);
-        border-color: var(--v3-border);
-        box-shadow: var(--v3-shadow);
-        backdrop-filter: blur(10px);
-    }
-
-    .metric-title { font-size: 16px; font-weight: 600; color: var(--nav); margin-bottom: 8px; }
-
-    .layout-v3 .metric-title {
-        color: var(--v3-text-accent);
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-    }
-
-    .metric-subtitle { font-size: 13px; color: var(--muted); margin-bottom: 15px; }
-
-    .layout-v3 .metric-subtitle {
-        color: var(--v3-text-muted);
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    
-    .chart-container { position: relative; width:100%; }
-    .h-250 { height: 250px; }
-    .h-300 { height: 300px; }
-    .h-400 { height: 400px; }
-
-    .dash-hospital-header { display: flex; align-items: center; gap: 24px; margin-bottom: 20px; }
-    .gauge-wrapper { position: relative; width: 150px; height: 100px; }
-    .gauge-wrapper canvas { width: 100% !important; height: auto !important; }
-    .gauge-text { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); text-align: center; }
-    .gauge-text .percent { font-size: 24px; font-weight: 700; color: var(--nav); }
-
-    .layout-v3 .gauge-text .percent {
-        color: var(--v3-text-accent);
-    }
-
-    .gauge-text .label { font-size: 11px; color: var(--muted); }
-
-    .layout-v3 .gauge-text .label {
-        color: var(--v3-text-muted);
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    .header-stats { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-    .header-stats .stat-box { padding: 10px; text-align: left; background: #f9fafb; border-radius: 10px; }
-
-    .layout-v3 .header-stats .stat-box {
-        background: rgba(96, 165, 250, 0.1);
-        backdrop-filter: blur(5px);
-        border: 1px solid var(--v3-border);
-    }
-
-    .header-stats .stat-value { font-size: 22px; font-weight: bold; color: var(--nav); }
-
-    .layout-v3 .header-stats .stat-value {
-        color: var(--v3-text-accent);
-    }
-
-    .header-stats .stat-label { font-size: 11px; color: var(--muted); }
-
-    .layout-v3 .header-stats .stat-label {
-        color: var(--v3-text-muted);
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    
-    .dash-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-    .dash-table th, .dash-table td { padding: 8px; text-align: left; border-bottom: 1px solid var(--border); font-size: 13px; }
-    .dash-table th { font-size: 12px; color: var(--muted); }
-
-    .layout-v3 .dash-table th,
-    .layout-v3 .dash-table td {
-        border-color: var(--v3-border);
-        color: var(--v3-text);
-    }
-
-    .layout-v3 .dash-table th {
-        color: var(--v3-text-muted);
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    .view-switcher { display: flex; gap: 5px; margin-bottom: 10px; }
-    .switcher-btn { padding: 4px 10px; font-size: 12px; background: #f3f4f6; border: 1px solid var(--border); color: var(--muted); border-radius: 8px; cursor: pointer; }
-    .switcher-btn.active { background: var(--nav); color: #fff; border-color: var(--nav); }
-
-    .layout-v3 .switcher-btn {
-        background: rgba(96, 165, 250, 0.1);
-        border-color: var(--v3-border);
-        color: var(--v3-text-muted);
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    .layout-v3 .switcher-btn.active {
-        background: var(--v3-gradient-button);
-        color: white;
-        border-color: var(--v3-primary-light);
-    }
-
-    .kpi-grid-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 20px 0; min-height: 120px;}
-    .kpi-grid-item { background: #f9fafb; border-radius: 12px; padding: 15px; text-align: center; }
-
-    .layout-v3 .kpi-grid-item {
-        background: rgba(96, 165, 250, 0.1);
-        backdrop-filter: blur(5px);
-        border: 1px solid var(--v3-border);
-    }
-
-    .kpi-grid-value { font-size: 24px; font-weight: 700; color: var(--nav); }
-
-    .layout-v3 .kpi-grid-value {
-        color: var(--v3-text-accent);
-    }
-
-    .kpi-grid-label { font-size: 12px; color: var(--muted); }
-
-    .layout-v3 .kpi-grid-label {
-        color: var(--v3-text-muted);
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    .kpi-grid-trend { font-size: 12px; margin-top: 5px; }
-    
-    /* =================== DASHBOARD 3 MODERNO =================== */
-    .modern-kpi-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 16px; padding: 20px; color: white; position: relative;
-        box-shadow: 0 8px 24px rgba(102, 126, 234, 0.25);
-        text-align: center;
-    }
-
-    .layout-v3 .modern-kpi-card {
-        background: var(--v3-gradient-button);
-        box-shadow: 0 8px 32px rgba(96, 165, 250, 0.3);
-        backdrop-filter: blur(10px);
-        border: 1px solid var(--v3-border-light);
-    }
-
-    .modern-kpi-card.trend-up { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
-    .modern-kpi-card.trend-down { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
-    
-    .modern-gauge-wrapper { position: relative; width: 80px; height: 50px; margin: 0 auto 15px; }
-    .modern-value { font-size: 32px; font-weight: 700; margin-bottom: 5px; }
-    .modern-label { font-size: 12px; opacity: 0.9; }
-
-    .layout-v3 .modern-label {
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    .modern-trend { font-size: 11px; opacity: 0.8; margin-top: 5px; }
-    
-    .modern-main-chart {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 20px; padding: 30px; color: white; margin-bottom: 24px;
-        box-shadow: 0 12px 32px rgba(102, 126, 234, 0.3);
-    }
-
-    .layout-v3 .modern-main-chart {
-        background: var(--v3-gradient-header);
-        box-shadow: var(--v3-shadow-hover);
-        backdrop-filter: blur(15px);
-        border: 1px solid var(--v3-border-light);
-    }
-
-    .modern-chart-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
-    .modern-chart-header h3 { font-size: 28px; font-weight: 700; margin: 0; }
-
-    .layout-v3 .modern-chart-header h3 {
-        text-transform: uppercase;
-        letter-spacing: 1px;
-    }
-
-    .modern-chart-header p { margin: 5px 0; opacity: 0.9; font-size: 16px; }
-
-    .layout-v3 .modern-chart-header p {
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    .modern-chart-header small { opacity: 0.7; font-size: 13px; }
-
-    .layout-v3 .modern-chart-header small {
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    .modern-chart-tabs { display: flex; gap: 10px; }
-    .modern-tab {
-        background: rgba(255,255,255,0.2); border: none; color: white;
-        padding: 6px 16px; border-radius: 20px; cursor: pointer;
-        transition: all 0.3s ease; font-size: 12px;
-    }
-
-    .layout-v3 .modern-tab {
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    .modern-tab.active { background: rgba(255,255,255,0.3); }
-    .modern-chart-container { height: 200px; }
-    .h-200 { height: 200px; }
-    
-    .modern-analysis-card {
-        background: #fff; border-radius: 16px; padding: 20px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-    }
-
-    .layout-v3 .modern-analysis-card {
-        background: var(--v3-gradient-card);
-        box-shadow: var(--v3-shadow);
-        backdrop-filter: blur(10px);
-        border: 1px solid var(--v3-border);
-    }
-
-    .modern-analysis-card h4 { margin: 0 0 8px 0; color: var(--nav); font-size: 16px; }
-
-    .layout-v3 .modern-analysis-card h4 {
-        color: var(--v3-text-accent);
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-    }
-
-    .modern-analysis-card p { margin: 0 0 15px 0; color: var(--muted); font-size: 13px; }
-
-    .layout-v3 .modern-analysis-card p {
-        color: var(--v3-text-muted);
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    
-    .modern-hospital-card {
-        background: #fff; border-radius: 20px; padding: 24px;
-        box-shadow: 0 8px 28px rgba(0,0,0,0.12);
-        position: relative; overflow: hidden;
-    }
-
-    .layout-v3 .modern-hospital-card {
-        background: var(--v3-gradient-card);
-        box-shadow: var(--v3-shadow-hover);
-        backdrop-filter: blur(15px);
-        border: 1px solid var(--v3-border);
-    }
-
-    .modern-hospital-card.neomater::before {
-        content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
-        background: linear-gradient(90deg, var(--nav), var(--nav-2));
-    }
-
-    .layout-v3 .modern-hospital-card.neomater::before {
-        background: var(--v3-gradient-button);
-    }
-
-    .modern-hospital-card.cruz-azul::before {
-        content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
-        background: linear-gradient(90deg, #3b82f6, #2563eb);
-    }
-    
-    .modern-hospital-header {
-        display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;
-    }
-    .modern-hospital-header h3 { margin: 0; color: var(--nav); font-size: 18px; }
-
-    .layout-v3 .modern-hospital-header h3 {
-        color: var(--v3-text-accent);
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-    }
-
-    .modern-hospital-gauge { position: relative; width: 80px; height: 50px; }
-    .modern-gauge-text { position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%); text-align: center; }
-    .modern-percent { font-size: 16px; font-weight: 700; color: var(--nav); }
-
-    .layout-v3 .modern-percent {
-        color: var(--v3-text-accent);
-    }
-
-    .modern-gauge-label { font-size: 10px; color: var(--muted); }
-
-    .layout-v3 .modern-gauge-label {
-        color: var(--v3-text-muted);
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    
-    .modern-hospital-stats {
-        display: flex; justify-content: space-between; margin-bottom: 20px;
-        background: #f8fafc; border-radius: 12px; padding: 15px;
-    }
-
-    .layout-v3 .modern-hospital-stats {
-        background: rgba(96, 165, 250, 0.05);
-        backdrop-filter: blur(5px);
-        border: 1px solid var(--v3-border);
-    }
-
-    .modern-stat-item { text-align: center; }
-    .modern-stat-value { display: block; font-size: 20px; font-weight: 700; color: var(--nav); }
-
-    .layout-v3 .modern-stat-value {
-        color: var(--v3-text-accent);
-    }
-
-    .modern-stat-label { font-size: 11px; color: var(--muted); }
-
-    .layout-v3 .modern-stat-label {
-        color: var(--v3-text-muted);
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    /* =================== RESPONSIVIDADE LAYOUT V3 =================== */
-    @media (max-width: 1024px) {
-      .layout-v3 body { padding-left: 0; }
-      .layout-v3 #side-menu { left: -250px; }
-      .layout-v3 #side-menu.open { left: 0; }
+    /* Modo QR-only (médico) */
+    .qr-only header, .qr-only .toolbar, .qr-only nav.tabs, .qr-only .footer, .qr-only #leitosView, .qr-only #leitos2View, .qr-only #dashUltimate {display:none!important}
+    .qrTimerBadge{position:fixed; top:10px; right:10px; z-index:2000;background:#111827; color:#fff; border:1px solid #00000033; padding:8px 10px; border-radius:999px;box-shadow:0 8px 18px rgba(0,0,0,.25)}
+
+    /* ======= DASHBOARD ULTIMATE ======= */
+    .kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-bottom:14px}
+    @media (max-width:1280px){.kpis{grid-template-columns:repeat(3,1fr)}}
+    @media (max-width:780px){.kpis{grid-template-columns:repeat(2,1fr)}}
+    .kpi{background:#fff;border:1px solid var(--border);border-radius:18px;padding:14px;box-shadow:var(--shadow-1)}
+    .kpi .label{font-size:12px;color:var(--muted)}
+    .kpi .value{font-size:24px;font-weight:700}
+    .kpi .delta{font-size:12px;color:#059669}
+
+    .panel{background:#fff;border:1px solid var(--border);border-radius:18px;padding:14px;box-shadow:var(--shadow-1)}
+    .grid-ultimate{display:grid;grid-template-columns: 1.2fr .8fr; gap:14px}
+    @media (max-width:1280px){.grid-ultimate{grid-template-columns:1fr}}
+
+    .charts-2{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+    .charts-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+    @media (max-width:1280px){.charts-3{grid-template-columns:repeat(2,1fr)}}
+    @media (max-width:920px){.charts-3{grid-template-columns:1fr}}
+
+    .chart-card{background:#fff;border:1px solid var(--border);border-radius:18px;padding:14px;box-shadow:var(--shadow-1);height:300px;display:flex;flex-direction:column}
+    .chart-card canvas{flex:1;min-height:0}
+
+    .filter-group{display:flex;gap:8px;align-items:center}
+
+    @media print{
+      header,.toolbar,.footer,.modal .actions{display:none !important}
+      body{background:#fff}
+      .modal{box-shadow:none;border:none}
+      .qr-grid{grid-template-columns:repeat(3,1fr)}
     }
   </style>
 </head>
-
 <body>
-
-  <div id="side-menu">
-    <a href="#" class="side-menu-item active" data-tab="leitos">
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 12a.5.5 0 0 1 .5-.5h18a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/><path d="M20 16H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2zM9 8H7v6h2V8z"/></svg>
-      <span>Leitos (Cards)</span>
-    </a>
-    <a href="#" class="side-menu-item" data-tab="leitos2">
-       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-      <span>Leitos (Tabela)</span>
-    </a>
-    <a href="#" class="side-menu-item" data-tab="dash1">
-       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20v-6M12 8V2M4.93 4.93l4.24 4.24M14.83 14.83l4.24 4.24M17.66 6.34l-4.24 4.24M6.34 17.66l-4.24 4.24M22 12h-6M8 12H2"/></svg>
-      <span>Dash Geral 1</span>
-    </a>
-    <a href="#" class="side-menu-item" data-tab="dash2">
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10M12 20V4M6 20V14"/></svg>
-      <span>Dash Geral 2</span>
-    </a>
-    <a href="#" class="side-menu-item" data-tab="dash3">
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18M7 16l4-4 4 4 4-4"/></svg>
-      <span>Dash Geral 3</span>
-    </a>
-  </div>
-
-  <header id="appHeader">
-    <div class="header-left">
-      <div id="hamburger-menu">☰</div>
-      <div class="brand">
-        <div class="logo"></div>
-        <div class="title">
-          <h1>Archipelago — Gestão de Leitos</h1>
-          <small>Protótipo (estado atual, sem histórico)</small>
-        </div>
-      </div>
-      <div class="layout-switcher">
-        <span class="switch-label">Layout:</span>
-        <select id="layoutSelector" class="layout-dropdown">
-          <option value="v1">Tradicional</option>
-          <option value="v2">Menu Lateral</option>
-          <option value="v3">Corporativo</option>
-        </select>
-        <span class="switch-label">Modo:</span>
-        <label class="switch">
-          <input type="checkbox" id="nightModeToggle">
-          <span class="slider"></span>
-        </label>
+  <!-- ======= HEADER ======= -->
+  <header>
+    <div class="brand">
+      <div class="logo"></div>
+      <div class="title">
+        <h1>Archipelago — Dashboard Ultimate</h1>
+        <small>Prevent Senior • visão consolidada do gestor</small>
       </div>
     </div>
-    
     <nav class="tabs" role="tablist">
-      <button class="tab active" data-tab="leitos">Leitos (Cards)</button>
+      <button class="tab" data-tab="leitos">Leitos (Cards)</button>
       <button class="tab" data-tab="leitos2">Leitos (Tabela)</button>
-      <button class="tab" data-tab="dash1">Dash Geral</button>
-      <button class="tab" data-tab="dash2">Dash Geral 2</button>
-      <button class="tab" data-tab="dash3">Dash Geral 3</button>
+      <button class="tab active" data-tab="dashUltimate">Dashboard Ultimate</button>
     </nav>
-
-    <div class="header-right">
-        <span id="lastUpdateInfo"></span>
-        <div id="v1-header-buttons" class="header-left">
-            <button class="header-btn" id="qrCodeBtn">
-                <span>QR Code</span>
-                <div class="dropdown-menu" id="qrDropdown">
-                    <div class="dropdown-item" id="btnReadQR_v1">Ler QR Code</div>
-                    <div class="dropdown-item" id="btnPrintQR_v1">Imprimir QR Codes</div>
-                </div>
-            </button>
-            <button class="header-btn" id="refreshBtn_v1">Atualizar</button>
-        </div>
-        <div id="v2-header-buttons" class="header-left">
-             <button class="header-btn" id="refreshBtn_v2">Atualizar</button>
-             <button class="header-btn" id="settingsBtn">
-                <span>⚙️</span>
-                <div class="dropdown-menu" id="settingsDropdown">
-                    <div class="dropdown-item" id="btnReadQR_v2">Ler QR Code</div>
-                    <div class="dropdown-item" id="btnPrintQR_v2">Imprimir QR Codes</div>
-                </div>
-            </button>
-        </div>
-    </div>
   </header>
 
-  <!-- Loading Overlay -->
-  <div id="loadingOverlay">
-    <div class="loading-spinner"></div>
-    <div class="loading-text">Carregando dados...</div>
-  </div>
-
+  <!-- ======= MAIN ======= -->
   <main>
+    <!-- Toolbar (gestor) -->
     <div class="toolbar" id="portalToolbar">
-      <div class="row"></div>
       <div class="row">
-        <button class="btn hospital active" data-h="H1" id="btnH1">Neomater</button>
-        <button class="btn hospital" data-h="H2" id="btnH2">Cruz Azul</button>
+        <button class="btn primary" id="btnBulkQR">QR Codes (imprimir)</button>
+        <button class="btn" id="btnScan">Ler QR Code</button>
+      </div>
+      <div class="row">
+        <button class="btn" data-h="H1" id="btnH1">Neomater</button>
+        <button class="btn" data-h="H2" id="btnH2">Cruz Azul</button>
       </div>
     </div>
 
-    <section id="leitosView" class="grid"></section>
+    <!-- Leitos – Cards -->
+    <section id="leitosView" class="grid hidden" aria-label="Leitos (Cards)"></section>
 
+    <!-- Leitos – Tabela -->
     <section id="leitos2View" class="hidden">
       <div style="margin-bottom:8px">
         <select id="selHospital2" class="select">
@@ -1213,399 +192,71 @@
       <table>
         <thead>
           <tr>
-            <th class="sortable" data-sort="leito">Leito</th>
-            <th class="sortable" data-sort="tipo">Tipo</th>
-            <th class="sortable" data-sort="status">Status</th>
-            <th class="sortable" data-sort="nome">Nome</th>
-            <th class="sortable" data-sort="idade">Idade</th>
-            <th class="sortable" data-sort="tempoInternacao">Tempo de Internação</th>
-            <th class="sortable" data-sort="pps">PPS</th>
-            <th class="sortable" data-sort="spict">SPICT-BR</th>
-            <th class="sortable" data-sort="prevAlta">Prev. Alta</th>
+            <th>Leito</th><th>Tipo</th><th>Status</th><th>Nome</th><th>Matrícula</th><th>Idade</th>
+            <th>Admissão</th><th>PPS</th><th>SPICT-BR</th><th>Prev. Alta</th>
+            <th>Linhas de Cuidado</th><th>Concessões</th>
           </tr>
         </thead>
         <tbody id="tbLeitos"></tbody>
       </table>
     </section>
 
-    <section id="dash1" class="hidden">
-        <h2 style="margin-bottom:20px">Dash Geral 1: Visão Detalhada por Hospital</h2>
-        <div class="dash-grid grid-2">
-            <div class="dashboard-card" id="dash-card-h1">
-                <h3>Neomater</h3>
-                <div class="dash-hospital-header">
-                    <div class="gauge-wrapper"><canvas id="chartOcupacaoH1"></canvas><div class="gauge-text"><div class="percent" id="gaugePercentH1">0%</div><div class="label">Ocupação</div></div></div>
-                    <div class="header-stats">
-                        <div class="stat-box"><div class="stat-value" id="statOcupadosH1">0</div><div class="stat-label">Ocupados</div></div>
-                        <div class="stat-box"><div class="stat-value" id="statVagosH1">0</div><div class="stat-label">Vagos</div></div>
-                        <div class="stat-box"><div class="stat-value" id="statTotalH1">0</div><div class="stat-label">Total Leitos</div></div>
-                    </div>
-                </div>
-                
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <h4>Projeção de Altas (4 dias)</h4>
-                    <div class="view-switcher">
-                        <button class="switcher-btn active" data-view="line" data-h="H1">Linha</button>
-                        <button class="switcher-btn" data-view="hbar" data-h="H1">Barras</button>
-                        <button class="switcher-btn" data-view="kpi" data-h="H1">KPIs</button>
-                    </div>
-                </div>
-                <div id="altas-view-line-H1" class="chart-container h-250"><canvas id="chartAltasH1_line"></canvas></div>
-                <div id="altas-view-hbar-H1" class="chart-container h-250 hidden"><canvas id="chartAltasH1_hbar"></canvas></div>
-                <div id="altas-view-kpi-H1" class="kpi-grid-container hidden"></div>
-
-                <h4>Projeção de Linhas de Cuidado</h4>
-                <div class="chart-container h-300"><canvas id="chartLinhasH1"></canvas></div>
-                <h4>Projeção de Concessões</h4>
-                <div class="chart-container h-250"><canvas id="chartConcessoesH1"></canvas></div>
-            </div>
-
-            <div class="dashboard-card" id="dash-card-h2">
-                <h3>Cruz Azul</h3>
-                <div class="dash-hospital-header">
-                    <div class="gauge-wrapper"><canvas id="chartOcupacaoH2"></canvas><div class="gauge-text"><div class="percent" id="gaugePercentH2">0%</div><div class="label">Ocupação</div></div></div>
-                    <div class="header-stats">
-                        <div class="stat-box"><div class="stat-value" id="statOcupadosH2">0</div><div class="stat-label">Ocupados</div></div>
-                        <div class="stat-box"><div class="stat-value" id="statVagosH2">0</div><div class="stat-label">Vagos</div></div>
-                        <div class="stat-box"><div class="stat-value" id="statTotalH2">0</div><div class="stat-label">Total Leitos</div></div>
-                    </div>
-                </div>
-                
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <h4>Projeção de Altas (4 dias)</h4>
-                    <div class="view-switcher">
-                        <button class="switcher-btn active" data-view="line" data-h="H2">Linha</button>
-                        <button class="switcher-btn" data-view="hbar" data-h="H2">Barras</button>
-                        <button class="switcher-btn" data-view="kpi" data-h="H2">KPIs</button>
-                    </div>
-                </div>
-                <div id="altas-view-line-H2" class="chart-container h-250"><canvas id="chartAltasH2_line"></canvas></div>
-                <div id="altas-view-hbar-H2" class="chart-container h-250 hidden"><canvas id="chartAltasH2_hbar"></canvas></div>
-                <div id="altas-view-kpi-H2" class="kpi-grid-container hidden"></div>
-                
-                <h4>Projeção de Linhas de Cuidado</h4>
-                <div class="chart-container h-300"><canvas id="chartLinhasH2"></canvas></div>
-                <h4>Projeção de Concessões</h4>
-                <div class="chart-container h-250"><canvas id="chartConcessoesH2"></canvas></div>
-            </div>
+    <!-- ======= DASHBOARD ULTIMATE ======= -->
+    <section id="dashUltimate" aria-label="Dashboard Ultimate">
+      <div class="toolbar" style="margin-top:-6px;margin-bottom:12px">
+        <div class="filter-group">
+          <span class="badge">Filtro:</span>
+          <button class="btn ghost" data-scope="ALL">Todos</button>
+          <button class="btn ghost" data-scope="H1">Neomater</button>
+          <button class="btn ghost" data-scope="H2">Cruz Azul</button>
         </div>
-    </section>
-    
-    <section id="dash2" class="hidden">
-        <h2 style="margin-bottom:20px">Dashboard Executivo: Análise Completa e Comparativa</h2>
-        
-        <!-- KPIs Consolidados -->
-        <div class="metric-card">
-            <div class="metric-title">KPIs Operacionais Consolidados</div>
-            <div class="metric-subtitle">Visão unificada de todos os hospitais da rede</div>
-            <div class="dash-grid grid-6">
-                <div class="kpi-card">
-                    <div class="kpi-gauge-wrapper"><canvas id="kpiGaugeOcupacao"></canvas></div>
-                    <div class="kpi-value" id="kpiOcupacaoGeral">0%</div>
-                    <div class="kpi-label">Taxa de Ocupação Geral</div>
-                </div>
-                <div class="kpi-card"><div class="kpi-value" id="kpiAltas48h">0</div><div class="kpi-label">Altas Previstas (48h)</div></div>
-                <div class="kpi-card"><div class="kpi-value" id="kpiUtiOcupados">0</div><div class="kpi-label">Leitos UTI Ocupados</div></div>
-                <div class="kpi-card"><div class="kpi-value" id="kpiTMP">0 dias</div><div class="kpi-label">Tempo Médio Permanência</div></div>
-                <div class="kpi-card"><div class="kpi-value" id="kpiIdadeMedia">0</div><div class="kpi-label">Idade Média Pacientes</div></div>
-                <div class="kpi-card"><div class="kpi-value" id="kpiRotatividade">0</div><div class="kpi-label">Taxa de Rotatividade</div></div>
-            </div>
+        <div class="row">
+          <button class="btn" id="btnExportCsv">Exportar CSV</button>
         </div>
+      </div>
 
-        <!-- Análise Consolidada de Projeções -->
-        <div class="metric-card">
-            <div class="metric-title">Projeções Consolidadas (7 dias)</div>
-            <div class="metric-subtitle">Demanda projetada de recursos considerando todos os hospitais</div>
-            <div class="dash-grid grid-2">
-                <div>
-                    <h4 style="text-align: center; color: var(--nav);">Linhas de Cuidado</h4>
-                    <div class="chart-container h-300"><canvas id="chartLinhasConsolidado"></canvas></div>
-                </div>
-                <div>
-                    <h4 style="text-align: center; color: var(--nav);">Concessões Necessárias</h4>
-                    <div class="chart-container h-300"><canvas id="chartConcessoesConsolidado"></canvas></div>
-                </div>
-            </div>
+      <!-- KPIs topo -->
+      <div class="kpis" id="kpiRow">
+        <div class="kpi"><div class="label">Leitos (total)</div><div class="value" id="kpiTotal">—</div></div>
+        <div class="kpi"><div class="label">Ocupados</div><div class="value" id="kpiOcup">—</div></div>
+        <div class="kpi"><div class="label">Disponíveis</div><div class="value" id="kpiDisp">—</div></div>
+        <div class="kpi"><div class="label">Taxa de ocupação</div><div class="value" id="kpiTx">—</div></div>
+        <div class="kpi"><div class="label">Altas previstas 24h</div><div class="value" id="kpiAltas">—</div></div>
+        <div class="kpi"><div class="label">PPS médio / Idade média</div><div class="value" id="kpiPpsIdade">—</div></div>
+      </div>
+
+      <div class="grid-ultimate">
+        <!-- Coluna esquerda: gauge grande + linhas/concessões -->
+        <div class="panel">
+          <div class="charts-2">
+            <div class="chart-card"><canvas id="gaugeOverall"></canvas></div>
+            <div class="chart-card"><canvas id="gaugeHospitais"></canvas></div>
+          </div>
+          <div class="charts-2" style="margin-top:14px">
+            <div class="chart-card"><canvas id="chartLinhas"></canvas></div>
+            <div class="chart-card"><canvas id="chartConcessoes"></canvas></div>
+          </div>
         </div>
-
-        <!-- Análises Comparativas -->
-        <div class="dash-grid grid-2">
-            <!-- Eficiência Operacional -->
-            <div class="metric-card">
-                <div class="metric-title">Eficiência Operacional</div>
-                <div class="metric-subtitle">Comparativo de performance entre hospitais</div>
-                <div id="comparativoEficiencia"></div>
-                <div class="chart-container h-250" style="margin-top: 15px;">
-                    <canvas id="chartEficienciaComparativa"></canvas>
-                </div>
-            </div>
-            
-            <!-- Distribuição Etária -->
-            <div class="metric-card">
-                <div class="metric-title">Perfil Demográfico</div>
-                <div class="metric-subtitle">Distribuição por faixa etária dos pacientes internados</div>
-                <div class="chart-container h-250">
-                    <canvas id="chartIdadeDistribuicao"></canvas>
-                </div>
-            </div>
+        <!-- Coluna direita: altas previstas + pps/spict -->
+        <div class="panel">
+          <div class="chart-card"><canvas id="chartAltas"></canvas></div>
+          <div class="charts-2" style="margin-top:14px">
+            <div class="chart-card"><canvas id="chartPPS"></canvas></div>
+            <div class="chart-card"><canvas id="chartSPICT"></canvas></div>
+          </div>
         </div>
-
-        <!-- Análise de Altas -->
-        <div class="metric-card">
-            <div class="metric-title">Análise Preditiva de Altas</div>
-            <div class="metric-subtitle">Projeção detalhada de liberação de leitos nos próximos 4 dias</div>
-            <div class="dash-grid grid-3">
-                <div>
-                    <h4 style="text-align: center;">Comparativo por Prazo</h4>
-                    <div class="chart-container h-250"><canvas id="chartAltasComparativo"></canvas></div>
-                </div>
-                <div>
-                    <h4 style="text-align: center;">Timeline de Liberação</h4>
-                    <div class="chart-container h-250"><canvas id="chartTimelineAltas"></canvas></div>
-                </div>
-                <div>
-                    <h4 style="text-align: center;">Taxa de Liberação</h4>
-                    <div class="chart-container h-250"><canvas id="chartTaxaLiberacao"></canvas></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Análise Radar Multidimensional -->
-        <div class="dash-grid grid-2">
-            <div class="metric-card">
-                <div class="metric-title">Análise Radar - Performance Hospitalar</div>
-                <div class="metric-subtitle">Comparação multidimensional entre unidades</div>
-                <div class="chart-container h-300">
-                    <canvas id="chartRadarComparativo"></canvas>
-                </div>
-            </div>
-            
-            <!-- Análise de Complexidade -->
-            <div class="metric-card">
-                <div class="metric-title">Índice de Complexidade de Cuidados</div>
-                <div class="metric-subtitle">Correlação entre recursos necessários (linhas + concessões) e score PPS. Cada ponto representa um paciente: eixo X = total de recursos, eixo Y = score PPS (0-10)</div>
-                <div class="chart-container h-300">
-                    <canvas id="chartComplexidade"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <!-- Tendências e Previsões -->
-        <div class="dash-grid grid-2">
-            <div class="metric-card">
-                <div class="metric-title">Análise de Tendências SPICT-BR</div>
-                <div class="metric-subtitle">Distribuição de elegibilidade para cuidados paliativos</div>
-                <div class="chart-container h-250">
-                    <canvas id="chartSpictAnalise"></canvas>
-                </div>
-            </div>
-            
-            <div class="metric-card">
-                <div class="metric-title">Análise PPS (Performance Status)</div>
-                <div class="metric-subtitle">Distribuição de scores funcionais por hospital</div>
-                <div class="chart-container h-250">
-                    <canvas id="chartPpsAnalise"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <!-- Dashboard Individual H1 -->
-        <div class="metric-card">
-            <div class="metric-title" style="background: linear-gradient(90deg, var(--nav), var(--nav-2)); color: white; padding: 15px; margin: -20px -20px 20px -20px; border-radius: 16px 16px 0 0;">
-                📊 Neomater - Dashboard Detalhado
-            </div>
-            <div class="dash-hospital-header">
-                <div class="gauge-wrapper"><canvas id="chartOcupacaoH1_dash2"></canvas><div class="gauge-text"><div class="percent" id="gaugePercentH1_dash2">0%</div><div class="label">Ocupação</div></div></div>
-                <div class="header-stats">
-                    <div class="stat-box"><div class="stat-value" id="statOcupadosH1_dash2">0</div><div class="stat-label">Ocupados</div></div>
-                    <div class="stat-box"><div class="stat-value" id="statVagosH1_dash2">0</div><div class="stat-label">Vagos</div></div>
-                    <div class="stat-box"><div class="stat-value" id="statTotalH1_dash2">0</div><div class="stat-label">Total Leitos</div></div>
-                </div>
-            </div>
-            <div class="dash-grid grid-2" style="margin-top: 20px;">
-                <div>
-                    <h4>Projeção de Linhas de Cuidado</h4>
-                    <div class="chart-container h-250"><canvas id="chartLinhasH1_dash2"></canvas></div>
-                </div>
-                <div>
-                    <h4>Projeção de Concessões</h4>
-                    <div class="chart-container h-250"><canvas id="chartConcessoesH1_dash2"></canvas></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Dashboard Individual H2 -->
-        <div class="metric-card">
-            <div class="metric-title" style="background: linear-gradient(90deg, #3b82f6, #2563eb); color: white; padding: 15px; margin: -20px -20px 20px -20px; border-radius: 16px 16px 0 0;">
-                📊 Cruz Azul - Dashboard Detalhado
-            </div>
-            <div class="dash-hospital-header">
-                <div class="gauge-wrapper"><canvas id="chartOcupacaoH2_dash2"></canvas><div class="gauge-text"><div class="percent" id="gaugePercentH2_dash2">0%</div><div class="label">Ocupação</div></div></div>
-                <div class="header-stats">
-                    <div class="stat-box"><div class="stat-value" id="statOcupadosH2_dash2">0</div><div class="stat-label">Ocupados</div></div>
-                    <div class="stat-box"><div class="stat-value" id="statVagosH2_dash2">0</div><div class="stat-label">Vagos</div></div>
-                    <div class="stat-box"><div class="stat-value" id="statTotalH2_dash2">0</div><div class="stat-label">Total Leitos</div></div>
-                </div>
-            </div>
-            <div class="dash-grid grid-2" style="margin-top: 20px;">
-                <div>
-                    <h4>Projeção de Linhas de Cuidado</h4>
-                    <div class="chart-container h-250"><canvas id="chartLinhasH2_dash2"></canvas></div>
-                </div>
-                <div>
-                    <h4>Projeção de Concessões</h4>
-                    <div class="chart-container h-250"><canvas id="chartConcessoesH2_dash2"></canvas></div>
-                </div>
-            </div>
-        </div>
-    </section>
-    
-    <section id="dash3" class="hidden">
-        <h2 style="margin-bottom:20px">Dashboard Visual Moderno: Interface de Gestão Avançada</h2>
-        
-        <!-- KPIs Consolidados com Visual Moderno -->
-        <div class="dash-grid grid-6" style="margin-bottom: 24px;">
-            <div class="modern-kpi-card">
-                <div class="modern-gauge-wrapper">
-                    <canvas id="modernGaugeOcupacao"></canvas>
-                </div>
-                <div class="modern-value" id="modernOcupacaoGeral">0%</div>
-                <div class="modern-label">Taxa de Ocupação Geral</div>
-            </div>
-            <div class="modern-kpi-card trend-up">
-                <div class="modern-value" id="modernAltas48h">0</div>
-                <div class="modern-label">Altas Previstas (48h)</div>
-                <div class="modern-trend">Próximos 2 dias</div>
-            </div>
-            <div class="modern-kpi-card">
-                <div class="modern-value" id="modernUtiOcupados">0</div>
-                <div class="modern-label">Leitos UTI Ocupados</div>
-                <div class="modern-trend">Cuidados intensivos</div>
-            </div>
-            <div class="modern-kpi-card trend-down">
-                <div class="modern-value" id="modernTMP">0 dias</div>
-                <div class="modern-label">Tempo Médio Permanência</div>
-                <div class="modern-trend">Média geral</div>
-            </div>
-            <div class="modern-kpi-card">
-                <div class="modern-value" id="modernIdadeMedia">0</div>
-                <div class="modern-label">Idade Média Pacientes</div>
-                <div class="modern-trend">Anos</div>
-            </div>
-            <div class="modern-kpi-card">
-                <div class="modern-value" id="modernRotatividade">0%</div>
-                <div class="modern-label">Taxa de Rotatividade</div>
-                <div class="modern-trend">Mensal estimada</div>
-            </div>
-        </div>
-
-        <!-- Timeline de Liberação -->
-        <div class="modern-main-chart">
-            <div class="modern-chart-header">
-                <div>
-                    <h3>Timeline de Liberação</h3>
-                    <p>Projeção de altas consolidada dos dois hospitais</p>
-                    <small>Análise preditiva baseada nas previsões de alta cadastradas</small>
-                </div>
-                <div class="modern-chart-tabs">
-                    <button class="modern-tab active">LINHA</button>
-                    <button class="modern-tab">ÁREA</button>
-                    <button class="modern-tab">BARRAS</button>
-                </div>
-            </div>
-            <div class="modern-chart-container">
-                <canvas id="modernTimelineChart"></canvas>
-            </div>
-        </div>
-
-        <!-- Seção Principal com Análises -->
-        <div class="dash-grid grid-2" style="margin-top: 24px;">
-            <!-- Índice de Complexidade -->
-            <div class="modern-analysis-card">
-                <h4>Índice de Complexidade de Cuidados</h4>
-                <p>Correlação entre recursos necessários e score PPS por paciente</p>
-                <div class="modern-chart-container h-300">
-                    <canvas id="modernComplexidadeChart"></canvas>
-                </div>
-            </div>
-
-            <!-- Radar Performance -->
-            <div class="modern-analysis-card">
-                <h4>Análise Radar - Performance Hospitalar</h4>
-                <p>Comparação multidimensional entre unidades hospitalares</p>
-                <div class="modern-chart-container h-300">
-                    <canvas id="modernRadarChart"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <!-- Dashboards Individuais Modernos -->
-        <div class="dash-grid grid-2" style="margin-top: 24px;">
-            <!-- Neomater Dashboard -->
-            <div class="modern-hospital-card neomater">
-                <div class="modern-hospital-header">
-                    <h3>📊 Neomater</h3>
-                    <div class="modern-hospital-gauge">
-                        <canvas id="modernGaugeH1"></canvas>
-                        <div class="modern-gauge-text">
-                            <div class="modern-percent" id="modernPercentH1">0%</div>
-                            <div class="modern-gauge-label">Ocupação</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modern-hospital-stats">
-                    <div class="modern-stat-item">
-                        <span class="modern-stat-value" id="modernOcupadosH1">0</span>
-                        <span class="modern-stat-label">Ocupados</span>
-                    </div>
-                    <div class="modern-stat-item">
-                        <span class="modern-stat-value" id="modernVagosH1">0</span>
-                        <span class="modern-stat-label">Vagos</span>
-                    </div>
-                    <div class="modern-stat-item">
-                        <span class="modern-stat-value" id="modernTotalH1">0</span>
-                        <span class="modern-stat-label">Total</span>
-                    </div>
-                </div>
-                <div class="modern-chart-container h-200">
-                    <canvas id="modernLinhasH1"></canvas>
-                </div>
-            </div>
-
-            <!-- Cruz Azul Dashboard -->
-            <div class="modern-hospital-card cruz-azul">
-                <div class="modern-hospital-header">
-                    <h3>📊 Cruz Azul</h3>
-                    <div class="modern-hospital-gauge">
-                        <canvas id="modernGaugeH2"></canvas>
-                        <div class="modern-gauge-text">
-                            <div class="modern-percent" id="modernPercentH2">0%</div>
-                            <div class="modern-gauge-label">Ocupação</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modern-hospital-stats">
-                    <div class="modern-stat-item">
-                        <span class="modern-stat-value" id="modernOcupadosH2">0</span>
-                        <span class="modern-stat-label">Ocupados</span>
-                    </div>
-                    <div class="modern-stat-item">
-                        <span class="modern-stat-value" id="modernVagosH2">0</span>
-                        <span class="modern-stat-label">Vagos</span>
-                    </div>
-                    <div class="modern-stat-item">
-                        <span class="modern-stat-value" id="modernTotalH2">0</span>
-                        <span class="modern-stat-label">Total</span>
-                    </div>
-                </div>
-                <div class="modern-chart-container h-200">
-                    <canvas id="modernLinhasH2"></canvas>
-                </div>
-            </div>
-        </div>
+      </div>
     </section>
   </main>
 
+  <!-- ======= RODAPÉ ======= -->
+  <div class="footer" style="padding:16px;display:flex;justify-content:space-between;align-items:center">
+    <div>© Protótipo ilustrativo – Prevent Senior (sem dados reais)</div>
+    <div><strong>MVP Archipelago</strong></div>
+  </div>
+
+  <!-- ======= MODAIS ======= -->
+  <!-- Admissão -->
   <div id="modalAdmissao" class="backdrop" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true">
       <header>
@@ -1634,7 +285,7 @@
             <input id="a_matricula" class="input" inputmode="numeric" />
           </div>
           <div>
-            <label class="label" for="a_pps">PPS (0—10)</label>
+            <label class="label" for="a_pps">PPS (0–10)</label>
             <input id="a_pps" class="input" inputmode="numeric" />
           </div>
           <div>
@@ -1645,13 +296,12 @@
             </select>
           </div>
         </div>
-
         <div class="row3">
           <div>
             <label class="label" for="a_prev">Previsão de alta</label>
             <select id="a_prev" class="select2">
               <option>24h Ouro</option><option>24h 2R</option><option>24h 3R</option>
-              <option>48h</option><option>72h</option><option>96h</option><option>Sem previsao</option>
+              <option>48h</option><option>72h</option><option>96h</option><option>Sem previsão</option>
             </select>
           </div>
           <div>
@@ -1663,9 +313,7 @@
             <div id="a_concessoes" class="wrap"></div>
           </div>
         </div>
-        <div class="mini" style="margin-top:8px;color:#6b7280">
-          * Data e hora de admissão serão registradas automaticamente ao salvar.
-        </div>
+        <div class="mini" style="margin-top:8px;color:#6b7280">* Data e hora de admissão serão registradas automaticamente ao salvar.</div>
       </div>
       <div class="actions">
         <button class="btn" id="a_cancel">Cancelar</button>
@@ -1674,6 +322,7 @@
     </div>
   </div>
 
+  <!-- Atualização -->
   <div id="modalAtualizacao" class="backdrop" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true">
       <header>
@@ -1686,7 +335,6 @@
           <div><span class="label">Leito</span><div id="u_leito" class="badge"></div></div>
           <div><span class="label">Tipo</span><div id="u_tipo" class="badge"></div></div>
         </div>
-
         <div class="row3" style="margin-top:10px">
           <div>
             <label class="label">Nome (bloqueado)</label>
@@ -1701,14 +349,13 @@
             <input id="u_adm" class="input" disabled />
           </div>
         </div>
-
         <div class="row3">
           <div>
             <label class="label" for="u_idade">Idade</label>
             <input id="u_idade" class="input" inputmode="numeric" />
           </div>
           <div>
-            <label class="label" for="u_pps">PPS (0—10)</label>
+            <label class="label" for="u_pps">PPS (0–10)</label>
             <input id="u_pps" class="input" inputmode="numeric" />
           </div>
           <div>
@@ -1719,13 +366,12 @@
             </select>
           </div>
         </div>
-
         <div class="row3">
           <div>
             <label class="label" for="u_prev">Previsão de alta</label>
             <select id="u_prev" class="select2">
               <option>24h Ouro</option><option>24h 2R</option><option>24h 3R</option>
-              <option>48h</option><option>72h</option><option>96h</option><option>Sem previsao</option>
+              <option>48h</option><option>72h</option><option>96h</option><option>Sem previsão</option>
             </select>
           </div>
           <div>
@@ -1737,7 +383,6 @@
             <div id="u_concessoes" class="wrap"></div>
           </div>
         </div>
-
         <div class="mini" id="internadoHa" style="margin-top:8px;color:#6b7280"></div>
       </div>
       <div class="actions">
@@ -1748,6 +393,7 @@
     </div>
   </div>
 
+  <!-- Confirm genérico -->
   <div id="modalConfirm" class="backdrop" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true" style="max-width:520px">
       <header><strong>Confirmação</strong></header>
@@ -1758,32 +404,42 @@
       </div>
     </div>
   </div>
-
+  <!-- Obrigado -->
+  <div id="modalThanks" class="backdrop" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" style="max-width:520px">
+      <header><strong>Concluído</strong></header>
+      <div class="content"><div id="thanksMsg">Obrigado! Você pode fechar o navegador.</div></div>
+      <div class="actions"><button class="btn primary" id="thanksOk">Fechar</button></div>
+    </div>
+  </div>
+  <!-- Sessão expirada -->
+  <div id="modalQrExpired" class="backdrop" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" style="max-width:520px">
+      <header><strong>Sessão expirada</strong></header>
+      <div class="content"><div>Por favor, reescaneie o QR diretamente no leito para continuar.</div></div>
+      <div class="actions"><button class="btn primary" id="qrOk">Entendi</button></div>
+    </div>
+  </div>
+  <!-- Ler QR -->
   <div id="modalQRScan" class="backdrop" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true">
       <header><strong>Ler QR Code</strong><button class="btn" data-close="#modalQRScan">Fechar</button></header>
       <div class="content">
-        <div class="mini" style="margin-bottom:8px">Se a câmera não abrir, use a seleção manual.</div>
+        <div class="mini" style="margin-bottom:8px">Se a câmera não abrir, use a câmera nativa do celular para escanear o QR impresso.</div>
         <div id="qrRegion" style="width:100%;max-width:420px;margin:0 auto;border:1px solid var(--border);border-radius:12px;overflow:hidden"></div>
       </div>
       <div class="actions"><button class="btn" data-close="#modalQRScan">Cancelar</button></div>
     </div>
   </div>
-
+  <!-- QR em massa -->
   <div id="modalBulkQR" class="backdrop" aria-hidden="true">
-    <div class="modal" role="dialog" aria-modal="true" style="max-width:90vw;max-height:90vh">
-      <header>
-        <strong>Gerar QR Codes para impressão</strong>
-        <button class="btn" data-close="#modalBulkQR" style="padding:5px 10px;font-size:16px;line-height:1">✕</button>
-      </header>
-      <div class="content" style="overflow-y:auto">
+    <div class="modal" role="dialog" aria-modal="true">
+      <header><strong>Gerar QR Codes para impressão</strong><button class="btn" data-close="#modalBulkQR">Fechar</button></header>
+      <div class="content">
         <div class="row3">
           <div>
             <label class="label" for="b_hospital">Hospital</label>
-            <select id="b_hospital" class="select2">
-              <option value="H1">Neomater</option>
-              <option value="H2">Cruz Azul</option>
-            </select>
+            <select id="b_hospital" class="select2"><option value="H1">Neomater</option><option value="H2">Cruz Azul</option></select>
           </div>
           <div>
             <label class="label" for="b_from">Leito inicial</label>
@@ -1794,1898 +450,239 @@
             <input id="b_to" class="input" inputmode="numeric" placeholder="13/16" />
           </div>
         </div>
-        <div style="margin:10px 0;position:sticky;top:0;background:#fff;padding:10px 0;border-bottom:1px solid var(--border);z-index:10">
-          <button class="btn primary" id="b_generate">Gerar QR Codes</button>  
-          <button class="btn" onclick="window.print()">Imprimir</button>
-          <button class="btn" data-close="#modalBulkQR">Fechar</button>
-        </div>
-        <div id="qr_grid" class="qr-grid"></div>
+        <div style="margin-top:10px"><button class="btn primary" id="b_generate">Gerar</button> <button class="btn" onclick="window.print()">Imprimir</button></div>
+        <div id="qr_grid" class="qr-grid" style="margin-top:12px"></div>
       </div>
+      <div class="actions"><button class="btn" data-close="#modalBulkQR">Fechar</button></div>
     </div>
   </div>
 
-  <div id="modalQRExpired" class="backdrop" aria-hidden="true">
-    <div class="modal" role="dialog" aria-modal="true" style="max-width:520px">
-      <header><strong>Sessão Expirada</strong></header>
-      <div class="content">
-        <p>O tempo para preenchimento expirou.</p>
-        <p>Para continuar, escaneie novamente o QR code próximo ao leito.</p>
-      </div>
-      <div class="actions">
-        <button class="btn primary" id="reloadPage">Escanear Novamente</button>
-      </div>
-    </div>
-  </div>
-  
-  <div id="successMessage" class="success-message">
-    <h2>Obrigado!</h2>
-    <p>Operação realizada com sucesso.</p>
-    <p style="color:#6b7280;font-size:14px">Você pode fechar o navegador.</p>
-    <button class="btn primary" onclick="window.close()">Fechar Navegador</button>
-  </div>
-  
-<script>
-  // =======================================================================
-  // ========================== CONFIGURAÇÃO ===============================
-  // =======================================================================
-  const API_URL = 'https://script.google.com/macros/s/AKfycbzn8BlUD8by0GykYlJa1pmbYtuXOr8aEUzOOBhpfSGl-i1x8LhAnGSRzqdyV2lANnIP/exec';
+  <!-- ======= LIBS ======= -->
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  function logInfo(message, data = null) { console.log(`🔵 [Archipelago] ${message}`, data || ''); }
-  function logSuccess(message, data = null) { console.log(`🟢 [SUCCESS] ${message}`, data || ''); }
-  function logError(message, error = null) { console.error(`🔴 [ERROR] ${message}`, error || ''); }
-  function logWarning(message, data = null) { console.warn(`🟡 [WARNING] ${message}`, data || ''); }
+  <!-- ======= SCRIPT ======= -->
+  <script>
+  // ================== CONFIG ==================
+  const API_URL = 'https://script.google.com/macros/s/AKfycbzi8YS8acCErJvedwtx6lVr2Wd_VDOfUMsOO1xXM9MNZdedzulMmZZCMHkvI6z99AWJ/exec';
 
-  const HOSPITAIS = {
-    H1: { nome:"Neomater", leitos:[...Array.from({length:10}, (_,i)=>({ id:i+1,  tipo:"Enfermaria/Apto" })), ...Array.from({length:3},  (_,i)=>({ id:11+i, tipo:"UTI" }))]},
-    H2: { nome:"Cruz Azul", leitos:[...Array.from({length:16}, (_,i)=>({ id:i+1, tipo:"Enfermaria/Apto" }))]}
-  };
+  const HOSPITAIS = { H1:{nome:'Neomater',total:13}, H2:{nome:'Cruz Azul',total:16} };
+  const LINHAS = ['Assistência','Geriatria','APS','Cardiologia','Pneumologia','Neurologia','Melhor Cuidado'];
+  const CONC   = ['PAD','Fisioterapia','Fonoaudiologia','Aspirações','Curativos'];
+  const ALTAS_BUCKETS = ['24h Ouro','24h 2R','24h 3R','48h','72h','96h','Sem previsão'];
 
-  const banco = { H1: [], H2: [] };
-  const LINHAS = ["Assistencia","Geriatria","APS","Cardiologia","Pneumologia","Neurologia","Melhor Cuidado"];
-  const CONC   = ["PAD","Fisioterapia","Fonoaudiologia","Aspiracoes","Curativos"];
-  
-  LINHAS.sort((a, b) => a.localeCompare(b));
-  CONC.sort((a, b) => a.localeCompare(b));
+  // ================== ESTADO UI ==================
+  let currentHospital='H1', activeTab='dashUltimate', selectedLeito=null; const banco={H1:[],H2:[]};
+  let isQrMode=false, qrTick=null, qrExpiresAt=0;
+  let scope='ALL'; // ALL, H1, H2 para o Ultimate
+  let loaded={H1:false,H2:false};
 
-  const LINHAS_CORES = {
-    "APS": "#f59e0b", "Assistencia": "#0a2b52", "Cardiologia": "#dc2626", "Geriatria": "#16a34a",
-    "Melhor Cuidado": "#be185d", "Neurologia": "#0891b2", "Pneumologia": "#8b5cf6"
-  };
-  const CONC_CORES = {
-    "Aspiracoes": "#dc2626", "Curativos": "#8b5cf6", "Fisioterapia": "#16a34a",
-    "Fonoaudiologia": "#f59e0b", "PAD": "#0a2b52"
-  };
+  // Chart instances
+  const charts = {};
 
-  // =======================================================================
-  // ========================== ESTADO DA UI ===============================
-  // =======================================================================
-  let currentHospital = "H1";
-  let activeTab = "leitos";
-  let selectedLeito = null;
-  let isQRMode = false;
-  let qrSessionTimeout = null;
-  let lastUpdateTime = Date.now();
-  let autoRefreshInterval = null;
-  let updateIndicatorInterval = null;
-  let sortState = { key: 'leito', direction: 'asc' };
-  let currentLayout = 'v1'; // Controle do layout atual
+  // ================== HELPERS ==================
+  const $ = s=>document.querySelector(s);
+  function openModal(s){const el=$(s); el.style.display='flex'; el.setAttribute('aria-hidden','false');}
+  function closeModal(s){const el=$(s); el.style.display='none'; el.setAttribute('aria-hidden','true');}
+  function confirmAction(msg){return new Promise(r=>{ $('#confirmMsg').textContent=msg||'Confirma?'; openModal('#modalConfirm'); $('#confirmYes').onclick=()=>{closeModal('#modalConfirm');r(true)}; $('#confirmNo').onclick=()=>{closeModal('#modalConfirm');r(false)}; });}
+  function showThanks(text){ $('#thanksMsg').textContent=text||'Obrigado! Você pode fechar o navegador.'; openModal('#modalThanks'); }
+  $('#thanksOk').onclick=()=>{ closeModal('#modalThanks'); try{window.close()}catch(_){} };
 
-  // =======================================================================
-  // ===================== FUNÇÕES DE LOADING ============================
-  // =======================================================================
-  function showLoading() {
-    document.getElementById('loadingOverlay').classList.remove('hidden');
-  }
-  
-  function hideLoading() {
-    setTimeout(() => {
-      document.getElementById('loadingOverlay').classList.add('hidden');
-    }, 500);
-  }
+  function initials(n){if(!n) return '—'; return n.split(' ').map(p=>p[0]).slice(0,2).join('').toUpperCase()}
+  function fmtDateTime(iso){ if(!iso) return '—'; const d=new Date(iso); const dd=String(d.getDate()).padStart(2,'0'); const mm=String(d.getMonth()+1).padStart(2,'0'); const yy=d.getFullYear(); const hh=String(d.getHours()).padStart(2,'0'); const mi=String(d.getMinutes()).padStart(2,'0'); return `${dd}/${mm}/${yy} ${hh}:${mi}`; }
+  function elapsedSince(iso){ if(!iso) return '—'; const ms=Date.now()-new Date(iso).getTime(); const d=Math.floor(ms/86400000); const h=Math.floor((ms%86400000)/3600000); const m=Math.floor((ms%3600000)/60000); return `${d} dias, ${h} horas, ${m} minutos`; }
+  function sum(arr){return arr.reduce((a,b)=>a+b,0)}
 
-  // =======================================================================
-  // ========================== FUNÇÕES HELPERS ============================
-  // =======================================================================
-  const $ = sel => document.querySelector(sel);
-  
-  function openModal(sel){ const el=$(sel); el.style.display="flex"; el.setAttribute("aria-hidden","false"); }
-  function closeModal(sel){ const el=$(sel); el.style.display="none"; el.setAttribute("aria-hidden","true"); }
-  
-  function confirmAction(msg){
-    return new Promise(res=>{
-      $("#confirmMsg").textContent = msg || "Confirma?";
-      openModal("#modalConfirm");
-      $("#confirmYes").onclick = ()=>{ closeModal("#modalConfirm"); res(true); };
-      $("#confirmNo").onclick  = ()=>{ closeModal("#modalConfirm"); res(false); };
-    });
-  }
-  
-  function initials(nome){ if(!nome) return "—"; return nome.split(" ").map(p=>p[0]).slice(0,2).join("").toUpperCase(); }
-  
-  function fmtDateTime(iso){
-    if(!iso) return "—";
-    const d=new Date(iso);
-    return d.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-  }
+  // ================== LOAD ==================
+  async function loadHospital(h){ try{ const res=await fetch(`${API_URL}?action=state&hospital=${h}`); const j=await res.json(); if(!j.ok) throw new Error(j.error||'Falha ao carregar'); banco[h]=j.data.sort((a,b)=>a.leito-b.leito); loaded[h]=true; if(!isQrMode){ if(activeTab==='leitos') renderCards(); if(activeTab==='leitos2') renderTable(); if(activeTab==='dashUltimate' && loaded.H1 && loaded.H2) renderUltimate(); } }catch(e){ console.error('Erro ao carregar',h,e); } }
 
-  function elapsedMsToDays(ms) {
-    if (ms === null || ms === undefined) return 0;
-    return Math.floor(ms / 86400000);
-  }
-  
-  function elapsedSince(iso){
-    if(!iso) return { text: "—", days: 0 };
-    const ms = Date.now() - new Date(iso).getTime();
-    const d = elapsedMsToDays(ms);
-    const h = Math.floor((ms%86400000)/3600000);
-    return { text: `${d}d ${h}h`, days: d };
-  }
-  
-  function showSuccessMessage() { document.getElementById('successMessage').style.display = 'block'; }
-  
-  function updateTimeIndicator() {
-    if(isQRMode) return;
-    const indicator = document.getElementById('lastUpdateInfo');
-    if(indicator) {
-      const elapsed = Math.floor((Date.now() - lastUpdateTime) / 1000);
-      const seconds = elapsed % 60;
-      const minutes = Math.floor(elapsed / 60);
-      if (minutes > 0) {
-        indicator.textContent = `Atualizado há ${minutes}m`;
-      } else {
-        indicator.textContent = `Atualizado há ${seconds}s`;
-      }
-    }
-  }
-
-  // =======================================================================
-  // ==================== CONTROLE DE LAYOUTS V3 =========================
-  // =======================================================================
-  function setLayout(layout) {
-    logInfo(`Alterando layout para: ${layout}`);
-    
-    // Remover todas as classes de layout
-    document.body.classList.remove('layout-v2', 'layout-v3');
-    
-    // Aplicar novo layout
-    currentLayout = layout;
-    if (layout === 'v2') {
-      document.body.classList.add('layout-v2');
-    } else if (layout === 'v3') {
-      document.body.classList.add('layout-v3');
-      // Layout V3 sempre abre o menu lateral e desabilita modo noturno
-      $('#side-menu').classList.add('open');
-      document.body.classList.add('side-menu-open');
-      document.body.classList.remove('night-mode');
-      $('#nightModeToggle').checked = false;
-    }
-    
-    // Atualizar dropdown
-    $('#layoutSelector').value = layout;
-    
-    // Re-renderizar se necessário
-    route();
-    
-    logSuccess(`Layout ${layout} aplicado com sucesso`);
-  }
-
-  // =======================================================================
-  // ===================== FUNÇÕES DE API (BACKEND) ========================
-  // =======================================================================
-  async function testConnection() {
-    logInfo("Testando conexão com a API...");
-    try {
-      const res = await fetch(API_URL + '?action=test');
-      if (res.ok) {
-        logSuccess("Conexão com a API estabelecida!");
-        return true;
-      }
-      logError(`Falha na conexão: HTTP ${res.status}`);
-      return false;
-    } catch(error) {
-      logError("Erro ao testar conexão:", error);
-      return false;
-    }
-  }
-  
-  async function loadAllData() {
-    await Promise.all([
-        loadHospital('H1'),
-        loadHospital('H2')
-    ]);
-  }
-
-  async function loadHospital(h) {
-    logInfo(`Iniciando carregamento do hospital: ${h}`);
-    try {
-      const url = `${API_URL}?action=state&hospital=${h}`;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-      const json = await res.json();
-      if(!json.ok) throw new Error(json.error || 'Resposta da API indica erro');
-      
-      banco[h] = json.data;
-      lastUpdateTime = Date.now();
-      logSuccess(`Dados carregados com sucesso para ${h}. Total de leitos: ${json.data.length}`);
-      
-      if (activeTab === 'leitos') renderCards();
-      if (activeTab === 'leitos2') renderTable();
-    } catch(error) {
-      logError(`Erro ao carregar hospital ${h}:`, error);
-      banco[h] = [];
-      if (activeTab === 'leitos') renderCards();
-      if (activeTab === 'leitos2') renderTable();
-    }
-  }
-
-  async function apiCall(payload) {
-    logInfo(`Iniciando operação: ${payload.action}`, payload);
-    try {
-      const params = new URLSearchParams();
-      for (const [key, value] of Object.entries(payload)) {
-        if (Array.isArray(value)) params.append(key, value.join('|'));
-        else if (value !== null && value !== undefined && value !== '') params.append(key, String(value));
-      }
-      
-      const url = `${API_URL}?${params.toString()}`;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-      
-      const json = await res.json();
-      if (!json.ok) throw new Error(json.error || 'Erro na operação');
-      
-      logSuccess(`Operação ${payload.action} realizada com sucesso!`);
-      return json.data;
-    } catch(error) {
-      logError(`Erro na operação ${payload.action}:`, error);
-      throw new Error(error.message || 'Erro na operação');
-    }
-  }
-  
-  // =======================================================================
-  // ======================= LÓGICA DE NAVEGAÇÃO =========================
-  // =======================================================================
-  function setTab(tab){
-    document.querySelectorAll(".tab").forEach(b=>b.classList.remove("active"));
-    document.querySelectorAll(".side-menu-item").forEach(b=>b.classList.remove("active"));
-    
-    const activeTabEl = $(`.tab[data-tab='${tab}']`);
-    if(activeTabEl) activeTabEl.classList.add("active");
-    
-    const activeSideMenuItem = $(`.side-menu-item[data-tab='${tab}']`);
-    if(activeSideMenuItem) activeSideMenuItem.classList.add("active");
-
-    activeTab = tab;
-    route();
-    
-    if(tab.startsWith('dash')) {
-      setTimeout(() => renderDashboards(), 50);
-    }
-  }
-
-  function setHospitalSelectors(h){
-    currentHospital = h;
-    $('#selHospital2').value = h;
-    document.querySelectorAll('.btn.hospital').forEach(btn => btn.classList.remove('active'));
-    $(`.btn.hospital[data-h="${h}"]`)?.classList.add('active');
-  }
-  
-  function route(){
-    const sections = ["leitosView","leitos2View","dash1","dash2","dash3"];
-    sections.forEach(id => {
-      const el = $(`#${id}`);
-      if(el) el.classList.add("hidden");
-    });
-
-    const activeSectionId = activeTab === 'leitos' ? 'leitosView' : (activeTab === 'leitos2' ? 'leitos2View' : activeTab);
-    $(`#${activeSectionId}`)?.classList.remove("hidden");
-
-    // Layout V3 nunca mostra toolbar
-    if (currentLayout === 'v3' || activeTab.startsWith('dash')) {
-        $('#portalToolbar').style.display = 'none';
-    } else if (currentLayout === 'v1') {
-        $('#portalToolbar').style.display = activeTab.startsWith('dash') ? 'none' : 'flex';
-    } else {
-        $('#portalToolbar').style.display = 'none';
-    }
-
-    if(activeTab === "leitos") renderCards();
-    if(activeTab === "leitos2") renderTable();
-  }
-
-  // =======================================================================
-  // ======================= RENDERIZAÇÃO DE LEITOS ======================
-  // =======================================================================
-  function renderCards(){
-    const container = $("#leitosView");
-    container.innerHTML = "";
-    const leitos = banco[currentHospital] || [];
-
-    if(leitos.length === 0) {
-        container.innerHTML = `<p style="grid-column: 1 / -1; text-align: center;">Nenhum leito para exibir ou aguardando dados...</p>`;
-        return;
-    }
-
-    leitos.forEach(l=>{
-      const card = document.createElement("div");
-      card.className = "card";
-
-      const statusClass = l.status==="Em uso" ? "warn" : "ok";
-      const tipoClass   = l.tipo==="UTI" ? "uti" : "enf";
-      
-      const chipsLinhas = (l.linhas||[]).map(x=>`<span class="chip">${x}</span>`).join("");
-      const chipsConc   = (l.concessoes||[]).map(x=>`<span class="chip">${x}</span>`).join("");
-      
-      card.innerHTML = `
-        <div class="top">
-          <div class="wrap">
-            <span class="status ${statusClass}">Leito ${l.leito} — ${l.status}</span>
-            <span class="tipo ${tipoClass}">${l.tipo}</span>
-          </div>
-          <span class="badge">${HOSPITAIS[l.hospital].nome}</span>
-        </div>
+  // ================== RENDER – CARDS ==================
+  function renderCards(){ const c=$('#leitosView'); c.innerHTML=''; (banco[currentHospital]||[]).forEach(l=>{ const card=document.createElement('div'); card.className='card'; const statusClass=l.status==='Em uso'?'warn':'ok'; const tipoClass=l.tipo==='UTI'?'uti':'enf'; const internado=l.status==='Em uso'?` • Internado há ${elapsedSince(l.admAt)}`:''; const chipsLinhas=(l.linhas||[]).map(x=>`<span class="chip">${x}</span>`).join(''); const chipsConc=(l.concessoes||[]).map(x=>`<span class="chip">${x}</span>`).join(''); card.innerHTML=`
+        <div class="top"><div class="wrap">
+          <span class="status ${statusClass}">Leito ${l.leito} – ${l.status}</span>
+          <span class="tipo ${tipoClass}">${l.tipo||''}</span>
+          <span class="badge">${HOSPITAIS[l.hospital].nome}${internado? `<span class="badge" style="margin-left:6px">${internado}</span>`:''}</span>
+        </div></div>
         <div class="row">
-          <div class="field"><div class="label">Iniciais</div><div class="value">${l.status==="Em uso"?initials(l.nome):"—"}</div></div>
-          <div class="field"><div class="label">Matrícula</div><div class="value">${l.matricula||"—"}</div></div>
-          <div class="field"><div class="label">Idade</div><div class="value">${l.idade??"—"}</div></div>
-          <div class="field"><div class="label">Tempo de Internação</div><div class="value">${l.status === "Em uso" ? elapsedSince(l.admAt).text : "—"}</div></div>
-          <div class="field"><div class="label">PPS</div><div class="value">${l.pps??"—"}</div></div>
-          <div class="field"><div class="label">SPICT-BR</div><div class="value">${l.spict==="elegivel"?"Elegível":(l.spict==="nao_elegivel"?"Não elegível":"—")}</div></div>
-          <div class="field" style="grid-column: 3 / 5"><div class="label">Prev. Alta</div><div class="value">${l.prevAlta||"—"}</div></div>
-          <div class="field" style="grid-column:1/3">
-            <div class="label">Linhas de cuidado</div><div class="wrap">${chipsLinhas||"—"}</div>
-          </div>
-          <div class="field" style="grid-column:3/5">
-            <div class="label">Concessões</div><div class="wrap">${chipsConc||"—"}</div>
-          </div>
+          <div class="field"><div class="label">Iniciais</div><div class="value">${l.status==='Em uso'?initials(l.nome):'—'}</div></div>
+          <div class="field"><div class="label">Matrícula</div><div class="value">${l.matricula||'—'}</div></div>
+          <div class="field"><div class="label">Idade</div><div class="value">${l.idade??'—'}</div></div>
+          <div class="field"><div class="label">Admissão</div><div class="value">${fmtDateTime(l.admAt)}</div></div>
+          <div class="field"><div class="label">PPS</div><div class="value">${l.pps??'—'}</div></div>
+          <div class="field"><div class="label">SPICT-BR</div><div class="value">${l.spict==='elegivel'?'Elegível':(l.spict==='nao_elegivel'?'Não elegível':'—')}</div></div>
+          <div class="field"><div class="label">Prev. Alta</div><div class="value">${l.prevAlta||'—'}</div></div>
+          <div class="field"><div class="label">—</div><div class="value"> </div></div>
+          <div class="field" style="grid-column:1/3"><div class="label">Linhas de cuidado</div><div class="wrap">${chipsLinhas||'—'}</div></div>
+          <div class="field" style="grid-column:3/5"><div class="label">Concessões</div><div class="wrap">${chipsConc||'—'}</div></div>
         </div>
         <div class="actions">
-          ${l.status==="Vago"
+          ${l.status==='Vago'
             ? `<button class="btn primary" data-act="admitir">Admitir</button>`
-            : `<button class="btn" data-act="atualizar">Atualizar / Ver Detalhes</button>`
-          }
-        </div>
-      `;
+            : `<button class="btn primary" data-act="atualizar">Atualizar</button>
+               <button class="btn danger"  data-act="alta">Dar Alta</button>`}
+        </div>`; const bA=card.querySelector('[data-act="admitir"]'); const bU=card.querySelector('[data-act="atualizar"]'); const bD=card.querySelector('[data-act="alta"]'); if(bA) bA.onclick=()=>openAdmissao(l.leito); if(bU) bU.onclick=()=>openAtualizacao(l.leito); if(bD) bD.onclick=()=>darAltaFlow(l.leito); c.appendChild(card); }); }
 
-      card.querySelector('[data-act="admitir"]')?.addEventListener('click', () => openAdmissao(l.leito));
-      card.querySelector('[data-act="atualizar"]')?.addEventListener('click', () => openAtualizacao(l.leito));
+  // ================== RENDER – TABELA ==================
+  function renderTable(){ const tb=$('#tbLeitos'); tb.innerHTML=''; (banco[currentHospital]||[]).forEach(l=>{ const tr=document.createElement('tr'); tr.innerHTML=`<td>${l.leito}</td><td>${l.tipo||''}</td><td>${l.status}</td><td>${l.nome||'—'}</td><td>${l.matricula||'—'}</td><td>${l.idade??'—'}</td><td>${fmtDateTime(l.admAt)}</td><td>${l.pps??'—'}</td><td>${l.spict==='elegivel'?'Elegível':(l.spict==='nao_elegivel'?'Não elegível':'—')}</td><td>${l.prevAlta||'—'}</td><td>${(l.linhas||[]).join(', ')||'—'}</td><td>${(l.concessoes||[]).join(', ')||'—'}</td>`; tr.style.cursor='pointer'; tr.onclick=()=>{ selectedLeito=l.leito; if(l.status==='Vago') openAdmissao(l.leito); else openAtualizacao(l.leito); }; tb.appendChild(tr); }); }
 
-      container.appendChild(card);
-    });
+  // ================== RENDER – ULTIMATE ==================
+  function getScopeData(){
+    if(scope==='H1') return [...banco.H1];
+    if(scope==='H2') return [...banco.H2];
+    return [...banco.H1, ...banco.H2];
   }
 
-  function renderTable(){
-      const tb = $("#tbLeitos");
-      const headers = document.querySelectorAll('#leitos2View th.sortable');
-      tb.innerHTML = "";
-
-      const sortedData = [...banco[currentHospital]].sort((a, b) => {
-          const key = sortState.key;
-          const dir = sortState.direction === 'asc' ? 1 : -1;
-          
-          let aVal = a[key], bVal = b[key];
-          if (key === 'tempoInternacao') {
-              aVal = a.admAt ? Date.now() - new Date(a.admAt).getTime() : 0;
-              bVal = b.admAt ? Date.now() - new Date(b.admAt).getTime() : 0;
-          }
-          
-          aVal = aVal === null || aVal === undefined ? '' : aVal;
-          bVal = bVal === null || bVal === undefined ? '' : bVal;
-
-          if (!isNaN(aVal) && !isNaN(bVal) && aVal !== '' && bVal !== '') {
-              return (Number(aVal) - Number(bVal)) * dir;
-          }
-          return String(aVal).localeCompare(String(bVal)) * dir;
-      });
-      
-      sortedData.forEach(l => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${l.leito}</td><td>${l.tipo}</td><td>${l.status}</td>
-          <td>${l.nome||"—"}</td><td>${l.idade??"—"}</td>
-          <td>${l.status === "Em uso" ? elapsedSince(l.admAt).text : "—"}</td>
-          <td>${l.pps??"—"}</td>
-          <td>${l.spict==="elegivel"?"Elegível":(l.spict==="nao_elegivel"?"Não elegível":"—")}</td>
-          <td>${l.prevAlta||"—"}</td>
-        `;
-        tr.style.cursor="pointer";
-        tr.onclick = ()=> {  
-          if(l.status==="Vago") openAdmissao(l.leito);  
-          else openAtualizacao(l.leito);  
-        };
-        tb.appendChild(tr);
-      });
-      
-      headers.forEach(th => {
-          let text = th.dataset.sort;
-          if (th.dataset.sort === 'admAt') text = 'Admissão';
-          if (th.dataset.sort === 'prevAlta') text = 'Prev. Alta';
-          if (th.dataset.sort === 'spict') text = 'SPICT-BR';
-          if (th.dataset.sort === 'pps') text = 'PPS';
-          if (th.dataset.sort === 'tempoInternacao') text = 'Tempo de Internação';
-          text = text.charAt(0).toUpperCase() + text.slice(1);
-
-          if (th.dataset.sort === sortState.key) {
-              text += sortState.direction === 'asc' ? ' ▲' : ' ▼';
-          }
-          th.textContent = text;
-      });
+  function calcKPIs(){
+    const data=getScopeData();
+    const total = data.length;
+    const ocupados = data.filter(x=>x.status==='Em uso').length;
+    const vagos = total-ocupados;
+    const tx = total? Math.round(100*ocupados/total):0;
+    const altas24 = data.filter(x=>['24h Ouro','24h 2R','24h 3R'].includes(x.prevAlta)).length;
+    const idadeMedia = (()=>{ const arr=data.filter(x=>x.idade!=null).map(x=>x.idade); return arr.length? Math.round(sum(arr)/arr.length):0; })();
+    const ppsMedio = (()=>{ const arr=data.filter(x=>x.pps!=null).map(x=>x.pps); return arr.length? (sum(arr)/arr.length).toFixed(1):'0.0'; })();
+    const rotatividade = altas24; // proxy simples no MVP
+    return { total, ocupados, vagos, tx, altas24, idadeMedia, ppsMedio, rotatividade };
   }
 
-  // =======================================================================
-  // ======================== FLUXOS DE MODAIS ===========================
-  // =======================================================================
-  function openAdmissao(leito){
-    selectedLeito = leito;
-    const l = HOSPITAIS[currentHospital].leitos.find(x=>x.id===leito);
-    $("#a_hospital").textContent = HOSPITAIS[currentHospital].nome;
-    $("#a_leito").textContent = "Leito " + l.id;
-    $("#a_tipo").textContent = l.tipo;
-    $("#a_linhas").innerHTML = LINHAS.map(v=>`<label class="badge"><input type="checkbox" value="${v}" /> ${v}</label>`).join("");
-    $("#a_concessoes").innerHTML = CONC.map(v=>`<label class="badge"><input type="checkbox" value="${v}" /> ${v}</label>`).join("");
-    $("#a_nome").value=""; $("#a_idade").value=""; $("#a_matricula").value=""; $("#a_pps").value="";
-    $("#a_spict").value="elegivel"; $("#a_prev").value="24h Ouro";
-    openModal("#modalAdmissao");
+  function countBy(arr, key){ const map=new Map(); arr.forEach(o=>{ const v=key(o); if(!v) return; if(Array.isArray(v)) v.forEach(i=> map.set(i,(map.get(i)||0)+1) ); else map.set(v,(map.get(v)||0)+1); }); return map; }
+
+  function renderKpis(){
+    const k=calcKPIs();
+    $('#kpiTotal').textContent = k.total;
+    $('#kpiOcup').textContent = k.ocupados;
+    $('#kpiDisp').textContent = k.vagos;
+    $('#kpiTx').textContent = k.tx + '%';
+    $('#kpiAltas').textContent = k.altas24;
+    $('#kpiPpsIdade').textContent = `${k.ppsMedio} / ${k.idadeMedia}`;
   }
 
-  function openAtualizacao(leito){
-    selectedLeito = leito;
-    const l = banco[currentHospital].find(x=>x.leito===leito);
-    $("#u_hospital").textContent = HOSPITAIS[currentHospital].nome;
-    $("#u_leito").textContent = "Leito " + l.leito;
-    $("#u_tipo").textContent = l.tipo;
-    $("#u_nome").value = l.nome||"";
-    $("#u_matricula").value = l.matricula||"";
-    $("#u_adm").value = fmtDateTime(l.admAt)||"";
-    $("#u_idade").value = l.idade??"";
-    $("#u_pps").value = l.pps??"";
-    $("#u_spict").value = l.spict||"elegivel";
-    $("#u_prev").value = l.prevAlta||"Sem previsao";
-    $("#u_linhas").innerHTML = LINHAS.map(v=>`<label class="badge"><input type="checkbox" value="${v}" ${((l.linhas||[]).includes(v)?"checked":"")}/> ${v}</label>`).join("");
-    $("#u_concessoes").innerHTML = CONC.map(v=>`<label class="badge"><input type="checkbox" value="${v}" ${((l.concessoes||[]).includes(v)?"checked":"")}/> ${v}</label>`).join("");
-    $("#internadoHa").textContent = `Internado há ${elapsedSince(l.admAt).text}`;
-    openModal("#modalAtualizacao");
+  function destroyChart(id){ if(charts[id]){ charts[id].destroy(); charts[id]=null; } }
+
+  function renderUltimate(){
+    renderKpis();
+    const data=getScopeData();
+
+    const total = data.length; const ocupados = data.filter(x=>x.status==='Em uso').length; const vagos = Math.max(0,total-ocupados);
+    const h1 = banco.H1; const h2=banco.H2;
+    const o1 = h1.filter(x=>x.status==='Em uso').length; const t1=h1.length; const o2=h2.filter(x=>x.status==='Em uso').length; const t2=h2.length;
+
+    // Gauge geral (semi-donut)
+    destroyChart('gaugeOverall');
+    charts.gaugeOverall = new Chart($('#gaugeOverall'), { type:'doughnut', data:{ labels:['Ocupado','Disponível'], datasets:[{ data:[ocupados, vagos], backgroundColor:['#0b74ff','#e5e7eb'] }] }, options:{ responsive:true, maintainAspectRatio:false, cutout:'70%', rotation:Math.PI, circumference:Math.PI, plugins:{ legend:{display:false}, tooltip:{enabled:true} } } });
+
+    // Por hospital (barras empilhadas)
+    destroyChart('gaugeHospitais');
+    charts.gaugeHospitais = new Chart($('#gaugeHospitais'), { type:'bar', data:{ labels:['Neomater','Cruz Azul'], datasets:[{ label:'Ocupados', data:[o1,o2] }, { label:'Disponíveis', data:[Math.max(0,t1-o1),Math.max(0,t2-o2)] }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{position:'bottom'} }, scales:{ x:{ stacked:true }, y:{ stacked:true, beginAtZero:true, ticks:{ precision:0 } } } });
+
+    // Altas
+    const altasMap = ALTAS_BUCKETS.reduce((acc,k)=> (acc[k]=0,acc),{});
+    data.forEach(x=>{ if(altasMap[x.prevAlta]!=null) altasMap[x.prevAlta]++; });
+    destroyChart('chartAltas');
+    charts.chartAltas = new Chart($('#chartAltas'), { type:'bar', data:{ labels:Object.keys(altasMap), datasets:[{ label:'Prev. de alta (qtde)', data:Object.values(altasMap) }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false} }, scales:{ y:{ beginAtZero:true, ticks:{ precision:0 } } } });
+
+    // Linhas e Concessões
+    const linhasMap = countBy(data, x=>x.linhas||[]);
+    const concMap   = countBy(data, x=>x.concessoes||[]);
+    const toSeries = (m)=>({ labels:[...m.keys()], data:[...m.values()] });
+    const L = toSeries(linhasMap), C = toSeries(concMap);
+
+    destroyChart('chartLinhas');
+    charts.chartLinhas = new Chart($('#chartLinhas'), { type:'doughnut', data:{ labels:L.labels, datasets:[{ data:L.data }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom' } } } });
+
+    destroyChart('chartConcessoes');
+    charts.chartConcessoes = new Chart($('#chartConcessoes'), { type:'doughnut', data:{ labels:C.labels, datasets:[{ data:C.data }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom' } } } });
+
+    // PPS e SPICT
+    const ppsMap = new Map([[0,0],[1,0],[2,0],[3,0],[4,0],[5,0],[6,0],[7,0],[8,0],[9,0],[10,0]]);
+    data.forEach(x=>{ if(x.pps!=null){ const v=Math.max(0,Math.min(10,Number(x.pps))); ppsMap.set(v, (ppsMap.get(v)||0)+1 ); } });
+    destroyChart('chartPPS');
+    charts.chartPPS = new Chart($('#chartPPS'), { type:'bar', data:{ labels:[...ppsMap.keys()], datasets:[{ label:'PPS', data:[...ppsMap.values()] }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false} }, scales:{ y:{ beginAtZero:true, ticks:{ precision:0 } } } });
+
+    const spMap = { elegivel:0, nao_elegivel:0, vazio:0 };
+    data.forEach(x=>{ if(x.spict==='elegivel') spMap.elegivel++; else if(x.spict==='nao_elegivel') spMap.nao_elegivel++; else spMap.vazio++; });
+    destroyChart('chartSPICT');
+    charts.chartSPICT = new Chart($('#chartSPICT'), { type:'pie', data:{ labels:['Elegível','Não elegível','—'], datasets:[{ data:[spMap.elegivel, spMap.nao_elegivel, spMap.vazio] }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom' } } } });
   }
 
-  async function darAltaFlow(leito){
-    if(!await confirmAction("Confirmar ALTA deste paciente?")) return;
-    try {
-      await apiCall({ action:'alta', hospital: currentHospital, leito: leito });
-      if (isQRMode) {
-        closeModal("#modalAtualizacao");
-        showSuccessMessage();
-      } else {
-        await loadHospital(currentHospital);
-      }
-    } catch(error) { alert('Erro ao dar alta: ' + error.message); }
+  // ================== FLUXOS – ADMITIR/ATUALIZAR/ALTA ==================
+  function openAdmissao(id){ const l=(banco[currentHospital]||[]).find(x=>x.leito===id); selectedLeito=id; $('#a_hospital').textContent=HOSPITAIS[currentHospital].nome; $('#a_leito').textContent='Leito '+id; $('#a_tipo').textContent=l?.tipo||''; $('#a_linhas').innerHTML=LINHAS.map(v=>`<label class="badge"><input type="checkbox" value="${v}"/> ${v}</label>`).join(''); $('#a_concessoes').innerHTML=CONC.map(v=>`<label class="badge"><input type="checkbox" value="${v}"/> ${v}</label>`).join(''); $('#a_nome').value=''; $('#a_idade').value=''; $('#a_matricula').value=''; $('#a_pps').value=''; $('#a_spict').value='elegivel'; $('#a_prev').value='24h Ouro'; openModal('#modalAdmissao'); }
+
+  $('#a_cancel').onclick=async()=>{ const ok=await confirmAction('Cancelar admissão?'); if(!ok) return; if(isQrMode){ closeModal('#modalAdmissao'); showThanks('Ação cancelada. Obrigado! Você pode fechar o navegador.'); return; } closeModal('#modalAdmissao'); };
+
+  $('#a_save').onclick=async()=>{ const ok=await confirmAction('Salvar e admitir este paciente?'); if(!ok) return; const payload={ action:'admit', hospital:currentHospital, leito:selectedLeito, nome:$('#a_nome').value.trim(), idade:Number($('#a_idade').value)||null, matricula:$('#a_matricula').value.trim(), pps:Number($('#a_pps').value)||null, spict:$('#a_spict').value, prevAlta:$('#a_prev').value, linhas:[...document.querySelectorAll('#a_linhas input:checked')].map(i=>i.value), concessoes:[...document.querySelectorAll('#a_concessoes input:checked')].map(i=>i.value) };
+    try{ await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)}); closeModal('#modalAdmissao'); await loadHospital(currentHospital); if(isQrMode){ showThanks('Admissão registrada. Obrigado! Você pode fechar o navegador.'); } }
+    catch(e){ alert('Erro ao admitir: '+(e.message||e)); }
+  };
+
+  function openAtualizacao(id){ const l=(banco[currentHospital]||[]).find(x=>x.leito===id); selectedLeito=id; $('#u_hospital').textContent=HOSPITAIS[currentHospital].nome; $('#u_leito').textContent='Leito '+id; $('#u_tipo').textContent=l?.tipo||''; $('#u_nome').value=l?.nome||''; $('#u_matricula').value=l?.matricula||''; $('#u_adm').value=fmtDateTime(l?.admAt)||''; $('#u_idade').value=l?.idade??''; $('#u_pps').value=l?.pps??''; $('#u_spict').value=l?.spict||'elegivel'; $('#u_prev').value=l?.prevAlta||'Sem previsão'; $('#u_linhas').innerHTML=LINHAS.map(v=>{const chk=(l?.linhas||[]).includes(v)?'checked':''; return `<label class=\"badge\"><input type=\"checkbox\" value=\"${v}\" ${chk}/> ${v}</label>`;}).join(''); $('#u_concessoes').innerHTML=CONC.map(v=>{const chk=(l?.concessoes||[]).includes(v)?'checked':''; return `<label class=\"badge\"><input type=\"checkbox\" value=\"${v}\" ${chk}/> ${v}</label>`;}).join(''); $('#internadoHa').textContent=l?.admAt?`Internado há ${elapsedSince(l.admAt)}`:''; openModal('#modalAtualizacao'); }
+
+  $('#u_cancel').onclick=async()=>{ const ok=await confirmAction('Cancelar alterações?'); if(!ok) return; if(isQrMode){ closeModal('#modalAtualizacao'); showThanks('Ação cancelada. Obrigado! Você pode fechar o navegador.'); return; } closeModal('#modalAtualizacao'); };
+
+  $('#u_save').onclick=async()=>{ const ok=await confirmAction('Salvar alterações?'); if(!ok) return; const payload={ action:'update', hospital:currentHospital, leito:selectedLeito, idade:Number($('#u_idade').value)||null, pps:Number($('#u_pps').value)||null, spict:$('#u_spict').value, prevAlta:$('#u_prev').value, linhas:[...document.querySelectorAll('#u_linhas input:checked')].map(i=>i.value), concessoes:[...document.querySelectorAll('#u_concessoes input:checked')].map(i=>i.value) };
+    try{ await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)}); closeModal('#modalAtualizacao'); await loadHospital(currentHospital); if(isQrMode){ showThanks('Atualização salva. Obrigado! Você pode fechar o navegador.'); } }
+    catch(e){ alert('Erro ao salvar: '+(e.message||e)); }
+  };
+
+  async function darAltaFlow(id){ const ok=await confirmAction('Confirmar ALTA deste paciente?'); if(!ok) return; const payload={action:'alta',hospital:currentHospital,leito:id}; try{ await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)}); closeModal('#modalAtualizacao'); await loadHospital(currentHospital); if(isQrMode){ showThanks('Alta registrada. Obrigado! Você pode fechar o navegador.'); } } catch(e){ alert('Erro ao dar alta: '+(e.message||e)); } }
+  $('#u_alta').onclick=()=>darAltaFlow(selectedLeito);
+
+  // ================== NAVEGAÇÃO ==================
+  function setTab(tab){ document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active')); const btn=document.querySelector(`.tab[data-tab='${tab}']`); if(btn) btn.classList.add('active'); activeTab=tab; route(); }
+  function setHospitalSelectors(h){ currentHospital=h; const s2=document.getElementById('selHospital2'); if(s2) s2.value=h; }
+  function route(){ ['leitos','leitos2','dashUltimate'].forEach(id=>{ const mapId=id==='leitos'?'leitosView':(id==='leitos2'?'leitos2View':id); const el=document.getElementById(mapId); if(!el) return; if(activeTab===id) el.classList.remove('hidden'); else el.classList.add('hidden'); }); if(activeTab==='leitos') renderCards(); if(activeTab==='leitos2') renderTable(); if(activeTab==='dashUltimate' && loaded.H1 && loaded.H2) renderUltimate(); }
+
+  // ================== QR ==================
+  let qrReader=null; function handleScan(text){ try{ const u=new URL(String(text)); const h=u.searchParams.get('h'); const leito=Number(u.searchParams.get('leito')); if(h&&['H1','H2'].includes(h)&&leito>0){ closeModal('#modalQRScan'); stopScan(); location.href=`${location.pathname}?h=${h}&leito=${leito}`; } }catch(e){} }
+  async function startScan(){ if(!window.Html5Qrcode){ alert('Leitor não disponível neste dispositivo.'); return; } try{ if(qrReader){ await stopScan(); } qrReader=new Html5Qrcode('qrRegion'); await qrReader.start({facingMode:'environment'},{fps:10,qrbox:250},handleScan,()=>{}); }catch(e){ alert('Não foi possível acessar a câmera.'); stopScan(); closeModal('#modalQRScan'); } }
+  function stopScan(){ if(!qrReader) return Promise.resolve(); return qrReader.stop().then(()=>{qrReader.clear();qrReader=null;}).catch(()=>{}); }
+
+  function openBulkQR(){ $('#b_hospital').value=currentHospital; const limit=currentHospital==='H1'?13:16; $('#b_from').value=1; $('#b_to').value=limit; $('#qr_grid').innerHTML=''; openModal('#modalBulkQR'); }
+  function buildQRGrid(){ const h=$('#b_hospital').value; const from=Math.max(1,parseInt($('#b_from').value||'1')); const to=Math.max(from,parseInt($('#b_to').value||'1')); const limit=h==='H1'?13:16; const f=Math.min(from,limit); const t=Math.min(to,limit); const base=`${location.origin}${location.pathname}`; const grid=$('#qr_grid'); grid.innerHTML=''; for(let i=f;i<=t;i++){ const url=`${base}?h=${h}&leito=${i}`; const cell=document.createElement('div'); cell.className='qr-cell'; cell.innerHTML=`<div class="qr-box"></div><div class="mini">Leito ${i} • ${HOSPITAIS[h].nome}</div>`; grid.appendChild(cell); new QRCode(cell.querySelector('.qr-box'),{text:url,width:160,height:160}); } }
+
+  function startQrTimer(seconds){ qrExpiresAt=Date.now()+seconds*1000; const badge=document.createElement('div'); badge.className='qrTimerBadge'; badge.id='qrBadge'; document.body.appendChild(badge); qrTick=setInterval(()=>{ const left=Math.max(0,qrExpiresAt-Date.now()); const mm=String(Math.floor(left/60000)).padStart(2,'0'); const ss=String(Math.floor((left%60000)/1000)).padStart(2,'0'); badge.textContent=`⏱ ${mm}:${ss} para concluir`; if(left<=0){ clearInterval(qrTick); badge.textContent='Acesso expirado'; document.querySelectorAll('.backdrop').forEach(b=> b.style.display='none'); openModal('#modalQrExpired'); } },500); }
+
+  function enterQrMode(h,leito){ isQrMode=true; document.body.classList.add('qr-only'); ['leitosView','leitos2View','dashUltimate'].forEach(id=>{ const el=document.getElementById(id); if(el) el.innerHTML=''; }); (async()=>{ await loadHospital(h); const l=(banco[h]||[]).find(x=>x.leito===leito); if(!l){ openModal('#modalQrExpired'); return; } currentHospital=h; if(l.status==='Vago') openAdmissao(leito); else openAtualizacao(leito); startQrTimer(120); })(); }
+
+  // ================== EXPORT ==================
+  function exportCsv(){
+    const rows = [['hospital','leito','tipo','status','nome','matricula','idade','admAt','pps','spict','prevAlta','linhas','concessoes']];
+    const data = getScopeData();
+    data.forEach(o=> rows.push([o.hospital,o.leito,o.tipo,o.status,o.nome||'',o.matricula||'',o.idade??'',o.admAt||'',o.pps??'',o.spict||'',o.prevAlta||'',(o.linhas||[]).join('|'),(o.concessoes||[]).join('|')]));
+    const csv = rows.map(r=> r.map(v=>`"${String(v).replaceAll('"','""')}"`).join(',')).join('
+');
+    const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
+    const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='archipelago-export.csv'; a.click(); URL.revokeObjectURL(a.href);
   }
 
-  // =======================================================================
-  // ==================== LÓGICA DOS DASHBOARDS ============================
-  // =======================================================================
-  function getDiasAteAlta(prevAlta) {
-    if (!prevAlta || prevAlta === 'Sem previsao') return 7;
-    if (prevAlta.includes('24h')) return 1;
-    if (prevAlta === '48h') return 2;
-    if (prevAlta === '72h') return 3;
-    if (prevAlta === '96h') return 4;
-    return 7;
-  }
+  // ================== EVENTOS ==================
+  // Tabs
+  document.querySelectorAll('.tab').forEach(b=> b.onclick=()=> setTab(b.dataset.tab));
+  // Botões hospital (cards/tabela)
+  $('#btnH1').onclick=()=>{ setHospitalSelectors('H1'); loadHospital('H1'); };
+  $('#btnH2').onclick=()=>{ setHospitalSelectors('H2'); loadHospital('H2'); };
+  // Tabela select
+  $('#selHospital2') && ($('#selHospital2').onchange = e=>{ setHospitalSelectors(e.target.value); loadHospital(e.target.value); });
+  // QR scan + fechar
+  $('#btnScan').onclick=()=>{ openModal('#modalQRScan'); startScan(); };
+  document.querySelectorAll('[data-close]').forEach(b=> b.onclick=()=>{ const which=b.getAttribute('data-close'); if(which==='#modalQRScan'){ stopScan(); } closeModal(which); });
+  // Bulk QR
+  $('#btnBulkQR').onclick=openBulkQR; $('#b_generate').onclick=buildQRGrid; $('#qrOk').onclick=()=>{ closeModal('#modalQrExpired'); };
+  // Export
+  $('#btnExportCsv').onclick=exportCsv;
+  // Filtro Ultimate
+  document.querySelectorAll('[data-scope]').forEach(b=> b.onclick=()=>{ scope=b.getAttribute('data-scope'); renderUltimate(); });
 
-  function createChart(canvasId, chartInstanceName, config) {
-      const canvas = document.getElementById(canvasId);
-      if (!canvas) {
-          logError(`Canvas com ID '${canvasId}' não encontrado.`);
-          return;
-      }
-      const ctx = canvas.getContext('2d');
-      if (window[chartInstanceName]) window[chartInstanceName].destroy();
-      window[chartInstanceName] = new Chart(ctx, config);
-  }
-
-  async function renderDashboards() {
-      logInfo("Renderizando dashboards...");
-      
-      // Mostrar loading
-      showLoading();
-      
-      await loadAllData();
-      const allData = [...banco.H1, ...banco.H2];
-
-      if (activeTab === 'dash1') renderDash1();
-      if (activeTab === 'dash2') renderDash2(allData);
-      if (activeTab === 'dash3') renderDash3(allData);
-      
-      // Ocultar loading após renderização
-      hideLoading();
-  }
-  
-  function calculateHospitalProjections(hospitalData) {
-      const hoje = new Date();
-      const labels = [`Hoje (${hoje.toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'})})`];
-      for (let i = 1; i <= 7; i++) {
-          const diaFuturo = new Date(hoje);
-          diaFuturo.setDate(hoje.getDate() + i);
-          labels.push(`D+${i} (${diaFuturo.toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'})})`);
-      }
-
-      const linhasData = {};
-      const concessoesData = {};
-
-      (hospitalData || []).filter(p => p.status === 'Em uso').forEach(paciente => {
-          const dias = getDiasAteAlta(paciente.prevAlta);
-          (paciente.linhas || []).forEach(linha => {
-              if (!linhasData[linha]) linhasData[linha] = new Array(8).fill(0);
-              const diasParaManterLinhas = dias === 7 ? 8 : dias;
-              for (let d = 0; d < diasParaManterLinhas; d++) {
-                  linhasData[linha][d]++;
-              }
-          });
-          (paciente.concessoes || []).forEach(conc => {
-              if (!concessoesData[conc]) concessoesData[conc] = new Array(8).fill(0);
-              const diasParaManterConc = dias === 7 ? 8 : dias;
-              for (let d = 0; d < diasParaManterConc; d++) {
-                  concessoesData[conc][d]++;
-              }
-          });
-      });
-      return { labels, linhasData, concessoesData };
-  }
-
-  function renderDash1() {
-      ['H1', 'H2'].forEach(h => {
-          const dados = banco[h] || [];
-          const totalLeitos = HOSPITAIS[h].leitos.length;
-          const ocupados = dados.filter(l => l.status === 'Em uso').length;
-          const vagos = totalLeitos - ocupados;
-          const taxaOcupacao = totalLeitos > 0 ? Math.round((ocupados / totalLeitos) * 100) : 0;
-          
-          $(`#statOcupados${h}`).textContent = ocupados;
-          $(`#statVagos${h}`).textContent = vagos;
-          $(`#statTotal${h}`).textContent = totalLeitos;
-          $(`#gaugePercent${h}`).textContent = taxaOcupacao + '%';
-
-          createChart(`chartOcupacao${h}`, `chartGauge${h}`, { type: 'doughnut', data: { datasets: [{ data: [taxaOcupacao, 100 - taxaOcupacao], backgroundColor: [taxaOcupacao > 90 ? '#dc2626' : taxaOcupacao > 80 ? '#f59e0b' : '#16a34a', '#e5e7eb'], borderWidth: 0, }] }, options: { responsive: true, maintainAspectRatio: false, circumference: 180, rotation: -90, cutout: '75%', plugins: { tooltip: { enabled: false }, legend: { display: false } } } });
-          
-          const projAltas = { "24h": 0, "48h": 0, "72h": 0, "96h": 0 };
-          dados.filter(p => p.status === 'Em uso' && p.prevAlta && p.prevAlta !== 'Sem previsao').forEach(p => {
-              const key = p.prevAlta.includes('24h') ? '24h' : p.prevAlta;
-              if (projAltas.hasOwnProperty(key)) projAltas[key]++;
-          });
-          const projAltasData = Object.values(projAltas);
-          createChart(`chartAltas${h}_line`, `chartAltasInst${h}_line`, { type: 'line', data: { labels: Object.keys(projAltas), datasets: [{ label: 'Nº de Altas', data: projAltasData, backgroundColor: '#3b82f633', borderColor: '#3b82f6', fill: true, tension: 0.3 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } } });
-          createChart(`chartAltas${h}_hbar`, `chartAltasInst${h}_hbar`, { type: 'bar', data: { labels: Object.keys(projAltas), datasets: [{ label: 'Nº de Altas', data: projAltasData, backgroundColor: '#3b82f6' }] }, options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } } } });
-          
-          let kpiHtml = '';
-          let lastVal = 0;
-          Object.entries(projAltas).forEach(([key, value], index) => {
-              let trendIcon = '';
-              if (index > 0) {
-                  if (value > lastVal) trendIcon = '<span style="color:green">▲</span>';
-                  else if (value < lastVal) trendIcon = '<span style="color:red">▼</span>';
-                  else trendIcon = '<span style="color:gray">▬</span>';
-              }
-              kpiHtml += `<div class="kpi-grid-item"><div class="kpi-grid-value">${value}</div><div class="kpi-grid-label">em ${key}</div><div class="kpi-grid-trend">${trendIcon}</div></div>`;
-              lastVal = value;
-          });
-          $(`#altas-view-kpi-${h}`).innerHTML = kpiHtml;
-
-          const projections = calculateHospitalProjections(dados);
-          const sortedLinhas = Object.entries(projections.linhasData).sort((a,b) => a[0].localeCompare(b[0]));
-          const sortedConcessoes = Object.entries(projections.concessoesData).sort((a,b) => a[0].localeCompare(b[0]));
-
-          const yAxisConfig = { beginAtZero: true, ticks: { stepSize: 1 }, title: { display: true, text: 'Beneficiários' } };
-          createChart(`chartLinhas${h}`, `chartLinhasInst${h}`, { type: 'line', data: { labels: projections.labels, datasets: sortedLinhas.map(([key, values]) => ({ label: key, data: values, borderColor: LINHAS_CORES[key] || '#cccccc', backgroundColor: (LINHAS_CORES[key] || '#cccccc') + '20', fill: false, tension: 0.3 })) }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } }, scales: { y: yAxisConfig } } });
-          createChart(`chartConcessoes${h}`, `chartConcessoesInst${h}`, { type: 'line', data: { labels: projections.labels, datasets: sortedConcessoes.map(([key, values]) => ({ label: key, data: values, borderColor: CONC_CORES[key] || '#cccccc', backgroundColor: (CONC_CORES[key] || '#cccccc') + '20', fill: false, tension: 0.3 })) }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } }, scales: { y: yAxisConfig } } });
-      });
-      logSuccess('Dashboard 1 renderizado.');
-  }
-
-  function renderDash2(allData) {
-      logInfo("Renderizando Dashboard 2 Expandido...");
-      
-      // ========= KPIs CONSOLIDADOS =========
-      const totalLeitos = HOSPITAIS.H1.leitos.length + HOSPITAIS.H2.leitos.length;
-      const ocupados = allData.filter(p => p.status === 'Em uso').length;
-      const taxaOcupacaoGeral = totalLeitos > 0 ? Math.round(ocupados/totalLeitos*100) : 0;
-      
-      $('#kpiOcupacaoGeral').textContent = `${taxaOcupacaoGeral}%`;
-      createChart('kpiGaugeOcupacao', 'kpiGaugeOcupacaoInst', {
-          type: 'doughnut',
-          data: { datasets: [{ 
-              data: [taxaOcupacaoGeral, 100-taxaOcupacaoGeral],
-              backgroundColor: [taxaOcupacaoGeral > 90 ? '#dc2626' : taxaOcupacaoGeral > 80 ? '#f59e0b' : '#16a34a', '#e5e7eb'],
-              borderWidth: 0,
-          }] },
-          options: {
-              responsive: true, maintainAspectRatio: false,
-              circumference: 180, rotation: -90, cutout: '70%',
-              plugins: { tooltip: { enabled: false }, legend: { display: false } }
-          }
-      });
-
-      $('#kpiAltas48h').textContent = allData.filter(p => p.prevAlta && (p.prevAlta.includes('24h') || p.prevAlta === '48h')).length;
-      $('#kpiUtiOcupados').textContent = allData.filter(p => p.tipo === 'UTI' && p.status === 'Em uso').length;
-      
-      const tempos = allData.filter(p => p.status === 'Em uso' && p.admAt).map(p => elapsedSince(p.admAt).days);
-      $('#kpiTMP').textContent = tempos.length > 0 ? `${Math.round(tempos.reduce((a,b)=>a+b,0)/tempos.length)} dias` : '0 dias';
-      
-      const idades = allData.filter(p => p.status === 'Em uso' && p.idade).map(p => p.idade);
-      $('#kpiIdadeMedia').textContent = idades.length > 0 ? `${Math.round(idades.reduce((a,b)=>a+b,0)/idades.length)}` : '0';
-      
-      // Taxa de rotatividade (simplificada)
-      $('#kpiRotatividade').textContent = totalLeitos > 0 ? `${Math.round((ocupados / totalLeitos) * 30)}%` : '0%';
-
-      // ========= PROJEÇÕES CONSOLIDADAS =========
-      const projConsolidada = calculateHospitalProjections(allData);
-      const sortedLinhas = Object.entries(projConsolidada.linhasData).sort((a,b) => a[0].localeCompare(b[0]));
-      const sortedConcessoes = Object.entries(projConsolidada.concessoesData).sort((a,b) => a[0].localeCompare(b[0]));
-      
-      createChart('chartLinhasConsolidado', 'chartLinhasConsolidadoInst', {
-          type: 'line',
-          data: {
-              labels: projConsolidada.labels,
-              datasets: sortedLinhas.map(([k,v])=>({
-                  label: k, data: v,
-                  borderColor: LINHAS_CORES[k] || '#cccccc',
-                  backgroundColor: (LINHAS_CORES[k] || '#cccccc') + '20',
-                  tension: 0.3, fill: true
-              }))
-          },
-          options: {
-              responsive: true, maintainAspectRatio: false,
-              plugins: { legend: { position: 'bottom' } },
-              scales: { y: { title: { display: true, text: 'Beneficiários' } } }
-          }
-      });
-      
-      createChart('chartConcessoesConsolidado', 'chartConcessoesConsolidadoInst', {
-          type: 'bar',
-          data: {
-              labels: projConsolidada.labels,
-              datasets: sortedConcessoes.map(([k,v])=>({
-                  label: k, data: v,
-                  backgroundColor: CONC_CORES[k] || '#cccccc'
-              }))
-          },
-          options: {
-              responsive: true, maintainAspectRatio: false,
-              plugins: { legend: { position: 'bottom' } },
-              scales: {
-                  x: { stacked: true },
-                  y: { stacked: true, title: { display: true, text: 'Beneficiários' } }
-              }
-          }
-      });
-
-      // ========= ANÁLISE COMPARATIVA DE EFICIÊNCIA =========
-      const H1Data = banco.H1.filter(p => p.status === 'Em uso');
-      const H2Data = banco.H2.filter(p => p.status === 'Em uso');
-      const H1Recursos = H1Data.reduce((acc, p) => acc + (p.concessoes?.length || 0) + (p.linhas?.length || 0), 0);
-      const H2Recursos = H2Data.reduce((acc, p) => acc + (p.concessoes?.length || 0) + (p.linhas?.length || 0), 0);
-      
-      $('#comparativoEficiencia').innerHTML = `
-          <table class="dash-table">
-              <thead><tr><th>Métrica</th><th>Neomater</th><th>Cruz Azul</th></tr></thead>
-              <tbody>
-                  <tr><td>Recursos por Leito Ocupado</td><td>${(H1Recursos / H1Data.length || 0).toFixed(2)}</td><td>${(H2Recursos / H2Data.length || 0).toFixed(2)}</td></tr>
-                  <tr><td>Taxa de Ocupação</td><td>${Math.round((H1Data.length / HOSPITAIS.H1.leitos.length) * 100)}%</td><td>${Math.round((H2Data.length / HOSPITAIS.H2.leitos.length) * 100)}%</td></tr>
-                  <tr><td>Idade Média</td><td>${H1Data.length ? Math.round(H1Data.filter(p=>p.idade).reduce((a,p)=>a+p.idade,0) / H1Data.filter(p=>p.idade).length) : 0}</td><td>${H2Data.length ? Math.round(H2Data.filter(p=>p.idade).reduce((a,p)=>a+p.idade,0) / H2Data.filter(p=>p.idade).length) : 0}</td></tr>
-              </tbody>
-          </table>
-      `;
-      
-      createChart('chartEficienciaComparativa', 'chartEficienciaComparativaInst', {
-          type: 'radar',
-          data: {
-              labels: ['Taxa Ocupação', 'Recursos/Leito', 'Complexidade', 'Rotatividade', 'Eficiência'],
-              datasets: [
-                  {
-                      label: 'Neomater',
-                      data: [
-                          (H1Data.length / HOSPITAIS.H1.leitos.length) * 100,
-                          (H1Recursos / (H1Data.length || 1)) * 10,
-                          (H1Data.filter(p => p.spict === 'elegivel').length / (H1Data.length || 1)) * 100,
-                          Math.min(100, H1Data.length * 2),
-                          85
-                      ],
-                      backgroundColor: 'rgba(10, 43, 82, 0.2)',
-                      borderColor: '#0a2b52',
-                      borderWidth: 2
-                  },
-                  {
-                      label: 'Cruz Azul',
-                      data: [
-                          (H2Data.length / HOSPITAIS.H2.leitos.length) * 100,
-                          (H2Recursos / (H2Data.length || 1)) * 10,
-                          (H2Data.filter(p => p.spict === 'elegivel').length / (H2Data.length || 1)) * 100,
-                          Math.min(100, H2Data.length * 2),
-                          90
-                      ],
-                      backgroundColor: 'rgba(59, 130, 246, 0.2)',
-                      borderColor: '#3b82f6',
-                      borderWidth: 2
-                  }
-              ]
-          },
-          options: { 
-              responsive: true, 
-              maintainAspectRatio: false,
-              plugins: {
-                  legend: {
-                      position: 'bottom'
-                  }
-              },
-              scales: {
-                  r: {
-                      beginAtZero: true,
-                      max: 100
-                  }
-              }
-          }
-      });
-
-      // ========= DISTRIBUIÇÃO ETÁRIA =========
-      const faixasEtarias = { '0-30 anos': 0, '31-50 anos': 0, '51-70 anos': 0, '71+ anos': 0 };
-      allData.filter(p => p.status === 'Em uso' && p.idade).forEach(p => {
-          if (p.idade <= 30) faixasEtarias['0-30 anos']++;
-          else if (p.idade <= 50) faixasEtarias['31-50 anos']++;
-          else if (p.idade <= 70) faixasEtarias['51-70 anos']++;
-          else faixasEtarias['71+ anos']++;
-      });
-      
-      createChart('chartIdadeDistribuicao', 'chartIdadeDistribuicaoInst', {
-          type: 'doughnut',
-          data: {
-              labels: Object.keys(faixasEtarias),
-              datasets: [{
-                  data: Object.values(faixasEtarias),
-                  backgroundColor: ['#16a34a', '#f59e0b', '#dc2626', '#8b5cf6']
-              }]
-          },
-          options: { responsive: true, maintainAspectRatio: false }
-      });
-
-      // ========= ANÁLISES ADICIONAIS =========
-      const projGeralAltas = { "24h":{H1:0, H2:0}, "48h":{H1:0, H2:0}, "72h":{H1:0, H2:0}, "96h":{H1:0, H2:0} };
-      allData.filter(p => p.status === 'Em uso' && p.prevAlta && p.prevAlta !== 'Sem previsao').forEach(p => {
-          const key = p.prevAlta.includes('24h') ? '24h' : p.prevAlta;
-          if(projGeralAltas[key]) projGeralAltas[key][p.hospital]++;
-      });
-      
-      createChart('chartAltasComparativo', 'chartAltasComparativoInst', {
-          type: 'bar',
-          data: {
-              labels: Object.keys(projGeralAltas),
-              datasets: [
-                  { label: 'Neomater', data: Object.values(projGeralAltas).map(d=>d.H1), backgroundColor: '#0a2b52' },
-                  { label: 'Cruz Azul', data: Object.values(projGeralAltas).map(d=>d.H2), backgroundColor: '#3b82f6' }
-              ]
-          },
-          options: { responsive: true, maintainAspectRatio: false }
-      });
-
-      // Timeline de liberação
-      const timelineData = Object.keys(projGeralAltas).map(key => 
-          projGeralAltas[key].H1 + projGeralAltas[key].H2
-      );
-      createChart('chartTimelineAltas', 'chartTimelineAltasInst', {
-          type: 'line',
-          data: {
-              labels: Object.keys(projGeralAltas),
-              datasets: [{
-                  label: 'Total de Altas',
-                  data: timelineData,
-                  backgroundColor: '#3b82f633',
-                  borderColor: '#3b82f6',
-                  fill: true,
-                  tension: 0.3
-              }]
-          },
-          options: { responsive: true, maintainAspectRatio: false }
-      });
-
-      // Taxa de liberação
-      const taxasLiberacao = timelineData.map(val => (val / ocupados * 100).toFixed(1));
-      createChart('chartTaxaLiberacao', 'chartTaxaLiberacaoInst', {
-          type: 'bar',
-          data: {
-              labels: Object.keys(projGeralAltas),
-              datasets: [{
-                  label: 'Taxa de Liberação (%)',
-                  data: taxasLiberacao,
-                  backgroundColor: ['#16a34a', '#f59e0b', '#dc2626', '#8b5cf6']
-              }]
-          },
-          options: { responsive: true, maintainAspectRatio: false }
-      });
-
-      // ========= ANÁLISE SPICT E PPS =========
-      const spictData = { H1: { elegivel: 0, nao_elegivel: 0 }, H2: { elegivel: 0, nao_elegivel: 0 } };
-      allData.filter(p => p.status === 'Em uso').forEach(p => {
-          if (p.spict && spictData[p.hospital]) spictData[p.hospital][p.spict]++;
-      });
-      
-      createChart('chartSpictAnalise', 'chartSpictAnaliseInst', {
-          type: 'bar',
-          data: {
-              labels: ['Elegível', 'Não Elegível'],
-              datasets: [
-                  { label: 'Neomater', data: [spictData.H1.elegivel, spictData.H1.nao_elegivel], backgroundColor: '#0a2b52' },
-                  { label: 'Cruz Azul', data: [spictData.H2.elegivel, spictData.H2.nao_elegivel], backgroundColor: '#3b82f6' }
-              ]
-          },
-          options: { responsive: true, maintainAspectRatio: false }
-      });
-
-      // Análise PPS
-      const ppsRanges = { '0-3': {H1:0, H2:0}, '4-6': {H1:0, H2:0}, '7-10': {H1:0, H2:0} };
-      allData.filter(p => p.status === 'Em uso' && p.pps).forEach(p => {
-          const pps = p.pps;
-          let range = '7-10';
-          if (pps <= 3) range = '0-3';
-          else if (pps <= 6) range = '4-6';
-          ppsRanges[range][p.hospital]++;
-      });
-      
-      createChart('chartPpsAnalise', 'chartPpsAnaliseInst', {
-          type: 'bar',
-          data: {
-              labels: Object.keys(ppsRanges),
-              datasets: [
-                  { label: 'Neomater', data: Object.values(ppsRanges).map(r=>r.H1), backgroundColor: '#0a2b52' },
-                  { label: 'Cruz Azul', data: Object.values(ppsRanges).map(r=>r.H2), backgroundColor: '#3b82f6' }
-              ]
-          },
-          options: { responsive: true, maintainAspectRatio: false }
-      });
-
-      // ========= COMPLEXIDADE E RADAR =========
-      createChart('chartComplexidade', 'chartComplexidadeInst', {
-          type: 'scatter',
-          data: {
-              datasets: [
-                  {
-                      label: 'Neomater',
-                      data: H1Data.map(p => ({
-                          x: (p.linhas?.length || 0) + (p.concessoes?.length || 0),
-                          y: p.pps || 5
-                      })),
-                      backgroundColor: '#0a2b52'
-                  },
-                  {
-                      label: 'Cruz Azul',
-                      data: H2Data.map(p => ({
-                          x: (p.linhas?.length || 0) + (p.concessoes?.length || 0),
-                          y: p.pps || 5
-                      })),
-                      backgroundColor: '#3b82f6'
-                  }
-              ]
-          },
-          options: {
-              responsive: true, maintainAspectRatio: false,
-              scales: {
-                  x: { title: { display: true, text: 'Total de Recursos' } },
-                  y: { title: { display: true, text: 'Score PPS' } }
-              }
-          }
-      });
-
-      // ========= DASHBOARDS INDIVIDUAIS =========
-      ['H1', 'H2'].forEach(h => {
-          const dados = banco[h] || [];
-          const totalLeitos = HOSPITAIS[h].leitos.length;
-          const ocupados = dados.filter(l => l.status === 'Em uso').length;
-          const vagos = totalLeitos - ocupados;
-          const taxaOcupacao = totalLeitos > 0 ? Math.round((ocupados / totalLeitos) * 100) : 0;
-          
-          $(`#statOcupados${h}_dash2`).textContent = ocupados;
-          $(`#statVagos${h}_dash2`).textContent = vagos;
-          $(`#statTotal${h}_dash2`).textContent = totalLeitos;
-          $(`#gaugePercent${h}_dash2`).textContent = taxaOcupacao + '%';
-
-          createChart(`chartOcupacao${h}_dash2`, `chartGauge${h}_dash2`, {
-              type: 'doughnut',
-              data: { datasets: [{ 
-                  data: [taxaOcupacao, 100 - taxaOcupacao],
-                  backgroundColor: [taxaOcupacao > 90 ? '#dc2626' : taxaOcupacao > 80 ? '#f59e0b' : '#16a34a', '#e5e7eb'],
-                  borderWidth: 0,
-              }] },
-              options: {
-                  responsive: true, maintainAspectRatio: false,
-                  circumference: 180, rotation: -90, cutout: '75%',
-                  plugins: { tooltip: { enabled: false }, legend: { display: false } }
-              }
-          });
-
-          const projections = calculateHospitalProjections(dados);
-          const sortedLinhas = Object.entries(projections.linhasData).sort((a,b) => a[0].localeCompare(b[0]));
-          const sortedConcessoes = Object.entries(projections.concessoesData).sort((a,b) => a[0].localeCompare(b[0]));
-
-          createChart(`chartLinhas${h}_dash2`, `chartLinhasInst${h}_dash2`, {
-              type: 'line',
-              data: {
-                  labels: projections.labels,
-                  datasets: sortedLinhas.map(([key, values]) => ({
-                      label: key, data: values,
-                      borderColor: LINHAS_CORES[key] || '#cccccc',
-                      backgroundColor: (LINHAS_CORES[key] || '#cccccc') + '20',
-                      fill: false, tension: 0.3
-                  }))
-              },
-              options: {
-                  responsive: true, maintainAspectRatio: false,
-                  plugins: { legend: { position: 'bottom' } },
-                  scales: { y: { beginAtZero: true, ticks: { stepSize: 1 }, title: { display: true, text: 'Beneficiários' } } }
-              }
-          });
-          
-          createChart(`chartConcessoes${h}_dash2`, `chartConcessoesInst${h}_dash2`, {
-              type: 'line',
-              data: {
-                  labels: projections.labels,
-                  datasets: sortedConcessoes.map(([key, values]) => ({
-                      label: key, data: values,
-                      borderColor: CONC_CORES[key] || '#cccccc',
-                      backgroundColor: (CONC_CORES[key] || '#cccccc') + '20',
-                      fill: false, tension: 0.3
-                  }))
-              },
-              options: {
-                  responsive: true, maintainAspectRatio: false,
-                  plugins: { legend: { position: 'bottom' } },
-                  scales: { y: { beginAtZero: true, ticks: { stepSize: 1 }, title: { display: true, text: 'Beneficiários' } } }
-              }
-          });
-      });
-
-      logSuccess('Dashboard 2 Expandido renderizado com sucesso!');
-  }
-  
-  function renderDash3(allData) {
-      logInfo("Renderizando Dashboard 3 Moderno com dados reais...");
-      
-      // ========= KPIs CONSOLIDADOS =========
-      const totalLeitos = HOSPITAIS.H1.leitos.length + HOSPITAIS.H2.leitos.length;
-      const ocupados = allData.filter(p => p.status === 'Em uso').length;
-      const taxaOcupacaoGeral = totalLeitos > 0 ? Math.round(ocupados/totalLeitos*100) : 0;
-      
-      // Preencher KPIs
-      $('#modernOcupacaoGeral').textContent = `${taxaOcupacaoGeral}%`;
-      $('#modernAltas48h').textContent = allData.filter(p => p.prevAlta && (p.prevAlta.includes('24h') || p.prevAlta === '48h')).length;
-      $('#modernUtiOcupados').textContent = allData.filter(p => p.tipo === 'UTI' && p.status === 'Em uso').length;
-      
-      const tempos = allData.filter(p => p.status === 'Em uso' && p.admAt).map(p => elapsedSince(p.admAt).days);
-      $('#modernTMP').textContent = tempos.length > 0 ? `${Math.round(tempos.reduce((a,b)=>a+b,0)/tempos.length)}` : '0';
-      
-      const idades = allData.filter(p => p.status === 'Em uso' && p.idade).map(p => p.idade);
-      $('#modernIdadeMedia').textContent = idades.length > 0 ? `${Math.round(idades.reduce((a,b)=>a+b,0)/idades.length)}` : '0';
-      
-      $('#modernRotatividade').textContent = totalLeitos > 0 ? `${Math.round((ocupados / totalLeitos) * 30)}` : '0';
-
-      // Gauge principal
-      createChart('modernGaugeOcupacao', 'modernGaugeOcupacaoInst', {
-          type: 'doughnut',
-          data: { datasets: [{ 
-              data: [taxaOcupacaoGeral, 100-taxaOcupacaoGeral],
-              backgroundColor: ['#fff', 'rgba(255,255,255,0.3)'],
-              borderWidth: 0,
-          }] },
-          options: {
-              responsive: true, maintainAspectRatio: false,
-              circumference: 180, rotation: -90, cutout: '75%',
-              plugins: { tooltip: { enabled: false }, legend: { display: false } }
-          }
-      });
-      
-      // Timeline de Liberação (dados reais)
-      const projGeralAltas = { "24h":{H1:0, H2:0}, "48h":{H1:0, H2:0}, "72h":{H1:0, H2:0}, "96h":{H1:0, H2:0} };
-      allData.filter(p => p.status === 'Em uso' && p.prevAlta && p.prevAlta !== 'Sem previsao').forEach(p => {
-          const key = p.prevAlta.includes('24h') ? '24h' : p.prevAlta;
-          if(projGeralAltas[key]) projGeralAltas[key][p.hospital]++;
-      });
-      
-      const timelineData = Object.keys(projGeralAltas).map(key => 
-          projGeralAltas[key].H1 + projGeralAltas[key].H2
-      );
-      
-      createChart('modernTimelineChart', 'modernTimelineChartInst', {
-          type: 'line',
-          data: {
-              labels: Object.keys(projGeralAltas),
-              datasets: [{
-                  label: 'Total de Altas',
-                  data: timelineData,
-                  backgroundColor: 'rgba(255,255,255,0.2)',
-                  borderColor: 'rgba(255,255,255,0.8)',
-                  fill: true,
-                  tension: 0.4,
-                  borderWidth: 3,
-                  pointRadius: 6,
-                  pointBackgroundColor: '#fff'
-              }]
-          },
-          options: { 
-              responsive: true, 
-              maintainAspectRatio: false,
-              plugins: { legend: { display: false } },
-              scales: {
-                  x: { 
-                      ticks: { color: 'rgba(255,255,255,0.8)' },
-                      grid: { color: 'rgba(255,255,255,0.1)' }
-                  },
-                  y: { 
-                      ticks: { color: 'rgba(255,255,255,0.8)', stepSize: 1 },
-                      grid: { color: 'rgba(255,255,255,0.1)' }
-                  }
-              }
-          }
-      });
-
-      // Análise de Complexidade (dados reais)
-      const H1Data = banco.H1.filter(p => p.status === 'Em uso');
-      const H2Data = banco.H2.filter(p => p.status === 'Em uso');
-      
-      createChart('modernComplexidadeChart', 'modernComplexidadeChartInst', {
-          type: 'scatter',
-          data: {
-              datasets: [
-                  {
-                      label: 'Neomater',
-                      data: H1Data.map(p => ({
-                          x: (p.linhas?.length || 0) + (p.concessoes?.length || 0),
-                          y: p.pps || 5
-                      })),
-                      backgroundColor: '#667eea',
-                      pointRadius: 8
-                  },
-                  {
-                      label: 'Cruz Azul',
-                      data: H2Data.map(p => ({
-                          x: (p.linhas?.length || 0) + (p.concessoes?.length || 0),
-                          y: p.pps || 5
-                      })),
-                      backgroundColor: '#f093fb',
-                      pointRadius: 8
-                  }
-              ]
-          },
-          options: {
-              responsive: true, maintainAspectRatio: false,
-              plugins: { legend: { position: 'bottom' } },
-              scales: {
-                  x: { title: { display: true, text: 'Total de Recursos' } },
-                  y: { title: { display: true, text: 'Score PPS' } }
-              }
-          }
-      });
-
-      // Radar de Performance (dados reais)
-      const H1Recursos = H1Data.reduce((acc, p) => acc + (p.concessoes?.length || 0) + (p.linhas?.length || 0), 0);
-      const H2Recursos = H2Data.reduce((acc, p) => acc + (p.concessoes?.length || 0) + (p.linhas?.length || 0), 0);
-      
-      createChart('modernRadarChart', 'modernRadarChartInst', {
-          type: 'radar',
-          data: {
-              labels: ['Taxa Ocupação', 'Recursos/Leito', 'Complexidade', 'Rotatividade', 'Eficiência'],
-              datasets: [
-                  {
-                      label: 'Neomater',
-                      data: [
-                          (H1Data.length / HOSPITAIS.H1.leitos.length) * 100,
-                          (H1Recursos / (H1Data.length || 1)) * 10,
-                          (H1Data.filter(p => p.spict === 'elegivel').length / (H1Data.length || 1)) * 100,
-                          Math.min(100, H1Data.length * 2),
-                          85
-                      ],
-                      backgroundColor: 'rgba(102, 126, 234, 0.2)',
-                      borderColor: '#667eea',
-                      borderWidth: 3
-                  },
-                  {
-                      label: 'Cruz Azul',
-                      data: [
-                          (H2Data.length / HOSPITAIS.H2.leitos.length) * 100,
-                          (H2Recursos / (H2Data.length || 1)) * 10,
-                          (H2Data.filter(p => p.spict === 'elegivel').length / (H2Data.length || 1)) * 100,
-                          Math.min(100, H2Data.length * 2),
-                          90
-                      ],
-                      backgroundColor: 'rgba(240, 147, 251, 0.2)',
-                      borderColor: '#f093fb',
-                      borderWidth: 3
-                  }
-              ]
-          },
-          options: { 
-              responsive: true, 
-              maintainAspectRatio: false,
-              plugins: { legend: { position: 'bottom' } },
-              scales: { r: { beginAtZero: true, max: 100 } }
-          }
-      });
-
-      // Dashboards Individuais
-      ['H1', 'H2'].forEach(h => {
-          const dados = banco[h] || [];
-          const totalLeitos = HOSPITAIS[h].leitos.length;
-          const ocupados = dados.filter(l => l.status === 'Em uso').length;
-          const vagos = totalLeitos - ocupados;
-          const taxaOcupacao = totalLeitos > 0 ? Math.round((ocupados / totalLeitos) * 100) : 0;
-          
-          $(`#modernOcupados${h}`).textContent = ocupados;
-          $(`#modernVagos${h}`).textContent = vagos;
-          $(`#modernTotal${h}`).textContent = totalLeitos;
-          $(`#modernPercent${h}`).textContent = taxaOcupacao + '%';
-
-          // Gauges individuais
-          createChart(`modernGauge${h}`, `modernGauge${h}Inst`, {
-              type: 'doughnut',
-              data: { datasets: [{ 
-                  data: [taxaOcupacao, 100 - taxaOcupacao],
-                  backgroundColor: [h === 'H1' ? '#0a2b52' : '#3b82f6', '#e5e7eb'],
-                  borderWidth: 0
-              }] },
-              options: {
-                  responsive: true, maintainAspectRatio: false,
-                  circumference: 180, rotation: -90, cutout: '70%',
-                  plugins: { tooltip: { enabled: false }, legend: { display: false } }
-              }
-          });
-
-          // Gráfico de linhas para cada hospital
-          const projections = calculateHospitalProjections(dados);
-          const sortedLinhas = Object.entries(projections.linhasData).sort((a,b) => a[0].localeCompare(b[0]));
-
-          createChart(`modernLinhas${h}`, `modernLinhas${h}Inst`, {
-              type: 'line',
-              data: {
-                  labels: projections.labels.slice(0, 4), // Apenas 4 dias
-                  datasets: sortedLinhas.slice(0, 3).map(([key, values]) => ({ // Apenas 3 linhas
-                      label: key,
-                      data: values.slice(0, 4),
-                      borderColor: LINHAS_CORES[key] || '#cccccc',
-                      backgroundColor: (LINHAS_CORES[key] || '#cccccc') + '20',
-                      fill: false,
-                      tension: 0.3,
-                      borderWidth: 2
-                  }))
-              },
-              options: {
-                  responsive: true, maintainAspectRatio: false,
-                  plugins: { legend: { display: false } },
-                  scales: {
-                      x: { display: false },
-                      y: { beginAtZero: true, ticks: { stepSize: 1 }, display: false }
-                  }
-              }
-          });
-      });
-
-      logSuccess('Dashboard 3 Moderno renderizado com dados reais!');
-  }
-
-  // =======================================================================
-  // ================= LÓGICA DE QR CODE (CORRIGIDA) =====================
-  // =======================================================================
-  let qrReader = null;
-  
-  function handleScan(text) { 
-    try {
-      const u = new URL(String(text));
-      const h = u.searchParams.get('h'); 
-      const leito = Number(u.searchParams.get('leito')); 
-      
-      if(h && ["H1","H2"].includes(h) && leito > 0) {
-        logSuccess(`QR Code válido detectado: Hospital ${h}, Leito ${leito}`);
-        closeModal("#modalQRScan"); 
-        stopScan(); 
-        initQRSession(h, leito);
-      } else {
-        logWarning("QR Code inválido:", text);
-      }
-    } catch(e) {
-      logWarning("QR Code não reconhecido:", text);
-    }
-  }
-  
-  function initQRSession(hospital, leito) {
-    logInfo(`Iniciando sessão QR para ${hospital} - Leito ${leito}`);
-    isQRMode = true;
-    currentHospital = hospital;
-    selectedLeito = leito;
-    
-    // Ocultar navegação e toolbars
-    document.getElementById('appHeader').style.display = 'none';
-    document.getElementById('portalToolbar').style.display = 'none';
-    document.querySelector('main').style.padding = '20px';
-    
-    // Carregar dados do hospital
-    loadHospital(hospital).then(() => {
-      const leitoData = banco[hospital].find(l => l.leito === leito);
-      if (!leitoData) {
-        alert(`Leito ${leito} não encontrado no hospital ${hospital}`);
-        return;
-      }
-      
-      // Abrir modal apropriado
-      if (leitoData.status === 'Vago') {
-        openAdmissao(leito);
-      } else {
-        openAtualizacao(leito);
-      }
-      
-      // Configurar timeout de 2 minutos
-      qrSessionTimeout = setTimeout(() => {
-        closeAllModals();
-        openModal("#modalQRExpired");
-      }, 120000); // 2 minutos
-    });
-  }
-  
-  function closeAllModals() {
-    closeModal("#modalAdmissao");
-    closeModal("#modalAtualizacao");
-    if (qrSessionTimeout) {
-      clearTimeout(qrSessionTimeout);
-      qrSessionTimeout = null;
-    }
-  }
-  
-  async function startScan(){
-    if(!window.Html5Qrcode){
-      alert("Leitor não disponível.");
-      return;
-    }
-    
-    try{
-      if(qrReader) await stopScan();
-      qrReader = new Html5Qrcode('qrRegion');
-      await qrReader.start(
-        { facingMode:'environment' },
-        { fps:10, qrbox:250 },
-        handleScan,
-        ()=>{}
-      );
-    } catch(e){
-      logError("Erro ao acessar câmera:", e);
-      alert("Não foi possível acessar a câmera.");
-      stopScan();
-      closeModal("#modalQRScan");
-    }
-  }
-  
-  function stopScan(){
-    if(!qrReader) return Promise.resolve();
-    return qrReader.stop().then(()=>{
-      qrReader.clear();
-      qrReader=null;
-    }).catch(()=>{});
-  }
-  
-  function buildQRGrid(){
-    const h = $("#b_hospital").value;
-    const from = Math.max(1, parseInt($("#b_from").value||"1"));
-    const to   = Math.max(from, parseInt($("#b_to").value||"1"));
-    const limit = h==="H1"?13:16;
-    const f = Math.min(from, limit);
-    const t = Math.min(to, limit);
-    const base = `${location.origin}${location.pathname}`;
-    const grid = $("#qr_grid");
-    grid.innerHTML = "";
-    
-    for(let i=f; i<=t; i++){
-      const url = `${base}?h=${h}&leito=${i}`;
-      const cell = document.createElement("div");
-      cell.className="qr-cell";
-      cell.innerHTML = `<div class="qr-box"></div><div class="mini">Leito ${i} • ${HOSPITAIS[h].nome}</div>`;
-      grid.appendChild(cell);
-      new QRCode(cell.querySelector(".qr-box"), {text:url, width:160, height:160});
-    }
-  }
-  
-  // Verificar se a URL contém parâmetros QR na inicialização
-  function checkQRParams() {
-    const params = new URLSearchParams(window.location.search);
-    const h = params.get('h');
-    const leito = params.get('leito');
-    
-    if (h && leito && ["H1","H2"].includes(h)) {
-      logInfo("Parâmetros QR detectados na URL");
-      initQRSession(h, parseInt(leito));
-      return true;
-    }
-    return false;
-  }
-
-  // =======================================================================
-  // ===================== INICIALIZAÇÃO E EVENTOS =========================
-  // =======================================================================
-  function setupEventListeners() {
-    // Navegação Principal (Abas e Menu Lateral)
-    document.querySelectorAll(".tab, .side-menu-item").forEach(b=> b.onclick = (e)=> {
-      e.preventDefault();
-      setTab(b.dataset.tab);
-      if(document.body.classList.contains('side-menu-open') && currentLayout !== 'v3') {
-        $('#side-menu').classList.remove('open');
-        document.body.classList.remove('side-menu-open');
-      }
-    });
-    
-    // Controle de Layout V3 - Dropdown
-    $('#layoutSelector').onchange = (e) => {
-      setLayout(e.target.value);
-    };
-    
-    // Toggle de Modo Noturno (desabilitado no V3)
-    $('#nightModeToggle').onchange = (e) => {
-      if (currentLayout === 'v3') {
-        e.target.checked = false; // Impedir ativação no Layout V3
-        return;
-      }
-      document.body.classList.toggle('night-mode', e.target.checked);
-    };
-
-    // Menu Lateral (Hamburger)
-    $('#hamburger-menu').onclick = () => {
-      $('#side-menu').classList.toggle('open');
-      if (currentLayout !== 'v3') {
-        document.body.classList.toggle('side-menu-open');
-      }
-    };
-
-    // Seletores de Hospital (Toolbar V1)
-    $('#selHospital2').onchange = e=>{ setHospitalSelectors(e.target.value); loadHospital(e.target.value); };
-    $("#btnH1").onclick = ()=>{ setHospitalSelectors("H1"); loadHospital("H1"); };
-    $("#btnH2").onclick = ()=>{ setHospitalSelectors("H2"); loadHospital("H2"); };
-
-    // Botões do Header (ambos os layouts)
-    const refreshFn = () => { logInfo("Refresh manual"); if (activeTab.startsWith('dash')) { renderDashboards() } else { loadHospital(currentHospital) } };
-    $('#refreshBtn_v1').onclick = refreshFn;
-    $('#refreshBtn_v2').onclick = refreshFn;
-
-    $('#qrCodeBtn').onclick = () => $('#qrDropdown').classList.toggle('show');
-    $('#settingsBtn').onclick = () => $('#settingsDropdown').classList.toggle('show');
-
-    const readQRFn = () => { $('#qrDropdown').classList.remove('show'); $('#settingsDropdown').classList.remove('show'); openModal("#modalQRScan"); startScan(); };
-    $('#btnReadQR_v1').onclick = readQRFn;
-    $('#btnReadQR_v2').onclick = readQRFn;
-
-    const printQRFn = () => { $('#qrDropdown').classList.remove('show'); $('#settingsDropdown').classList.remove('show'); openModal("#modalBulkQR"); };
-    $('#btnPrintQR_v1').onclick = printQRFn;
-    $('#btnPrintQR_v2').onclick = printQRFn;
-    
-    // Fechar dropdowns se clicar fora
-    window.onclick = (event) => {
-        if (!event.target.closest('.header-btn')) {
-            if ($('#qrDropdown').classList.contains('show')) $('#qrDropdown').classList.remove('show');
-            if ($('#settingsDropdown').classList.contains('show')) $('#settingsDropdown').classList.remove('show');
-        }
-    };
-    
-    // Ações dos Modais
-    document.querySelectorAll("[data-close]").forEach(b=> b.onclick = ()=> closeModal(b.getAttribute("data-close")) );
-    $("#b_generate").onclick = buildQRGrid;
-    $("#reloadPage").onclick = ()=> location.reload();
-    $('#a_cancel').onclick = async () => { if (await confirmAction("Cancelar admissão?")) closeModal("#modalAdmissao"); };
-    $('#u_cancel').onclick = async () => { if (await confirmAction("Cancelar alterações?")) closeModal("#modalAtualizacao"); };
-    $('#u_alta').onclick = ()=> darAltaFlow(selectedLeito);
-    $('#a_save').onclick = async ()=>{ if(!await confirmAction("Salvar e admitir paciente?")) return; try { const payload = { action: 'admit', hospital: currentHospital, leito: selectedLeito, nome: $("#a_nome").value.trim(), idade: Number($("#a_idade").value)||null, matricula: $("#a_matricula").value.trim(), pps: Number($("#a_pps").value)||null, spict: $("#a_spict").value, prevAlta: $("#a_prev").value, linhas: Array.from(document.querySelectorAll("#a_linhas input:checked")).map(i=>i.value), concessoes: Array.from(document.querySelectorAll("#a_concessoes input:checked")).map(i=>i.value) }; await apiCall(payload); closeModal("#modalAdmissao"); if (isQRMode) { showSuccessMessage(); } else { await loadHospital(currentHospital); } } catch(error) { alert('Erro: ' + error.message); } };
-    $('#u_save').onclick = async ()=>{ if(!await confirmAction("Salvar alterações?")) return; try { const payload = { action: 'update', hospital: currentHospital, leito: selectedLeito, idade: Number($("#u_idade").value)||null, pps: Number($("#u_pps").value)||null, spict: $("#u_spict").value, prevAlta: $("#u_prev").value, linhas: Array.from(document.querySelectorAll("#u_linhas input:checked")).map(i=>i.value), concessoes: Array.from(document.querySelectorAll("#u_concessoes input:checked")).map(i=>i.value) }; await apiCall(payload); closeModal("#modalAtualizacao"); if (isQRMode) { showSuccessMessage(); } else { await loadHospital(currentHospital); } } catch(error) { alert('Erro: ' + error.message); } };
-    
-    // Ordenação da Tabela
-    document.querySelectorAll('#leitos2View th.sortable').forEach(th => {
-        th.addEventListener('click', () => {
-            const key = th.dataset.sort;
-            if (sortState.key === key) {
-                sortState.direction = sortState.direction === 'asc' ? 'desc' : 'asc';
-            } else {
-                sortState.key = key;
-                sortState.direction = 'asc';
-            }
-            renderTable();
-        });
-    });
-
-    // Seletor de visualização do Dash 1
-    document.querySelectorAll('.switcher-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const h = btn.dataset.h;
-            const view = btn.dataset.view;
-            document.querySelectorAll(`.switcher-btn[data-h='${h}']`).forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            ['line','hbar','kpi'].forEach(v => $(`#altas-view-${v}-${h}`).classList.add('hidden'));
-            $(`#altas-view-${view}-${h}`).classList.remove('hidden');
-        });
-    });
-  }
-  
-  // Função de inicialização
-  (async function init(){
-    logInfo("=== INICIALIZANDO ARCHIPELAGO MVP COM LAYOUT V3 ===");
-    showLoading();
-    setupEventListeners();
-    
-    await testConnection();
-    
-    // Verificar se é acesso via QR Code primeiro
-    if (checkQRParams()) {
-      // Se é QR, não continua com a inicialização normal
-      hideLoading();
-      return;
-    }
-    
-    logInfo("💼 MODO PORTAL DETECTADO - Sessão gestor iniciada");
-    setHospitalSelectors("H1");
-    setTab("leitos");
-    setLayout("v1"); // Iniciar com layout tradicional
-    await loadAllData();
-    
-    autoRefreshInterval = setInterval(() => {
-      if (!isQRMode) { // Não fazer refresh automático no modo QR
-        logInfo("Auto-refresh executado");
-        Promise.all([loadHospital("H1"), loadHospital("H2")]).then(() => {
-          if(activeTab.startsWith('dash')) renderDashboards();
-        });
-      }
-    }, 60000);
-    
-    updateIndicatorInterval = setInterval(updateTimeIndicator, 1000);
-    
-    hideLoading();
-    logInfo("=== INICIALIZAÇÃO CONCLUÍDA - LAYOUT V3 CORPORATIVO DISPONÍVEL ===");
+  // ================== BOOT ==================
+  (async function(){
+    const p=new URLSearchParams(location.search); const h=p.get('h'); const leito=Number(p.get('leito'));
+    if(h&&['H1','H2'].includes(h)&&leito>0){ enterQrMode(h,leito); return; }
+    // carrega ambos os hospitais antes de desenhar o Ultimate
+    await Promise.all([loadHospital('H1'), loadHospital('H2')]);
+    setTab('dashUltimate');
+    renderUltimate();
   })();
-
-</script>
+  </script>
 </body>
 </html>
-
-<!-- ===================================================================== -->
-<!-- ============ FIM DO PROJETO - LAYOUT V3 COMPLETO ================== -->
-<!-- ===================================================================== -->
-
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="utf-8">
-    <title>Archipelago V3 - HOTFIX EMERGENCIAL</title>
-    <style>
-        /* ============== HOTFIX EMERGENCIAL V3 ============== */
-        
-        /* CORRIGIR PROBLEMA DA SIDEBAR E HEADER SUMINDO */
-        
-        /* 1. GARANTIR QUE O HEADER SEMPRE APAREÇA */
-        .layout-v3 header {
-            position: fixed !important;
-            top: 0 !important;
-            left: 250px !important; /* Começa após a sidebar */
-            right: 0 !important;
-            z-index: 100 !important;
-            width: auto !important;
-            transition: left 0.3s ease !important;
-        }
-        
-        /* Header quando sidebar colapsada */
-        .layout-v3.sidebar-collapsed header {
-            left: 0 !important; /* Ocupa toda largura */
-        }
-        
-        /* 2. GARANTIR QUE O MAIN SEMPRE APAREÇA */
-        .layout-v3 main {
-            margin-left: 250px !important; /* Começa após a sidebar */
-            margin-top: 80px !important; /* Espaço para o header */
-            padding: 24px !important;
-            min-height: calc(100vh - 80px) !important;
-            background: var(--v3-bg-primary) !important;
-            transition: margin-left 0.3s ease !important;
-        }
-        
-        /* Main quando sidebar colapsada */
-        .layout-v3.sidebar-collapsed main {
-            margin-left: 0 !important; /* Ocupa toda largura */
-        }
-        
-        /* 3. SIDEBAR SEMPRE VISÍVEL OU CONTROLADA */
-        .layout-v3 #side-menu {
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
-            width: 250px !important;
-            height: 100vh !important;
-            z-index: 1001 !important;
-            transition: transform 0.3s ease !important;
-            transform: translateX(0) !important;
-        }
-        
-        /* Sidebar colapsada - usar transform em vez de left */
-        .layout-v3 #side-menu.collapsed {
-            transform: translateX(-250px) !important;
-            left: 0 !important; /* Manter left 0 */
-        }
-        
-        /* 4. REMOVER CONFLITOS DO BODY */
-        .layout-v3 body {
-            padding-left: 0 !important;
-            margin: 0 !important;
-            overflow-x: hidden !important;
-        }
-        
-        /* 5. BOTÃO DE EXPANDIR MELHORADO */
-        #sidebar-expand-btn {
-            position: fixed !important;
-            left: 10px !important;
-            top: 50% !important;
-            transform: translateY(-50%) !important;
-            background: var(--v3-gradient-button) !important;
-            border: 1px solid var(--v3-border-light) !important;
-            color: white !important;
-            border-radius: 0 8px 8px 0 !important;
-            padding: 20px 12px !important;
-            cursor: pointer !important;
-            z-index: 1002 !important;
-            opacity: 0 !important;
-            pointer-events: none !important;
-            transition: all 0.3s ease !important;
-            box-shadow: 2px 0 12px rgba(96, 165, 250, 0.3) !important;
-            font-weight: 600 !important;
-            writing-mode: vertical-lr !important;
-            text-orientation: mixed !important;
-        }
-        
-        /* Mostrar botão apenas quando sidebar colapsada */
-        .layout-v3.sidebar-collapsed #sidebar-expand-btn {
-            opacity: 1 !important;
-            pointer-events: auto !important;
-        }
-        
-        .layout-v3.sidebar-collapsed #sidebar-expand-btn:hover {
-            left: 0px !important;
-            box-shadow: 4px 0 16px rgba(96, 165, 250, 0.4) !important;
-        }
-        
-        /* 6. CORRIGIR LAYOUT DOS CARDS QUANDO EXPANDIDO */
-        .layout-v3 .grid {
-            display: grid !important;
-            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)) !important;
-            gap: 18px !important;
-            position: relative !important;
-            z-index: 1 !important;
-        }
-        
-        /* 7. DASHBOARD SPACING */
-        .layout-v3 .dash-grid {
-            display: grid !important;
-            gap: 24px !important;
-        }
-        
-        /* 8. GARANTIR VISIBILIDADE DO CONTEÚDO */
-        .layout-v3 section {
-            display: block !important;
-            min-height: 400px !important;
-        }
-        
-        .layout-v3 section.hidden {
-            display: none !important;
-        }
-        
-        /* 9. MELHORAR BOTÃO DE COLAPSAR */
-        #sidebar-collapse-btn {
-            background: rgba(220, 38, 38, 0.1) !important;
-            border: 1px solid #dc2626 !important;
-            color: #dc2626 !important;
-        }
-        
-        #sidebar-collapse-btn:hover {
-            background: rgba(220, 38, 38, 0.2) !important;
-            color: white !important;
-            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3) !important;
-        }
-        
-        /* 10. RESPONSIVIDADE MOBILE */
-        @media (max-width: 1024px) {
-            .layout-v3 header {
-                left: 0 !important;
-            }
-            
-            .layout-v3 main {
-                margin-left: 0 !important;
-            }
-            
-            .layout-v3 #side-menu {
-                transform: translateX(-250px) !important;
-            }
-            
-            .layout-v3 #side-menu.open {
-                transform: translateX(0) !important;
-            }
-        }
-    </style>
-</head>
-<body>
-
-<script>
-// ===================================================================
-// ================ HOTFIX EMERGENCIAL V3 ===========================
-// ===================================================================
-
-console.log('🚨 [HOTFIX V3] Carregando correção emergencial...');
-
-// 1. FORÇAR VISIBILIDADE DO HEADER E MAIN
-function forceLayoutVisibility() {
-    const header = document.getElementById('appHeader');
-    const main = document.querySelector('main');
-    
-    if (header) {
-        header.style.display = 'flex';
-        header.style.visibility = 'visible';
-        console.log('✅ [HOTFIX] Header forçado a ser visível');
-    }
-    
-    if (main) {
-        main.style.display = 'block';
-        main.style.visibility = 'visible';
-        console.log('✅ [HOTFIX] Main forçado a ser visível');
-    }
-}
-
-// 2. CORRIGIR FUNÇÃO DE TOGGLE SIDEBAR
-function fixSidebarToggle() {
-    console.log('🔧 [HOTFIX] Corrigindo toggle da sidebar...');
-    
-    window.toggleSidebar = function() {
-        const sideMenu = document.getElementById('side-menu');
-        const body = document.body;
-        
-        if (sideMenu && body.classList.contains('layout-v3')) {
-            const isCollapsed = sideMenu.classList.contains('collapsed');
-            
-            if (isCollapsed) {
-                // EXPANDIR - Mostrar sidebar
-                sideMenu.classList.remove('collapsed');
-                body.classList.remove('sidebar-collapsed');
-                console.log('✅ [HOTFIX] Sidebar EXPANDIDA - agora visível');
-            } else {
-                // COLAPSAR - Esconder sidebar mas manter conteúdo
-                sideMenu.classList.add('collapsed');
-                body.classList.add('sidebar-collapsed');
-                console.log('✅ [HOTFIX] Sidebar COLAPSADA - conteúdo ainda visível');
-            }
-            
-            // Forçar visibilidade do conteúdo principal
-            setTimeout(forceLayoutVisibility, 100);
-        }
-    };
-}
-
-// 3. RECRIAR BOTÕES COM FUNCIONALIDADE CORRETA
-function recreateButtons() {
-    console.log('🔧 [HOTFIX] Recriando botões...');
-    
-    const sideMenu = document.getElementById('side-menu');
-    if (!sideMenu) return;
-    
-    // Remover botões existentes
-    const existingCollapse = document.getElementById('sidebar-collapse-btn');
-    const existingExpand = document.getElementById('sidebar-expand-btn');
-    const existingSettings = document.getElementById('sidebar-settings');
-    
-    if (existingCollapse) existingCollapse.remove();
-    if (existingExpand) existingExpand.remove();
-    if (existingSettings) existingSettings.remove();
-    
-    // Criar botão colapsar
-    const collapseBtn = document.createElement('button');
-    collapseBtn.id = 'sidebar-collapse-btn';
-    collapseBtn.innerHTML = '← OCULTAR';
-    collapseBtn.title = 'Ocultar menu lateral';
-    collapseBtn.onclick = window.toggleSidebar;
-    sideMenu.appendChild(collapseBtn);
-    
-    // Criar seção configurações
-    const settingsSection = document.createElement('div');
-    settingsSection.id = 'sidebar-settings';
-    settingsSection.innerHTML = `
-        <div class="sidebar-settings-item" id="sidebar-config">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="3"></circle>
-                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1 1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-            </svg>
-            <span>Configurações</span>
-        </div>
-    `;
-    sideMenu.appendChild(settingsSection);
-    
-    // Criar botão expandir
-    const expandBtn = document.createElement('button');
-    expandBtn.id = 'sidebar-expand-btn';
-    expandBtn.innerHTML = 'MENU';
-    expandBtn.title = 'Mostrar menu lateral';
-    expandBtn.onclick = window.toggleSidebar;
-    document.body.appendChild(expandBtn);
-    
-    // Event listener configurações
-    const configBtn = document.getElementById('sidebar-config');
-    if (configBtn) {
-        configBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            console.log('⚙️ [HOTFIX] Configurações clicada');
-            
-            // Tentar encontrar dropdown existente
-            const settingsDropdown = document.getElementById('settingsDropdown');
-            if (settingsDropdown) {
-                settingsDropdown.classList.toggle('show');
-            } else {
-                // Criar modal temporário
-                alert('Configurações: QR Code e outras opções estarão disponíveis em breve!');
-            }
-        });
-    }
-    
-    console.log('✅ [HOTFIX] Botões recriados com funcionalidade correta');
-}
-
-// 4. FUNÇÃO DE RECUPERAÇÃO TOTAL
-function emergencyRecovery() {
-    console.log('🆘 [HOTFIX] Iniciando recuperação de emergência...');
-    
-    // Garantir que estamos no Layout V3
-    if (!document.body.classList.contains('layout-v3')) {
-        console.log('⏳ [HOTFIX] Aguardando Layout V3...');
-        return;
-    }
-    
-    try {
-        // 1. Forçar visibilidade
-        forceLayoutVisibility();
-        
-        // 2. Corrigir toggle
-        fixSidebarToggle();
-        
-        // 3. Recriar botões
-        recreateButtons();
-        
-        // 4. Garantir estado inicial correto
-        const body = document.body;
-        const sideMenu = document.getElementById('side-menu');
-        
-        if (sideMenu) {
-            // Estado inicial: sidebar visível
-            sideMenu.classList.remove('collapsed');
-            body.classList.remove('sidebar-collapsed');
-            body.classList.add('side-menu-open');
-        }
-        
-        // 5. Forçar re-render do conteúdo
-        setTimeout(() => {
-            const activeSection = document.querySelector('section:not(.hidden)');
-            if (activeSection) {
-                activeSection.style.display = 'block';
-                activeSection.style.visibility = 'visible';
-            }
-        }, 300);
-        
-        console.log('🎉 [HOTFIX] Recuperação de emergência CONCLUÍDA!');
-    } catch (error) {
-        console.error('💥 [HOTFIX] Erro na recuperação:', error);
-        
-        // PLANO B: Recarregar página
-        console.log('🔄 [HOTFIX] Executando PLANO B - reload da página...');
-        setTimeout(() => {
-            if (confirm('Layout V3 teve um problema. Recarregar a página?')) {
-                window.location.reload();
-            }
-        }, 2000);
-    }
-}
-
-// 5. WATCHER INTELIGENTE
-function setupEmergencyWatcher() {
-    // Observer para mudanças de layout
-    const layoutObserver = new MutationObserver(function(mutations) {
-        mutations.forEach(function(mutation) {
-            if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-                if (document.body.classList.contains('layout-v3')) {
-                    setTimeout(emergencyRecovery, 200);
-                }
-            }
-        });
-    });
-    
-    layoutObserver.observe(document.body, {
-        attributes: true,
-        attributeFilter: ['class']
-    });
-    
-    // Verificação periódica de saúde
-    setInterval(() => {
-        if (document.body.classList.contains('layout-v3')) {
-            const header = document.getElementById('appHeader');
-            const main = document.querySelector('main');
-            
-            // Se header ou main não estão visíveis, recuperar
-            if (!header || header.style.display === 'none' || !main || main.style.display === 'none') {
-                console.log('🩹 [HOTFIX] Detectado problema, recuperando...');
-                forceLayoutVisibility();
-            }
-        }
-    }, 5000); // Verificar a cada 5 segundos
-}
-
-// INICIALIZAÇÃO IMEDIATA
-function initEmergencyHotfix() {
-    console.log('🚑 [HOTFIX V3] INICIANDO CORREÇÃO EMERGENCIAL...');
-    
-    // Executar imediatamente
-    emergencyRecovery();
-    
-    // Configurar watchers
-    setupEmergencyWatcher();
-    
-    // DOM ready fallback
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', emergencyRecovery);
-    }
-    
-    console.log('🏥 [HOTFIX V3] Sistema de emergência ATIVO!');
-}
-
-// EXECUTAR IMEDIATAMENTE
-initEmergencyHotfix();
-
-</script>
-
-</body>
-</html>
-
-<!-- ===================================================================== -->
-<!-- ================ HOTFIX EMERGENCIAL V3 ============================ -->
-<!-- ===================================================================== -->
-
-<!--
-🚨 CORREÇÃO EMERGENCIAL PARA:
-
-❌ PROBLEMA: Sidebar some e leva header/main junto
-✅ SOLUÇÃO: Header e main sempre visíveis com position fixed
-
-❌ PROBLEMA: Conteúdo desaparece ao colapsar
-✅ SOLUÇÃO: Transform em vez de left para sidebar
-
-❌ PROBLEMA: Não consegue expandir novamente  
-✅ SOLUÇÃO: Botão expandir vertical na lateral
-
-❌ PROBLEMA: Layout quebra completamente
-✅ SOLUÇÃO: Sistema de recuperação automática
-
-🔧 CORREÇÕES IMPLEMENTADAS:
-
-1. HEADER SEMPRE VISÍVEL
-   - Position: fixed !important
-   - Left: ajustado conforme sidebar
-   - Z-index: 100
-
-2. MAIN SEMPRE VISÍVEL  
-   - Margin-left: controlado
-   - Min-height: garantido
-   - Background: forçado
-
-3. SIDEBAR COM TRANSFORM
-   - Transform: translateX(-250px) quando colapsada
-   - Left: sempre 0
-   - Transition: suave
-
-4. BOTÃO EXPANDIR MELHORADO
-   - Position: fixed na lateral
-   - Writing-mode: vertical
-   - Hover: desliza para dentro
-
-5. SISTEMA DE RECUPERAÇÃO
-   - Watcher: detecta problemas
-   - Recovery: força visibilidade
-   - Health check: a cada 5s
-
-STATUS: 🏥 MODO EMERGENCIAL ATIVO
--->
-
-STATUS: ✅ VERSÃO FINAL ESTÁVEL
--->
