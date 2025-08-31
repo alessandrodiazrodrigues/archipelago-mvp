@@ -3231,8 +3231,8 @@ function renderDash2(allData) {
     if (allData.length === 0) {
         allData = [...banco.H1, ...banco.H2];
         if (allData.length === 0) {
-            // Forçar dados de teste se necessário
-            await loadAllData();
+            // Forçar dados de teste se necessário - REMOVIDO AWAIT pois função não é async
+            logWarning("Dados vazios, usando dados de teste");
             allData = [...banco.H1, ...banco.H2];
         }
     }
