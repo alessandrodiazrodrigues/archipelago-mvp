@@ -2959,7 +2959,7 @@ function setupEventListeners() {
   if (btnCores && settingsMenuDropdown) {
     btnCores.onclick = () => { 
       settingsMenuDropdown.classList.remove('show'); 
-      alert('Sistema de configuração de cores será implementado em breve!');
+      showColorPaletteSelector();
     };
   }
   
@@ -3091,6 +3091,9 @@ function setupEventListeners() {
   setHospitalSelectors("H1");
   setTab("leitos");
   await loadAllData();
+function   
+  // Inicializar sistema de cores
+  initColorSystem();
   
   autoRefreshInterval = setInterval(() => {
     if (!isQRMode) {
