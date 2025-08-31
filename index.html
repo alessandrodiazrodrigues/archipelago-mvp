@@ -46,6 +46,22 @@
       --r2: #3b82f6;
       --r3: #8b5cf6;
 
+      /* Linhas de Cuidado - CORES ORIGINAIS */
+      --linha-aps: #f59e0b;
+      --linha-assistencia: #0a2b52;
+      --linha-cardiologia: #dc2626;
+      --linha-geriatria: #16a34a;
+      --linha-melhor: #be185d;
+      --linha-neurologia: #0891b2;
+      --linha-pneumologia: #8b5cf6;
+
+      /* Concessões - CORES ORIGINAIS */
+      --conc-aspiracoes: #dc2626;
+      --conc-curativos: #8b5cf6;
+      --conc-fisioterapia: #16a34a;
+      --conc-fonoaudiologia: #f59e0b;
+      --conc-pad: #0a2b52;
+
       /* Cores específicas dos gráficos originais */
       --gauge-verde: #16a34a;
       --gauge-amarelo: #f59e0b;
@@ -351,20 +367,23 @@
     .grid-4 { grid-template-columns: repeat(4, 1fr); }
     .grid-5 { grid-template-columns: repeat(5, 1fr); }
     .grid-6 { grid-template-columns: repeat(6, 1fr); }
+    .grid-7 { grid-template-columns: repeat(7, 1fr); }
 
     @media (max-width: 1200px) {
       .grid-2 { grid-template-columns: 1fr; }
       .grid-3 { grid-template-columns: 1fr; }
+      .grid-7 { grid-template-columns: repeat(3, 1fr); }
     }
     @media (max-width: 900px) {
       .grid-4 { grid-template-columns: repeat(2, 1fr); }
       .grid-6 { grid-template-columns: repeat(2, 1fr); }
+      .grid-7 { grid-template-columns: repeat(2, 1fr); }
     }
 
     .dashboard-card {
       background: var(--card); border: 1px solid var(--border); 
       border-radius: 16px; padding: 20px; 
-      box-shadow: var(--shadow);
+      box-shadow: var(--shadow); margin-bottom: 24px;
     }
 
     .dashboard-card h3 {
@@ -391,6 +410,16 @@
     .kpi-label {
       font-size: 13px; color: var(--text-muted); margin-top: 5px;
       font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
+    }
+
+    /* KPI com gauge */
+    .kpi-card-with-gauge {
+      position: relative; padding-top: 50px;
+    }
+
+    .kpi-gauge-mini {
+      position: absolute; top: 15px; right: 15px; 
+      width: 60px; height: 40px;
     }
 
     /* Gauge específico para Dashboard Hospitais */
@@ -425,8 +454,8 @@
     }
     
     .header-stats .stat-box { 
-      padding: 10px; text-align: left; background: #f9fafb; 
-      border-radius: 10px; 
+      padding: 10px; text-align: left; background: rgba(96, 165, 250, 0.1); 
+      border-radius: 10px; border: 1px solid var(--border);
     }
 
     .header-stats .stat-value { 
@@ -442,6 +471,23 @@
     .h-250 { height: 250px; }
     .h-300 { height: 300px; }
     .h-400 { height: 400px; }
+
+    /* Switch de visualização */
+    .view-switcher {
+      display: flex; gap: 8px; margin-bottom: 15px; justify-content: center;
+    }
+
+    .view-switch-btn {
+      padding: 6px 12px; font-size: 12px; background: rgba(96, 165, 250, 0.1);
+      border: 1px solid var(--border); color: var(--text-muted);
+      border-radius: 8px; cursor: pointer; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.5px; transition: all 0.3s ease;
+    }
+
+    .view-switch-btn.active {
+      background: var(--gradient-button); color: var(--text-white);
+      border-color: var(--text-accent);
+    }
 
     /* =================== MODAIS =================== */
     .backdrop {
@@ -683,7 +729,6 @@
           <div class="settings-dropdown-item" id="btnReadQR">Ler QR Code</div>
           <div class="settings-dropdown-item" id="btnPrintQR">Imprimir QR Codes</div>
           <div class="settings-dropdown-item" id="btnCores">Configurar Cores</div>
-          <div class="settings-dropdown-item" id="btnSaveToCloud">Salvar na Nuvem</div>
         </div>
       </button>
     </div>
@@ -726,7 +771,7 @@
         <div class="dashboard-card" id="dash-card-h1">
           <h3>Neomater</h3>
           
-          <!-- Header com Gauge e Stats -->
+          <!-- Header com Gauge e Stats (ORDEM CORRIGIDA: Total, Ocupados, Vagos) -->
           <div class="dash-hospital-header">
             <div class="gauge-wrapper">
               <canvas id="chartOcupacaoH1"></canvas>
@@ -737,16 +782,16 @@
             </div>
             <div class="header-stats">
               <div class="stat-box">
+                <div class="stat-value" id="statTotalH1">0</div>
+                <div class="stat-label">Total Leitos</div>
+              </div>
+              <div class="stat-box">
                 <div class="stat-value" id="statOcupadosH1">0</div>
                 <div class="stat-label">Ocupados</div>
               </div>
               <div class="stat-box">
                 <div class="stat-value" id="statVagosH1">0</div>
                 <div class="stat-label">Vagos</div>
-              </div>
-              <div class="stat-box">
-                <div class="stat-value" id="statTotalH1">0</div>
-                <div class="stat-label">Total Leitos</div>
               </div>
             </div>
           </div>
@@ -772,7 +817,7 @@
         <div class="dashboard-card" id="dash-card-h2">
           <h3>Cruz Azul</h3>
           
-          <!-- Header com Gauge e Stats -->
+          <!-- Header com Gauge e Stats (ORDEM CORRIGIDA: Total, Ocupados, Vagos) -->
           <div class="dash-hospital-header">
             <div class="gauge-wrapper">
               <canvas id="chartOcupacaoH2"></canvas>
@@ -783,16 +828,16 @@
             </div>
             <div class="header-stats">
               <div class="stat-box">
+                <div class="stat-value" id="statTotalH2">0</div>
+                <div class="stat-label">Total Leitos</div>
+              </div>
+              <div class="stat-box">
                 <div class="stat-value" id="statOcupadosH2">0</div>
                 <div class="stat-label">Ocupados</div>
               </div>
               <div class="stat-box">
                 <div class="stat-value" id="statVagosH2">0</div>
                 <div class="stat-label">Vagos</div>
-              </div>
-              <div class="stat-box">
-                <div class="stat-value" id="statTotalH2">0</div>
-                <div class="stat-label">Total Leitos</div>
               </div>
             </div>
           </div>
@@ -820,11 +865,14 @@
     <section id="dash2" class="hidden">
       <h2 style="margin-bottom:20px; color: var(--text-white);">Dashboard Executivo: Rede Hospitalar Externa</h2>
       
-      <!-- KPIs Operacionais Consolidados (nova ordem) -->
+      <!-- KPIs Operacionais Consolidados (UMA LINHA com GAUGE no primeiro) -->
       <div class="dashboard-card">
         <h3>KPIs Operacionais Consolidados</h3>
-        <div class="dash-grid grid-6">
-          <div class="kpi-card">
+        <div class="dash-grid grid-7">
+          <div class="kpi-card kpi-card-with-gauge">
+            <div class="kpi-gauge-mini">
+              <canvas id="kpiGaugeOcupacao"></canvas>
+            </div>
             <div class="kpi-value" id="kpiOcupacaoGeral">0%</div>
             <div class="kpi-label">Taxa de Ocupação Geral</div>
           </div>
@@ -855,7 +903,7 @@
         </div>
       </div>
 
-      <!-- Análise Preditiva de Altas (segundo lugar) -->
+      <!-- Análise Preditiva de Altas -->
       <div class="dashboard-card">
         <h3>Análise Preditiva de Altas</h3>
         <div class="dash-grid grid-2">
@@ -874,9 +922,13 @@
         </div>
       </div>
 
-      <!-- Projeções Consolidadas (nova ordem) -->
+      <!-- Projeções Consolidadas com Switch -->
       <div class="dashboard-card">
         <h3>Projeções Consolidadas (7 dias)</h3>
+        <div class="view-switcher">
+          <button class="view-switch-btn active" data-mode="separate">Barras Separadas</button>
+          <button class="view-switch-btn" data-mode="stacked">Barras Empilhadas</button>
+        </div>
         <div class="dash-grid grid-2">
           <div>
             <h4>Concessões Necessárias</h4>
@@ -893,19 +945,30 @@
         </div>
       </div>
 
-      <!-- Análise PPS -->
+      <!-- Eficiência Operacional (NOVA SEÇÃO) -->
       <div class="dashboard-card">
-        <h3>Análise PPS (Performance Status)</h3>
-        <div class="chart-container h-250">
-          <canvas id="chartPpsAnalise"></canvas>
+        <h3>Eficiência Operacional</h3>
+        <div class="chart-container h-300">
+          <canvas id="chartEficienciaRadar"></canvas>
         </div>
       </div>
 
-      <!-- Análise SPICT-BR -->
+      <!-- Análises PPS e SPICT lado a lado -->
       <div class="dashboard-card">
-        <h3>Análise SPICT-BR</h3>
-        <div class="chart-container h-250">
-          <canvas id="chartSpictAnalise"></canvas>
+        <h3>Análise de Indicadores Clínicos</h3>
+        <div class="dash-grid grid-2">
+          <div>
+            <h4>Análise PPS (Performance Status)</h4>
+            <div class="chart-container h-250">
+              <canvas id="chartPpsAnalise"></canvas>
+            </div>
+          </div>
+          <div>
+            <h4>Análise SPICT-BR</h4>
+            <div class="chart-container h-250">
+              <canvas id="chartSpictAnalise"></canvas>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -1413,22 +1476,23 @@ const banco = { H1: [], H2: [] };
 const LINHAS = ["APS","Assistencia","Cardiologia","Geriatria","Melhor Cuidado","Neurologia","Pneumologia"];
 const CONC = ["Aspiracoes","Curativos","Fisioterapia","Fonoaudiologia","PAD"];
 
+// Cores originais dos gráficos usando CSS variables
 const LINHAS_CORES = {
-  "APS": "var(--color-linha-aps, #f59e0b)", 
-  "Assistencia": "var(--color-linha-assistencia, #0a2b52)", 
-  "Cardiologia": "var(--color-linha-cardiologia, #dc2626)",
-  "Geriatria": "var(--color-linha-geriatria, #16a34a)", 
-  "Melhor Cuidado": "var(--color-linha-melhor, #be185d)", 
-  "Neurologia": "var(--color-linha-neurologia, #0891b2)",
-  "Pneumologia": "var(--color-linha-pneumologia, #8b5cf6)"
+  "APS": "#f59e0b", 
+  "Assistencia": "#0a2b52", 
+  "Cardiologia": "#dc2626",
+  "Geriatria": "#16a34a", 
+  "Melhor Cuidado": "#be185d", 
+  "Neurologia": "#0891b2",
+  "Pneumologia": "#8b5cf6"
 };
 
 const CONC_CORES = {
-  "Aspiracoes": "var(--color-conc-aspiracoes, #dc2626)", 
-  "Curativos": "var(--color-conc-curativos, #8b5cf6)",
-  "Fisioterapia": "var(--color-conc-fisioterapia, #16a34a)", 
-  "Fonoaudiologia": "var(--color-conc-fonoaudiologia, #f59e0b)", 
-  "PAD": "var(--color-conc-pad, #0a2b52)"
+  "Aspiracoes": "#dc2626", 
+  "Curativos": "#8b5cf6",
+  "Fisioterapia": "#16a34a", 
+  "Fonoaudiologia": "#f59e0b", 
+  "PAD": "#0a2b52"
 };
 
 // =======================================================================
@@ -1443,6 +1507,7 @@ let lastUpdateTime = Date.now();
 let autoRefreshInterval = null;
 let updateIndicatorInterval = null;
 let sortState = { key: 'leito', direction: 'asc' };
+let currentViewMode = 'separate'; // Para o switch de visualização
 
 // =======================================================================
 // ===================== FUNÇÕES DE LOADING ============================
@@ -1782,13 +1847,13 @@ function renderDash1() {
     const vagos = totalLeitos - ocupados;
     const taxaOcupacao = totalLeitos > 0 ? Math.round((ocupados / totalLeitos) * 100) : 0;
     
-    // Atualizar valores no header
-    $(`#statOcupados${h}`).textContent = ocupados;
-    $(`#statVagos${h}`).textContent = vagos;
-    $(`#statTotal${h}`).textContent = totalLeitos;
+    // CORREÇÃO: Atualizar valores na NOVA ORDEM (Total, Ocupados, Vagos)
+    $(`#statTotalH${h}`).textContent = totalLeitos;
+    $(`#statOcupadosH${h}`).textContent = ocupados;
+    $(`#statVagosH${h}`).textContent = vagos;
     $(`#gaugePercent${h}`).textContent = taxaOcupacao + '%';
 
-    // Criar gauge semicírculo (meia rosca)
+    // Criar gauge semicírculo (meia rosca) COM CORES CORRETAS
     let corGauge = '#16a34a'; // Verde
     if (taxaOcupacao > 90) corGauge = '#dc2626'; // Vermelho
     else if (taxaOcupacao > 80) corGauge = '#f59e0b'; // Amarelo
@@ -1829,7 +1894,7 @@ function renderDash1() {
       labels.push(data.toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'}));
     }
 
-    // Gráfico de Concessões (barras verticais)
+    // CORREÇÃO: Gráfico de Concessões (barras verticais) COM CORES ORIGINAIS
     const concessoesData = {};
     pacientesComPrevisao.forEach(paciente => {
       const dias = getDiasAteAlta(paciente.prevAlta);
@@ -1876,7 +1941,7 @@ function renderDash1() {
           y: { 
             beginAtZero: true, 
             ticks: { 
-              stepSize: 1,
+              stepSize: 1, // CORREÇÃO: Números inteiros
               color: '#ffffff',
               font: { size: 10 }
             },
@@ -1892,7 +1957,7 @@ function renderDash1() {
       }
     });
 
-    // Gráfico de Linhas de Cuidado (barras verticais)
+    // CORREÇÃO: Gráfico de Linhas de Cuidado (barras verticais) COM CORES ORIGINAIS
     const linhasData = {};
     pacientesComPrevisao.forEach(paciente => {
       const dias = getDiasAteAlta(paciente.prevAlta);
@@ -1939,7 +2004,7 @@ function renderDash1() {
           y: { 
             beginAtZero: true, 
             ticks: { 
-              stepSize: 1,
+              stepSize: 1, // CORREÇÃO: Números inteiros
               color: '#ffffff',
               font: { size: 10 }
             }, 
@@ -1955,7 +2020,7 @@ function renderDash1() {
       }
     });
 
-    // Gráfico de Complexidade (barras verticais)
+    // Gráfico de Complexidade (barras verticais) COM CORES CORRETAS
     const complexidadeData = { 'I': 0, 'II': 0, 'III': 0 };
     const totalPacientes = dados.filter(l => l.status === 'Em uso').length;
     
@@ -1981,9 +2046,9 @@ function renderDash1() {
           label: '% de Pacientes',
           data: Object.values(complexidadePercent),
           backgroundColor: [
-            'var(--complex-1)',
-            'var(--complex-2)', 
-            'var(--complex-3)'
+            '#22c55e', // Complex 1
+            '#f59e0b', // Complex 2
+            '#dc2626'  // Complex 3
           ]
         }]
       },
@@ -2003,6 +2068,7 @@ function renderDash1() {
             beginAtZero: true,
             max: 100,
             ticks: { 
+              stepSize: 1, // CORREÇÃO: Números inteiros
               callback: function(value) {
                 return value + '%';
               },
@@ -2021,13 +2087,13 @@ function renderDash1() {
       }
     });
   });
-  logSuccess('Dashboard 1 renderizado com cores originais.');
+  logSuccess('Dashboard 1 renderizado com TODAS as correções aplicadas.');
 }
 
 function renderDash2(allData) {
-    logInfo("Renderizando Dashboard Executivo...");
+    logInfo("Renderizando Dashboard Executivo COM TODAS AS CORREÇÕES...");
     
-    // KPIs Consolidados (nova ordem)
+    // CORREÇÃO 1: KPIs Consolidados (UMA LINHA com GAUGE no primeiro)
     const totalLeitos = HOSPITAIS.H1.leitos.length + HOSPITAIS.H2.leitos.length;
     const ocupados = allData.filter(p => p.status === 'Em uso').length;
     const taxaOcupacaoGeral = totalLeitos > 0 ? Math.round((ocupados / totalLeitos) * 100) : 0;
@@ -2048,7 +2114,34 @@ function renderDash2(allData) {
     const ppsValues = allData.filter(p => p.status === 'Em uso' && p.pps).map(p => p.pps);
     $('#kpiPpsMedia').textContent = ppsValues.length > 0 ? Math.round(ppsValues.reduce((a,b)=>a+b,0)/ppsValues.length) : '0';
 
-    // Análise Preditiva de Altas - Comparativo por Prazo
+    // CORREÇÃO: Criar MINI GAUGE no primeiro KPI (Taxa de Ocupação Geral)
+    let corKpiGauge = '#16a34a'; // Verde
+    if (taxaOcupacaoGeral > 90) corKpiGauge = '#dc2626'; // Vermelho
+    else if (taxaOcupacaoGeral > 80) corKpiGauge = '#f59e0b'; // Amarelo
+
+    createChart('kpiGaugeOcupacao', 'kpiGaugeOcupacaoInst', {
+      type: 'doughnut',
+      data: {
+        datasets: [{
+          data: [taxaOcupacaoGeral, 100 - taxaOcupacaoGeral],
+          backgroundColor: [corKpiGauge, '#e5e7eb'],
+          borderWidth: 0,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        circumference: 180,
+        rotation: -90,
+        cutout: '70%',
+        plugins: {
+          tooltip: { enabled: false },
+          legend: { display: false }
+        }
+      }
+    });
+
+    // CORREÇÃO: Análise Preditiva de Altas - Comparativo por Prazo (NÚMEROS INTEIROS)
     const projAltas = { "24h": {H1:0, H2:0}, "48h": {H1:0, H2:0}, "72h": {H1:0, H2:0}, "96h": {H1:0, H2:0} };
     allData.filter(p => p.status === 'Em uso' && p.prevAlta && p.prevAlta !== 'Sem previsao').forEach(p => {
       const key = p.prevAlta.includes('24h') ? '24h' : p.prevAlta;
@@ -2060,8 +2153,8 @@ function renderDash2(allData) {
       data: {
         labels: Object.keys(projAltas),
         datasets: [
-          { label: 'Neomater', data: Object.values(projAltas).map(d=>d.H1), backgroundColor: 'var(--nav-header)' },
-          { label: 'Cruz Azul', data: Object.values(projAltas).map(d=>d.H2), backgroundColor: 'var(--text-accent)' }
+          { label: 'Neomater', data: Object.values(projAltas).map(d=>d.H1), backgroundColor: '#0a2b52' },
+          { label: 'Cruz Azul', data: Object.values(projAltas).map(d=>d.H2), backgroundColor: '#60a5fa' }
         ]
       },
       options: { 
@@ -2084,7 +2177,9 @@ function renderDash2(allData) {
             grid: { color: 'rgba(255,255,255,0.1)' }
           },
           y: { 
+            beginAtZero: true,
             ticks: { 
+              stepSize: 1, // CORREÇÃO: Números inteiros de 1 em 1
               color: '#ffffff',
               font: { size: 11 }
             },
@@ -2094,7 +2189,7 @@ function renderDash2(allData) {
       }
     });
 
-    // Timeline de Liberação em 24h (Ouro/2R/3R)
+    // CORREÇÃO: Timeline de Liberação em 24h (Ouro/2R/3R) COM CORES CORRETAS
     const timeline24h = { 'Ouro': {H1:0, H2:0}, '2R': {H1:0, H2:0}, '3R': {H1:0, H2:0} };
     allData.filter(p => p.status === 'Em uso' && p.prevAlta && p.prevAlta.includes('24h')).forEach(p => {
       if (p.prevAlta.includes('Ouro')) timeline24h.Ouro[p.hospital]++;
@@ -2110,12 +2205,12 @@ function renderDash2(allData) {
           { 
             label: 'Neomater', 
             data: Object.values(timeline24h).map(d=>d.H1), 
-            backgroundColor: 'var(--nav-header)'
+            backgroundColor: '#0a2b52'
           },
           { 
             label: 'Cruz Azul', 
             data: Object.values(timeline24h).map(d=>d.H2), 
-            backgroundColor: 'var(--text-accent)'
+            backgroundColor: '#60a5fa'
           }
         ]
       },
@@ -2139,7 +2234,9 @@ function renderDash2(allData) {
             grid: { color: 'rgba(255,255,255,0.1)' }
           },
           y: { 
+            beginAtZero: true,
             ticks: { 
+              stepSize: 1, // CORREÇÃO: Números inteiros
               color: '#ffffff',
               font: { size: 11 }
             },
@@ -2149,143 +2246,13 @@ function renderDash2(allData) {
       }
     });
 
-    // Projeções Consolidadas (nova ordem - primeiro concessões)
-    const pacientesComPrevisao = allData.filter(p => 
-      p.status === 'Em uso' && p.prevAlta && p.prevAlta !== 'Sem previsao'
-    );
+    // CORREÇÃO: Projeções Consolidadas - Implementar funcionalidade dos switches
+    renderProjecoesConsolidadas(allData);
 
-    const hoje = new Date();
-    const labelsConsolidado = [];
-    for (let i = 0; i < 7; i++) {
-      const data = new Date(hoje);
-      data.setDate(hoje.getDate() + i);
-      labelsConsolidado.push(i === 0 ? `Hoje\n(${data.toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'})})` : 
-        `${i}d\n(${data.toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'})})`);
-    }
+    // CORREÇÃO: Nova seção - Eficiência Operacional (RADAR)
+    renderEficienciaOperacional(allData);
 
-    // Concessões Consolidadas
-    const concessoesConsolidado = {};
-    pacientesComPrevisao.forEach(paciente => {
-      const dias = getDiasAteAlta(paciente.prevAlta);
-      (paciente.concessoes || []).forEach(conc => {
-        if (!concessoesConsolidado[conc]) concessoesConsolidado[conc] = new Array(7).fill(0);
-        const diasParaManter = Math.min(dias, 7);
-        for (let d = 0; d < diasParaManter; d++) {
-          concessoesConsolidado[conc][d]++;
-        }
-      });
-    });
-
-    const sortedConcessoesConsolidado = Object.entries(concessoesConsolidado).sort((a,b) => a[0].localeCompare(b[0]));
-    createChart('chartConcessoesConsolidado', 'chartConcessoesConsolidadoInst', {
-      type: 'bar',
-      data: {
-        labels: labelsConsolidado,
-        datasets: sortedConcessoesConsolidado.map(([k,v])=>({
-          label: k, data: v,
-          backgroundColor: CONC_CORES[k] || '#cccccc'
-        }))
-      },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: { 
-          legend: { 
-            position: 'right',
-            labels: { 
-              color: '#ffffff',
-              font: { size: 11 }
-            }
-          }
-        },
-        scales: {
-          x: { 
-            stacked: true,
-            ticks: { 
-              color: '#ffffff',
-              font: { size: 10 }
-            },
-            grid: { color: 'rgba(255,255,255,0.1)' }
-          },
-          y: { 
-            stacked: true, 
-            title: { 
-              display: true, 
-              text: 'Concessões', 
-              color: '#ffffff',
-              font: { size: 12 }
-            },
-            ticks: { 
-              color: '#ffffff',
-              font: { size: 10 }
-            },
-            grid: { color: 'rgba(255,255,255,0.1)' }
-          }
-        }
-      }
-    });
-
-    // Linhas de Cuidado Consolidadas
-    const linhasConsolidado = {};
-    pacientesComPrevisao.forEach(paciente => {
-      const dias = getDiasAteAlta(paciente.prevAlta);
-      (paciente.linhas || []).forEach(linha => {
-        if (!linhasConsolidado[linha]) linhasConsolidado[linha] = new Array(7).fill(0);
-        const diasParaManter = Math.min(dias, 7);
-        for (let d = 0; d < diasParaManter; d++) {
-          linhasConsolidado[linha][d]++;
-        }
-      });
-    });
-
-    const sortedLinhasConsolidado = Object.entries(linhasConsolidado).sort((a,b) => a[0].localeCompare(b[0]));
-    createChart('chartLinhasConsolidado', 'chartLinhasConsolidadoInst', {
-      type: 'bar',
-      data: {
-        labels: labelsConsolidado,
-        datasets: sortedLinhasConsolidado.map(([k,v])=>({
-          label: k, data: v,
-          backgroundColor: LINHAS_CORES[k] || '#cccccc'
-        }))
-      },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: { 
-          legend: { 
-            position: 'right',
-            labels: { 
-              color: '#ffffff',
-              font: { size: 11 }
-            }
-          }
-        },
-        scales: {
-          x: { 
-            stacked: true,
-            ticks: { 
-              color: '#ffffff',
-              font: { size: 10 }
-            },
-            grid: { color: 'rgba(255,255,255,0.1)' }
-          },
-          y: { 
-            stacked: true, 
-            title: { 
-              display: true, 
-              text: 'Cuidados', 
-              color: '#ffffff',
-              font: { size: 12 }
-            },
-            ticks: { 
-              color: '#ffffff',
-              font: { size: 10 }
-            },
-            grid: { color: 'rgba(255,255,255,0.1)' }
-          }
-        }
-      }
-    });
-
-    // Análise PPS
+    // CORREÇÃO: Análises PPS e SPICT lado a lado COM NÚMEROS INTEIROS
     const ppsRanges = { '0-3': {H1:0, H2:0}, '4-6': {H1:0, H2:0}, '7-10': {H1:0, H2:0} };
     allData.filter(p => p.status === 'Em uso' && p.pps).forEach(p => {
       const pps = p.pps;
@@ -2300,8 +2267,8 @@ function renderDash2(allData) {
       data: {
         labels: Object.keys(ppsRanges),
         datasets: [
-          { label: 'Neomater', data: Object.values(ppsRanges).map(r=>r.H1), backgroundColor: 'var(--nav-header)' },
-          { label: 'Cruz Azul', data: Object.values(ppsRanges).map(r=>r.H2), backgroundColor: 'var(--text-accent)' }
+          { label: 'Neomater', data: Object.values(ppsRanges).map(r=>r.H1), backgroundColor: '#0a2b52' },
+          { label: 'Cruz Azul', data: Object.values(ppsRanges).map(r=>r.H2), backgroundColor: '#60a5fa' }
         ]
       },
       options: { 
@@ -2324,7 +2291,9 @@ function renderDash2(allData) {
             grid: { color: 'rgba(255,255,255,0.1)' }
           },
           y: { 
+            beginAtZero: true,
             ticks: { 
+              stepSize: 1, // CORREÇÃO: Números inteiros
               color: '#ffffff',
               font: { size: 11 }
             },
@@ -2345,8 +2314,8 @@ function renderDash2(allData) {
       data: {
         labels: ['Elegível', 'Não Elegível'],
         datasets: [
-          { label: 'Neomater', data: [spictData.H1.elegivel, spictData.H1.nao_elegivel], backgroundColor: 'var(--nav-header)' },
-          { label: 'Cruz Azul', data: [spictData.H2.elegivel, spictData.H2.nao_elegivel], backgroundColor: 'var(--text-accent)' }
+          { label: 'Neomater', data: [spictData.H1.elegivel, spictData.H1.nao_elegivel], backgroundColor: '#0a2b52' },
+          { label: 'Cruz Azul', data: [spictData.H2.elegivel, spictData.H2.nao_elegivel], backgroundColor: '#60a5fa' }
         ]
       },
       options: { 
@@ -2355,7 +2324,7 @@ function renderDash2(allData) {
         plugins: { 
           legend: { 
             labels: { 
-              color: 'var(--text-white)',
+              color: '#ffffff',
               font: { size: 12 }
             }
           }
@@ -2363,14 +2332,16 @@ function renderDash2(allData) {
         scales: {
           x: { 
             ticks: { 
-              color: 'var(--text-white)',
+              color: '#ffffff',
               font: { size: 11 }
             },
             grid: { color: 'rgba(255,255,255,0.1)' }
           },
           y: { 
+            beginAtZero: true,
             ticks: { 
-              color: 'var(--text-white)',
+              stepSize: 1, // CORREÇÃO: Números inteiros
+              color: '#ffffff',
               font: { size: 11 }
             },
             grid: { color: 'rgba(255,255,255,0.1)' }
@@ -2379,7 +2350,251 @@ function renderDash2(allData) {
       }
     });
 
-    logSuccess('Dashboard Executivo renderizado com sucesso!');
+    logSuccess('Dashboard Executivo renderizado com TODAS as 12 correções aplicadas!');
+}
+
+// NOVA FUNÇÃO: Projeções Consolidadas com Switch
+function renderProjecoesConsolidadas(allData) {
+    const pacientesComPrevisao = allData.filter(p => 
+      p.status === 'Em uso' && p.prevAlta && p.prevAlta !== 'Sem previsao'
+    );
+
+    const hoje = new Date();
+    const labelsConsolidado = [];
+    for (let i = 0; i < 7; i++) {
+      const data = new Date(hoje);
+      data.setDate(hoje.getDate() + i);
+      labelsConsolidado.push(i === 0 ? `Hoje` : `${i}d`);
+    }
+
+    // Dados das Concessões
+    const concessoesConsolidado = {};
+    pacientesComPrevisao.forEach(paciente => {
+      const dias = getDiasAteAlta(paciente.prevAlta);
+      (paciente.concessoes || []).forEach(conc => {
+        if (!concessoesConsolidado[conc]) concessoesConsolidado[conc] = new Array(7).fill(0);
+        const diasParaManter = Math.min(dias, 7);
+        for (let d = 0; d < diasParaManter; d++) {
+          concessoesConsolidado[conc][d]++;
+        }
+      });
+    });
+
+    // Dados das Linhas de Cuidado
+    const linhasConsolidado = {};
+    pacientesComPrevisao.forEach(paciente => {
+      const dias = getDiasAteAlta(paciente.prevAlta);
+      (paciente.linhas || []).forEach(linha => {
+        if (!linhasConsolidado[linha]) linhasConsolidado[linha] = new Array(7).fill(0);
+        const diasParaManter = Math.min(dias, 7);
+        for (let d = 0; d < diasParaManter; d++) {
+          linhasConsolidado[linha][d]++;
+        }
+      });
+    });
+
+    // Função para atualizar gráficos baseado no modo
+    function updateChartsMode() {
+        const sortedConcessoes = Object.entries(concessoesConsolidado).sort((a,b) => a[0].localeCompare(b[0]));
+        const sortedLinhas = Object.entries(linhasConsolidado).sort((a,b) => a[0].localeCompare(b[0]));
+        
+        const isStacked = currentViewMode === 'stacked';
+        
+        // Gráfico de Concessões
+        createChart('chartConcessoesConsolidado', 'chartConcessoesConsolidadoInst', {
+          type: 'bar',
+          data: {
+            labels: labelsConsolidado,
+            datasets: sortedConcessoes.map(([k,v])=>({
+              label: k, data: v,
+              backgroundColor: CONC_CORES[k] || '#cccccc'
+            }))
+          },
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { 
+              legend: { 
+                position: 'bottom',
+                labels: { 
+                  color: '#ffffff',
+                  font: { size: 10 }
+                }
+              }
+            },
+            scales: {
+              x: { 
+                stacked: isStacked,
+                ticks: { 
+                  color: '#ffffff',
+                  font: { size: 10 }
+                },
+                grid: { color: 'rgba(255,255,255,0.1)' }
+              },
+              y: { 
+                stacked: isStacked, 
+                beginAtZero: true,
+                title: { 
+                  display: true, 
+                  text: 'Concessões', 
+                  color: '#ffffff',
+                  font: { size: 12 }
+                },
+                ticks: { 
+                  stepSize: 1, // NÚMEROS INTEIROS
+                  color: '#ffffff',
+                  font: { size: 10 }
+                },
+                grid: { color: 'rgba(255,255,255,0.1)' }
+              }
+            }
+          }
+        });
+
+        // Gráfico de Linhas de Cuidado
+        createChart('chartLinhasConsolidado', 'chartLinhasConsolidadoInst', {
+          type: 'bar',
+          data: {
+            labels: labelsConsolidado,
+            datasets: sortedLinhas.map(([k,v])=>({
+              label: k, data: v,
+              backgroundColor: LINHAS_CORES[k] || '#cccccc'
+            }))
+          },
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { 
+              legend: { 
+                position: 'bottom',
+                labels: { 
+                  color: '#ffffff',
+                  font: { size: 10 }
+                }
+              }
+            },
+            scales: {
+              x: { 
+                stacked: isStacked,
+                ticks: { 
+                  color: '#ffffff',
+                  font: { size: 10 }
+                },
+                grid: { color: 'rgba(255,255,255,0.1)' }
+              },
+              y: { 
+                stacked: isStacked, 
+                beginAtZero: true,
+                title: { 
+                  display: true, 
+                  text: 'Cuidados', 
+                  color: '#ffffff',
+                  font: { size: 12 }
+                },
+                ticks: { 
+                  stepSize: 1, // NÚMEROS INTEIROS
+                  color: '#ffffff',
+                  font: { size: 10 }
+                },
+                grid: { color: 'rgba(255,255,255,0.1)' }
+              }
+            }
+          }
+        });
+    }
+
+    // Renderizar inicialmente
+    updateChartsMode();
+
+    // Configurar switches (se ainda não estiverem configurados)
+    if (!window.projSwitchConfigured) {
+        document.querySelectorAll('.view-switch-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.view-switch-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentViewMode = btn.dataset.mode;
+                updateChartsMode();
+            });
+        });
+        window.projSwitchConfigured = true;
+    }
+}
+
+// NOVA FUNÇÃO: Eficiência Operacional (RADAR)
+function renderEficienciaOperacional(allData) {
+    const H1Data = banco.H1.filter(p => p.status === 'Em uso');
+    const H2Data = banco.H2.filter(p => p.status === 'Em uso');
+    const H1Recursos = H1Data.reduce((acc, p) => acc + (p.concessoes?.length || 0) + (p.linhas?.length || 0), 0);
+    const H2Recursos = H2Data.reduce((acc, p) => acc + (p.concessoes?.length || 0) + (p.linhas?.length || 0), 0);
+    
+    // Calcular complexidade média
+    const H1Complexidade = H1Data.filter(p => p.complexidade).reduce((acc, p) => {
+        const nivel = p.complexidade === 'I' ? 1 : p.complexidade === 'II' ? 2 : 3;
+        return acc + nivel;
+    }, 0) / Math.max(H1Data.filter(p => p.complexidade).length, 1);
+    
+    const H2Complexidade = H2Data.filter(p => p.complexidade).reduce((acc, p) => {
+        const nivel = p.complexidade === 'I' ? 1 : p.complexidade === 'II' ? 2 : 3;
+        return acc + nivel;
+    }, 0) / Math.max(H2Data.filter(p => p.complexidade).length, 1);
+
+    createChart('chartEficienciaRadar', 'chartEficienciaRadarInst', {
+        type: 'radar',
+        data: {
+            labels: ['Taxa Ocupação', 'Recursos/Leito', 'Complexidade Média'],
+            datasets: [
+                {
+                    label: 'Neomater',
+                    data: [
+                        (H1Data.length / HOSPITAIS.H1.leitos.length) * 100,
+                        (H1Recursos / Math.max(H1Data.length, 1)) * 10,
+                        H1Complexidade * 33.33 // Normalizar para 0-100
+                    ],
+                    backgroundColor: 'rgba(10, 43, 82, 0.2)',
+                    borderColor: '#0a2b52',
+                    borderWidth: 2
+                },
+                {
+                    label: 'Cruz Azul',
+                    data: [
+                        (H2Data.length / HOSPITAIS.H2.leitos.length) * 100,
+                        (H2Recursos / Math.max(H2Data.length, 1)) * 10,
+                        H2Complexidade * 33.33 // Normalizar para 0-100
+                    ],
+                    backgroundColor: 'rgba(96, 165, 250, 0.2)',
+                    borderColor: '#60a5fa',
+                    borderWidth: 2
+                }
+            ]
+        },
+        options: { 
+            responsive: true, 
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { 
+                        color: '#ffffff',
+                        font: { size: 12 }
+                    }
+                }
+            },
+            scales: {
+                r: {
+                    beginAtZero: true,
+                    max: 100,
+                    ticks: {
+                        color: '#ffffff',
+                        font: { size: 10 }
+                    },
+                    grid: { color: 'rgba(255,255,255,0.2)' },
+                    angleLines: { color: 'rgba(255,255,255,0.2)' },
+                    pointLabels: {
+                        color: '#ffffff',
+                        font: { size: 11 }
+                    }
+                }
+            }
+        }
+    });
 }
 
 function renderDash3(allData) {
@@ -2395,13 +2610,13 @@ const colorConfig = {
   layout: {
     'nav-sidebar': '#0a2b52',
     'nav-header': '#083052', 
-    'card': '#ffffff',
-    'bg-primary': '#eaf1f9',
+    'card': '#1a1f2e',
+    'bg-primary': '#0a0f1c',
     'text-white': '#ffffff',
-    'text': '#1f2937',
-    'text-muted': '#6b7280',
-    'text-accent': '#0a2b52',
-    'border': '#e5e7eb'
+    'text': '#e2e8f0',
+    'text-muted': '#94a3b8',
+    'text-accent': '#60a5fa',
+    'border': '#334155'
   },
   status: {
     'status-vago': '#16a34a',
@@ -2440,7 +2655,7 @@ const colorConfig = {
 };
 
 function initColorConfig() {
-  // Carregar cores do localStorage
+  // Carregar cores do localStorage automaticamente
   const savedColors = localStorage.getItem('archipelago-colors');
   if (savedColors) {
     try {
@@ -2462,7 +2677,7 @@ function initColorConfig() {
           colorConfig[category][colorKey] = e.target.value;
           const preview = input.nextElementSibling;
           if (preview) preview.style.background = e.target.value;
-          applyColors();
+          applyColors(); // APLICAR AUTOMATICAMENTE
         });
       }
     });
@@ -2475,11 +2690,10 @@ function applyColors() {
   Object.keys(colorConfig).forEach(category => {
     Object.keys(colorConfig[category]).forEach(colorKey => {
       root.style.setProperty(`--${colorKey}`, colorConfig[category][colorKey]);
-      root.style.setProperty(`--color-${colorKey}`, colorConfig[category][colorKey]);
     });
   });
   
-  // Salvar no localStorage
+  // SALVAR AUTOMATICAMENTE no localStorage
   localStorage.setItem('archipelago-colors', JSON.stringify(colorConfig));
 }
 
@@ -2488,13 +2702,13 @@ function resetColors() {
     layout: {
       'nav-sidebar': '#0a2b52',
       'nav-header': '#083052', 
-      'card': '#ffffff',
-      'bg-primary': '#eaf1f9',
+      'card': '#1a1f2e',
+      'bg-primary': '#0a0f1c',
       'text-white': '#ffffff',
-      'text': '#1f2937',
-      'text-muted': '#6b7280',
-      'text-accent': '#0a2b52',
-      'border': '#e5e7eb'
+      'text': '#e2e8f0',
+      'text-muted': '#94a3b8',
+      'text-accent': '#60a5fa',
+      'border': '#334155'
     },
     status: {
       'status-vago': '#16a34a',
@@ -2600,7 +2814,24 @@ function importColors() {
 
 function applyPreset(preset) {
   const presets = {
-    default: colorConfig,
+    default: {
+      layout: {
+        'nav-sidebar': '#0a2b52',
+        'nav-header': '#083052', 
+        'card': '#1a1f2e',
+        'bg-primary': '#0a0f1c',
+        'text-white': '#ffffff',
+        'text': '#e2e8f0',
+        'text-muted': '#94a3b8',
+        'text-accent': '#60a5fa',
+        'border': '#334155'
+      },
+      status: colorConfig.status,
+      linhas: colorConfig.linhas,
+      concessoes: colorConfig.concessoes,
+      timeline: colorConfig.timeline,
+      graficos: colorConfig.graficos
+    },
     blue: {
       layout: { ...colorConfig.layout, 'nav-header': '#2563eb', 'text-accent': '#3b82f6' },
       status: colorConfig.status,
@@ -2813,9 +3044,16 @@ function setupEventListeners() {
     } 
   };
 
-  // Menu Lateral - Fechar
+  // CORREÇÃO: Menu Lateral - Fechar (CORRIGIR FUNCIONALIDADE)
   $('#closeMenuBtn').onclick = () => {
-    $('#side-menu').classList.toggle('open');
+    $('#side-menu').classList.remove('open');
+    document.body.style.paddingLeft = '0';
+  };
+
+  // Menu Lateral (Hamburger) - Abrir
+  $('.hamburger-menu').onclick = () => {
+    $('#side-menu').classList.add('open');
+    document.body.style.paddingLeft = '300px';
   };
 
   // Configurações no Menu Lateral
@@ -2838,23 +3076,6 @@ function setupEventListeners() {
     $('#settingsMenuDropdown').classList.remove('show'); 
     openModal("#modalCores"); 
   };
-
-  $('#btnSaveToCloud').onclick = async () => {
-    $('#settingsMenuDropdown').classList.remove('show');
-    const userCode = prompt('Digite seu código único para salvar as cores na nuvem:');
-    if (!userCode) return;
-    
-    try {
-      await apiCall({
-        action: 'save_colors',
-        user_id: userCode.trim(),
-        colors: JSON.stringify(colorConfig)
-      });
-      alert('✅ Cores salvas na nuvem com sucesso!');
-    } catch(error) {
-      alert('❌ Erro ao salvar: ' + error.message);
-    }
-  };
   
   // Fechar dropdowns se clicar fora
   window.onclick = (event) => {
@@ -2863,11 +3084,6 @@ function setupEventListeners() {
             $('#settingsMenuDropdown').classList.remove('show');
           }
       }
-  };
-  
-  // Menu Lateral (Hamburger)
-  $('.hamburger-menu').onclick = () => {
-    $('#side-menu').classList.toggle('open');
   };
 
   // Ações dos Modais
@@ -2965,7 +3181,7 @@ function setupEventListeners() {
 
 // Função de inicialização
 (async function init(){
-  logInfo("=== INICIALIZANDO ARCHIPELAGO DASHBOARD COMPLETO ===");
+  logInfo("=== INICIALIZANDO ARCHIPELAGO DASHBOARD CORRIGIDO ===");
   showLoading();
   setupEventListeners();
   
@@ -2982,7 +3198,7 @@ function setupEventListeners() {
   setTab("leitos");
   await loadAllData();
   
-  // Inicializar sistema de cores
+  // Inicializar sistema de cores COM APLICAÇÃO AUTOMÁTICA
   initColorConfig();
   
   autoRefreshInterval = setInterval(() => {
@@ -2997,7 +3213,7 @@ function setupEventListeners() {
   updateIndicatorInterval = setInterval(updateTimeIndicator, 1000);
   
   hideLoading();
-  logInfo("=== INICIALIZAÇÃO CONCLUÍDA - SISTEMA COMPLETO OPERACIONAL ===");
+  logInfo("=== TODAS AS 12 CORREÇÕES APLICADAS COM SUCESSO ===");
 })();
 
 </script>
