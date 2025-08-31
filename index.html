@@ -1652,40 +1652,46 @@ function renderCards(){
     const statusClass = l.status==="Em uso" ? "warn" : "ok";
     const tipoClass   = l.tipo==="UTI" ? "uti" : "enf";
     
-    // CORREÇÃO CRÍTICA: Corrigir mapeamento dos campos
-    let complexidadeDisplay, prevAltaDisplay, linhasDisplay;
+    // CORREÇÃO DEFINITIVA: prevAlta e linhas estão trocados
+    let complexidadeDisplay, prevAltaDisplay, linhasDisplay, linhasChips, concessoesChips;
     
-    // Se os dados estão vindos como array (da planilha)
-    if (Array.isArray(l)) {
-      complexidadeDisplay = l[10] ? `Nível ${l[10]}` : "—";  // Coluna K
-      prevAltaDisplay = l[11] || "—";                        // Coluna L  
-      linhasDisplay = l[12] || "—";                          // Coluna M
-    } 
-    // Se os dados são objetos mas com mapeamento errado
-    else {
-      // HACK: Detectar se há inversão nos dados
-      if (l.prevAlta === "II" || l.prevAlta === "I" || l.prevAlta === "III") {
-        // Dados estão invertidos - corrigir na hora
-        complexidadeDisplay = l.prevAlta ? `Nível ${l.prevAlta}` : "—";
-        prevAltaDisplay = l.complexidade || "—";
-        linhasDisplay = Array.isArray(l.linhas) ? l.linhas.join(", ") : (l.linhas || "—");
-      } else {
-        // Dados estão corretos
-        complexidadeDisplay = l.complexidade ? `Nível ${l.complexidade}` : "—";
-        prevAltaDisplay = l.prevAlta || "—";
-        linhasDisplay = Array.isArray(l.linhas) ? l.linhas.join(", ") : (l.linhas || "—");
-      }
+    // Corrigir campos trocados
+    const prevAltaReal = l.linhas; // O campo 'linhas' na verdade tem a previsão de alta
+    const linhasReais = l.prevAlta; // O campo 'prevAlta' na verdade tem as linhas de cuidado
+    
+    complexidadeDisplay = l.complexidade ? `Nível ${l.complexidade}` : "—";
+    
+    // Tratar previsão de alta
+    if (Array.isArray(prevAltaReal)) {
+      prevAltaDisplay = prevAltaReal.length > 0 ? prevAltaReal[0] : "—";
+    } else if (typeof prevAltaReal === 'string') {
+      prevAltaDisplay = prevAltaReal || "—";
+    } else {
+      prevAltaDisplay = "—";
     }
     
-    // Tratar linhas de cuidado especiais
-    if (linhasDisplay === "Sem previsao" || linhasDisplay === "SEM PREVISAO") {
+    // Tratar linhas de cuidado  
+    if (Array.isArray(linhasReais)) {
+      linhasDisplay = linhasReais.join(", ");
+      linhasChips = linhasReais.map(x=>`<span class="chip">${x}</span>`).join("");
+    } else if (typeof linhasReais === 'string' && linhasReais && linhasReais !== "—") {
+      const linhasArray = linhasReais.split(',').map(s => s.trim()).filter(s => s);
+      linhasDisplay = linhasArray.join(", ");
+      linhasChips = linhasArray.map(x=>`<span class="chip">${x}</span>`).join("");
+    } else {
       linhasDisplay = "—";
+      linhasChips = "";
     }
     
-    const chipsLinhas = (l.linhas && Array.isArray(l.linhas) && l.linhas.length > 0) ? 
-                       l.linhas.map(x=>`<span class="chip">${x}</span>`).join("") : "";
-    const chipsConc = (l.concessoes && Array.isArray(l.concessoes) && l.concessoes.length > 0) ? 
-                     l.concessoes.map(x=>`<span class="chip">${x}</span>`).join("") : "";
+    // Tratar concessões (esse deve estar correto)
+    if (Array.isArray(l.concessoes)) {
+      concessoesChips = l.concessoes.map(x=>`<span class="chip">${x}</span>`).join("");
+    } else if (typeof l.concessoes === 'string' && l.concessoes) {
+      const concessoesArray = l.concessoes.split(',').map(s => s.trim()).filter(s => s);
+      concessoesChips = concessoesArray.map(x=>`<span class="chip">${x}</span>`).join("");
+    } else {
+      concessoesChips = "";
+    }
     
     card.innerHTML = `
       <div class="top">
@@ -1705,10 +1711,10 @@ function renderCards(){
         <div class="field"><div class="label">Complexidade</div><div class="value">${complexidadeDisplay}</div></div>
         <div class="field" style="grid-column: 4 / 5"><div class="label">Prev. Alta</div><div class="value">${prevAltaDisplay}</div></div>
         <div class="field" style="grid-column:1/3">
-          <div class="label">Linhas de cuidado</div><div class="wrap">${chipsLinhas||`<span style="color: var(--text-muted);">${linhasDisplay}</span>`}</div>
+          <div class="label">Linhas de cuidado</div><div class="wrap">${linhasChips||`<span style="color: var(--text-muted);">${linhasDisplay}</span>`}</div>
         </div>
         <div class="field" style="grid-column:3/5">
-          <div class="label">Concessões</div><div class="wrap">${chipsConc||`<span style="color: var(--text-muted);">—</span>`}</div>
+          <div class="label">Concessões</div><div class="wrap">${concessoesChips||`<span style="color: var(--text-muted);">—</span>`}</div>
         </div>
       </div>
       <div class="actions">
