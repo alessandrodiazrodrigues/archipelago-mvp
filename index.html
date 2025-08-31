@@ -1,4 +1,19 @@
-<!DOCTYPE html>
+function renderDash1() {
+  logInfo("Renderizando Dashboard Hospitais...");
+  
+  // Forçar geração de dados de teste se necessário
+  ['H1', 'H2'].forEach(h => {
+    if (!banco[h] || banco[h].length === 0) {
+      logInfo(`Gerando dados de teste para ${h}...`);
+      
+      const dadosTesteDireto = HOSPITAIS[h].leitos.map((leito, index) => {
+        const isOcupado = index % 3 !== 0;
+        return {
+          hospital: h,
+          leito: leito.id,
+          tipo: leito.tipo,
+          status: isOcupado ? "Em uso" : "Vago",
+          nome: isOcupado ? `Pac<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8" />
@@ -1637,13 +1652,40 @@ function renderCards(){
     const statusClass = l.status==="Em uso" ? "warn" : "ok";
     const tipoClass   = l.tipo==="UTI" ? "uti" : "enf";
     
-    const chipsLinhas = (l.linhas||[]).map(x=>`<span class="chip">${x}</span>`).join("");
-    const chipsConc   = (l.concessoes||[]).map(x=>`<span class="chip">${x}</span>`).join("");
+    // CORREÇÃO CRÍTICA: Corrigir mapeamento dos campos
+    let complexidadeDisplay, prevAltaDisplay, linhasDisplay;
     
-    // CORREÇÃO: Garantir que os dados estejam corretos nos campos
-    const complexidadeDisplay = l.complexidade ? `Nível ${l.complexidade}` : "—";
-    const prevAltaDisplay = l.prevAlta || "—";
-    const linhasDisplay = (l.linhas && l.linhas.length > 0) ? l.linhas.join(", ") : "—";
+    // Se os dados estão vindos como array (da planilha)
+    if (Array.isArray(l)) {
+      complexidadeDisplay = l[10] ? `Nível ${l[10]}` : "—";  // Coluna K
+      prevAltaDisplay = l[11] || "—";                        // Coluna L  
+      linhasDisplay = l[12] || "—";                          // Coluna M
+    } 
+    // Se os dados são objetos mas com mapeamento errado
+    else {
+      // HACK: Detectar se há inversão nos dados
+      if (l.prevAlta === "II" || l.prevAlta === "I" || l.prevAlta === "III") {
+        // Dados estão invertidos - corrigir na hora
+        complexidadeDisplay = l.prevAlta ? `Nível ${l.prevAlta}` : "—";
+        prevAltaDisplay = l.complexidade || "—";
+        linhasDisplay = Array.isArray(l.linhas) ? l.linhas.join(", ") : (l.linhas || "—");
+      } else {
+        // Dados estão corretos
+        complexidadeDisplay = l.complexidade ? `Nível ${l.complexidade}` : "—";
+        prevAltaDisplay = l.prevAlta || "—";
+        linhasDisplay = Array.isArray(l.linhas) ? l.linhas.join(", ") : (l.linhas || "—");
+      }
+    }
+    
+    // Tratar linhas de cuidado especiais
+    if (linhasDisplay === "Sem previsao" || linhasDisplay === "SEM PREVISAO") {
+      linhasDisplay = "—";
+    }
+    
+    const chipsLinhas = (l.linhas && Array.isArray(l.linhas) && l.linhas.length > 0) ? 
+                       l.linhas.map(x=>`<span class="chip">${x}</span>`).join("") : "";
+    const chipsConc = (l.concessoes && Array.isArray(l.concessoes) && l.concessoes.length > 0) ? 
+                     l.concessoes.map(x=>`<span class="chip">${x}</span>`).join("") : "";
     
     card.innerHTML = `
       <div class="top">
