@@ -3036,56 +3036,59 @@ function initColorConfig() {
     }
   }
   
-  // Configurar inputs de cor COM PALETAS
-  Object.keys(colorConfig).forEach(category => {
-    Object.keys(colorConfig[category]).forEach(colorKey => {
-      const input = document.getElementById(`color-${colorKey}`);
-      if (input) {
-        input.value = colorConfig[category][colorKey];
-        input.addEventListener('input', (e) => {
-          colorConfig[category][colorKey] = e.target.value;
-          const preview = input.nextElementSibling;
-          if (preview) preview.style.background = e.target.value;
-          applyColors(); // APLICAR AUTOMATICAMENTE
-        });
-      }
-    });
-  });
-
-  // Configurar paletas de cores
-  document.querySelectorAll('.color-palette').forEach(palette => {
-    const targetInputId = palette.dataset.target;
-    palette.querySelectorAll('.palette-color').forEach(colorDiv => {
-      colorDiv.addEventListener('click', () => {
-        const color = colorDiv.dataset.color;
-        const input = document.getElementById(targetInputId);
+  // Aguardar que o DOM esteja pronto para configurar os eventos
+  setTimeout(() => {
+    // Configurar inputs de cor COM PALETAS
+    Object.keys(colorConfig).forEach(category => {
+      Object.keys(colorConfig[category]).forEach(colorKey => {
+        const input = document.getElementById(`color-${colorKey}`);
         if (input) {
-          input.value = color;
-          const preview = input.nextElementSibling;
-          if (preview) preview.style.background = color;
-          
-          // Atualizar configuração
-          Object.keys(colorConfig).forEach(category => {
-            Object.keys(colorConfig[category]).forEach(colorKey => {
-              if (`color-${colorKey}` === targetInputId) {
-                colorConfig[category][colorKey] = color;
-              }
-            });
+          input.value = colorConfig[category][colorKey];
+          input.addEventListener('input', (e) => {
+            colorConfig[category][colorKey] = e.target.value;
+            const preview = input.nextElementSibling;
+            if (preview) preview.style.background = e.target.value;
+            applyColors(); // APLICAR AUTOMATICAMENTE
           });
-          
-          applyColors();
         }
       });
     });
-  });
 
-  // Configurar botões de exemplo
-  document.querySelectorAll('.example-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const example = btn.dataset.example;
-      showColorExample(example);
+    // Configurar paletas de cores
+    document.querySelectorAll('.color-palette').forEach(palette => {
+      const targetInputId = palette.dataset.target;
+      palette.querySelectorAll('.palette-color').forEach(colorDiv => {
+        colorDiv.addEventListener('click', () => {
+          const color = colorDiv.dataset.color;
+          const input = document.getElementById(targetInputId);
+          if (input) {
+            input.value = color;
+            const preview = input.nextElementSibling;
+            if (preview) preview.style.background = color;
+            
+            // Atualizar configuração
+            Object.keys(colorConfig).forEach(category => {
+              Object.keys(colorConfig[category]).forEach(colorKey => {
+                if (`color-${colorKey}` === targetInputId) {
+                  colorConfig[category][colorKey] = color;
+                }
+              });
+            });
+            
+            applyColors();
+          }
+        });
+      });
     });
-  });
+
+    // Configurar botões de exemplo
+    document.querySelectorAll('.example-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const example = btn.dataset.example;
+        showColorExample(example);
+      });
+    });
+  }, 100);
 }
 
 function showColorExample(colorType) {
