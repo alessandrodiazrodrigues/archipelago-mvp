@@ -1432,23 +1432,26 @@ async function loadHospital(h) {
   } catch(error) {
     logError(`Erro ao carregar hospital ${h}:`, error);
     
-    // DADOS DE TESTE PARA DEMONSTRAÇÃO
-    const dadosTeste = HOSPITAIS[h].leitos.map((leito, index) => ({
-      hospital: h,
-      leito: leito.id,
-      tipo: leito.tipo,
-      status: index % 3 === 0 ? "Vago" : "Em uso",
-      nome: index % 3 === 0 ? null : `Paciente ${leito.id}`,
-      idade: index % 3 === 0 ? null : 45 + (index * 7) % 40,
-      matricula: index % 3 === 0 ? null : `${h}${String(leito.id).padStart(3, '0')}`,
-      pps: index % 3 === 0 ? null : (index % 10) + 1,
-      spict: index % 3 === 0 ? null : (index % 2 === 0 ? "elegivel" : "nao_elegivel"),
-      complexidade: index % 3 === 0 ? null : (["I", "II", "III"][index % 3]),
-      prevAlta: index % 3 === 0 ? null : (["24h Ouro", "48h", "72h", "96h"][index % 4]),
-      linhas: index % 3 === 0 ? [] : LINHAS.slice(0, 2 + (index % 3)),
-      concessoes: index % 3 === 0 ? [] : CONC.slice(0, 1 + (index % 3)),
-      admAt: index % 3 === 0 ? null : new Date(Date.now() - (index * 24 * 60 * 60 * 1000)).toISOString()
-    }));
+    // DADOS DE TESTE CORRIGIDOS PARA DEMONSTRAÇÃO
+    const dadosTeste = HOSPITAIS[h].leitos.map((leito, index) => {
+      const isOcupado = index % 3 !== 0;
+      return {
+        hospital: h,
+        leito: leito.id,
+        tipo: leito.tipo,
+        status: isOcupado ? "Em uso" : "Vago",
+        nome: isOcupado ? `Paciente ${leito.id}` : null,
+        idade: isOcupado ? 45 + (index * 7) % 40 : null,
+        matricula: isOcupado ? `${h}${String(leito.id).padStart(3, '0')}` : null,
+        pps: isOcupado ? (index % 10) + 1 : null,
+        spict: isOcupado ? (index % 2 === 0 ? "elegivel" : "nao_elegivel") : null,
+        complexidade: isOcupado ? (["I", "II", "III"][index % 3]) : null,
+        prevAlta: isOcupado ? (["24h Ouro", "48h", "72h", "96h", "Sem previsao"][index % 5]) : null,
+        linhas: isOcupado ? LINHAS.slice(0, Math.max(1, (index % 4))) : [],
+        concessoes: isOcupado ? CONC.slice(0, Math.max(1, (index % 3))) : [],
+        admAt: isOcupado ? new Date(Date.now() - (index * 24 * 60 * 60 * 1000)).toISOString() : null
+      };
+    });
     
     banco[h] = dadosTeste;
     logWarning(`Usando dados de teste para ${h}`);
@@ -1557,6 +1560,11 @@ function renderCards(){
     const chipsLinhas = (l.linhas||[]).map(x=>`<span class="chip">${x}</span>`).join("");
     const chipsConc   = (l.concessoes||[]).map(x=>`<span class="chip">${x}</span>`).join("");
     
+    // CORREÇÃO: Garantir que os dados estejam corretos nos campos
+    const complexidadeDisplay = l.complexidade ? `Nível ${l.complexidade}` : "—";
+    const prevAltaDisplay = l.prevAlta || "—";
+    const linhasDisplay = (l.linhas && l.linhas.length > 0) ? l.linhas.join(", ") : "—";
+    
     card.innerHTML = `
       <div class="top">
         <div class="wrap">
@@ -1572,13 +1580,13 @@ function renderCards(){
         <div class="field"><div class="label">Tempo de Internação</div><div class="value">${l.status === "Em uso" ? elapsedSince(l.admAt).text : "—"}</div></div>
         <div class="field"><div class="label">PPS</div><div class="value">${l.pps??"—"}</div></div>
         <div class="field"><div class="label">SPICT-BR</div><div class="value">${l.spict==="elegivel"?"Elegível":(l.spict==="nao_elegivel"?"Não elegível":"—")}</div></div>
-        <div class="field"><div class="label">Complexidade</div><div class="value">${l.complexidade||"—"}</div></div>
-        <div class="field" style="grid-column: 4 / 5"><div class="label">Prev. Alta</div><div class="value">${l.prevAlta||"—"}</div></div>
+        <div class="field"><div class="label">Complexidade</div><div class="value">${complexidadeDisplay}</div></div>
+        <div class="field" style="grid-column: 4 / 5"><div class="label">Prev. Alta</div><div class="value">${prevAltaDisplay}</div></div>
         <div class="field" style="grid-column:1/3">
-          <div class="label">Linhas de cuidado</div><div class="wrap">${chipsLinhas||"—"}</div>
+          <div class="label">Linhas de cuidado</div><div class="wrap">${chipsLinhas||`<span style="color: var(--text-muted);">${linhasDisplay}</span>`}</div>
         </div>
         <div class="field" style="grid-column:3/5">
-          <div class="label">Concessões</div><div class="wrap">${chipsConc||"—"}</div>
+          <div class="label">Concessões</div><div class="wrap">${chipsConc||`<span style="color: var(--text-muted);">—</span>`}</div>
         </div>
       </div>
       <div class="actions">
@@ -1723,45 +1731,51 @@ async function renderDashboards() {
 }
 
 function renderDash1() {
-  // GARANTIR QUE TEMOS DADOS PARA RENDERIZAR
+  logInfo("Renderizando Dashboard Hospitais...");
+  
+  // GARANTIR QUE TEMOS DADOS PARA RENDERIZAR COM ESTRUTURA CORRETA
   if (!banco.H1 || banco.H1.length === 0) {
-    // Gerar dados de teste para H1
-    banco.H1 = HOSPITAIS.H1.leitos.map((leito, index) => ({
-      hospital: 'H1',
-      leito: leito.id,
-      tipo: leito.tipo,
-      status: index % 3 === 0 ? "Vago" : "Em uso",
-      nome: index % 3 === 0 ? null : `Paciente ${leito.id}`,
-      idade: index % 3 === 0 ? null : 45 + (index * 7) % 40,
-      matricula: index % 3 === 0 ? null : `H1${String(leito.id).padStart(3, '0')}`,
-      pps: index % 3 === 0 ? null : (index % 10) + 1,
-      spict: index % 3 === 0 ? null : (index % 2 === 0 ? "elegivel" : "nao_elegivel"),
-      complexidade: index % 3 === 0 ? null : (["I", "II", "III"][index % 3]),
-      prevAlta: index % 3 === 0 ? null : (["24h Ouro", "48h", "72h", "96h"][index % 4]),
-      linhas: index % 3 === 0 ? [] : LINHAS.slice(0, 2 + (index % 3)),
-      concessoes: index % 3 === 0 ? [] : CONC.slice(0, 1 + (index % 3)),
-      admAt: index % 3 === 0 ? null : new Date(Date.now() - (index * 24 * 60 * 60 * 1000)).toISOString()
-    }));
+    banco.H1 = HOSPITAIS.H1.leitos.map((leito, index) => {
+      const isOcupado = index % 3 !== 0;
+      return {
+        hospital: 'H1',
+        leito: leito.id,
+        tipo: leito.tipo,
+        status: isOcupado ? "Em uso" : "Vago",
+        nome: isOcupado ? `Paciente H1-${leito.id}` : null,
+        idade: isOcupado ? 45 + (index * 7) % 40 : null,
+        matricula: isOcupado ? `H1${String(leito.id).padStart(3, '0')}` : null,
+        pps: isOcupado ? (index % 10) + 1 : null,
+        spict: isOcupado ? (index % 2 === 0 ? "elegivel" : "nao_elegivel") : null,
+        complexidade: isOcupado ? (["I", "II", "III"][index % 3]) : null,
+        prevAlta: isOcupado ? (["24h Ouro", "48h", "72h", "96h", "Sem previsao"][index % 5]) : null,
+        linhas: isOcupado ? LINHAS.slice(0, Math.max(1, (index % 4))) : [],
+        concessoes: isOcupado ? CONC.slice(0, Math.max(1, (index % 3))) : [],
+        admAt: isOcupado ? new Date(Date.now() - (index * 24 * 60 * 60 * 1000)).toISOString() : null
+      };
+    });
   }
 
   if (!banco.H2 || banco.H2.length === 0) {
-    // Gerar dados de teste para H2
-    banco.H2 = HOSPITAIS.H2.leitos.map((leito, index) => ({
-      hospital: 'H2',
-      leito: leito.id,
-      tipo: leito.tipo,
-      status: index % 4 === 0 ? "Vago" : "Em uso",
-      nome: index % 4 === 0 ? null : `Paciente ${leito.id}`,
-      idade: index % 4 === 0 ? null : 40 + (index * 5) % 35,
-      matricula: index % 4 === 0 ? null : `H2${String(leito.id).padStart(3, '0')}`,
-      pps: index % 4 === 0 ? null : (index % 8) + 2,
-      spict: index % 4 === 0 ? null : (index % 3 === 0 ? "elegivel" : "nao_elegivel"),
-      complexidade: index % 4 === 0 ? null : (["I", "II", "III"][index % 3]),
-      prevAlta: index % 4 === 0 ? null : (["24h Ouro", "24h 2R", "48h", "72h"][index % 4]),
-      linhas: index % 4 === 0 ? [] : LINHAS.slice(0, 1 + (index % 4)),
-      concessoes: index % 4 === 0 ? [] : CONC.slice(0, 1 + (index % 2)),
-      admAt: index % 4 === 0 ? null : new Date(Date.now() - (index * 18 * 60 * 60 * 1000)).toISOString()
-    }));
+    banco.H2 = HOSPITAIS.H2.leitos.map((leito, index) => {
+      const isOcupado = index % 4 !== 0;
+      return {
+        hospital: 'H2',
+        leito: leito.id,
+        tipo: leito.tipo,
+        status: isOcupado ? "Em uso" : "Vago",
+        nome: isOcupado ? `Paciente H2-${leito.id}` : null,
+        idade: isOcupado ? 40 + (index * 5) % 35 : null,
+        matricula: isOcupado ? `H2${String(leito.id).padStart(3, '0')}` : null,
+        pps: isOcupado ? (index % 8) + 2 : null,
+        spict: isOcupado ? (index % 3 === 0 ? "elegivel" : "nao_elegivel") : null,
+        complexidade: isOcupado ? (["I", "II", "III"][index % 3]) : null,
+        prevAlta: isOcupado ? (["24h Ouro", "24h 2R", "48h", "72h", "Sem previsao"][index % 5]) : null,
+        linhas: isOcupado ? LINHAS.slice(0, Math.max(1, (index % 4))) : [],
+        concessoes: isOcupado ? CONC.slice(0, Math.max(1, (index % 3))) : [],
+        admAt: isOcupado ? new Date(Date.now() - (index * 18 * 60 * 60 * 1000)).toISOString() : null
+      };
+    });
   }
 
   ['H1', 'H2'].forEach(h => {
@@ -1771,11 +1785,13 @@ function renderDash1() {
     const vagos = totalLeitos - ocupados;
     const taxaOcupacao = totalLeitos > 0 ? Math.round((ocupados / totalLeitos) * 100) : 0;
     
-    // Atualizar valores na ordem (Total, Ocupados, Vagos)
-    const statTotalH = $(`#statTotal${h}`);
-    const statOcupadosH = $(`#statOcupados${h}`);
-    const statVagosH = $(`#statVagos${h}`);
-    const gaugePercentH = $(`#gaugePercent${h}`);
+    // CORREÇÃO: Atualizar valores corretamente
+    const statTotalH = $(`#statTotal${h.charAt(1)}`);
+    const statOcupadosH = $(`#statOcupados${h.charAt(1)}`);
+    const statVagosH = $(`#statVagos${h.charAt(1)}`);
+    const gaugePercentH = $(`#gaugePercent${h.charAt(1)}`);
+    
+    logInfo(`Hospital ${h}: Total=${totalLeitos}, Ocupados=${ocupados}, Vagos=${vagos}, Taxa=${taxaOcupacao}%`);
     
     if (statTotalH) statTotalH.textContent = totalLeitos;
     if (statOcupadosH) statOcupadosH.textContent = ocupados;
@@ -1787,7 +1803,7 @@ function renderDash1() {
     if (taxaOcupacao > 90) corGauge = '#dc2626'; // Vermelho
     else if (taxaOcupacao > 80) corGauge = '#f59e0b'; // Amarelo
 
-    createChart(`chartOcupacao${h}`, `chartGauge${h}`, {
+    createChart(`chartOcupacao${h.charAt(1)}`, `chartGauge${h.charAt(1)}`, {
       type: 'doughnut',
       data: {
         datasets: [{
@@ -1809,9 +1825,9 @@ function renderDash1() {
       }
     });
 
-    // Filtrar pacientes com previsão
+    // CORREÇÃO: Filtrar apenas pacientes com previsão válida
     const pacientesComPrevisao = dados.filter(p => 
-      p.status === 'Em uso' && p.prevAlta && p.prevAlta !== 'Sem previsao'
+      p.status === 'Em uso' && p.prevAlta && p.prevAlta !== 'Sem previsao' && p.prevAlta !== null
     );
 
     // Labels das datas
@@ -1823,134 +1839,170 @@ function renderDash1() {
       labels.push(data.toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'}));
     }
 
-    // Gráfico de Concessões
-    const concessoesDataHospital = {}; // Renomeado para evitar conflito
+    // CORREÇÃO: Gráfico de Concessões com dados válidos
+    const concessoesDataHospital = {};
     pacientesComPrevisao.forEach(paciente => {
       const dias = getDiasAteAlta(paciente.prevAlta);
-      (paciente.concessoes || []).forEach(conc => {
-        if (!concessoesDataHospital[conc]) concessoesDataHospital[conc] = new Array(7).fill(0);
+      const concessoesPaciente = Array.isArray(paciente.concessoes) ? paciente.concessoes : 
+                                (typeof paciente.concessoes === 'string' ? paciente.concessoes.split(',') : []);
+      
+      concessoesPaciente.forEach(conc => {
+        const concLimpa = conc.trim();
+        if (!concessoesDataHospital[concLimpa]) concessoesDataHospital[concLimpa] = new Array(7).fill(0);
         const diasParaManter = Math.min(dias, 7);
         for (let d = 0; d < diasParaManter; d++) {
-          concessoesDataHospital[conc][d]++;
+          concessoesDataHospital[concLimpa][d]++;
         }
       });
     });
 
     const sortedConcessoes = Object.entries(concessoesDataHospital).sort((a,b) => a[0].localeCompare(b[0]));
-    createChart(`chartConcessoes${h}`, `chartConcessoesInst${h}`, {
-      type: 'bar',
-      data: {
-        labels: labels,
-        datasets: sortedConcessoes.map(([key, values]) => ({
-          label: key,
-          data: values,
-          backgroundColor: CONC_CORES[key] || '#cccccc'
-        }))
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { 
-          legend: { 
-            position: 'bottom',
-            labels: { 
-              color: '#ffffff',
-              font: { size: 11 }
+    
+    if (sortedConcessoes.length > 0) {
+      createChart(`chartConcessoes${h.charAt(1)}`, `chartConcessoesInst${h.charAt(1)}`, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: sortedConcessoes.map(([key, values]) => ({
+            label: key,
+            data: values,
+            backgroundColor: CONC_CORES[key] || '#60a5fa'
+          }))
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { 
+            legend: { 
+              position: 'bottom',
+              labels: { 
+                color: '#ffffff',
+                font: { size: 11 }
+              }
+            }
+          },
+          scales: {
+            x: { 
+              ticks: { 
+                color: '#ffffff',
+                font: { size: 10 }
+              },
+              grid: { color: 'rgba(255,255,255,0.1)' }
+            },
+            y: { 
+              beginAtZero: true, 
+              ticks: { 
+                stepSize: 1,
+                color: '#ffffff',
+                font: { size: 10 }
+              },
+              title: { 
+                display: true, 
+                text: 'Beneficiários',
+                color: '#ffffff',
+                font: { size: 12 }
+              },
+              grid: { color: 'rgba(255,255,255,0.1)' }
             }
           }
-        },
-        scales: {
-          x: { 
-            ticks: { 
-              color: '#ffffff',
-              font: { size: 10 }
-            },
-            grid: { color: 'rgba(255,255,255,0.1)' }
-          },
-          y: { 
-            beginAtZero: true, 
-            ticks: { 
-              stepSize: 1,
-              color: '#ffffff',
-              font: { size: 10 }
-            },
-            title: { 
-              display: true, 
-              text: 'Beneficiários',
-              color: '#ffffff',
-              font: { size: 12 }
-            },
-            grid: { color: 'rgba(255,255,255,0.1)' }
-          }
         }
+      });
+    } else {
+      // Gráfico vazio com mensagem
+      const canvas = document.getElementById(`chartConcessoes${h.charAt(1)}`);
+      if (canvas) {
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '14px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Nenhuma concessão encontrada', canvas.width/2, canvas.height/2);
       }
-    });
+    }
 
-    // Gráfico de Linhas de Cuidado
-    const linhasDataHospital = {}; // Renomeado para evitar conflito
+    // CORREÇÃO: Gráfico de Linhas de Cuidado com dados válidos
+    const linhasDataHospital = {};
     pacientesComPrevisao.forEach(paciente => {
       const dias = getDiasAteAlta(paciente.prevAlta);
-      (paciente.linhas || []).forEach(linha => {
-        if (!linhasDataHospital[linha]) linhasDataHospital[linha] = new Array(7).fill(0);
+      const linhasPaciente = Array.isArray(paciente.linhas) ? paciente.linhas : 
+                            (typeof paciente.linhas === 'string' ? paciente.linhas.split(',') : []);
+      
+      linhasPaciente.forEach(linha => {
+        const linhaLimpa = linha.trim();
+        if (!linhasDataHospital[linhaLimpa]) linhasDataHospital[linhaLimpa] = new Array(7).fill(0);
         const diasParaManter = Math.min(dias, 7);
         for (let d = 0; d < diasParaManter; d++) {
-          linhasDataHospital[linha][d]++;
+          linhasDataHospital[linhaLimpa][d]++;
         }
       });
     });
 
     const sortedLinhas = Object.entries(linhasDataHospital).sort((a,b) => a[0].localeCompare(b[0]));
-    createChart(`chartLinhas${h}`, `chartLinhasInst${h}`, {
-      type: 'bar',
-      data: {
-        labels: labels,
-        datasets: sortedLinhas.map(([key, values]) => ({
-          label: key,
-          data: values,
-          backgroundColor: LINHAS_CORES[key] || '#cccccc'
-        }))
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { 
-          legend: { 
-            position: 'bottom',
-            labels: { 
-              color: '#ffffff',
-              font: { size: 11 }
+    
+    if (sortedLinhas.length > 0) {
+      createChart(`chartLinhas${h.charAt(1)}`, `chartLinhasInst${h.charAt(1)}`, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: sortedLinhas.map(([key, values]) => ({
+            label: key,
+            data: values,
+            backgroundColor: LINHAS_CORES[key] || '#8b5cf6'
+          }))
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { 
+            legend: { 
+              position: 'bottom',
+              labels: { 
+                color: '#ffffff',
+                font: { size: 11 }
+              }
+            }
+          },
+          scales: {
+            x: { 
+              ticks: { 
+                color: '#ffffff',
+                font: { size: 10 }
+              },
+              grid: { color: 'rgba(255,255,255,0.1)' }
+            },
+            y: { 
+              beginAtZero: true, 
+              ticks: { 
+                stepSize: 1,
+                color: '#ffffff',
+                font: { size: 10 }
+              }, 
+              title: { 
+                display: true, 
+                text: 'Beneficiários',
+                color: '#ffffff',
+                font: { size: 12 }
+              },
+              grid: { color: 'rgba(255,255,255,0.1)' }
             }
           }
-        },
-        scales: {
-          x: { 
-            ticks: { 
-              color: '#ffffff',
-              font: { size: 10 }
-            },
-            grid: { color: 'rgba(255,255,255,0.1)' }
-          },
-          y: { 
-            beginAtZero: true, 
-            ticks: { 
-              stepSize: 1,
-              color: '#ffffff',
-              font: { size: 10 }
-            }, 
-            title: { 
-              display: true, 
-              text: 'Beneficiários',
-              color: '#ffffff',
-              font: { size: 12 }
-            },
-            grid: { color: 'rgba(255,255,255,0.1)' }
-          }
         }
+      });
+    } else {
+      // Gráfico vazio com mensagem
+      const canvas = document.getElementById(`chartLinhas${h.charAt(1)}`);
+      if (canvas) {
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '14px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Nenhuma linha de cuidado encontrada', canvas.width/2, canvas.height/2);
       }
-    });
+    }
 
-    // Gráfico de Complexidade
-    const complexidadeDataHospital = { 'I': 0, 'II': 0, 'III': 0 }; // Renomeado
+    // CORREÇÃO: Gráfico de Complexidade
+    const complexidadeDataHospital = { 'I': 0, 'II': 0, 'III': 0 };
     const totalPacientes = dados.filter(l => l.status === 'Em uso').length;
     
     dados.filter(l => l.status === 'Em uso').forEach(paciente => {
@@ -1967,7 +2019,7 @@ function renderDash1() {
         ((complexidadeDataHospital[key] / totalPacientes) * 100).toFixed(1) : 0;
     });
 
-    createChart(`chartComplexidade${h}`, `chartComplexidadeInst${h}`, {
+    createChart(`chartComplexidade${h.charAt(1)}`, `chartComplexidadeInst${h.charAt(1)}`, {
       type: 'bar',
       data: {
         labels: ['Nível I', 'Nível II', 'Nível III'],
@@ -1997,7 +2049,7 @@ function renderDash1() {
             beginAtZero: true,
             max: 100,
             ticks: { 
-              stepSize: 1,
+              stepSize: 10,
               callback: function(value) {
                 return value + '%';
               },
@@ -2016,7 +2068,8 @@ function renderDash1() {
       }
     });
   });
-  logSuccess('Dashboard 1 renderizado com sucesso.');
+  
+  logSuccess('Dashboard Hospitais renderizado com sucesso!');
 }
 
 function renderDash2(allData) {
