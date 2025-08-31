@@ -248,6 +248,98 @@
       box-shadow: var(--shadow);
     }
 
+    /* =================== TOOLBAR REDESENHADO PARA SELETOR DE HOSPITAL =================== */
+    .hospital-selector {
+      background: rgba(26, 31, 46, 0.5); 
+      border-radius: 16px; 
+      padding: 20px; 
+      margin-bottom: 24px;
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+    }
+
+    .hospital-selector h3 {
+      color: var(--text-accent);
+      font-size: 16px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin: 0;
+    }
+
+    .hospital-buttons {
+      display: flex;
+      gap: 12px;
+    }
+
+    .hospital-btn {
+      background: rgba(96, 165, 250, 0.1);
+      border: 2px solid var(--border);
+      color: var(--text);
+      padding: 12px 24px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    .hospital-btn:hover {
+      background: rgba(96, 165, 250, 0.2);
+      border-color: var(--text-accent);
+    }
+
+    .hospital-btn.active {
+      background: var(--gradient-button);
+      border-color: var(--text-accent);
+      color: var(--text-white);
+      box-shadow: 0 4px 16px rgba(96, 165, 250, 0.3);
+    }
+
+    /* KPI com gauge centralizado */
+    .kpi-card-with-gauge {
+      position: relative; 
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .kpi-gauge-mini {
+      width: 80px; 
+      height: 50px;
+      margin-bottom: 10px;
+    }
+
+    .kpi-gauge-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      margin-top: -10px;
+    }
+
+    /* Separadores discretos */
+    .section-divider {
+      width: 1px;
+      background: rgba(148, 163, 184, 0.3);
+      height: 250px;
+      margin: 0 20px;
+    }
+
+    .horizontal-divider {
+      height: 1px;
+      background: rgba(148, 163, 184, 0.3);
+      margin: 20px 0;
+      width: 100%;
+    }
+
     /* =================== CARDS DE LEITOS =================== */
     .grid {
       display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
@@ -256,9 +348,8 @@
 
     .card {
       background: var(--card); border-radius: 20px; padding: 16px;
-      box-shadow: var(--shadow), var(--shadow-2), 0 0 0 1px rgba(255,255,255,.6) inset;
-      border: 2px solid transparent; background-clip: padding-box;
-      border-image: linear-gradient(to bottom, #FFFFFF, #E5E7EB) 1;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
       transform: translateY(0); transition: transform 0.18s ease, box-shadow 0.18s ease;
     }
 
@@ -595,12 +686,16 @@
     .color-item {
       background: var(--card); padding: 15px; border-radius: 12px;
       border: 1px solid var(--border); display: flex; align-items: center;
-      gap: 15px;
+      gap: 15px; position: relative;
     }
 
     .color-item label {
       flex: 1; font-weight: 600; color: var(--text); text-transform: none;
       letter-spacing: normal; font-size: 14px;
+    }
+
+    .color-controls {
+      display: flex; align-items: center; gap: 10px;
     }
 
     .color-item input[type="color"] {
@@ -611,6 +706,31 @@
     .color-preview {
       width: 30px; height: 30px; border-radius: 6px;
       border: 2px solid var(--border);
+    }
+
+    .color-palette {
+      display: flex; gap: 4px; flex-wrap: wrap;
+    }
+
+    .palette-color {
+      width: 20px; height: 20px; border-radius: 4px; cursor: pointer;
+      border: 2px solid transparent; transition: all 0.2s ease;
+    }
+
+    .palette-color:hover {
+      border-color: var(--text-accent);
+      transform: scale(1.1);
+    }
+
+    .example-btn {
+      background: rgba(96, 165, 250, 0.1); border: 1px solid var(--border);
+      color: var(--text); padding: 6px 10px; border-radius: 6px;
+      cursor: pointer; font-size: 11px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.5px;
+    }
+
+    .example-btn:hover {
+      background: rgba(96, 165, 250, 0.2);
     }
 
     .color-presets {
@@ -751,12 +871,24 @@
 
   <!-- Main Content -->
   <main>
-    <!-- Toolbar para seleção de hospital (apenas no modo leitos) -->
-    <div class="toolbar" id="portalToolbar" style="display: none;">
-      <div class="row"></div>
-      <div class="row">
-        <button class="btn primary active" data-h="H1" id="btnH1">Neomater</button>
-        <button class="btn primary" data-h="H2" id="btnH2">Cruz Azul</button>
+    <!-- Toolbar para seleção de hospital - NOVO DESIGN -->
+    <div class="hospital-selector" id="hospitalSelector" style="display: none;">
+      <h3>Selecionar Hospital:</h3>
+      <div class="hospital-buttons">
+        <button class="hospital-btn active" data-h="H1" id="btnH1New">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+            <circle cx="12" cy="10" r="3"/>
+          </svg>
+          Neomater
+        </button>
+        <button class="hospital-btn" data-h="H2" id="btnH2New">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+            <circle cx="12" cy="10" r="3"/>
+          </svg>
+          Cruz Azul
+        </button>
       </div>
     </div>
 
@@ -865,15 +997,17 @@
     <section id="dash2" class="hidden">
       <h2 style="margin-bottom:20px; color: var(--text-white);">Dashboard Executivo: Rede Hospitalar Externa</h2>
       
-      <!-- KPIs Operacionais Consolidados (UMA LINHA com GAUGE no primeiro) -->
+      <!-- KPIs Operacionais Consolidados (UMA LINHA com GAUGE CENTRALIZADO no primeiro) -->
       <div class="dashboard-card">
         <h3>KPIs Operacionais Consolidados</h3>
         <div class="dash-grid grid-7">
           <div class="kpi-card kpi-card-with-gauge">
             <div class="kpi-gauge-mini">
               <canvas id="kpiGaugeOcupacao"></canvas>
+              <div class="kpi-gauge-text">
+                <div class="kpi-value" id="kpiOcupacaoGeral" style="font-size: 24px;">0%</div>
+              </div>
             </div>
-            <div class="kpi-value" id="kpiOcupacaoGeral">0%</div>
             <div class="kpi-label">Taxa de Ocupação Geral</div>
           </div>
           <div class="kpi-card">
@@ -903,16 +1037,17 @@
         </div>
       </div>
 
-      <!-- Análise Preditiva de Altas -->
+      <!-- Análise Preditiva de Altas COM SEPARADOR -->
       <div class="dashboard-card">
         <h3>Análise Preditiva de Altas</h3>
-        <div class="dash-grid grid-2">
+        <div class="dash-grid grid-2" style="align-items: center;">
           <div>
             <h4>Comparativo por Prazo</h4>
             <div class="chart-container h-250">
               <canvas id="chartAltasComparativo"></canvas>
             </div>
           </div>
+          <div class="section-divider"></div>
           <div>
             <h4>Timeline de Liberação em 24h</h4>
             <div class="chart-container h-250">
@@ -922,20 +1057,21 @@
         </div>
       </div>
 
-      <!-- Projeções Consolidadas com Switch -->
+      <!-- Projeções Consolidadas COM SEPARADOR e Switch -->
       <div class="dashboard-card">
         <h3>Projeções Consolidadas (7 dias)</h3>
         <div class="view-switcher">
           <button class="view-switch-btn active" data-mode="separate">Barras Separadas</button>
           <button class="view-switch-btn" data-mode="stacked">Barras Empilhadas</button>
         </div>
-        <div class="dash-grid grid-2">
+        <div class="dash-grid grid-2" style="align-items: center;">
           <div>
             <h4>Concessões Necessárias</h4>
             <div class="chart-container h-300">
               <canvas id="chartConcessoesConsolidado"></canvas>
             </div>
           </div>
+          <div class="section-divider"></div>
           <div>
             <h4>Linhas de Cuidado</h4>
             <div class="chart-container h-300">
@@ -945,30 +1081,31 @@
         </div>
       </div>
 
-      <!-- Eficiência Operacional (NOVA SEÇÃO) -->
-      <div class="dashboard-card">
-        <h3>Eficiência Operacional</h3>
-        <div class="chart-container h-300">
-          <canvas id="chartEficienciaRadar"></canvas>
-        </div>
-      </div>
-
-      <!-- Análises PPS e SPICT lado a lado -->
+      <!-- Análises PPS e SPICT lado a lado COM SEPARADOR (NOVO POSICIONAMENTO) -->
       <div class="dashboard-card">
         <h3>Análise de Indicadores Clínicos</h3>
-        <div class="dash-grid grid-2">
+        <div class="dash-grid grid-2" style="align-items: center;">
           <div>
             <h4>Análise PPS (Performance Status)</h4>
             <div class="chart-container h-250">
               <canvas id="chartPpsAnalise"></canvas>
             </div>
           </div>
+          <div class="section-divider"></div>
           <div>
             <h4>Análise SPICT-BR</h4>
             <div class="chart-container h-250">
               <canvas id="chartSpictAnalise"></canvas>
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- Eficiência Operacional MAIOR (NOVA POSIÇÃO) -->
+      <div class="dashboard-card">
+        <h3>Eficiência Operacional</h3>
+        <div class="chart-container h-400">
+          <canvas id="chartEficienciaRadar"></canvas>
         </div>
       </div>
     </section>
@@ -1159,6 +1296,203 @@
           <div class="color-grid">
             <div class="color-item">
               <label>Sidebar (Menu Lateral)</label>
+              <div class="color-controls">
+                <input type="color" id="color-nav-sidebar" value="#0a0f1c">
+                <span class="color-preview" style="background: #0a0f1c"></span>
+                <div class="color-palette" data-target="color-nav-sidebar">
+                  <div class="palette-color" style="background: #0a0f1c" data-color="#0a0f1c"></div>
+                  <div class="palette-color" style="background: #000000" data-color="#000000"></div>
+                  <div class="palette-color" style="background: #1e3a8a" data-color="#1e3a8a"></div>
+                  <div class="palette-color" style="background: #1f2937" data-color="#1f2937"></div>
+                  <div class="palette-color" style="background: #374151" data-color="#374151"></div>
+                </div>
+                <button class="example-btn" data-example="nav-sidebar">Ver Exemplo</button>
+              </div>
+            </div>
+            <div class="color-item">
+              <label>Header (Barra Superior)</label>
+              <div class="color-controls">
+                <input type="color" id="color-nav-header" value="#1e40af">
+                <span class="color-preview" style="background: #1e40af"></span>
+                <div class="color-palette" data-target="color-nav-header">
+                  <div class="palette-color" style="background: #1e40af" data-color="#1e40af"></div>
+                  <div class="palette-color" style="background: #2563eb" data-color="#2563eb"></div>
+                  <div class="palette-color" style="background: #3b82f6" data-color="#3b82f6"></div>
+                  <div class="palette-color" style="background: #0ea5e9" data-color="#0ea5e9"></div>
+                  <div class="palette-color" style="background: #059669" data-color="#059669"></div>
+                </div>
+                <button class="example-btn" data-example="nav-header">Ver Exemplo</button>
+              </div>
+            </div>
+            <div class="color-item">
+              <label>Cards/Modais</label>
+              <div class="color-controls">
+                <input type="color" id="color-card" value="#1a1f2e">
+                <span class="color-preview" style="background: #1a1f2e"></span>
+                <div class="color-palette" data-target="color-card">
+                  <div class="palette-color" style="background: #1a1f2e" data-color="#1a1f2e"></div>
+                  <div class="palette-color" style="background: #ffffff" data-color="#ffffff"></div>
+                  <div class="palette-color" style="background: #f8fafc" data-color="#f8fafc"></div>
+                  <div class="palette-color" style="background: #e2e8f0" data-color="#e2e8f0"></div>
+                  <div class="palette-color" style="background: #334155" data-color="#334155"></div>
+                </div>
+                <button class="example-btn" data-example="card">Ver Exemplo</button>
+              </div>
+            </div>
+            <div class="color-item">
+              <label>Texto Destaque</label>
+              <div class="color-controls">
+                <input type="color" id="color-text-accent" value="#60a5fa">
+                <span class="color-preview" style="background: #60a5fa"></span>
+                <div class="color-palette" data-target="color-text-accent">
+                  <div class="palette-color" style="background: #60a5fa" data-color="#60a5fa"></div>
+                  <div class="palette-color" style="background: #3b82f6" data-color="#3b82f6"></div>
+                  <div class="palette-color" style="background: #8b5cf6" data-color="#8b5cf6"></div>
+                  <div class="palette-color" style="background: #10b981" data-color="#10b981"></div>
+                  <div class="palette-color" style="background: #f59e0b" data-color="#f59e0b"></div>
+                </div>
+                <button class="example-btn" data-example="text-accent">Ver Exemplo</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Status & Complexidade -->
+        <div class="color-section" id="status">
+          <h4 style="color: var(--text-white); margin-bottom: 15px;">Status dos Leitos & Complexidade</h4>
+          <div class="color-grid">
+            <div class="color-item">
+              <label>Status: Vago</label>
+              <div class="color-controls">
+                <input type="color" id="color-status-vago" value="#16a34a">
+                <span class="color-preview" style="background: #16a34a"></span>
+                <div class="color-palette" data-target="color-status-vago">
+                  <div class="palette-color" style="background: #16a34a" data-color="#16a34a"></div>
+                  <div class="palette-color" style="background: #22c55e" data-color="#22c55e"></div>
+                  <div class="palette-color" style="background: #10b981" data-color="#10b981"></div>
+                  <div class="palette-color" style="background: #059669" data-color="#059669"></div>
+                  <div class="palette-color" style="background: #047857" data-color="#047857"></div>
+                </div>
+                <button class="example-btn" data-example="status-vago">Ver Exemplo</button>
+              </div>
+            </div>
+            <div class="color-item">
+              <label>Status: Em Uso</label>
+              <div class="color-controls">
+                <input type="color" id="color-status-uso" value="#f59e0b">
+                <span class="color-preview" style="background: #f59e0b"></span>
+                <div class="color-palette" data-target="color-status-uso">
+                  <div class="palette-color" style="background: #f59e0b" data-color="#f59e0b"></div>
+                  <div class="palette-color" style="background: #fbbf24" data-color="#fbbf24"></div>
+                  <div class="palette-color" style="background: #fb923c" data-color="#fb923c"></div>
+                  <div class="palette-color" style="background: #f97316" data-color="#f97316"></div>
+                  <div class="palette-color" style="background: #ea580c" data-color="#ea580c"></div>
+                </div>
+                <button class="example-btn" data-example="status-uso">Ver Exemplo</button>
+              </div>
+            </div>
+            <div class="color-item">
+              <label>Status: UTI</label>
+              <div class="color-controls">
+                <input type="color" id="color-status-uti" value="#dc2626">
+                <span class="color-preview" style="background: #dc2626"></span>
+                <div class="color-palette" data-target="color-status-uti">
+                  <div class="palette-color" style="background: #dc2626" data-color="#dc2626"></div>
+                  <div class="palette-color" style="background: #ef4444" data-color="#ef4444"></div>
+                  <div class="palette-color" style="background: #f87171" data-color="#f87171"></div>
+                  <div class="palette-color" style="background: #991b1b" data-color="#991b1b"></div>
+                  <div class="palette-color" style="background: #7f1d1d" data-color="#7f1d1d"></div>
+                </div>
+                <button class="example-btn" data-example="status-uti">Ver Exemplo</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Linhas de Cuidado -->
+        <div class="color-section" id="linhas">
+          <h4 style="color: var(--text-white); margin-bottom: 15px;">Linhas de Cuidado</h4>
+          <div class="color-grid">
+            <div class="color-item">
+              <label>APS</label>
+              <div class="color-controls">
+                <input type="color" id="color-linha-aps" value="#f59e0b">
+                <span class="color-preview" style="background: #f59e0b"></span>
+                <div class="color-palette" data-target="color-linha-aps">
+                  <div class="palette-color" style="background: #f59e0b" data-color="#f59e0b"></div>
+                  <div class="palette-color" style="background: #fbbf24" data-color="#fbbf24"></div>
+                  <div class="palette-color" style="background: #fb923c" data-color="#fb923c"></div>
+                  <div class="palette-color" style="background: #f97316" data-color="#f97316"></div>
+                </div>
+                <button class="example-btn" data-example="linha-aps">Ver Exemplo</button>
+              </div>
+            </div>
+            <div class="color-item">
+              <label>Cardiologia</label>
+              <div class="color-controls">
+                <input type="color" id="color-linha-cardiologia" value="#dc2626">
+                <span class="color-preview" style="background: #dc2626"></span>
+                <div class="color-palette" data-target="color-linha-cardiologia">
+                  <div class="palette-color" style="background: #dc2626" data-color="#dc2626"></div>
+                  <div class="palette-color" style="background: #ef4444" data-color="#ef4444"></div>
+                  <div class="palette-color" style="background: #f87171" data-color="#f87171"></div>
+                  <div class="palette-color" style="background: #991b1b" data-color="#991b1b"></div>
+                </div>
+                <button class="example-btn" data-example="linha-cardiologia">Ver Exemplo</button>
+              </div>
+            </div>
+            <div class="color-item">
+              <label>Geriatria</label>
+              <div class="color-controls">
+                <input type="color" id="color-linha-geriatria" value="#16a34a">
+                <span class="color-preview" style="background: #16a34a"></span>
+                <div class="color-palette" data-target="color-linha-geriatria">
+                  <div class="palette-color" style="background: #16a34a" data-color="#16a34a"></div>
+                  <div class="palette-color" style="background: #22c55e" data-color="#22c55e"></div>
+                  <div class="palette-color" style="background: #10b981" data-color="#10b981"></div>
+                  <div class="palette-color" style="background: #059669" data-color="#059669"></div>
+                </div>
+                <button class="example-btn" data-example="linha-geriatria">Ver Exemplo</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Concessões -->
+        <div class="color-section" id="concessoes">
+          <h4 style="color: var(--text-white); margin-bottom: 15px;">Concessões</h4>
+          <div class="color-grid">
+            <div class="color-item">
+              <label>Fisioterapia</label>
+              <div class="color-controls">
+                <input type="color" id="color-conc-fisioterapia" value="#16a34a">
+                <span class="color-preview" style="background: #16a34a"></span>
+                <div class="color-palette" data-target="color-conc-fisioterapia">
+                  <div class="palette-color" style="background: #16a34a" data-color="#16a34a"></div>
+                  <div class="palette-color" style="background: #22c55e" data-color="#22c55e"></div>
+                  <div class="palette-color" style="background: #10b981" data-color="#10b981"></div>
+                  <div class="palette-color" style="background: #059669" data-color="#059669"></div>
+                </div>
+                <button class="example-btn" data-example="conc-fisioterapia">Ver Exemplo</button>
+              </div>
+            </div>
+            <div class="color-item">
+              <label>PAD</label>
+              <div class="color-controls">
+                <input type="color" id="color-conc-pad" value="#0a2b52">
+                <span class="color-preview" style="background: #0a2b52"></span>
+                <div class="color-palette" data-target="color-conc-pad">
+                  <div class="palette-color" style="background: #0a2b52" data-color="#0a2b52"></div>
+                  <div class="palette-color" style="background: #1e40af" data-color="#1e40af"></div>
+                  <div class="palette-color" style="background: #2563eb" data-color="#2563eb"></div>
+                  <div class="palette-color" style="background: #3b82f6" data-color="#3b82f6"></div>
+                </div>
+                <button class="example-btn" data-example="conc-pad">Ver Exemplo</button>
+              </div>
+            </div>
+          </div>
+        </div>="color-item">
+              <label>Sidebar (Menu Lateral)</label>
               <input type="color" id="color-nav-sidebar" value="#0a0f1c">
               <span class="color-preview" style="background: #0a0f1c"></span>
             </div>
@@ -1322,18 +1656,45 @@
           <div class="color-grid">
             <div class="color-item">
               <label>Ouro</label>
-              <input type="color" id="color-ouro" value="#fbbf24">
-              <span class="color-preview" style="background: #fbbf24"></span>
+              <div class="color-controls">
+                <input type="color" id="color-ouro" value="#fbbf24">
+                <span class="color-preview" style="background: #fbbf24"></span>
+                <div class="color-palette" data-target="color-ouro">
+                  <div class="palette-color" style="background: #fbbf24" data-color="#fbbf24"></div>
+                  <div class="palette-color" style="background: #f59e0b" data-color="#f59e0b"></div>
+                  <div class="palette-color" style="background: #d97706" data-color="#d97706"></div>
+                  <div class="palette-color" style="background: #b45309" data-color="#b45309"></div>
+                </div>
+                <button class="example-btn" data-example="ouro">Ver Exemplo</button>
+              </div>
             </div>
             <div class="color-item">
               <label>2R</label>
-              <input type="color" id="color-r2" value="#3b82f6">
-              <span class="color-preview" style="background: #3b82f6"></span>
+              <div class="color-controls">
+                <input type="color" id="color-r2" value="#3b82f6">
+                <span class="color-preview" style="background: #3b82f6"></span>
+                <div class="color-palette" data-target="color-r2">
+                  <div class="palette-color" style="background: #3b82f6" data-color="#3b82f6"></div>
+                  <div class="palette-color" style="background: #2563eb" data-color="#2563eb"></div>
+                  <div class="palette-color" style="background: #1d4ed8" data-color="#1d4ed8"></div>
+                  <div class="palette-color" style="background: #1e40af" data-color="#1e40af"></div>
+                </div>
+                <button class="example-btn" data-example="r2">Ver Exemplo</button>
+              </div>
             </div>
             <div class="color-item">
               <label>3R</label>
-              <input type="color" id="color-r3" value="#8b5cf6">
-              <span class="color-preview" style="background: #8b5cf6"></span>
+              <div class="color-controls">
+                <input type="color" id="color-r3" value="#8b5cf6">
+                <span class="color-preview" style="background: #8b5cf6"></span>
+                <div class="color-palette" data-target="color-r3">
+                  <div class="palette-color" style="background: #8b5cf6" data-color="#8b5cf6"></div>
+                  <div class="palette-color" style="background: #7c3aed" data-color="#7c3aed"></div>
+                  <div class="palette-color" style="background: #6d28d9" data-color="#6d28d9"></div>
+                  <div class="palette-color" style="background: #5b21b6" data-color="#5b21b6"></div>
+                </div>
+                <button class="example-btn" data-example="r3">Ver Exemplo</button>
+              </div>
             </div>
           </div>
         </div>
@@ -1344,30 +1705,33 @@
           <div class="color-grid">
             <div class="color-item">
               <label>Gráfico Principal</label>
-              <input type="color" id="color-grafico-1" value="#60a5fa">
-              <span class="color-preview" style="background: #60a5fa"></span>
+              <div class="color-controls">
+                <input type="color" id="color-grafico-1" value="#60a5fa">
+                <span class="color-preview" style="background: #60a5fa"></span>
+                <div class="color-palette" data-target="color-grafico-1">
+                  <div class="palette-color" style="background: #60a5fa" data-color="#60a5fa"></div>
+                  <div class="palette-color" style="background: #3b82f6" data-color="#3b82f6"></div>
+                  <div class="palette-color" style="background: #2563eb" data-color="#2563eb"></div>
+                  <div class="palette-color" style="background: #1d4ed8" data-color="#1d4ed8"></div>
+                </div>
+                <button class="example-btn" data-example="grafico-1">Ver Exemplo</button>
+              </div>
             </div>
             <div class="color-item">
               <label>Gráfico Secundário</label>
-              <input type="color" id="color-grafico-2" value="#8b5cf6">
-              <span class="color-preview" style="background: #8b5cf6"></span>
-            </div>
-            <div class="color-item">
-              <label>Grade/Fundo</label>
-              <input type="color" id="color-grade" value="#374151">
-              <span class="color-preview" style="background: #374151"></span>
+              <div class="color-controls">
+                <input type="color" id="color-grafico-2" value="#8b5cf6">
+                <span class="color-preview" style="background: #8b5cf6"></span>
+                <div class="color-palette" data-target="color-grafico-2">
+                  <div class="palette-color" style="background: #8b5cf6" data-color="#8b5cf6"></div>
+                  <div class="palette-color" style="background: #7c3aed" data-color="#7c3aed"></div>
+                  <div class="palette-color" style="background: #6d28d9" data-color="#6d28d9"></div>
+                  <div class="palette-color" style="background: #5b21b6" data-color="#5b21b6"></div>
+                </div>
+                <button class="example-btn" data-example="grafico-2">Ver Exemplo</button>
+              </div>
             </div>
           </div>
-        </div>
-
-        <!-- Presets -->
-        <div class="color-presets">
-          <h4 style="color: var(--text-white);">Temas Predefinidos:</h4>
-          <button class="preset-btn" data-preset="default">Padrão</button>
-          <button class="preset-btn" data-preset="blue">Azul Corporativo</button>
-          <button class="preset-btn" data-preset="green">Verde Saúde</button>
-          <button class="preset-btn" data-preset="purple">Roxo Medicina</button>
-          <button class="preset-btn" data-preset="dark">Escuro Total</button>
         </div>
       </div>
       <div class="actions">
@@ -1667,6 +2031,11 @@ function setTab(tab){
 
 function setHospitalSelectors(h){
   currentHospital = h;
+  // Atualizar botões novos
+  document.querySelectorAll('.hospital-btn').forEach(btn => btn.classList.remove('active'));
+  $(`.hospital-btn[data-h="${h}"]`)?.classList.add('active');
+  
+  // Manter compatibilidade com botões antigos
   document.querySelectorAll('.btn[data-h]').forEach(btn => btn.classList.remove('active'));
   $(`.btn[data-h="${h}"]`)?.classList.add('active');
 }
@@ -1681,11 +2050,11 @@ function route(){
   const activeSectionId = activeTab === 'leitos' ? 'leitosView' : activeTab;
   $(`#${activeSectionId}`)?.classList.remove("hidden");
 
-  // Mostrar toolbar apenas no modo leitos
+  // Mostrar seletor de hospital apenas no modo leitos
   if (activeTab === 'leitos') {
-    $('#portalToolbar').style.display = 'flex';
+    $('#hospitalSelector').style.display = 'flex';
   } else {
-    $('#portalToolbar').style.display = 'none';
+    $('#hospitalSelector').style.display = 'none';
   }
 
   if(activeTab === "leitos") renderCards();
@@ -2667,7 +3036,7 @@ function initColorConfig() {
     }
   }
   
-  // Configurar inputs de cor
+  // Configurar inputs de cor COM PALETAS
   Object.keys(colorConfig).forEach(category => {
     Object.keys(colorConfig[category]).forEach(colorKey => {
       const input = document.getElementById(`color-${colorKey}`);
@@ -2682,6 +3051,105 @@ function initColorConfig() {
       }
     });
   });
+
+  // Configurar paletas de cores
+  document.querySelectorAll('.color-palette').forEach(palette => {
+    const targetInputId = palette.dataset.target;
+    palette.querySelectorAll('.palette-color').forEach(colorDiv => {
+      colorDiv.addEventListener('click', () => {
+        const color = colorDiv.dataset.color;
+        const input = document.getElementById(targetInputId);
+        if (input) {
+          input.value = color;
+          const preview = input.nextElementSibling;
+          if (preview) preview.style.background = color;
+          
+          // Atualizar configuração
+          Object.keys(colorConfig).forEach(category => {
+            Object.keys(colorConfig[category]).forEach(colorKey => {
+              if (`color-${colorKey}` === targetInputId) {
+                colorConfig[category][colorKey] = color;
+              }
+            });
+          });
+          
+          applyColors();
+        }
+      });
+    });
+  });
+
+  // Configurar botões de exemplo
+  document.querySelectorAll('.example-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const example = btn.dataset.example;
+      showColorExample(example);
+    });
+  });
+}
+
+function showColorExample(colorType) {
+  // Função para mostrar exemplo visual da cor
+  let exampleText = '';
+  let exampleColor = '';
+  
+  switch(colorType) {
+    case 'nav-sidebar':
+      exampleText = 'Esta cor será aplicada ao menu lateral (sidebar)';
+      exampleColor = colorConfig.layout['nav-sidebar'];
+      break;
+    case 'nav-header':
+      exampleText = 'Esta cor será aplicada à barra superior (header)';
+      exampleColor = colorConfig.layout['nav-header'];
+      break;
+    case 'card':
+      exampleText = 'Esta cor será aplicada aos cards e modais';
+      exampleColor = colorConfig.layout.card;
+      break;
+    case 'text-accent':
+      exampleText = 'Esta cor será aplicada aos textos de destaque';
+      exampleColor = colorConfig.layout['text-accent'];
+      break;
+    case 'status-vago':
+      exampleText = 'Esta cor representa leitos VAGOS';
+      exampleColor = colorConfig.status['status-vago'];
+      break;
+    case 'status-uso':
+      exampleText = 'Esta cor representa leitos EM USO';
+      exampleColor = colorConfig.status['status-uso'];
+      break;
+    case 'status-uti':
+      exampleText = 'Esta cor representa leitos UTI';
+      exampleColor = colorConfig.status['status-uti'];
+      break;
+    default:
+      exampleText = `Exemplo de cor para ${colorType}`;
+      exampleColor = '#60a5fa';
+  }
+  
+  // Criar preview temporário
+  const preview = document.createElement('div');
+  preview.style.cssText = `
+    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    background: ${exampleColor}; color: white; padding: 30px; border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5); z-index: 3000;
+    text-align: center; font-weight: 600; max-width: 300px;
+  `;
+  preview.innerHTML = `
+    <h3 style="margin: 0 0 15px 0;">Preview da Cor</h3>
+    <p style="margin: 0 0 20px 0;">${exampleText}</p>
+    <button onclick="this.parentElement.remove()" style="
+      background: rgba(255,255,255,0.2); border: none; color: white;
+      padding: 8px 16px; border-radius: 6px; cursor: pointer;
+    ">Fechar Preview</button>
+  `;
+  
+  document.body.appendChild(preview);
+  
+  // Remover automaticamente após 5 segundos
+  setTimeout(() => {
+    if (preview.parentElement) preview.remove();
+  }, 5000);
 }
 
 function applyColors() {
