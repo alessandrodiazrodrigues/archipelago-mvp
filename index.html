@@ -81,8 +81,12 @@
       font-family: 'Open Sans', sans-serif;
       background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
       color: var(--text);
-      padding-left: 300px;
+      padding-left: 0;
       transition: padding-left 0.3s ease;
+    }
+
+    body.menu-open {
+      padding-left: 300px;
     }
 
     /* =================== LOADING OVERLAY =================== */
@@ -121,7 +125,7 @@
     .header-left { display: flex; align-items: center; gap: 20px; }
     .hamburger-menu { 
       font-size: 24px; cursor: pointer; 
-      display: none;
+      display: block;
     }
 
     .brand h1 {
@@ -153,27 +157,31 @@
 
     /* =================== MENU LATERAL CORPORATIVO (300px) =================== */
     #side-menu {
-      position: fixed; top: 0; left: 0; width: 300px; height: 100%;
+      position: fixed; top: 0; left: -300px; width: 300px; height: 100%;
       background: var(--nav-sidebar);
       box-shadow: var(--shadow-2);
       border-right: 1px solid var(--border);
-      z-index: 1001; padding-top: 80px;
+      z-index: 1001; padding-top: 60px;
       transition: left 0.3s ease; display: flex; flex-direction: column;
+    }
+
+    #side-menu.open {
+      left: 0;
     }
 
     /* Botão de fechar dentro do menu lateral */
     .close-menu-btn { 
-      position: absolute; top: 20px; right: 20px;
-      font-size: 16px; cursor: pointer;
-      background: rgba(255,255,255,0.1); padding: 8px 12px;
-      border-radius: 8px; border: 1px solid rgba(255,255,255,0.2);
+      position: absolute; top: 15px; right: 15px;
+      font-size: 14px; cursor: pointer;
+      background: rgba(255,255,255,0.15); padding: 6px 10px;
+      border-radius: 6px; border: 1px solid rgba(255,255,255,0.25);
       color: var(--text-white); font-weight: 600;
       text-transform: uppercase; letter-spacing: 0.5px;
-      display: none;
+      display: block;
     }
 
     .close-menu-btn:hover {
-      background: rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.25);
     }
 
     .menu-items {
@@ -524,40 +532,7 @@
 
     /* =================== RESPONSIVIDADE =================== */
     @media (max-width: 1024px) {
-      body { 
-        padding-left: 0; 
-      }
-      
-      body.menu-open {
-        padding-left: 300px;
-      }
-      
-      #side-menu { 
-        left: -300px; 
-      }
-      
-      #side-menu.open { 
-        left: 0; 
-      }
-      
-      .hamburger-menu {
-        display: block;
-      }
-      
-      .close-menu-btn {
-        display: block !important;
-      }
-      
-      .hospital-selector {
-        flex-direction: column;
-        align-items: center;
-        gap: 15px;
-      }
-      
-      .hospital-btn {
-        width: 100%;
-        max-width: 300px;
-      }
+      /* Em telas pequenas, o comportamento permanece o mesmo */
     }
 
     @media (max-width: 768px) {
@@ -3079,9 +3054,8 @@ function checkQRParams() {
 function toggleMenu() {
   const body = document.body;
   const sideMenu = document.getElementById('side-menu');
-  const hamburgerMenu = document.getElementById('hamburgerMenu');
   
-  if (body.classList.contains('menu-open')) {
+  if (sideMenu.classList.contains('open')) {
     // Fechar menu
     body.classList.remove('menu-open');
     sideMenu.classList.remove('open');
@@ -3109,10 +3083,8 @@ function setupEventListeners() {
     b.onclick = (e)=> {
       e.preventDefault();
       setTab(b.dataset.tab);
-      // Fechar menu em mobile após seleção
-      if (window.innerWidth <= 1024) {
-        closeMenu();
-      }
+      // Fechar menu após seleção
+      closeMenu();
     };
   });
   
