@@ -656,8 +656,8 @@
     /* =================== IMPRESSÃO DE QR CODES =================== */
     @media print {
       @page {
-        size: A4;
-        margin: 15mm;
+        size: A4 portrait;
+        margin: 35mm;
       }
       
       * {
@@ -707,7 +707,7 @@
         width: 100% !important;
         height: auto !important;
         margin: 0 !important;
-        padding: 5mm !important;
+        padding: 0 !important;
         border: none !important;
         box-shadow: none !important;
         display: block !important;
@@ -717,6 +717,8 @@
         padding: 0 !important;
         display: block !important;
         background: white !important;
+        width: 100% !important;
+        height: 100% !important;
       }
       
       /* Ocultar controles */
@@ -727,27 +729,32 @@
         display: none !important;
       }
       
-      /* Grid principal */
+      /* Grid otimizado para 6 QR codes (2 linhas x 3 colunas) */
       #qr_grid {
         display: grid !important;
         grid-template-columns: repeat(3, 1fr) !important;
+        grid-template-rows: repeat(2, 1fr) !important;
         gap: 8mm !important;
         padding: 0 !important;
         width: 100% !important;
+        height: 100% !important;
         background: white !important;
         visibility: visible !important;
         margin: 0 !important;
+        box-sizing: border-box !important;
       }
       
-      /* Células QR */
+      /* Células QR - ajustadas para caber 6 por página */
       .qr-cell {
         background: white !important;
         border: 1px solid #000 !important;
-        border-radius: 3mm !important;
-        padding: 4mm !important;
+        border-radius: 2mm !important;
+        padding: 3mm !important;
         text-align: center !important;
         width: auto !important;
-        height: 75mm !important;
+        height: auto !important;
+        min-height: 60mm !important;
+        max-height: 70mm !important;
         display: flex !important;
         flex-direction: column !important;
         align-items: center !important;
@@ -759,24 +766,24 @@
         position: relative !important;
       }
       
-      /* Container QR - forçar apenas um elemento */
+      /* Container QR - tamanho otimizado */
       .qr-cell > div:first-child {
-        width: 50mm !important;
-        height: 50mm !important;
+        width: 40mm !important;
+        height: 40mm !important;
         display: block !important;
-        margin-bottom: 3mm !important;
+        margin-bottom: 2mm !important;
         background: white !important;
         visibility: visible !important;
         position: relative !important;
         overflow: hidden !important;
       }
       
-      /* CRÍTICO: Mostrar apenas IMG, ocultar CANVAS */
+      /* Mostrar apenas IMG, ocultar CANVAS */
       .qr-cell img {
-        width: 50mm !important;
-        height: 50mm !important;
-        max-width: 50mm !important;
-        max-height: 50mm !important;
+        width: 40mm !important;
+        height: 40mm !important;
+        max-width: 40mm !important;
+        max-height: 40mm !important;
         visibility: visible !important;
         display: block !important;
         margin: 0 auto !important;
@@ -790,17 +797,27 @@
         visibility: hidden !important;
       }
       
-      /* Labels */
+      /* Labels - tamanho menor */
       .qr-cell > div:last-child {
-        font-size: 11pt !important;
+        font-size: 9pt !important;
         color: #000 !important;
         font-weight: bold !important;
         text-align: center !important;
         visibility: visible !important;
         display: block !important;
-        margin-top: 2mm !important;
-        line-height: 1.2 !important;
+        margin-top: 1mm !important;
+        line-height: 1.1 !important;
         width: 100% !important;
+        word-wrap: break-word !important;
+      }
+      
+      /* Quebra de página a cada 6 elementos */
+      .qr-cell:nth-child(6n+1) {
+        page-break-before: auto;
+      }
+      
+      .qr-cell:nth-child(7) {
+        page-break-before: always;
       }
     }
   </style>
