@@ -556,7 +556,7 @@
     .backdrop {
       position: fixed; inset: 0; background: rgba(10, 15, 28, 0.8);
       backdrop-filter: blur(10px); display: none; align-items: center;
-      justify-content: center; padding: 16px; z-index: 1000; overflow: auto;
+      justify-content: center; padding: 16px; z-index: 2000; overflow: auto;
     }
 
     .modal {
@@ -655,12 +655,24 @@
 
     /* =================== IMPRESSÃO DE QR CODES =================== */
     @media print {
+      * {
+        -webkit-print-color-adjust: exact !important;
+        color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
       body * {
-        visibility: hidden;
+        visibility: hidden !important;
       }
       
-      #modalBulkQR, #modalBulkQR * {
-        visibility: visible;
+      #modalBulkQR,
+      #modalBulkQR *,
+      #qr_grid,
+      #qr_grid *,
+      .qr-cell,
+      .qr-cell * {
+        visibility: visible !important;
+        display: block !important;
       }
       
       #modalBulkQR {
@@ -675,6 +687,7 @@
         width: 100% !important;
         height: 100% !important;
         overflow: visible !important;
+        z-index: auto !important;
       }
       
       #modalBulkQR .modal {
@@ -689,19 +702,25 @@
         width: 100% !important;
         height: 100% !important;
         overflow: visible !important;
+        display: flex !important;
+        flex-direction: column !important;
       }
       
       #modalBulkQR header,
       #modalBulkQR .actions,
       #modalBulkQR .content > div:first-child {
         display: none !important;
+        visibility: hidden !important;
       }
       
       #qr_grid {
         display: grid !important;
         grid-template-columns: repeat(3, 1fr) !important;
         gap: 20px !important;
-        page-break-inside: avoid;
+        page-break-inside: avoid !important;
+        visibility: visible !important;
+        width: 100% !important;
+        background: white !important;
       }
       
       .qr-cell {
@@ -710,14 +729,40 @@
         border-radius: 10px !important;
         padding: 15px !important;
         text-align: center !important;
-        page-break-inside: avoid;
+        page-break-inside: avoid !important;
         min-height: 250px !important;
+        visibility: visible !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
       }
       
       .qr-cell canvas,
       .qr-cell img {
         max-width: 160px !important;
         max-height: 160px !important;
+        width: 160px !important;
+        height: 160px !important;
+        visibility: visible !important;
+        display: block !important;
+        margin: 0 auto !important;
+      }
+      
+      .qr-cell div {
+        visibility: visible !important;
+        display: block !important;
+      }
+      
+      /* Forçar visibilidade de todos os elementos QR */
+      [id^="qr-container-"],
+      [id^="qr-container-"] *,
+      #qr_grid canvas,
+      #qr_grid img,
+      #qr_grid div {
+        visibility: visible !important;
+        display: block !important;
+        opacity: 1 !important;
       }
     }
   </style>
@@ -3019,19 +3064,79 @@ function buildQRGrid(){
   const t = Math.min(to, limit);
   const base = `${location.origin}${location.pathname}`;
   const grid = $("#qr_grid");
+  
+  // Limpar grid anterior
   grid.innerHTML = "";
   
-  for(let i=f; i<=t; i++){
-    const url = `${base}?h=${h}&leito=${i}`;
-    const cell = document.createElement("div");
-    cell.style.cssText = "background:white;border:2px solid #333;border-radius:10px;padding:15px;text-align:center;min-height:250px;";
-    cell.innerHTML = `
-      <div style="display:inline-block;border:1px solid var(--border);padding:8px;border-radius:10px;background:white;margin-bottom:10px"></div>
-      <div style="font-size:12px;color:#333">Leito ${i} • ${HOSPITAIS[h].nome}</div>
-    `;
-    grid.appendChild(cell);
-    new QRCode(cell.querySelector("div"), {text:url, width:160, height:160});
-  }
+  // Aguardar um pouco para garantir que o DOM esteja limpo
+  setTimeout(() => {
+    for(let i=f; i<=t; i++){
+      const url = `${base}?h=${h}&leito=${i}`;
+      const cell = document.createElement("div");
+      cell.className = "qr-cell";
+      cell.style.cssText = "background:white!important;border:2px solid #333!important;border-radius:10px!important;padding:15px!important;text-align:center!important;min-height:250px!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;page-break-inside:avoid!important;";
+      
+      const qrContainer = document.createElement("div");
+      qrContainer.id = `qr-container-${i}`;
+      qrContainer.style.cssText = "margin-bottom:15px!important;width:160px!important;height:160px!important;display:flex!important;align-items:center!important;justify-content:center!important;";
+      
+      const textLabel = document.createElement("div");
+      textLabel.style.cssText = "font-size:14px!important;color:#333!important;font-weight:600!important;";
+      textLabel.textContent = `Leito ${i} • ${HOSPITAIS[h].nome}`;
+      
+      cell.appendChild(qrContainer);
+      cell.appendChild(textLabel);
+      grid.appendChild(cell);
+      
+      // Gerar QR code com timeout para garantir renderização
+      setTimeout(() => {
+        try {
+          const qr = new QRCode(qrContainer, {
+            text: url,
+            width: 160,
+            height: 160,
+            colorDark: "#000000",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.M
+          });
+          
+          // Aguardar a geração e depois forçar estilos para impressão
+          setTimeout(() => {
+            const qrImg = qrContainer.querySelector('img');
+            const qrCanvas = qrContainer.querySelector('canvas');
+            
+            if (qrImg) {
+              qrImg.style.cssText += "width:160px!important;height:160px!important;display:block!important;visibility:visible!important;";
+            }
+            if (qrCanvas) {
+              qrCanvas.style.cssText += "width:160px!important;height:160px!important;display:block!important;visibility:visible!important;";
+            }
+          }, 100);
+          
+        } catch(error) {
+          console.error("Erro ao gerar QR code:", error);
+          // Fallback manual
+          qrContainer.innerHTML = `
+            <div style="width:160px!important;height:160px!important;background:#f0f0f0!important;display:flex!important;align-items:center!important;justify-content:center!important;border:1px solid #ccc!important;font-size:12px!important;color:#666!important;">
+              QR Code<br>${url.substring(0,20)}...
+            </div>
+          `;
+        }
+      }, i * 50); // Delay progressivo para cada QR
+    }
+    
+    // Log final após todos os QR codes
+    setTimeout(() => {
+      logSuccess(`QR codes gerados: ${t-f+1} códigos para ${HOSPITAIS[h].nome}`);
+      
+      // Forçar estilos de impressão em todos os elementos
+      const allQRElements = grid.querySelectorAll('*');
+      allQRElements.forEach(el => {
+        el.style.cssText += "visibility:visible!important;";
+      });
+    }, (t-f+1) * 50 + 200);
+    
+  }, 100);
 }
 
 // Verificar se a URL contém parâmetros QR na inicialização
