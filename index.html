@@ -1503,7 +1503,7 @@ function renderCards(){
     const statusClass = l.status==="Em uso" ? "warn" : "ok";
     const tipoClass   = l.tipo==="UTI" ? "uti" : "enf";
     
-    // CAMPOS CORRETOS COM A NOVA ESTRUTURA
+    // ✅ CORREÇÃO FINAL: MAPEAMENTO CORRETO DOS CAMPOS
     const complexidadeDisplay = l.complexidade ? `Nível ${l.complexidade}` : "—";
     const prevAltaDisplay = l.prevAlta || "—";
     
@@ -1569,7 +1569,7 @@ function renderCards(){
     container.appendChild(card);
   });
 }
-
+  
 // =======================================================================
 // ======================== FLUXOS DE MODAIS ===========================
 // =======================================================================
@@ -1761,12 +1761,12 @@ function renderDash1() {
     if (statVagosH) statVagosH.textContent = vagos;
     if (gaugePercentH) gaugePercentH.textContent = taxaOcupacao + '%';
 
-    // Criar gauge semicírculo
+    // Criar gauge semicírculo - CORREÇÃO: ID CORRETO
     let corGauge = '#16a34a'; // Verde
     if (taxaOcupacao > 90) corGauge = '#dc2626'; // Vermelho
     else if (taxaOcupacao > 80) corGauge = '#f59e0b'; // Amarelo
 
-    createChart(`chartOcupacao${h.charAt(1)}`, `chartGauge${h.charAt(1)}`, {
+    createChart(`chartOcupacao${h}`, `chartGauge${h}`, {  // ✅ CORRIGIDO: chartOcupacaoH1, chartOcupacaoH2
       type: 'doughnut',
       data: {
         datasets: [{
@@ -1802,7 +1802,7 @@ function renderDash1() {
       labels.push(data.toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'}));
     }
 
-    // CORREÇÃO: Gráfico de Concessões com dados válidos
+    // CORREÇÃO: Gráfico de Concessões com dados válidos - ID CORRETO
     const concessoesDataHospital = {};
     pacientesComPrevisao.forEach(paciente => {
       const dias = getDiasAteAlta(paciente.prevAlta);
@@ -1822,7 +1822,7 @@ function renderDash1() {
     const sortedConcessoes = Object.entries(concessoesDataHospital).sort((a,b) => a[0].localeCompare(b[0]));
     
     if (sortedConcessoes.length > 0) {
-      createChart(`chartConcessoes${h.charAt(1)}`, `chartConcessoesInst${h.charAt(1)}`, {
+      createChart(`chartConcessoes${h}`, `chartConcessoesInst${h}`, {  // ✅ CORRIGIDO: chartConcessoesH1, chartConcessoesH2
         type: 'bar',
         data: {
           labels: labels,
@@ -1872,7 +1872,7 @@ function renderDash1() {
       });
     } else {
       // Gráfico vazio com mensagem
-      const canvas = document.getElementById(`chartConcessoes${h.charAt(1)}`);
+      const canvas = document.getElementById(`chartConcessoes${h}`);  // ✅ CORRIGIDO
       if (canvas) {
         const ctx = canvas.getContext('2d');
         ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -1883,7 +1883,7 @@ function renderDash1() {
       }
     }
 
-    // CORREÇÃO: Gráfico de Linhas de Cuidado com dados válidos
+    // CORREÇÃO: Gráfico de Linhas de Cuidado com dados válidos - ID CORRETO
     const linhasDataHospital = {};
     pacientesComPrevisao.forEach(paciente => {
       const dias = getDiasAteAlta(paciente.prevAlta);
@@ -1903,7 +1903,7 @@ function renderDash1() {
     const sortedLinhas = Object.entries(linhasDataHospital).sort((a,b) => a[0].localeCompare(b[0]));
     
     if (sortedLinhas.length > 0) {
-      createChart(`chartLinhas${h.charAt(1)}`, `chartLinhasInst${h.charAt(1)}`, {
+      createChart(`chartLinhas${h}`, `chartLinhasInst${h}`, {  // ✅ CORRIGIDO: chartLinhasH1, chartLinhasH2
         type: 'bar',
         data: {
           labels: labels,
@@ -1953,7 +1953,7 @@ function renderDash1() {
       });
     } else {
       // Gráfico vazio com mensagem
-      const canvas = document.getElementById(`chartLinhas${h.charAt(1)}`);
+      const canvas = document.getElementById(`chartLinhas${h}`);  // ✅ CORRIGIDO
       if (canvas) {
         const ctx = canvas.getContext('2d');
         ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -1964,7 +1964,7 @@ function renderDash1() {
       }
     }
 
-    // CORREÇÃO: Gráfico de Complexidade
+    // CORREÇÃO: Gráfico de Complexidade - ID CORRETO
     const complexidadeDataHospital = { 'I': 0, 'II': 0, 'III': 0 };
     const totalPacientes = dados.filter(l => l.status === 'Em uso').length;
     
@@ -1982,7 +1982,7 @@ function renderDash1() {
         ((complexidadeDataHospital[key] / totalPacientes) * 100).toFixed(1) : 0;
     });
 
-    createChart(`chartComplexidade${h.charAt(1)}`, `chartComplexidadeInst${h.charAt(1)}`, {
+    createChart(`chartComplexidade${h}`, `chartComplexidadeInst${h}`, {  // ✅ CORRIGIDO: chartComplexidadeH1, chartComplexidadeH2
       type: 'bar',
       data: {
         labels: ['Nível I', 'Nível II', 'Nível III'],
@@ -2034,8 +2034,8 @@ function renderDash1() {
   
   logSuccess('Dashboard Hospitais renderizado com sucesso!');
 }
-
-function renderDash2(allData) {
+  
+  function renderDash2(allData) {
     logInfo("Renderizando Dashboard Executivo...");
     
     // KPIs Consolidados
