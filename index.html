@@ -729,12 +729,12 @@
         display: none !important;
       }
       
-      /* Grid otimizado para 6 QR codes (2 linhas x 3 colunas) */
+      /* Grid otimizado para 6 QR codes (3 linhas x 2 colunas) */
       #qr_grid {
         display: grid !important;
-        grid-template-columns: repeat(3, 1fr) !important;
-        grid-template-rows: repeat(2, 1fr) !important;
-        gap: 8mm !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        grid-template-rows: repeat(3, 1fr) !important;
+        gap: 10mm !important;
         padding: 0 !important;
         width: 100% !important;
         height: 100% !important;
@@ -744,17 +744,17 @@
         box-sizing: border-box !important;
       }
       
-      /* Células QR - ajustadas para caber 6 por página */
+      /* Células QR - mais largas para 2 colunas */
       .qr-cell {
         background: white !important;
         border: 1px solid #000 !important;
-        border-radius: 2mm !important;
-        padding: 3mm !important;
+        border-radius: 3mm !important;
+        padding: 5mm !important;
         text-align: center !important;
         width: auto !important;
         height: auto !important;
-        min-height: 60mm !important;
-        max-height: 70mm !important;
+        min-height: 65mm !important;
+        max-height: 75mm !important;
         display: flex !important;
         flex-direction: column !important;
         align-items: center !important;
@@ -766,24 +766,24 @@
         position: relative !important;
       }
       
-      /* Container QR - tamanho otimizado */
+      /* Container QR - tamanho maior para layout 2x3 */
       .qr-cell > div:first-child {
-        width: 40mm !important;
-        height: 40mm !important;
+        width: 45mm !important;
+        height: 45mm !important;
         display: block !important;
-        margin-bottom: 2mm !important;
+        margin-bottom: 3mm !important;
         background: white !important;
         visibility: visible !important;
         position: relative !important;
         overflow: hidden !important;
       }
       
-      /* Mostrar apenas IMG, ocultar CANVAS */
+      /* QR images maiores */
       .qr-cell img {
-        width: 40mm !important;
-        height: 40mm !important;
-        max-width: 40mm !important;
-        max-height: 40mm !important;
+        width: 45mm !important;
+        height: 45mm !important;
+        max-width: 45mm !important;
+        max-height: 45mm !important;
         visibility: visible !important;
         display: block !important;
         margin: 0 auto !important;
