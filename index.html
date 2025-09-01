@@ -657,7 +657,7 @@
     @media print {
       @page {
         size: A4;
-        margin: 10mm;
+        margin: 15mm;
       }
       
       * {
@@ -672,12 +672,14 @@
       #modalBulkQR .modal,
       #modalBulkQR .content,
       #qr_grid,
-      .qr-cell,
-      .qr-cell *,
-      #qr_grid .qr-cell,
-      #qr_grid .qr-cell * {
+      .qr-cell {
         visibility: visible !important;
         opacity: 1 !important;
+      }
+      
+      /* Ocultar tudo exceto modal QR */
+      body > *:not(#modalBulkQR) {
+        display: none !important;
       }
       
       body {
@@ -687,14 +689,14 @@
       }
       
       #modalBulkQR {
-        position: fixed !important;
-        top: 0 !important;
-        left: 0 !important;
-        right: 0 !important;
-        bottom: 0 !important;
+        position: static !important;
         background: white !important;
-        z-index: 9999 !important;
+        z-index: auto !important;
         display: block !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
       }
       
       #modalBulkQR .modal {
@@ -703,9 +705,9 @@
         max-width: none !important;
         max-height: none !important;
         width: 100% !important;
-        height: 100% !important;
+        height: auto !important;
         margin: 0 !important;
-        padding: 0 !important;
+        padding: 5mm !important;
         border: none !important;
         box-shadow: none !important;
         display: block !important;
@@ -713,16 +715,16 @@
       
       #modalBulkQR .content {
         padding: 0 !important;
-        height: 100% !important;
         display: block !important;
+        background: white !important;
       }
       
       /* Ocultar controles */
       #modalBulkQR header,
       #modalBulkQR .content > div:first-child,
+      .btn,
       button {
         display: none !important;
-        visibility: hidden !important;
       }
       
       /* Grid principal */
@@ -730,12 +732,11 @@
         display: grid !important;
         grid-template-columns: repeat(3, 1fr) !important;
         gap: 8mm !important;
-        padding: 5mm !important;
+        padding: 0 !important;
         width: 100% !important;
-        height: 100% !important;
         background: white !important;
-        page-break-inside: avoid !important;
         visibility: visible !important;
+        margin: 0 !important;
       }
       
       /* Células QR */
@@ -743,10 +744,10 @@
         background: white !important;
         border: 1px solid #000 !important;
         border-radius: 3mm !important;
-        padding: 3mm !important;
+        padding: 4mm !important;
         text-align: center !important;
-        width: 60mm !important;
-        height: 70mm !important;
+        width: auto !important;
+        height: 75mm !important;
         display: flex !important;
         flex-direction: column !important;
         align-items: center !important;
@@ -755,42 +756,51 @@
         visibility: visible !important;
         box-sizing: border-box !important;
         margin: 0 !important;
+        position: relative !important;
       }
       
-      /* Container QR */
+      /* Container QR - forçar apenas um elemento */
       .qr-cell > div:first-child {
-        width: 45mm !important;
-        height: 45mm !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        margin-bottom: 2mm !important;
+        width: 50mm !important;
+        height: 50mm !important;
+        display: block !important;
+        margin-bottom: 3mm !important;
         background: white !important;
         visibility: visible !important;
+        position: relative !important;
+        overflow: hidden !important;
       }
       
-      /* QR images */
-      .qr-cell img,
-      .qr-cell canvas {
-        width: 45mm !important;
-        height: 45mm !important;
-        max-width: 45mm !important;
-        max-height: 45mm !important;
+      /* CRÍTICO: Mostrar apenas IMG, ocultar CANVAS */
+      .qr-cell img {
+        width: 50mm !important;
+        height: 50mm !important;
+        max-width: 50mm !important;
+        max-height: 50mm !important;
         visibility: visible !important;
         display: block !important;
-        margin: 0 !important;
+        margin: 0 auto !important;
         opacity: 1 !important;
+        position: relative !important;
+        z-index: 2 !important;
+      }
+      
+      .qr-cell canvas {
+        display: none !important;
+        visibility: hidden !important;
       }
       
       /* Labels */
       .qr-cell > div:last-child {
-        font-size: 10pt !important;
+        font-size: 11pt !important;
         color: #000 !important;
         font-weight: bold !important;
         text-align: center !important;
         visibility: visible !important;
         display: block !important;
         margin-top: 2mm !important;
+        line-height: 1.2 !important;
+        width: 100% !important;
       }
     }
   </style>
