@@ -657,7 +657,7 @@
     @media print {
       @page {
         size: A4 portrait;
-        margin: 35mm;
+        margin: 20mm 35mm;
       }
       
       * {
@@ -672,6 +672,7 @@
       #modalBulkQR .modal,
       #modalBulkQR .content,
       #qr_grid,
+      .qr-page,
       .qr-cell {
         visibility: visible !important;
         opacity: 1 !important;
@@ -696,7 +697,7 @@
         padding: 0 !important;
         margin: 0 !important;
         width: 100% !important;
-        height: 100% !important;
+        height: auto !important;
       }
       
       #modalBulkQR .modal {
@@ -718,7 +719,7 @@
         display: block !important;
         background: white !important;
         width: 100% !important;
-        height: 100% !important;
+        height: auto !important;
       }
       
       /* Ocultar controles */
@@ -729,7 +730,7 @@
         display: none !important;
       }
       
-      /* Grid otimizado para 6 QR codes (3 linhas x 2 colunas) */
+      /* Grid otimizado para múltiplas páginas */
       #qr_grid {
         display: block !important;
         width: 100% !important;
@@ -743,31 +744,31 @@
       .qr-page {
         display: grid !important;
         grid-template-columns: repeat(2, 1fr) !important;
-        grid-template-rows: repeat(3, 1fr) !important;
-        gap: 10mm !important;
+        grid-template-rows: repeat(3, auto) !important;
+        gap: 8mm !important;
         width: 100% !important;
-        height: 100vh !important;
+        height: auto !important;
+        max-height: 240mm !important;
         page-break-after: always !important;
         page-break-inside: avoid !important;
         margin: 0 !important;
         padding: 0 !important;
+        visibility: visible !important;
       }
       
       .qr-page:last-child {
         page-break-after: avoid !important;
       }
       
-      /* Células QR - mais largas para 2 colunas */
+      /* Células QR - altura fixa menor */
       .qr-cell {
         background: white !important;
         border: 1px solid #000 !important;
         border-radius: 3mm !important;
-        padding: 5mm !important;
+        padding: 4mm !important;
         text-align: center !important;
         width: auto !important;
-        height: auto !important;
-        min-height: 65mm !important;
-        max-height: 75mm !important;
+        height: 70mm !important;
         display: flex !important;
         flex-direction: column !important;
         align-items: center !important;
@@ -779,24 +780,24 @@
         position: relative !important;
       }
       
-      /* Container QR - tamanho maior para layout 2x3 */
+      /* Container QR - tamanho reduzido */
       .qr-cell > div:first-child {
-        width: 45mm !important;
-        height: 45mm !important;
+        width: 40mm !important;
+        height: 40mm !important;
         display: block !important;
-        margin-bottom: 3mm !important;
+        margin-bottom: 2mm !important;
         background: white !important;
         visibility: visible !important;
         position: relative !important;
         overflow: hidden !important;
       }
       
-      /* QR images maiores */
+      /* QR images */
       .qr-cell img {
-        width: 45mm !important;
-        height: 45mm !important;
-        max-width: 45mm !important;
-        max-height: 45mm !important;
+        width: 40mm !important;
+        height: 40mm !important;
+        max-width: 40mm !important;
+        max-height: 40mm !important;
         visibility: visible !important;
         display: block !important;
         margin: 0 auto !important;
@@ -804,6 +805,26 @@
         position: relative !important;
         z-index: 2 !important;
       }
+      
+      .qr-cell canvas {
+        display: none !important;
+        visibility: hidden !important;
+      }
+      
+      /* Labels - fonte menor */
+      .qr-cell > div:last-child {
+        font-size: 9pt !important;
+        color: #000 !important;
+        font-weight: bold !important;
+        text-align: center !important;
+        visibility: visible !important;
+        display: block !important;
+        margin-top: 1mm !important;
+        line-height: 1.1 !important;
+        width: 100% !important;
+        word-wrap: break-word !important;
+      }
+    }
       
       .qr-cell canvas {
         display: none !important;
