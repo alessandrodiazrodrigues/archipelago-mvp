@@ -655,148 +655,142 @@
 
     /* =================== IMPRESSÃO DE QR CODES =================== */
     @media print {
+      @page {
+        size: A4;
+        margin: 10mm;
+      }
+      
       * {
         -webkit-print-color-adjust: exact !important;
         color-adjust: exact !important;
         print-color-adjust: exact !important;
-      }
-
-      body * {
         visibility: hidden !important;
       }
-      
-      /* Tornar visível apenas o modal e conteúdo QR */
+
+      /* Apenas elementos QR visíveis */
       #modalBulkQR,
       #modalBulkQR .modal,
       #modalBulkQR .content,
       #qr_grid,
-      #qr_grid *,
       .qr-cell,
       .qr-cell *,
-      [id^="qr-cell-"],
-      [id^="qr-cell-"] *,
-      [id^="qr-container-"],
-      [id^="qr-container-"] * {
+      #qr_grid .qr-cell,
+      #qr_grid .qr-cell * {
         visibility: visible !important;
-        display: block !important;
         opacity: 1 !important;
       }
       
-      #modalBulkQR {
-        position: static !important;
+      body {
         background: white !important;
-        box-shadow: none !important;
-        border: none !important;
-        max-width: none !important;
-        max-height: none !important;
         margin: 0 !important;
         padding: 0 !important;
-        width: 100% !important;
-        height: 100% !important;
-        overflow: visible !important;
-        z-index: auto !important;
+      }
+      
+      #modalBulkQR {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        background: white !important;
+        z-index: 9999 !important;
+        display: block !important;
       }
       
       #modalBulkQR .modal {
         position: static !important;
         background: white !important;
-        box-shadow: none !important;
-        border: none !important;
         max-width: none !important;
         max-height: none !important;
-        margin: 0 !important;
-        padding: 0 !important;
         width: 100% !important;
         height: 100% !important;
-        overflow: visible !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
         display: block !important;
       }
       
       #modalBulkQR .content {
-        padding: 20px !important;
-        overflow: visible !important;
-        flex: none !important;
+        padding: 0 !important;
+        height: 100% !important;
+        display: block !important;
       }
       
-      /* Ocultar elementos desnecessários na impressão */
+      /* Ocultar controles */
       #modalBulkQR header,
-      #modalBulkQR .actions,
       #modalBulkQR .content > div:first-child,
-      #b_generate,
-      #b_print,
       button {
         display: none !important;
         visibility: hidden !important;
       }
       
-      /* Grid de QR codes */
+      /* Grid principal */
       #qr_grid {
         display: grid !important;
         grid-template-columns: repeat(3, 1fr) !important;
-        gap: 15mm !important;
-        padding: 10mm !important;
+        gap: 8mm !important;
+        padding: 5mm !important;
+        width: 100% !important;
+        height: 100% !important;
+        background: white !important;
         page-break-inside: avoid !important;
         visibility: visible !important;
-        width: 100% !important;
-        background: white !important;
       }
       
-      /* Células individuais dos QR codes */
-      .qr-cell,
-      [id^="qr-cell-"] {
+      /* Células QR */
+      .qr-cell {
         background: white !important;
-        border: 2px solid #000 !important;
-        border-radius: 8px !important;
-        padding: 8mm !important;
+        border: 1px solid #000 !important;
+        border-radius: 3mm !important;
+        padding: 3mm !important;
         text-align: center !important;
-        page-break-inside: avoid !important;
-        min-height: 60mm !important;
-        max-width: 55mm !important;
-        visibility: visible !important;
+        width: 60mm !important;
+        height: 70mm !important;
         display: flex !important;
         flex-direction: column !important;
         align-items: center !important;
-        justify-content: space-between !important;
-        margin: 0 !important;
+        justify-content: center !important;
+        page-break-inside: avoid !important;
+        visibility: visible !important;
         box-sizing: border-box !important;
+        margin: 0 !important;
       }
       
-      /* QR code containers */
-      [id^="qr-container-"] {
-        width: 40mm !important;
-        height: 40mm !important;
+      /* Container QR */
+      .qr-cell > div:first-child {
+        width: 45mm !important;
+        height: 45mm !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
-        margin-bottom: 3mm !important;
+        margin-bottom: 2mm !important;
         background: white !important;
         visibility: visible !important;
       }
       
-      /* Imagens e canvas dos QR codes */
-      .qr-cell canvas,
+      /* QR images */
       .qr-cell img,
-      [id^="qr-container-"] canvas,
-      [id^="qr-container-"] img {
-        max-width: 40mm !important;
-        max-height: 40mm !important;
-        width: 40mm !important;
-        height: 40mm !important;
+      .qr-cell canvas {
+        width: 45mm !important;
+        height: 45mm !important;
+        max-width: 45mm !important;
+        max-height: 45mm !important;
         visibility: visible !important;
         display: block !important;
-        margin: 0 auto !important;
+        margin: 0 !important;
         opacity: 1 !important;
       }
       
-      /* Labels dos leitos */
-      .qr-cell div:last-child {
-        visibility: visible !important;
-        display: block !important;
-        font-size: 12pt !important;
+      /* Labels */
+      .qr-cell > div:last-child {
+        font-size: 10pt !important;
         color: #000 !important;
         font-weight: bold !important;
-        margin-top: 2mm !important;
         text-align: center !important;
+        visibility: visible !important;
+        display: block !important;
+        margin-top: 2mm !important;
       }
     }
   </style>
@@ -3100,113 +3094,63 @@ function buildQRGrid(){
   const grid = $("#qr_grid");
   const printBtn = $("#b_print");
   
-  // Esconder botão de imprimir e limpar grid
+  // Esconder botão e limpar grid
   if (printBtn) printBtn.style.display = "none";
   grid.innerHTML = "";
   
-  // Aplicar estilos do grid corretamente
-  grid.style.cssText = "display:grid!important;grid-template-columns:repeat(3,1fr)!important;gap:20px!important;padding:20px!important;width:100%!important;";
-  
-  let qrCount = 0;
-  const totalQRs = t - f + 1;
-  
+  // Estrutura simplificada
   for(let i=f; i<=t; i++){
     const url = `${base}?h=${h}&leito=${i}`;
     
-    // Criar cell com estilos mais específicos
+    // Cell principal
     const cell = document.createElement("div");
     cell.className = "qr-cell";
-    cell.id = `qr-cell-${i}`;
     cell.style.cssText = `
-      background: white !important;
-      border: 2px solid #333 !important;
-      border-radius: 10px !important;
-      padding: 20px !important;
-      text-align: center !important;
-      min-height: 280px !important;
-      max-width: 250px !important;
-      display: flex !important;
-      flex-direction: column !important;
-      align-items: center !important;
-      justify-content: space-between !important;
-      page-break-inside: avoid !important;
-      margin: 0 !important;
-      box-sizing: border-box !important;
+      background: white;
+      border: 2px solid #333;
+      border-radius: 10px;
+      padding: 15px;
+      text-align: center;
+      min-height: 280px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      page-break-inside: avoid;
     `;
     
-    // Container para o QR code
-    const qrContainer = document.createElement("div");
-    qrContainer.id = `qr-container-${i}`;
-    qrContainer.style.cssText = `
-      width: 180px !important;
-      height: 180px !important;
-      display: flex !important;
-      align-items: center !important;
-      justify-content: center !important;
-      margin-bottom: 10px !important;
-      background: white !important;
-    `;
+    // Container QR (será preenchido pela biblioteca)
+    const qrDiv = document.createElement("div");
+    qrDiv.style.cssText = "margin-bottom: 15px;";
     
-    // Label do leito
-    const textLabel = document.createElement("div");
-    textLabel.style.cssText = `
-      font-size: 16px !important;
-      color: #333 !important;
-      font-weight: 700 !important;
-      margin-top: 10px !important;
-      text-align: center !important;
-    `;
-    textLabel.textContent = `Leito ${i} • ${HOSPITAIS[h].nome}`;
+    // Label
+    const labelDiv = document.createElement("div");
+    labelDiv.style.cssText = "font-size: 16px; color: #333; font-weight: bold;";
+    labelDiv.textContent = `Leito ${i} • ${HOSPITAIS[h].nome}`;
     
-    // Montar estrutura
-    cell.appendChild(qrContainer);
-    cell.appendChild(textLabel);
+    cell.appendChild(qrDiv);
+    cell.appendChild(labelDiv);
     grid.appendChild(cell);
     
-    // Gerar QR code
-    setTimeout(() => {
-      try {
-        const qr = new QRCode(qrContainer, {
-          text: url,
-          width: 180,
-          height: 180,
-          colorDark: "#000000",
-          colorLight: "#ffffff",
-          correctLevel: QRCode.CorrectLevel.M
-        });
-        
-        qrCount++;
-        
-        // Quando todos os QR codes estiverem prontos
-        if (qrCount === totalQRs) {
-          setTimeout(() => {
-            // Mostrar botão de imprimir
-            if (printBtn) printBtn.style.display = "inline-block";
-            
-            // Aplicar estilos de impressão em todos os elementos
-            document.querySelectorAll('#qr_grid .qr-cell').forEach(cell => {
-              cell.style.cssText += "visibility:visible!important;display:flex!important;";
-              const img = cell.querySelector('img');
-              const canvas = cell.querySelector('canvas');
-              if (img) img.style.cssText += "visibility:visible!important;display:block!important;";
-              if (canvas) canvas.style.cssText += "visibility:visible!important;display:block!important;";
-            });
-            
-            logSuccess(`✅ ${totalQRs} QR codes gerados com sucesso para ${HOSPITAIS[h].nome}!`);
-          }, 200);
-        }
-        
-      } catch(error) {
-        console.error("Erro ao gerar QR code:", error);
-        qrContainer.innerHTML = `
-          <div style="width:180px!important;height:180px!important;background:#f5f5f5!important;display:flex!important;align-items:center!important;justify-content:center!important;border:2px dashed #ccc!important;font-size:14px!important;color:#666!important;text-align:center!important;">
-            <div>QR Code<br>Leito ${i}<br><small>${url.substring(0,25)}...</small></div>
-          </div>
-        `;
-        qrCount++;
-      }
-    }, i * 100); // Delay escalonado para evitar problemas
+    // Gerar QR
+    try {
+      new QRCode(qrDiv, {
+        text: url,
+        width: 180,
+        height: 180,
+        colorDark: "#000000",
+        colorLight: "#ffffff"
+      });
+    } catch(error) {
+      qrDiv.innerHTML = `<div style="width:180px;height:180px;border:1px solid #ccc;display:flex;align-items:center;justify-content:center;font-size:12px;">Erro QR</div>`;
+    }
   }
+  
+  // Mostrar botão após pequeno delay
+  setTimeout(() => {
+    if (printBtn) printBtn.style.display = "inline-block";
+    logSuccess(`QR codes gerados: ${t-f+1} códigos para ${HOSPITAIS[h].nome}`);
+  }, 1000);
 }
 
 // Verificar se a URL contém parâmetros QR na inicialização
