@@ -629,6 +629,57 @@
       letter-spacing: 0.5px;
     }
 
+    /* =================== SISTEMA DE CORES =================== */
+    .color-tabs {
+      display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap;
+    }
+
+    .color-tab {
+      padding: 8px 12px; font-size: 12px; background: rgba(96, 165, 250, 0.1);
+      border: 1px solid var(--border); color: var(--text-muted);
+      border-radius: 8px; cursor: pointer; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.5px; transition: all 0.3s ease;
+    }
+
+    .color-tab.active {
+      background: var(--gradient-button); color: var(--text-white);
+      border-color: var(--text-accent);
+    }
+
+    .color-section {
+      display: none;
+    }
+
+    .color-section.active {
+      display: block;
+    }
+
+    .color-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+    }
+
+    .color-item {
+      background: rgba(96, 165, 250, 0.05); border: 1px solid var(--border);
+      border-radius: 12px; padding: 15px;
+    }
+
+    .color-item label {
+      display: block; font-size: 12px; color: var(--text-white);
+      font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .color-item input[type="color"] {
+      width: 40px; height: 40px; border: none; border-radius: 8px;
+      cursor: pointer; margin-right: 10px;
+    }
+
+    .color-preview {
+      width: 30px; height: 30px; border-radius: 6px; display: inline-block;
+      border: 1px solid var(--border);
+    }
+
     /* =================== UTILIDADES =================== */
     .hidden { display: none; }
 
@@ -654,7 +705,6 @@
 
     /* =================== IMPRESSÃO DE QR CODES =================== */
     @media print {
-      /* Ocultar tudo exceto o modal de QR */
       body * {
         visibility: hidden;
       }
@@ -732,14 +782,12 @@
 
   <!-- Menu Lateral -->
   <div id="side-menu">
-    <!-- Header do Menu com Botão Fechar -->
     <div class="menu-header">
       <button class="close-menu-btn" id="closeMenuBtn">
         ← Fechar
       </button>
     </div>
 
-    <!-- Items do Menu -->
     <div class="menu-items">
       <a href="#" class="side-menu-item active" data-tab="leitos">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -762,7 +810,6 @@
       </a>
     </div>
 
-    <!-- Footer do Menu com Configurações -->
     <div class="menu-footer">
       <button class="settings-menu-btn" id="settingsMenuBtn">
         <span>⚙️</span>
@@ -816,6 +863,7 @@
 
     <!-- Leitos View -->
     <section id="leitosView" class="grid"></section>
+
     <!-- Dashboard Hospitais -->
     <section id="dash1" class="hidden">
       <h2 style="margin-bottom:20px; color: var(--text-white);">Dash Hospitais: Visão Detalhada por Hospital</h2>
@@ -1029,245 +1077,7 @@
     </section>
   </main>
 
-  <!-- Modal Admissão -->
-  <div id="modalAdmissao" class="backdrop">
-    <div class="modal">
-      <header>
-        <strong>Admissão de Paciente</strong>
-        <button class="btn" data-close="#modalAdmissao">Fechar</button>
-      </header>
-      <div class="content">
-        <div class="row3">
-          <div><span class="label">Hospital</span><div id="a_hospital" class="badge"></div></div>
-          <div><span class="label">Leito</span><div id="a_leito" class="badge"></div></div>
-          <div><span class="label">Tipo</span><div id="a_tipo" class="badge"></div></div>
-        </div>
-        <div class="row2" style="margin-top:10px">
-          <div>
-            <label class="label" for="a_nome">Nome completo</label>
-            <input id="a_nome" class="input" />
-          </div>
-          <div>
-            <label class="label" for="a_idade">Idade</label>
-            <input id="a_idade" class="input" inputmode="numeric" />
-          </div>
-        </div>
-        <div class="row3">
-          <div>
-            <label class="label" for="a_matricula">Matrícula (número)</label>
-            <input id="a_matricula" class="input" inputmode="numeric" />
-          </div>
-          <div>
-            <label class="label" for="a_pps">PPS (0–10)</label>
-            <input id="a_pps" class="input" inputmode="numeric" />
-          </div>
-          <div>
-            <label class="label" for="a_spict">SPICT-BR</label>
-            <select id="a_spict" class="select2">
-              <option value="elegivel">Elegível</option>
-              <option value="nao_elegivel">Não elegível</option>
-            </select>
-          </div>
-        </div>
-        <div class="row3">
-          <div>
-            <label class="label" for="a_complexidade">Complexidade</label>
-            <select id="a_complexidade" class="select2">
-              <option value="I">Nível I</option>
-              <option value="II">Nível II</option>
-              <option value="III">Nível III</option>
-            </select>
-          </div>
-          <div>
-            <label class="label" for="a_prev">Previsão de alta</label>
-            <select id="a_prev" class="select2">
-              <option>24h Ouro</option><option>24h 2R</option><option>24h 3R</option>
-              <option>48h</option><option>72h</option><option>96h</option><option>Sem previsao</option>
-            </select>
-          </div>
-          <div></div>
-        </div>
-        <div class="row2">
-          <div>
-            <span class="label">Linhas de cuidado (multi)</span>
-            <div id="a_linhas" class="wrap"></div>
-          </div>
-          <div>
-            <span class="label">Concessões (multi)</span>
-            <div id="a_concessoes" class="wrap"></div>
-          </div>
-        </div>
-        <div style="margin-top:8px;color:var(--text-muted);font-size:12px">
-          * Data e hora de admissão serão registradas automaticamente ao salvar.
-        </div>
-      </div>
-      <div class="actions">
-        <button class="btn" id="a_cancel">Cancelar</button>
-        <button class="btn primary" id="a_save">Salvar e Admitir</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal Atualização -->
-  <div id="modalAtualizacao" class="backdrop">
-    <div class="modal">
-      <header>
-        <strong>Atualização de Paciente</strong>
-        <button class="btn" data-close="#modalAtualizacao">Fechar</button>
-      </header>
-      <div class="content">
-        <div class="row3">
-          <div><span class="label">Hospital</span><div id="u_hospital" class="badge"></div></div>
-          <div><span class="label">Leito</span><div id="u_leito" class="badge"></div></div>
-          <div><span class="label">Tipo</span><div id="u_tipo" class="badge"></div></div>
-        </div>
-        <div class="row3" style="margin-top:10px">
-          <div>
-            <label class="label">Nome (bloqueado)</label>
-            <input id="u_nome" class="input" disabled />
-          </div>
-          <div>
-            <label class="label">Matrícula (bloqueado)</label>
-            <input id="u_matricula" class="input" disabled />
-          </div>
-          <div>
-            <label class="label">Admissão (bloqueado)</label>
-            <input id="u_adm" class="input" disabled />
-          </div>
-        </div>
-        <div class="row3">
-          <div>
-            <label class="label" for="u_idade">Idade</label>
-            <input id="u_idade" class="input" inputmode="numeric" />
-          </div>
-          <div>
-            <label class="label" for="u_pps">PPS (0–10)</label>
-            <input id="u_pps" class="input" inputmode="numeric" />
-          </div>
-          <div>
-            <label class="label" for="u_spict">SPICT-BR</label>
-            <select id="u_spict" class="select2">
-              <option value="elegivel">Elegível</option>
-              <option value="nao_elegivel">Não elegível</option>
-            </select>
-          </div>
-        </div>
-        <div class="row3">
-          <div>
-            <label class="label" for="u_complexidade">Complexidade</label>
-            <select id="u_complexidade" class="select2">
-              <option value="I">Nível I</option>
-              <option value="II">Nível II</option>
-              <option value="III">Nível III</option>
-            </select>
-          </div>
-          <div>
-            <label class="label" for="u_prev">Previsão de alta</label>
-            <select id="u_prev" class="select2">
-              <option>24h Ouro</option><option>24h 2R</option><option>24h 3R</option>
-              <option>48h</option><option>72h</option><option>96h</option><option>Sem previsao</option>
-            </select>
-          </div>
-          <div></div>
-        </div>
-        <div class="row2">
-          <div>
-            <span class="label">Linhas de cuidado (multi)</span>
-            <div id="u_linhas" class="wrap"></div>
-          </div>
-          <div>
-            <span class="label">Concessões (multi)</span>
-            <div id="u_concessoes" class="wrap"></div>
-          </div>
-        </div>
-        <div id="internadoHa" style="margin-top:8px;color:var(--text-muted);font-size:12px"></div>
-      </div>
-      <div class="actions">
-        <button class="btn" id="u_cancel">Cancelar</button>
-        <button class="btn primary" id="u_save">Salvar</button>
-        <button class="btn danger" id="u_alta">Dar Alta</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Outros Modais (QR, Confirmação, etc.) -->
-  <div id="modalConfirm" class="backdrop">
-    <div class="modal" style="max-width:520px">
-      <header><strong>Confirmação</strong></header>
-      <div class="content"><div id="confirmMsg">Confirma?</div></div>
-      <div class="actions">
-        <button class="btn" id="confirmNo">Não</button>
-        <button class="btn primary" id="confirmYes">Sim</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="modalQRScan" class="backdrop">
-    <div class="modal">
-      <header><strong>Ler QR Code</strong><button class="btn" data-close="#modalQRScan">Fechar</button></header>
-      <div class="content">
-        <div style="margin-bottom:8px;font-size:12px;color:var(--text-muted)">Se a câmera não abrir, use a seleção manual.</div>
-        <div id="qrRegion" style="width:100%;max-width:420px;margin:0 auto;border:1px solid var(--border);border-radius:12px;overflow:hidden"></div>
-      </div>
-      <div class="actions"><button class="btn" data-close="#modalQRScan">Cancelar</button></div>
-    </div>
-  </div>
-
-  <div id="modalBulkQR" class="backdrop">
-    <div class="modal" style="max-width:90vw;max-height:90vh">
-      <header>
-        <strong>Gerar QR Codes para impressão</strong>
-        <button class="btn" data-close="#modalBulkQR">✕</button>
-      </header>
-      <div class="content" style="overflow-y:auto">
-        <div class="row3">
-          <div>
-            <label class="label" for="b_hospital">Hospital</label>
-            <select id="b_hospital" class="select2">
-              <option value="H1">Neomater</option>
-              <option value="H2">Cruz Azul</option>
-            </select>
-          </div>
-          <div>
-            <label class="label" for="b_from">Leito inicial</label>
-            <input id="b_from" class="input" inputmode="numeric" placeholder="1" />
-          </div>
-          <div>
-            <label class="label" for="b_to">Leito final</label>
-            <input id="b_to" class="input" inputmode="numeric" placeholder="13/16" />
-          </div>
-        </div>
-        <div style="margin:10px 0;position:sticky;top:0;background:var(--card);padding:10px 0;border-bottom:1px solid var(--border);z-index:10">
-          <button class="btn primary" id="b_generate">Gerar QR Codes</button>  
-          <button class="btn" onclick="window.print()">Imprimir</button>
-          <button class="btn" data-close="#modalBulkQR">Fechar</button>
-        </div>
-        <div id="qr_grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px"></div>
-      </div>
-    </div>
-  </div>
-
-  <div id="modalQRExpired" class="backdrop">
-    <div class="modal" style="max-width:520px">
-      <header><strong>Sessão Expirada</strong></header>
-      <div class="content">
-        <p>O tempo para preenchimento expirou.</p>
-        <p>Para continuar, escaneie novamente o QR code próximo ao leito.</p>
-      </div>
-      <div class="actions">
-        <button class="btn primary" id="reloadPage">Escanear Novamente</button>
-      </div>
-    </div>
-  </div>
-  
-  <div id="successMessage" class="success-message">
-    <h2>Obrigado!</h2>
-    <p>Operação realizada com sucesso.</p>
-    <p style="color:var(--text-muted);font-size:14px">Você pode fechar o navegador.</p>
-    <button class="btn primary" onclick="window.close()">Fechar Navegador</button>
-  </div>
-
-  <script>
+<script>
 // =======================================================================
 // ========================== CONFIGURAÇÃO ===============================
 // =======================================================================
@@ -1319,8 +1129,9 @@ let autoRefreshInterval = null;
 let updateIndicatorInterval = null;
 let sortState = { key: 'leito', direction: 'asc' };
 let currentViewMode = 'separate'; // Para o switch de visualização
+let userColors = {}; // Sistema de cores do usuário
 
-// =======================================================================
+  // =======================================================================
 // ===================== FUNÇÕES DE LOADING ============================
 // =======================================================================
 function showLoading() {
@@ -1389,6 +1200,67 @@ function updateTimeIndicator() {
 }
 
 // =======================================================================
+// ===================== SISTEMA DE CORES COM PLANILHA =================
+// =======================================================================
+async function loadUserColors() {
+  logInfo("Carregando cores do usuário da planilha...");
+  try {
+    const url = `${API_URL}?action=getUserColors`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    const json = await res.json();
+    
+    if (json.ok && json.data && json.data.colors_json) {
+      userColors = JSON.parse(json.data.colors_json);
+      applyUserColors(userColors);
+      logSuccess("Cores do usuário aplicadas com sucesso!");
+    } else {
+      logWarning("Usando cores padrão - sem personalização salva");
+    }
+  } catch(error) {
+    logError("Erro ao carregar cores do usuário:", error);
+    logWarning("Usando cores padrão do sistema");
+  }
+}
+
+async function saveUserColors(colorsObj) {
+  logInfo("Salvando cores do usuário na planilha...");
+  try {
+    const payload = {
+      action: 'saveUserColors',
+      colors_json: JSON.stringify(colorsObj)
+    };
+    
+    const params = new URLSearchParams();
+    for (const [key, value] of Object.entries(payload)) {
+      params.append(key, String(value));
+    }
+    
+    const url = `${API_URL}?${params.toString()}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    
+    const json = await res.json();
+    if (!json.ok) throw new Error(json.error || 'Erro ao salvar cores');
+    
+    userColors = colorsObj;
+    logSuccess("Cores salvas com sucesso na planilha!");
+    return true;
+  } catch(error) {
+    logError("Erro ao salvar cores:", error);
+    return false;
+  }
+}
+
+function applyUserColors(colors) {
+  const root = document.documentElement;
+  Object.entries(colors).forEach(([key, value]) => {
+    root.style.setProperty(`--${key}`, value);
+  });
+  logInfo("Cores aplicadas ao CSS", colors);
+}
+
+// =======================================================================
 // ===================== FUNÇÕES DE API (BACKEND) ========================
 // =======================================================================
 async function testConnection() {
@@ -1416,6 +1288,7 @@ async function loadAllData() {
 
 function processarDadosLeito(dadosBrutos) {
   // Função para processar e mapear corretamente os dados de cada leito
+  // ESTRUTURA CORRETA: hospital | leito | tipo | status | nome | matricula | idade | admAt | pps | spict | complexidade | prevAlta | linhas | concessoes
   return dadosBrutos.map(leito => {
     // Se os dados vierem da API como objeto estruturado
     if (typeof leito === 'object' && leito !== null) {
@@ -1429,8 +1302,8 @@ function processarDadosLeito(dadosBrutos) {
         matricula: leito.matricula || leito.registration || null,
         pps: parseInt(leito.pps || 0) || null,
         spict: leito.spict || 'nao_elegivel',
-        complexidade: leito.complexidade || leito.complexity || null,
-        prevAlta: leito.prevAlta || leito.discharge || null,
+        complexidade: leito.complexidade || leito.complexity || null, // COLUNA K
+        prevAlta: leito.prevAlta || leito.discharge || null,           // COLUNA L
         linhas: Array.isArray(leito.linhas) ? leito.linhas : 
                 (typeof leito.linhas === 'string' && leito.linhas !== 'Sem previsao') ? 
                 leito.linhas.split(',').map(l => l.trim()).filter(l => l && l !== 'Sem previsao') : [],
@@ -1442,6 +1315,7 @@ function processarDadosLeito(dadosBrutos) {
     }
     
     // Se os dados vierem como array (da planilha)
+    // ESTRUTURA: [hospital, leito, tipo, status, nome, matricula, idade, admAt, pps, spict, complexidade, prevAlta, linhas, concessoes]
     if (Array.isArray(leito)) {
       return {
         hospital: leito[0] || '',
@@ -1454,8 +1328,8 @@ function processarDadosLeito(dadosBrutos) {
         admAt: leito[7] || null,
         pps: parseInt(leito[8]) || null,
         spict: leito[9] || 'nao_elegivel',
-        complexidade: leito[10] || null,
-        prevAlta: leito[11] || null,
+        complexidade: leito[10] || null,      // Coluna K = complexidade
+        prevAlta: leito[11] || null,          // Coluna L = prevAlta  
         linhas: (leito[12] && leito[12] !== 'Sem previsao') ? 
                leito[12].split(',').map(l => l.trim()).filter(l => l) : [],
         concessoes: leito[13] ? 
@@ -1476,6 +1350,7 @@ async function loadHospital(h) {
     const json = await res.json();
     if(!json.ok) throw new Error(json.error || 'Resposta da API indica erro');
     
+    // CORREÇÃO: Processar dados corretamente
     banco[h] = processarDadosLeito(json.data);
     lastUpdateTime = Date.now();
     logSuccess(`Dados carregados com sucesso para ${h}. Total de leitos: ${banco[h].length}`);
@@ -1487,25 +1362,27 @@ async function loadHospital(h) {
     // DADOS DE TESTE CORRIGIDOS - SIMULANDO ESTRUTURA DA PLANILHA
     const dadosTesteEstruturados = [];
     
+    // Simular dados como se viessem da planilha (baseado na estrutura correta)
     HOSPITAIS[h].leitos.forEach((leito, index) => {
       const isOcupado = index % 3 !== 0;
       
       if (isOcupado) {
+        // Dados de exemplo baseados na sua planilha
         dadosTesteEstruturados.push([
-          h,                                           
-          leito.id,                                   
-          leito.tipo,                                 
-          "Em uso",                                   
-          `Paciente ${h}-${leito.id}`,               
-          `${h}${String(leito.id).padStart(6, '0')}`, 
-          45 + (index * 7) % 40,                      
-          new Date(Date.now() - (index * 24 * 60 * 60 * 1000)).toISOString(), 
-          (index % 10) + 1,                          
-          index % 2 === 0 ? "elegivel" : "nao_elegivel", 
-          ["I", "II", "III"][index % 3],             
-          ["24h Ouro", "48h", "72h", "96h", "Sem previsao"][index % 5], 
-          LINHAS.slice(0, Math.max(1, (index % 4))).join(','), 
-          CONC.slice(0, Math.max(1, (index % 3))).join(',')    
+          h,                                           // hospital
+          leito.id,                                   // leito  
+          leito.tipo,                                 // tipo
+          "Em uso",                                   // status
+          `Paciente ${h}-${leito.id}`,               // nome
+          `${h}${String(leito.id).padStart(6, '0')}`, // matricula
+          45 + (index * 7) % 40,                      // idade
+          new Date(Date.now() - (index * 24 * 60 * 60 * 1000)).toISOString(), // admAt
+          (index % 10) + 1,                          // pps
+          index % 2 === 0 ? "elegivel" : "nao_elegivel", // spict
+          ["I", "II", "III"][index % 3],             // complexidade (COLUNA K)
+          ["24h Ouro", "48h", "72h", "96h", "Sem previsao"][index % 5], // prevAlta (COLUNA L)
+          LINHAS.slice(0, Math.max(1, (index % 4))).join(','), // linhas (COLUNA M)
+          CONC.slice(0, Math.max(1, (index % 3))).join(',')    // concessoes (COLUNA N)
         ]);
       } else {
         // Leito vago
@@ -1515,8 +1392,15 @@ async function loadHospital(h) {
       }
     });
     
+    // Processar os dados de teste através da função de mapeamento
     banco[h] = processarDadosLeito(dadosTesteEstruturados);
     logWarning(`Usando dados de teste estruturados para ${h}. Total: ${banco[h].length}`);
+    
+    // Debug: Mostrar estrutura do primeiro paciente
+    const primeiroPaciente = banco[h].find(p => p.status === 'Em uso');
+    if (primeiroPaciente) {
+      logInfo(`Exemplo de paciente processado:`, primeiroPaciente);
+    }
     
     if (activeTab === 'leitos') renderCards();
   }
@@ -1565,15 +1449,17 @@ function setTab(tab){
 
 function setHospitalSelectors(h){
   currentHospital = h;
+  // Atualizar botões novos
   document.querySelectorAll('.hospital-btn').forEach(btn => btn.classList.remove('active'));
   $(`.hospital-btn[data-h="${h}"]`)?.classList.add('active');
   
+  // Manter compatibilidade com botões antigos
   document.querySelectorAll('.btn[data-h]').forEach(btn => btn.classList.remove('active'));
   $(`.btn[data-h="${h}"]`)?.classList.add('active');
 }
 
 function route(){
-  const sections = ["leitosView","dash1","dash2"];
+  const sections = ["leitosView","dash1","dash2","dash3"];
   sections.forEach(id => {
     const el = $(`#${id}`);
     if(el) el.classList.add("hidden");
@@ -1582,6 +1468,7 @@ function route(){
   const activeSectionId = activeTab === 'leitos' ? 'leitosView' : activeTab;
   $(`#${activeSectionId}`)?.classList.remove("hidden");
 
+  // Mostrar seletor de hospital apenas no modo leitos
   const hospitalSelector = $('#hospitalSelector');
   if (hospitalSelector) {
     if (activeTab === 'leitos') {
@@ -1616,26 +1503,29 @@ function renderCards(){
     const statusClass = l.status==="Em uso" ? "warn" : "ok";
     const tipoClass   = l.tipo==="UTI" ? "uti" : "enf";
     
-    // MAPEAMENTO CORRETO DOS CAMPOS
-    let complexidadeDisplay = l.complexidade ? `Nível ${l.complexidade}` : "—";
-    let prevAltaDisplay = l.prevAlta || "—";
+    // CAMPOS CORRETOS COM A NOVA ESTRUTURA
+    const complexidadeDisplay = l.complexidade ? `Nível ${l.complexidade}` : "—";
+    const prevAltaDisplay = l.prevAlta || "—";
     
     // Processar linhas de cuidado
-    let linhasDisplay, linhasChips;
+    let linhasDisplay = "—";
+    let linhasChips = "";
     if (Array.isArray(l.linhas) && l.linhas.length > 0) {
       linhasDisplay = l.linhas.join(", ");
       linhasChips = l.linhas.map(x=>`<span class="chip">${x}</span>`).join("");
-    } else {
-      linhasDisplay = "—";
-      linhasChips = "";
+    } else if (typeof l.linhas === 'string' && l.linhas && l.linhas !== "—") {
+      const linhasArray = l.linhas.split(',').map(s => s.trim()).filter(s => s);
+      linhasDisplay = linhasArray.join(", ");
+      linhasChips = linhasArray.map(x=>`<span class="chip">${x}</span>`).join("");
     }
     
     // Processar concessões
-    let concessoesChips;
+    let concessoesChips = "";
     if (Array.isArray(l.concessoes) && l.concessoes.length > 0) {
       concessoesChips = l.concessoes.map(x=>`<span class="chip">${x}</span>`).join("");
-    } else {
-      concessoesChips = "";
+    } else if (typeof l.concessoes === 'string' && l.concessoes) {
+      const concessoesArray = l.concessoes.split(',').map(s => s.trim()).filter(s => s);
+      concessoesChips = concessoesArray.map(x=>`<span class="chip">${x}</span>`).join("");
     }
     
     card.innerHTML = `
@@ -1806,30 +1696,50 @@ async function renderDashboards() {
 function renderDash1() {
   logInfo("Renderizando Dashboard Hospitais...");
   
-  // Garantir dados de teste se necessário
-  ['H1', 'H2'].forEach(h => {
-    if (!banco[h] || banco[h].length === 0) {
-      banco[h] = HOSPITAIS[h].leitos.map((leito, index) => {
-        const isOcupado = index % 3 !== 0;
-        return {
-          hospital: h,
-          leito: leito.id,
-          tipo: leito.tipo,
-          status: isOcupado ? "Em uso" : "Vago",
-          nome: isOcupado ? `Paciente ${h}-${leito.id}` : null,
-          idade: isOcupado ? 45 + (index * 7) % 40 : null,
-          matricula: isOcupado ? `${h}${String(leito.id).padStart(3, '0')}` : null,
-          pps: isOcupado ? (index % 10) + 1 : null,
-          spict: isOcupado ? (index % 2 === 0 ? "elegivel" : "nao_elegivel") : null,
-          complexidade: isOcupado ? (["I", "II", "III"][index % 3]) : null,
-          prevAlta: isOcupado ? (["24h Ouro", "48h", "72h", "96h", "Sem previsao"][index % 5]) : null,
-          linhas: isOcupado ? LINHAS.slice(0, Math.max(1, (index % 4))) : [],
-          concessoes: isOcupado ? CONC.slice(0, Math.max(1, (index % 3))) : [],
-          admAt: isOcupado ? new Date(Date.now() - (index * 24 * 60 * 60 * 1000)).toISOString() : null
-        };
-      });
-    }
-  });
+  // GARANTIR QUE TEMOS DADOS PARA RENDERIZAR COM ESTRUTURA CORRETA
+  if (!banco.H1 || banco.H1.length === 0) {
+    banco.H1 = HOSPITAIS.H1.leitos.map((leito, index) => {
+      const isOcupado = index % 3 !== 0;
+      return {
+        hospital: 'H1',
+        leito: leito.id,
+        tipo: leito.tipo,
+        status: isOcupado ? "Em uso" : "Vago",
+        nome: isOcupado ? `Paciente H1-${leito.id}` : null,
+        idade: isOcupado ? 45 + (index * 7) % 40 : null,
+        matricula: isOcupado ? `H1${String(leito.id).padStart(3, '0')}` : null,
+        pps: isOcupado ? (index % 10) + 1 : null,
+        spict: isOcupado ? (index % 2 === 0 ? "elegivel" : "nao_elegivel") : null,
+        complexidade: isOcupado ? (["I", "II", "III"][index % 3]) : null,
+        prevAlta: isOcupado ? (["24h Ouro", "48h", "72h", "96h", "Sem previsao"][index % 5]) : null,
+        linhas: isOcupado ? LINHAS.slice(0, Math.max(1, (index % 4))) : [],
+        concessoes: isOcupado ? CONC.slice(0, Math.max(1, (index % 3))) : [],
+        admAt: isOcupado ? new Date(Date.now() - (index * 24 * 60 * 60 * 1000)).toISOString() : null
+      };
+    });
+  }
+
+  if (!banco.H2 || banco.H2.length === 0) {
+    banco.H2 = HOSPITAIS.H2.leitos.map((leito, index) => {
+      const isOcupado = index % 4 !== 0;
+      return {
+        hospital: 'H2',
+        leito: leito.id,
+        tipo: leito.tipo,
+        status: isOcupado ? "Em uso" : "Vago",
+        nome: isOcupado ? `Paciente H2-${leito.id}` : null,
+        idade: isOcupado ? 40 + (index * 5) % 35 : null,
+        matricula: isOcupado ? `H2${String(leito.id).padStart(3, '0')}` : null,
+        pps: isOcupado ? (index % 8) + 2 : null,
+        spict: isOcupado ? (index % 3 === 0 ? "elegivel" : "nao_elegivel") : null,
+        complexidade: isOcupado ? (["I", "II", "III"][index % 3]) : null,
+        prevAlta: isOcupado ? (["24h Ouro", "24h 2R", "48h", "72h", "Sem previsao"][index % 5]) : null,
+        linhas: isOcupado ? LINHAS.slice(0, Math.max(1, (index % 4))) : [],
+        concessoes: isOcupado ? CONC.slice(0, Math.max(1, (index % 3))) : [],
+        admAt: isOcupado ? new Date(Date.now() - (index * 18 * 60 * 60 * 1000)).toISOString() : null
+      };
+    });
+  }
 
   ['H1', 'H2'].forEach(h => {
     const dados = banco[h] || [];
@@ -1838,10 +1748,13 @@ function renderDash1() {
     const vagos = totalLeitos - ocupados;
     const taxaOcupacao = totalLeitos > 0 ? Math.round((ocupados / totalLeitos) * 100) : 0;
     
+    // CORREÇÃO: Atualizar valores corretamente
     const statTotalH = $(`#statTotal${h.charAt(1)}`);
     const statOcupadosH = $(`#statOcupados${h.charAt(1)}`);
     const statVagosH = $(`#statVagos${h.charAt(1)}`);
     const gaugePercentH = $(`#gaugePercent${h.charAt(1)}`);
+    
+    logInfo(`Hospital ${h}: Total=${totalLeitos}, Ocupados=${ocupados}, Vagos=${vagos}, Taxa=${taxaOcupacao}%`);
     
     if (statTotalH) statTotalH.textContent = totalLeitos;
     if (statOcupadosH) statOcupadosH.textContent = ocupados;
@@ -1849,9 +1762,9 @@ function renderDash1() {
     if (gaugePercentH) gaugePercentH.textContent = taxaOcupacao + '%';
 
     // Criar gauge semicírculo
-    let corGauge = '#16a34a';
-    if (taxaOcupacao > 90) corGauge = '#dc2626';
-    else if (taxaOcupacao > 80) corGauge = '#f59e0b';
+    let corGauge = '#16a34a'; // Verde
+    if (taxaOcupacao > 90) corGauge = '#dc2626'; // Vermelho
+    else if (taxaOcupacao > 80) corGauge = '#f59e0b'; // Amarelo
 
     createChart(`chartOcupacao${h.charAt(1)}`, `chartGauge${h.charAt(1)}`, {
       type: 'doughnut',
@@ -1875,10 +1788,12 @@ function renderDash1() {
       }
     });
 
+    // CORREÇÃO: Filtrar apenas pacientes com previsão válida
     const pacientesComPrevisao = dados.filter(p => 
       p.status === 'Em uso' && p.prevAlta && p.prevAlta !== 'Sem previsao' && p.prevAlta !== null
     );
 
+    // Labels das datas
     const hoje = new Date();
     const labels = [];
     for (let i = 0; i < 7; i++) {
@@ -1887,7 +1802,7 @@ function renderDash1() {
       labels.push(data.toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'}));
     }
 
-    // Gráfico de Concessões
+    // CORREÇÃO: Gráfico de Concessões com dados válidos
     const concessoesDataHospital = {};
     pacientesComPrevisao.forEach(paciente => {
       const dias = getDiasAteAlta(paciente.prevAlta);
@@ -1955,9 +1870,20 @@ function renderDash1() {
           }
         }
       });
+    } else {
+      // Gráfico vazio com mensagem
+      const canvas = document.getElementById(`chartConcessoes${h.charAt(1)}`);
+      if (canvas) {
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '14px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Nenhuma concessão encontrada', canvas.width/2, canvas.height/2);
+      }
     }
 
-    // Gráfico de Linhas de Cuidado
+    // CORREÇÃO: Gráfico de Linhas de Cuidado com dados válidos
     const linhasDataHospital = {};
     pacientesComPrevisao.forEach(paciente => {
       const dias = getDiasAteAlta(paciente.prevAlta);
@@ -2025,9 +1951,20 @@ function renderDash1() {
           }
         }
       });
+    } else {
+      // Gráfico vazio com mensagem
+      const canvas = document.getElementById(`chartLinhas${h.charAt(1)}`);
+      if (canvas) {
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '14px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Nenhuma linha de cuidado encontrada', canvas.width/2, canvas.height/2);
+      }
     }
 
-    // Gráfico de Complexidade
+    // CORREÇÃO: Gráfico de Complexidade
     const complexidadeDataHospital = { 'I': 0, 'II': 0, 'III': 0 };
     const totalPacientes = dados.filter(l => l.status === 'Em uso').length;
     
@@ -2038,6 +1975,7 @@ function renderDash1() {
       }
     });
 
+    // Converter para percentuais
     const complexidadePercent = {};
     Object.keys(complexidadeDataHospital).forEach(key => {
       complexidadePercent[key] = totalPacientes > 0 ? 
@@ -2052,9 +1990,9 @@ function renderDash1() {
           label: '% de Pacientes',
           data: Object.values(complexidadePercent),
           backgroundColor: [
-            '#22c55e',
-            '#f59e0b',
-            '#dc2626'
+            '#22c55e', // Complex 1
+            '#f59e0b', // Complex 2
+            '#dc2626'  // Complex 3
           ]
         }]
       },
@@ -2100,6 +2038,7 @@ function renderDash1() {
 function renderDash2(allData) {
     logInfo("Renderizando Dashboard Executivo...");
     
+    // KPIs Consolidados
     const totalLeitos = HOSPITAIS.H1.leitos.length + HOSPITAIS.H2.leitos.length;
     const ocupados = allData.filter(p => p.status === 'Em uso').length;
     const taxaOcupacaoGeral = totalLeitos > 0 ? Math.round((ocupados / totalLeitos) * 100) : 0;
@@ -2129,9 +2068,9 @@ function renderDash2(allData) {
     if (kpiPpsMedia) kpiPpsMedia.textContent = ppsValues.length > 0 ? Math.round(ppsValues.reduce((a,b)=>a+b,0)/ppsValues.length) : '0';
 
     // Criar mini gauge no primeiro KPI
-    let corKpiGauge = '#16a34a';
-    if (taxaOcupacaoGeral > 90) corKpiGauge = '#dc2626';
-    else if (taxaOcupacaoGeral > 80) corKpiGauge = '#f59e0b';
+    let corKpiGauge = '#16a34a'; // Verde
+    if (taxaOcupacaoGeral > 90) corKpiGauge = '#dc2626'; // Vermelho
+    else if (taxaOcupacaoGeral > 80) corKpiGauge = '#f59e0b'; // Amarelo
 
     createChart('kpiGaugeOcupacao', 'kpiGaugeOcupacaoInst', {
       type: 'doughnut',
@@ -2539,6 +2478,7 @@ function renderEficienciaOperacional(allData) {
     const H1Recursos = H1Data.reduce((acc, p) => acc + (p.concessoes?.length || 0) + (p.linhas?.length || 0), 0);
     const H2Recursos = H2Data.reduce((acc, p) => acc + (p.concessoes?.length || 0) + (p.linhas?.length || 0), 0);
     
+    // Calcular complexidade média
     const H1Complexidade = H1Data.filter(p => p.complexidade).reduce((acc, p) => {
         const nivel = p.complexidade === 'I' ? 1 : p.complexidade === 'II' ? 2 : 3;
         return acc + nivel;
@@ -2559,7 +2499,7 @@ function renderEficienciaOperacional(allData) {
                     data: [
                         (H1Data.length / HOSPITAIS.H1.leitos.length) * 100,
                         (H1Recursos / Math.max(H1Data.length, 1)) * 10,
-                        H1Complexidade * 33.33
+                        H1Complexidade * 33.33 // Normalizar para 0-100
                     ],
                     backgroundColor: 'rgba(10, 43, 82, 0.2)',
                     borderColor: '#0a2b52',
@@ -2570,7 +2510,7 @@ function renderEficienciaOperacional(allData) {
                     data: [
                         (H2Data.length / HOSPITAIS.H2.leitos.length) * 100,
                         (H2Recursos / Math.max(H2Data.length, 1)) * 10,
-                        H2Complexidade * 33.33
+                        H2Complexidade * 33.33 // Normalizar para 0-100
                     ],
                     backgroundColor: 'rgba(96, 165, 250, 0.2)',
                     borderColor: '#60a5fa',
@@ -2640,6 +2580,7 @@ function initQRSession(hospital, leito) {
   currentHospital = hospital;
   selectedLeito = leito;
   
+  // Ocultar navegação e toolbars
   const header = document.querySelector('header');
   const hospitalSelector = document.getElementById('hospitalSelector');
   const main = document.querySelector('main');
@@ -2650,6 +2591,7 @@ function initQRSession(hospital, leito) {
   if (main) main.style.padding = '20px';
   if (body) body.style.paddingLeft = '0';
   
+  // Carregar dados do hospital
   loadHospital(hospital).then(() => {
     const leitoData = banco[hospital].find(l => l.leito === leito);
     if (!leitoData) {
@@ -2657,12 +2599,14 @@ function initQRSession(hospital, leito) {
       return;
     }
     
+    // Abrir modal apropriado
     if (leitoData.status === 'Vago') {
       openAdmissao(leito);
     } else {
       openAtualizacao(leito);
     }
     
+    // Configurar timeout de 2 minutos
     qrSessionTimeout = setTimeout(() => {
       closeAllModals();
       openModal("#modalQRExpired");
@@ -2724,7 +2668,7 @@ function buildQRGrid(){
   for(let i=f; i<=t; i++){
     const url = `${base}?h=${h}&leito=${i}`;
     const cell = document.createElement("div");
-    cell.className = "qr-cell";
+    cell.className = "qr-cell"; // Usar classe CSS em vez de style inline
     cell.innerHTML = `
       <div style="display:inline-block;border:1px solid var(--border);padding:8px;border-radius:10px;background:white;margin-bottom:10px"></div>
       <div style="font-size:12px;color:var(--text)">Leito ${i} • ${HOSPITAIS[h].nome}</div>
@@ -2734,6 +2678,7 @@ function buildQRGrid(){
   }
 }
 
+// Verificar se a URL contém parâmetros QR na inicialização
 function checkQRParams() {
   const params = new URLSearchParams(window.location.search);
   const h = params.get('h');
@@ -2745,6 +2690,354 @@ function checkQRParams() {
     return true;
   }
   return false;
+}
+
+// =======================================================================
+// =================== SISTEMA DE CONFIGURAÇÃO DE CORES ================
+// =======================================================================
+function showColorSelector() {
+  logInfo("Abrindo configurador de cores...");
+  
+  // Criar modal dinâmico
+  const modal = document.createElement('div');
+  modal.className = 'backdrop';
+  modal.style.display = 'flex';
+  modal.id = 'modalCores';
+  modal.innerHTML = `
+    <div class="modal" style="max-width: 800px;">
+      <header>
+        <strong>Configurar Cores do Sistema</strong>
+        <button class="btn" onclick="this.closest('.backdrop').remove()">Fechar</button>
+      </header>
+      <div class="content">
+        <div class="color-tabs">
+          <button class="color-tab active" data-category="layout">Layout Principal</button>
+          <button class="color-tab" data-category="status">Status & Complexidade</button>
+          <button class="color-tab" data-category="linhas">Linhas de Cuidado</button>
+          <button class="color-tab" data-category="concessoes">Concessões</button>
+          <button class="color-tab" data-category="timeline">Timeline 24h</button>
+        </div>
+
+        <div class="color-section active" id="layout">
+          <h4 style="color: var(--text-white); margin-bottom: 15px;">Cores do Layout Principal</h4>
+          <div class="color-grid">
+            <div class="color-item">
+              <label>Sidebar (Menu Lateral)</label>
+              <input type="color" id="color-nav-sidebar" value="#0a2b52">
+              <span class="color-preview" style="background: #0a2b52"></span>
+            </div>
+            <div class="color-item">
+              <label>Cards/Modais</label>
+              <input type="color" id="color-card" value="#1a1f2e">
+              <span class="color-preview" style="background: #1a1f2e"></span>
+            </div>
+            <div class="color-item">
+              <label>Texto Destacado</label>
+              <input type="color" id="color-text-accent" value="#60a5fa">
+              <span class="color-preview" style="background: #60a5fa"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="color-section" id="status">
+          <h4 style="color: var(--text-white); margin-bottom: 15px;">Status e Complexidade</h4>
+          <div class="color-grid">
+            <div class="color-item">
+              <label>Leito Vago</label>
+              <input type="color" id="color-status-vago" value="#16a34a">
+              <span class="color-preview" style="background: #16a34a"></span>
+            </div>
+            <div class="color-item">
+              <label>Leito Em Uso</label>
+              <input type="color" id="color-status-uso" value="#f59e0b">
+              <span class="color-preview" style="background: #f59e0b"></span>
+            </div>
+            <div class="color-item">
+              <label>Complexidade I</label>
+              <input type="color" id="color-complex-1" value="#22c55e">
+              <span class="color-preview" style="background: #22c55e"></span>
+            </div>
+            <div class="color-item">
+              <label>Complexidade II</label>
+              <input type="color" id="color-complex-2" value="#f59e0b">
+              <span class="color-preview" style="background: #f59e0b"></span>
+            </div>
+            <div class="color-item">
+              <label>Complexidade III</label>
+              <input type="color" id="color-complex-3" value="#dc2626">
+              <span class="color-preview" style="background: #dc2626"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="color-section" id="linhas">
+          <h4 style="color: var(--text-white); margin-bottom: 15px;">Linhas de Cuidado</h4>
+          <div class="color-grid">
+            <div class="color-item">
+              <label>APS</label>
+              <input type="color" id="color-linha-aps" value="#f59e0b">
+              <span class="color-preview" style="background: #f59e0b"></span>
+            </div>
+            <div class="color-item">
+              <label>Assistência</label>
+              <input type="color" id="color-linha-assistencia" value="#0a2b52">
+              <span class="color-preview" style="background: #0a2b52"></span>
+            </div>
+            <div class="color-item">
+              <label>Cardiologia</label>
+              <input type="color" id="color-linha-cardiologia" value="#dc2626">
+              <span class="color-preview" style="background: #dc2626"></span>
+            </div>
+            <div class="color-item">
+              <label>Geriatria</label>
+              <input type="color" id="color-linha-geriatria" value="#16a34a">
+              <span class="color-preview" style="background: #16a34a"></span>
+            </div>
+            <div class="color-item">
+              <label>Melhor Cuidado</label>
+              <input type="color" id="color-linha-melhor" value="#be185d">
+              <span class="color-preview" style="background: #be185d"></span>
+            </div>
+            <div class="color-item">
+              <label>Neurologia</label>
+              <input type="color" id="color-linha-neurologia" value="#0891b2">
+              <span class="color-preview" style="background: #0891b2"></span>
+            </div>
+            <div class="color-item">
+              <label>Pneumologia</label>
+              <input type="color" id="color-linha-pneumologia" value="#8b5cf6">
+              <span class="color-preview" style="background: #8b5cf6"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="color-section" id="concessoes">
+          <h4 style="color: var(--text-white); margin-bottom: 15px;">Concessões</h4>
+          <div class="color-grid">
+            <div class="color-item">
+              <label>Aspirações</label>
+              <input type="color" id="color-conc-aspiracoes" value="#dc2626">
+              <span class="color-preview" style="background: #dc2626"></span>
+            </div>
+            <div class="color-item">
+              <label>Curativos</label>
+              <input type="color" id="color-conc-curativos" value="#8b5cf6">
+              <span class="color-preview" style="background: #8b5cf6"></span>
+            </div>
+            <div class="color-item">
+              <label>Fisioterapia</label>
+              <input type="color" id="color-conc-fisioterapia" value="#16a34a">
+              <span class="color-preview" style="background: #16a34a"></span>
+            </div>
+            <div class="color-item">
+              <label>Fonoaudiologia</label>
+              <input type="color" id="color-conc-fonoaudiologia" value="#f59e0b">
+              <span class="color-preview" style="background: #f59e0b"></span>
+            </div>
+            <div class="color-item">
+              <label>PAD</label>
+              <input type="color" id="color-conc-pad" value="#0a2b52">
+              <span class="color-preview" style="background: #0a2b52"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="color-section" id="timeline">
+          <h4 style="color: var(--text-white); margin-bottom: 15px;">Timeline de Liberação 24h</h4>
+          <div class="color-grid">
+            <div class="color-item">
+              <label>Ouro</label>
+              <input type="color" id="color-ouro" value="#fbbf24">
+              <span class="color-preview" style="background: #fbbf24"></span>
+            </div>
+            <div class="color-item">
+              <label>2R</label>
+              <input type="color" id="color-r2" value="#3b82f6">
+              <span class="color-preview" style="background: #3b82f6"></span>
+            </div>
+            <div class="color-item">
+              <label>3R</label>
+              <input type="color" id="color-r3" value="#8b5cf6">
+              <span class="color-preview" style="background: #8b5cf6"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn" id="resetCores">Restaurar Padrão</button>
+        <button class="btn" id="exportCores">Exportar Tema</button>
+        <button class="btn" id="importCores">Importar Tema</button>
+        <button class="btn primary" id="aplicarCores">Aplicar Cores</button>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  setupColorSelector();
+}
+
+function setupColorSelector() {
+  // Configurar abas
+  document.querySelectorAll('.color-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.color-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.color-section').forEach(s => s.classList.remove('active'));
+      
+      tab.classList.add('active');
+      document.getElementById(tab.dataset.category).classList.add('active');
+    });
+  });
+  
+  // Atualizar preview em tempo real
+  document.querySelectorAll('input[type="color"]').forEach(input => {
+    input.addEventListener('input', () => {
+      const preview = input.parentElement.querySelector('.color-preview');
+      if (preview) {
+        preview.style.background = input.value;
+      }
+    });
+  });
+  
+  // Botões de ação
+  document.getElementById('resetCores').addEventListener('click', resetToDefaultColors);
+  document.getElementById('exportCores').addEventListener('click', exportColors);
+  document.getElementById('importCores').addEventListener('click', importColors);
+  document.getElementById('aplicarCores').addEventListener('click', applyColorsFromSelector);
+}
+
+function resetToDefaultColors() {
+  if (!confirm('Restaurar cores padrão? Isso irá sobrescrever suas configurações atuais.')) return;
+  
+  // Resetar para cores padrão
+  const defaultColors = {
+    'nav-sidebar': '#0a2b52',
+    'card': '#1a1f2e',
+    'text-accent': '#60a5fa',
+    'status-vago': '#16a34a',
+    'status-uso': '#f59e0b',
+    'complex-1': '#22c55e',
+    'complex-2': '#f59e0b',
+    'complex-3': '#dc2626',
+    'linha-aps': '#f59e0b',
+    'linha-assistencia': '#0a2b52',
+    'linha-cardiologia': '#dc2626',
+    'linha-geriatria': '#16a34a',
+    'linha-melhor': '#be185d',
+    'linha-neurologia': '#0891b2',
+    'linha-pneumologia': '#8b5cf6',
+    'conc-aspiracoes': '#dc2626',
+    'conc-curativos': '#8b5cf6',
+    'conc-fisioterapia': '#16a34a',
+    'conc-fonoaudiologia': '#f59e0b',
+    'conc-pad': '#0a2b52',
+    'ouro': '#fbbf24',
+    'r2': '#3b82f6',
+    'r3': '#8b5cf6'
+  };
+  
+  // Aplicar aos inputs
+  Object.entries(defaultColors).forEach(([key, value]) => {
+    const input = document.getElementById(`color-${key}`);
+    const preview = input?.parentElement.querySelector('.color-preview');
+    if (input) input.value = value;
+    if (preview) preview.style.background = value;
+  });
+  
+  // Aplicar ao CSS
+  applyUserColors(defaultColors);
+  
+  // Salvar na planilha
+  saveUserColors(defaultColors);
+  
+  logSuccess('Cores padrão restauradas!');
+}
+
+function exportColors() {
+  const colors = {};
+  document.querySelectorAll('input[type="color"]').forEach(input => {
+    const key = input.id.replace('color-', '');
+    colors[key] = input.value;
+  });
+  
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(colors, null, 2));
+  const downloadAnchorNode = document.createElement('a');
+  downloadAnchorNode.setAttribute("href", dataStr);
+  downloadAnchorNode.setAttribute("download", "archipelago-tema.json");
+  document.body.appendChild(downloadAnchorNode);
+  downloadAnchorNode.click();
+  downloadAnchorNode.remove();
+  
+  logSuccess('Tema exportado com sucesso!');
+}
+
+function importColors() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json';
+  input.addEventListener('change', (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const colors = JSON.parse(e.target.result);
+          
+          // Aplicar aos inputs
+          Object.entries(colors).forEach(([key, value]) => {
+            const input = document.getElementById(`color-${key}`);
+            const preview = input?.parentElement.querySelector('.color-preview');
+            if (input) input.value = value;
+            if (preview) preview.style.background = value;
+          });
+          
+          logSuccess('Tema importado com sucesso!');
+        } catch (error) {
+          logError('Erro ao importar tema:', error);
+          alert('Erro ao importar tema. Verifique se o arquivo é válido.');
+        }
+      };
+      reader.readAsText(file);
+    }
+  });
+  input.click();
+}
+
+async function applyColorsFromSelector() {
+  const colors = {};
+  document.querySelectorAll('input[type="color"]').forEach(input => {
+    const key = input.id.replace('color-', '');
+    colors[key] = input.value;
+  });
+  
+  // Aplicar ao CSS imediatamente
+  applyUserColors(colors);
+  
+  // Atualizar objetos de cores globais
+  Object.entries(colors).forEach(([key, value]) => {
+    if (key.startsWith('linha-')) {
+      const linhaName = key.replace('linha-', '').replace('-', ' ');
+      LINHAS_CORES[linhaName.charAt(0).toUpperCase() + linhaName.slice(1)] = value;
+    } else if (key.startsWith('conc-')) {
+      const concName = key.replace('conc-', '').replace('-', ' ');
+      CONC_CORES[concName.charAt(0).toUpperCase() + concName.slice(1)] = value;
+    }
+  });
+  
+  // Salvar na planilha
+  const success = await saveUserColors(colors);
+  
+  if (success) {
+    alert('Cores aplicadas e salvas com sucesso!');
+    // Fechar modal
+    document.getElementById('modalCores')?.remove();
+    
+    // Re-renderizar dashboards se estiver em um dashboard
+    if (activeTab.startsWith('dash')) {
+      renderDashboards();
+    }
+  } else {
+    alert('Cores aplicadas, mas erro ao salvar na planilha. As cores serão perdidas no próximo carregamento.');
+  }
 }
 
 // =======================================================================
@@ -2840,7 +3133,7 @@ function setupEventListeners() {
   if (btnCores && settingsMenuDropdown) {
     btnCores.onclick = () => { 
       settingsMenuDropdown.classList.remove('show'); 
-      showColorPaletteSelector();
+      showColorSelector();
     };
   }
   
@@ -2950,142 +3243,32 @@ function setupEventListeners() {
   }
 }
 
-function showColorPaletteSelector() {
-  const modal = document.createElement('div');
-  modal.className = 'backdrop';
-  modal.style.display = 'flex';
-  modal.innerHTML = `
-    <div class="modal" style="max-width: 600px;">
-      <header>
-        <strong>Selecionar Paleta de Cores</strong>
-        <button class="btn" onclick="this.closest('.backdrop').remove()">Fechar</button>
-      </header>
-      <div class="content">
-        <div style="display: grid; gap: 15px;">
-          <div class="palette-option" style="border: 2px solid var(--border); border-radius: 12px; padding: 15px; cursor: pointer; background: var(--card);" data-palette="default">
-            <h4 style="margin: 0 0 10px 0; color: var(--text-white);">Padrão Archipelago</h4>
-            <div style="display: flex; gap: 8px; margin-bottom: 10px;">
-              <div style="width: 30px; height: 30px; background: #0a2b52; border-radius: 6px;"></div>
-              <div style="width: 30px; height: 30px; background: #60a5fa; border-radius: 6px;"></div>
-              <div style="width: 30px; height: 30px; background: #16a34a; border-radius: 6px;"></div>
-              <div style="width: 30px; height: 30px; background: #f59e0b; border-radius: 6px;"></div>
-              <div style="width: 30px; height: 30px; background: #dc2626; border-radius: 6px;"></div>
-            </div>
-            <div style="font-size: 12px; color: var(--text-muted);">Clique para aplicar</div>
-          </div>
-          <div class="palette-option" style="border: 2px solid var(--border); border-radius: 12px; padding: 15px; cursor: pointer; background: var(--card);" data-palette="vibrant">
-            <h4 style="margin: 0 0 10px 0; color: var(--text-white);">Vibrante</h4>
-            <div style="display: flex; gap: 8px; margin-bottom: 10px;">
-              <div style="width: 30px; height: 30px; background: #ff6b6b; border-radius: 6px;"></div>
-              <div style="width: 30px; height: 30px; background: #4ecdc4; border-radius: 6px;"></div>
-              <div style="width: 30px; height: 30px; background: #26de81; border-radius: 6px;"></div>
-              <div style="width: 30px; height: 30px; background: #ffa726; border-radius: 6px;"></div>
-              <div style="width: 30px; height: 30px; background: #f44336; border-radius: 6px;"></div>
-            </div>
-            <div style="font-size: 12px; color: var(--text-muted);">Clique para aplicar</div>
-          </div>
-          <div class="palette-option" style="border: 2px solid var(--border); border-radius: 12px; padding: 15px; cursor: pointer; background: var(--card);" data-palette="medical">
-            <h4 style="margin: 0 0 10px 0; color: var(--text-white);">Médico</h4>
-            <div style="display: flex; gap: 8px; margin-bottom: 10px;">
-              <div style="width: 30px; height: 30px; background: #1565c0; border-radius: 6px;"></div>
-              <div style="width: 30px; height: 30px; background: #42a5f5; border-radius: 6px;"></div>
-              <div style="width: 30px; height: 30px; background: #43a047; border-radius: 6px;"></div>
-              <div style="width: 30px; height: 30px; background: #fb8c00; border-radius: 6px;"></div>
-              <div style="width: 30px; height: 30px; background: #e53935; border-radius: 6px;"></div>
-            </div>
-            <div style="font-size: 12px; color: var(--text-muted);">Clique para aplicar</div>
-          </div>
-        </div>
-      </div>
-      <div class="actions">
-        <button class="btn" onclick="this.closest('.backdrop').remove();">Cancelar</button>
-      </div>
-    </div>
-  `;
-  
-  document.body.appendChild(modal);
-  
-  modal.querySelectorAll('.palette-option').forEach(option => {
-    option.addEventListener('click', function() {
-      const palette = this.dataset.palette;
-      applyColorPalette(palette);
-      modal.remove();
-    });
-  });
-}
-
-function applyColorPalette(palette) {
-  const root = document.documentElement;
-  
-  switch(palette) {
-    case 'vibrant':
-      root.style.setProperty('--nav-sidebar', '#ff6b6b');
-      root.style.setProperty('--text-accent', '#4ecdc4');
-      root.style.setProperty('--status-vago', '#26de81');
-      root.style.setProperty('--status-uso', '#ffa726');
-      root.style.setProperty('--status-uti', '#f44336');
-      logInfo("Paleta Vibrante aplicada!");
-      break;
-    case 'medical':
-      root.style.setProperty('--nav-sidebar', '#1565c0');
-      root.style.setProperty('--text-accent', '#42a5f5');
-      root.style.setProperty('--status-vago', '#43a047');
-      root.style.setProperty('--status-uso', '#fb8c00');
-      root.style.setProperty('--status-uti', '#e53935');
-      logInfo("Paleta Médica aplicada!");
-      break;
-    default:
-      // Restaurar cores originais
-      root.style.setProperty('--nav-sidebar', '#0a2b52');
-      root.style.setProperty('--text-accent', '#60a5fa');
-      root.style.setProperty('--status-vago', '#16a34a');
-      root.style.setProperty('--status-uso', '#f59e0b');
-      root.style.setProperty('--status-uti', '#dc2626');
-      logInfo("Paleta Padrão restaurada!");
-  }
-  
-  // Re-renderizar dashboards se estiverem ativos para atualizar cores dos gráficos
-  if(activeTab.startsWith('dash')) {
-    setTimeout(() => renderDashboards(), 100);
-  }
-}
-
-function initColorSystem() {
-  // Salvar preferência de cor no localStorage
-  const savedPalette = localStorage.getItem('archipelago-color-palette');
-  if (savedPalette) {
-    applyColorPalette(savedPalette);
-  }
-  
-  // Interceptar mudanças de paleta para salvar
-  const originalApply = applyColorPalette;
-  window.applyColorPalette = function(palette) {
-    originalApply(palette);
-    localStorage.setItem('archipelago-color-palette', palette);
-  };
-}
-
 // Função de inicialização
 (async function init(){
   logInfo("=== INICIALIZANDO ARCHIPELAGO DASHBOARD CORRIGIDO ===");
   showLoading();
   
+  // Aguardar um pouco para garantir que o DOM esteja pronto
   await new Promise(resolve => setTimeout(resolve, 100));
   
   setupEventListeners();
+  
   await testConnection();
   
+  // Verificar se é acesso via QR Code primeiro
   if (checkQRParams()) {
     hideLoading();
     return;
   }
   
-  logInfo("MODO PORTAL DETECTADO - Sessão gestor iniciada");
+  logInfo("💼 MODO PORTAL DETECTADO - Sessão gestor iniciada");
   setHospitalSelectors("H1");
   setTab("leitos");
-  await loadAllData();
   
-  initColorSystem();
+  // Carregar cores do usuário antes de carregar dados
+  await loadUserColors();
+  
+  await loadAllData();
   
   autoRefreshInterval = setInterval(() => {
     if (!isQRMode) {
@@ -3103,5 +3286,244 @@ function initColorSystem() {
 })();
 
 </script>
+
+<!-- Modal Admissão -->
+<div id="modalAdmissao" class="backdrop">
+  <div class="modal">
+    <header>
+      <strong>Admissão de Paciente</strong>
+      <button class="btn" data-close="#modalAdmissao">Fechar</button>
+    </header>
+    <div class="content">
+      <div class="row3">
+        <div><span class="label">Hospital</span><div id="a_hospital" class="badge"></div></div>
+        <div><span class="label">Leito</span><div id="a_leito" class="badge"></div></div>
+        <div><span class="label">Tipo</span><div id="a_tipo" class="badge"></div></div>
+      </div>
+      <div class="row2" style="margin-top:10px">
+        <div>
+          <label class="label" for="a_nome">Nome completo</label>
+          <input id="a_nome" class="input" />
+        </div>
+        <div>
+          <label class="label" for="a_idade">Idade</label>
+          <input id="a_idade" class="input" inputmode="numeric" />
+        </div>
+      </div>
+      <div class="row3">
+        <div>
+          <label class="label" for="a_matricula">Matrícula (número)</label>
+          <input id="a_matricula" class="input" inputmode="numeric" />
+        </div>
+        <div>
+          <label class="label" for="a_pps">PPS (0–10)</label>
+          <input id="a_pps" class="input" inputmode="numeric" />
+        </div>
+        <div>
+          <label class="label" for="a_spict">SPICT-BR</label>
+          <select id="a_spict" class="select2">
+            <option value="elegivel">Elegível</option>
+            <option value="nao_elegivel">Não elegível</option>
+          </select>
+        </div>
+      </div>
+      <div class="row3">
+        <div>
+          <label class="label" for="a_complexidade">Complexidade</label>
+          <select id="a_complexidade" class="select2">
+            <option value="I">Nível I</option>
+            <option value="II">Nível II</option>
+            <option value="III">Nível III</option>
+          </select>
+        </div>
+        <div>
+          <label class="label" for="a_prev">Previsão de alta</label>
+          <select id="a_prev" class="select2">
+            <option>24h Ouro</option><option>24h 2R</option><option>24h 3R</option>
+            <option>48h</option><option>72h</option><option>96h</option><option>Sem previsao</option>
+          </select>
+        </div>
+        <div></div>
+      </div>
+      <div class="row2">
+        <div>
+          <span class="label">Linhas de cuidado (multi)</span>
+          <div id="a_linhas" class="wrap"></div>
+        </div>
+        <div>
+          <span class="label">Concessões (multi)</span>
+          <div id="a_concessoes" class="wrap"></div>
+        </div>
+      </div>
+      <div style="margin-top:8px;color:var(--text-muted);font-size:12px">
+        * Data e hora de admissão serão registradas automaticamente ao salvar.
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn" id="a_cancel">Cancelar</button>
+      <button class="btn primary" id="a_save">Salvar e Admitir</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Atualização -->
+<div id="modalAtualizacao" class="backdrop">
+  <div class="modal">
+    <header>
+      <strong>Atualização de Paciente</strong>
+      <button class="btn" data-close="#modalAtualizacao">Fechar</button>
+    </header>
+    <div class="content">
+      <div class="row3">
+        <div><span class="label">Hospital</span><div id="u_hospital" class="badge"></div></div>
+        <div><span class="label">Leito</span><div id="u_leito" class="badge"></div></div>
+        <div><span class="label">Tipo</span><div id="u_tipo" class="badge"></div></div>
+      </div>
+      <div class="row3" style="margin-top:10px">
+        <div>
+          <label class="label">Nome (bloqueado)</label>
+          <input id="u_nome" class="input" disabled />
+        </div>
+        <div>
+          <label class="label">Matrícula (bloqueado)</label>
+          <input id="u_matricula" class="input" disabled />
+        </div>
+        <div>
+          <label class="label">Admissão (bloqueado)</label>
+          <input id="u_adm" class="input" disabled />
+        </div>
+      </div>
+      <div class="row3">
+        <div>
+          <label class="label" for="u_idade">Idade</label>
+          <input id="u_idade" class="input" inputmode="numeric" />
+        </div>
+        <div>
+          <label class="label" for="u_pps">PPS (0–10)</label>
+          <input id="u_pps" class="input" inputmode="numeric" />
+        </div>
+        <div>
+          <label class="label" for="u_spict">SPICT-BR</label>
+          <select id="u_spict" class="select2">
+            <option value="elegivel">Elegível</option>
+            <option value="nao_elegivel">Não elegível</option>
+          </select>
+        </div>
+      </div>
+      <div class="row3">
+        <div>
+          <label class="label" for="u_complexidade">Complexidade</label>
+          <select id="u_complexidade" class="select2">
+            <option value="I">Nível I</option>
+            <option value="II">Nível II</option>
+            <option value="III">Nível III</option>
+          </select>
+        </div>
+        <div>
+          <label class="label" for="u_prev">Previsão de alta</label>
+          <select id="u_prev" class="select2">
+            <option>24h Ouro</option><option>24h 2R</option><option>24h 3R</option>
+            <option>48h</option><option>72h</option><option>96h</option><option>Sem previsao</option>
+          </select>
+        </div>
+        <div></div>
+      </div>
+      <div class="row2">
+        <div>
+          <span class="label">Linhas de cuidado (multi)</span>
+          <div id="u_linhas" class="wrap"></div>
+        </div>
+        <div>
+          <span class="label">Concessões (multi)</span>
+          <div id="u_concessoes" class="wrap"></div>
+        </div>
+      </div>
+      <div id="internadoHa" style="margin-top:8px;color:var(--text-muted);font-size:12px"></div>
+    </div>
+    <div class="actions">
+      <button class="btn" id="u_cancel">Cancelar</button>
+      <button class="btn primary" id="u_save">Salvar</button>
+      <button class="btn danger" id="u_alta">Dar Alta</button>
+    </div>
+  </div>
+</div>
+
+<!-- Outros Modais (QR, Confirmação, etc.) -->
+<div id="modalConfirm" class="backdrop">
+  <div class="modal" style="max-width:520px">
+    <header><strong>Confirmação</strong></header>
+    <div class="content"><div id="confirmMsg">Confirma?</div></div>
+    <div class="actions">
+      <button class="btn" id="confirmNo">Não</button>
+      <button class="btn primary" id="confirmYes">Sim</button>
+    </div>
+  </div>
+</div>
+
+<div id="modalQRScan" class="backdrop">
+  <div class="modal">
+    <header><strong>Ler QR Code</strong><button class="btn" data-close="#modalQRScan">Fechar</button></header>
+    <div class="content">
+      <div style="margin-bottom:8px;font-size:12px;color:var(--text-muted)">Se a câmera não abrir, use a seleção manual.</div>
+      <div id="qrRegion" style="width:100%;max-width:420px;margin:0 auto;border:1px solid var(--border);border-radius:12px;overflow:hidden"></div>
+    </div>
+    <div class="actions"><button class="btn" data-close="#modalQRScan">Cancelar</button></div>
+  </div>
+</div>
+
+<div id="modalBulkQR" class="backdrop">
+  <div class="modal" style="max-width:90vw;max-height:90vh">
+    <header>
+      <strong>Gerar QR Codes para impressão</strong>
+      <button class="btn" data-close="#modalBulkQR">✕</button>
+    </header>
+    <div class="content" style="overflow-y:auto">
+      <div class="row3">
+        <div>
+          <label class="label" for="b_hospital">Hospital</label>
+          <select id="b_hospital" class="select2">
+            <option value="H1">Neomater</option>
+            <option value="H2">Cruz Azul</option>
+          </select>
+        </div>
+        <div>
+          <label class="label" for="b_from">Leito inicial</label>
+          <input id="b_from" class="input" inputmode="numeric" placeholder="1" />
+        </div>
+        <div>
+          <label class="label" for="b_to">Leito final</label>
+          <input id="b_to" class="input" inputmode="numeric" placeholder="13/16" />
+        </div>
+      </div>
+      <div style="margin:10px 0;position:sticky;top:0;background:var(--card);padding:10px 0;border-bottom:1px solid var(--border);z-index:10">
+        <button class="btn primary" id="b_generate">Gerar QR Codes</button>  
+        <button class="btn" onclick="window.print()">Imprimir</button>
+        <button class="btn" data-close="#modalBulkQR">Fechar</button>
+      </div>
+      <div id="qr_grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px"></div>
+    </div>
+  </div>
+</div>
+
+<div id="modalQRExpired" class="backdrop">
+  <div class="modal" style="max-width:520px">
+    <header><strong>Sessão Expirada</strong></header>
+    <div class="content">
+      <p>O tempo para preenchimento expirou.</p>
+      <p>Para continuar, escaneie novamente o QR code próximo ao leito.</p>
+    </div>
+    <div class="actions">
+      <button class="btn primary" id="reloadPage">Escanear Novamente</button>
+    </div>
+  </div>
+</div>
+
+<div id="successMessage" class="success-message">
+  <h2>Obrigado!</h2>
+  <p>Operação realizada com sucesso.</p>
+  <p style="color:var(--text-muted);font-size:14px">Você pode fechar o navegador.</p>
+  <button class="btn primary" onclick="window.close()">Fechar Navegador</button>
+</div>
+
 </body>
 </html>
