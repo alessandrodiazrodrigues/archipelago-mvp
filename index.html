@@ -731,17 +731,30 @@
       
       /* Grid otimizado para 6 QR codes (3 linhas x 2 colunas) */
       #qr_grid {
+        display: block !important;
+        width: 100% !important;
+        background: white !important;
+        visibility: visible !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      
+      /* Container de página - cada grupo de 6 */
+      .qr-page {
         display: grid !important;
         grid-template-columns: repeat(2, 1fr) !important;
         grid-template-rows: repeat(3, 1fr) !important;
         gap: 10mm !important;
-        padding: 0 !important;
         width: 100% !important;
-        height: 100% !important;
-        background: white !important;
-        visibility: visible !important;
+        height: 100vh !important;
+        page-break-after: always !important;
+        page-break-inside: avoid !important;
         margin: 0 !important;
-        box-sizing: border-box !important;
+        padding: 0 !important;
+      }
+      
+      .qr-page:last-child {
+        page-break-after: avoid !important;
       }
       
       /* Células QR - mais largas para 2 colunas */
@@ -3125,9 +3138,28 @@ function buildQRGrid(){
   if (printBtn) printBtn.style.display = "none";
   grid.innerHTML = "";
   
-  // Estrutura simplificada
+  let currentPage = null;
+  let qrCount = 0;
+  const qrsPerPage = 6;
+  
+  // Estrutura com páginas
   for(let i=f; i<=t; i++){
     const url = `${base}?h=${h}&leito=${i}`;
+    
+    // Criar nova página a cada 6 QR codes
+    if (qrCount % qrsPerPage === 0) {
+      currentPage = document.createElement("div");
+      currentPage.className = "qr-page";
+      currentPage.style.cssText = `
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: repeat(3, 1fr);
+        gap: 20px;
+        page-break-inside: avoid;
+        margin-bottom: 20px;
+      `;
+      grid.appendChild(currentPage);
+    }
     
     // Cell principal
     const cell = document.createElement("div");
@@ -3146,7 +3178,7 @@ function buildQRGrid(){
       page-break-inside: avoid;
     `;
     
-    // Container QR (será preenchido pela biblioteca)
+    // Container QR
     const qrDiv = document.createElement("div");
     qrDiv.style.cssText = "margin-bottom: 15px;";
     
@@ -3157,7 +3189,7 @@ function buildQRGrid(){
     
     cell.appendChild(qrDiv);
     cell.appendChild(labelDiv);
-    grid.appendChild(cell);
+    currentPage.appendChild(cell);
     
     // Gerar QR
     try {
@@ -3171,12 +3203,14 @@ function buildQRGrid(){
     } catch(error) {
       qrDiv.innerHTML = `<div style="width:180px;height:180px;border:1px solid #ccc;display:flex;align-items:center;justify-content:center;font-size:12px;">Erro QR</div>`;
     }
+    
+    qrCount++;
   }
   
   // Mostrar botão após pequeno delay
   setTimeout(() => {
     if (printBtn) printBtn.style.display = "inline-block";
-    logSuccess(`QR codes gerados: ${t-f+1} códigos para ${HOSPITAIS[h].nome}`);
+    logSuccess(`QR codes gerados: ${t-f+1} códigos para ${HOSPITAIS[h].nome} em ${Math.ceil((t-f+1)/qrsPerPage)} página(s)`);
   }, 1000);
 }
 
