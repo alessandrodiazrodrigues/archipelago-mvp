@@ -5,17 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Archipelago Dashboard</title>
     
-    <!-- CSS MODULAR RESPONSIVO CONSOLIDADO -->
+    <!-- CSS MODULAR -->
     <link rel="stylesheet" href="css/variables.css">
     <link rel="stylesheet" href="css/layout.css">
     <link rel="stylesheet" href="css/cards.css">
     <link rel="stylesheet" href="css/modals.css">
     <link rel="stylesheet" href="css/dashboards.css">
-    <!-- MOBILE.CSS REMOVIDO - RESPONSIVIDADE CONSOLIDADA NOS ARQUIVOS JS -->
     
     <!-- BIBLIOTECAS EXTERNAS -->
+    <!-- Chart.js para gráficos -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://unpkg.com/html5-qrcode"></script>
+    
+    <!-- QRCode.js OBRIGATÓRIA - Necessária para gerar QR Codes -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
@@ -63,14 +64,8 @@
         
         <div class="menu-footer">
             <div class="menu-divider"></div>
-            <a href="#" class="menu-config" onclick="openConfig()">
-                <span>⚙️</span> Configurações
-            </a>
-            <a href="#" class="menu-qr" onclick="openQRGenerator()">
+            <a href="#" class="menu-qr" onclick="openQRCodes()">
                 <span>📱</span> Gerar QR Codes
-            </a>
-            <a href="#" class="menu-admin" onclick="openAdmin()">
-                <span>🔐</span> ADM
             </a>
         </div>
     </aside>
@@ -95,7 +90,7 @@
                 </div>
             </div>
             
-            <!-- CONTAINER DOS CARDS - RESPONSIVO INTEGRADO NO cards.js -->
+            <!-- CONTAINER DOS CARDS -->
             <div id="cardsContainer" class="cards-grid"></div>
         </section>
 
@@ -115,7 +110,7 @@
     <footer id="mainFooter" class="footer hidden">
         <p>Sistema em versão BETA - não pode ser usado como única fonte de referência</p>
         <p>Para decisões críticas, consulte sempre fontes adicionais e profissionais qualificados</p>
-        <p><strong>Desenvolvido por: Alessandro Rodrigues - Versão V4.0 - Setembro/2025</strong></p>
+        <p><strong>Desenvolvido por: Alessandro Rodrigues - Versão V5.0 - Dezembro/2024</strong></p>
     </footer>
 
     <!-- =================== MODAL DE PACIENTE =================== -->
@@ -138,7 +133,7 @@
         </div>
     </div>
 
-    <!-- =================== CARREGAMENTO DE SCRIPTS MODULARES =================== -->
+    <!-- =================== SCRIPTS MODULARES =================== -->
     
     <!-- Scripts Core -->
     <script src="js/app.js"></script>
@@ -146,35 +141,38 @@
     
     <!-- Scripts de Dashboards -->
     <script src="js/dashboards/charts-config.js"></script>
-    <!-- CHARTS.JS REMOVIDO - CONFLITO COM DASHBOARDS -->
     <script src="js/dashboards/dashboard-hospital.js"></script>
     <script src="js/dashboards/dashboard-executive.js"></script>
     
     <!-- Scripts de Interface -->
     <script src="js/cards.js"></script>
     
-    <!-- Scripts de Funcionalidades -->
+    <!-- Scripts de Funcionalidades - QRCode.js DEVE vir APÓS a biblioteca -->
     <script src="js/qrcode.js"></script>
     <script src="js/admin.js"></script>
-    
-    <!-- Script Principal -->
     <script src="js/main.js"></script>
     
-    <!-- =================== INICIALIZAÇÃO DO SISTEMA =================== -->
+    <!-- =================== INICIALIZAÇÃO =================== -->
     <script>
-        // Inicializar sistema após carregar todos os módulos
+        // Verificar se QRCode.js foi carregada
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 Archipelago Dashboard V4.0 - Inicializando sistema...');
+            console.log('🚀 Archipelago Dashboard V5.0 - Inicializando...');
             
-            // Aguardar carregamento completo dos módulos
+            // Verificar biblioteca QRCode
+            if (typeof QRCode !== 'undefined') {
+                console.log('✅ QRCode.js carregada com sucesso');
+            } else {
+                console.warn('⚠️ QRCode.js não encontrada - QR Codes podem não funcionar');
+            }
+            
+            // Inicialização normal do sistema
             setTimeout(() => {
                 if (typeof window.initApp === 'function') {
                     window.initApp();
                     console.log('✅ Sistema inicializado com sucesso');
                 } else {
-                    console.error('❌ initApp não encontrada - verificar carregamento dos módulos');
-                    
-                    // Retry após mais tempo
+                    console.error('❌ initApp não encontrada');
+                    // Retry
                     setTimeout(() => {
                         if (typeof window.initApp === 'function') {
                             window.initApp();
@@ -185,15 +183,13 @@
             }, 200);
         });
         
-        // Log de debug para carregamento
-        console.log('📄 Index.html carregado - Versão V4.1 Corrigida');
-        console.log('🔧 Charts.js removido - Conflito resolvido');
-        console.log('🎯 Mobile.css removido - Responsividade nos arquivos JS');
+        // Log de informações importantes
+        console.log('📱 QR Codes apontam para: https://qrcode-seven-gamma.vercel.app');
+        console.log('🖨️ Impressão configurada: 12 QR codes por A4 (3x4)');
     </script>
     
-    <!-- =================== META INFORMAÇÕES =================== -->
+    <!-- =================== CSS BASE =================== -->
     <style>
-        /* CSS MINIMAL PARA ESTRUTURA BÁSICA */
         * {
             box-sizing: border-box;
         }
@@ -211,86 +207,91 @@
             display: none !important;
         }
         
-        /* RESPONSIVIDADE BÁSICA ESTRUTURAL */
+        /* Modal de autenticação */
+        .modal-auth {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+        
+        .auth-container {
+            background: #1e293b;
+            padding: 40px;
+            border-radius: 16px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+        
+        .auth-container h1 {
+            margin: 0 0 20px;
+            color: #60a5fa;
+        }
+        
+        .auth-container input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #334155;
+            background: #0f172a;
+            color: white;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        
+        .auth-container button {
+            width: 100%;
+            padding: 12px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        
+        .auth-container button:hover {
+            background: #2563eb;
+        }
+        
+        .error-msg {
+            color: #ef4444;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        
+        /* Responsividade */
         @media (max-width: 768px) {
-            body {
-                overflow-x: hidden;
-            }
-            
-            /* Header mobile */
             .header {
                 flex-direction: column;
                 gap: 10px;
                 padding: 10px;
             }
             
-            .header h1 {
-                font-size: 18px;
-            }
-            
-            .header-right {
-                width: 100%;
-                justify-content: space-between;
-            }
-            
-            /* Menu lateral mobile */
             .side-menu {
                 width: 100%;
                 left: -100%;
-                transition: left 0.3s ease;
             }
             
             .side-menu.open {
                 left: 0;
             }
             
-            /* Cards responsivos */
-            .cards-grid {
-                grid-template-columns: 1fr;
-                gap: 15px;
-                padding: 10px;
-            }
-            
-            /* Botões de hospital mobile */
             .hospital-selector {
                 flex-direction: column;
                 gap: 10px;
-                padding: 15px;
             }
             
             .hospital-btn {
                 width: 100%;
-                min-width: auto;
-                flex: none;
-                padding: 12px 16px;
-                font-size: 14px;
-            }
-            
-            /* Footer mobile */
-            .footer {
-                padding: 20px 10px;
-                font-size: 12px;
-            }
-            
-            .footer p {
-                margin: 5px 0;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            /* Ajustes para telas muito pequenas */
-            .cards-grid {
-                padding: 5px;
-                gap: 10px;
-            }
-            
-            .hospital-selector {
-                padding: 10px;
-            }
-            
-            .footer {
-                padding: 15px 5px;
-                font-size: 11px;
             }
         }
     </style>
