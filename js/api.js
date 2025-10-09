@@ -1,7 +1,7 @@
 // =================== API V3.1 - NOVA ESTRUTURA 46 COLUNAS - COM AS/AT ===================
 
-// *** URL ATUALIZADA DA API V3.1 ***
-window.API_URL = 'https://script.google.com/macros/s/AKfycbxAEyQKas6IEFPV5iQK8HSjm-xIRfcczzB9poXEKpJhvYkmJZ6vaBN_x74IiBe-8wHC/exec';
+// *** URL ATUALIZADA DA API V3.1 FINAL CORRIGIDA ***
+window.API_URL = 'https://script.google.com/macros/s/AKfycbxC9Gdvu3_mzXko0VjIYOFgtiH_Z_d8E9VXniUpBxyfaHRC1BHilyEuKhAtLnzmnusT/exec';
 
 // =================== VARIÁVEIS GLOBAIS ===================
 window.hospitalData = {};
@@ -784,3 +784,4 @@ logAPISuccess('✅ API.js V3.1 100% FUNCIONAL - Nova estrutura 46 colunas (AS/AT
 logAPISuccess('✅ Colunas AS (ISOLAMENTO) e AT (IDENTIFICACAO_LEITO) implementadas');
 logAPISuccess('✅ Validação alfanumérica 6 chars para AT implementada');
 logAPISuccess('✅ Dropdown obrigatório 3 opções para AS implementado');
+logAPISuccess('✅ URL CORRIGIDA para API que funciona');
