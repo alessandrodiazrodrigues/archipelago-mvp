@@ -1,11 +1,11 @@
-// =================== CARDS.JS V3.1 - VERSÃO COM CORREÇÕES 2 E 3 IMPLEMENTADAS ===================
+// =================== CARDS.JS V3.2 - CORREÇÕES #4, #2, #7 IMPLEMENTADAS ===================
 // =================== TODO CSS RESPONSIVO INCLUÍDO - SEM mobile.css ===================
 
 // =================== VARIÁVEIS GLOBAIS ===================  
 window.selectedLeito = null;
 window.currentHospital = 'H1';
 
-// =================== MAPEAMENTO DE HOSPITAIS V3.1 ===================
+// =================== MAPEAMENTO DE HOSPITAIS V3.2 ===================
 window.HOSPITAL_MAPPING = {
     H1: 'Neomater',
     H2: 'Cruz Azul', 
@@ -13,43 +13,69 @@ window.HOSPITAL_MAPPING = {
     H4: 'Santa Clara'
 };
 
-// =================== LISTAS PARA FORMULÁRIOS ===================
+// =================== CORREÇÃO #7: LISTAS ATUALIZADAS CONFORME MANUAL ===================
 window.CONCESSOES_LIST = [
     "Transição Domiciliar",
     "Aplicação domiciliar de medicamentos",
-    "Fisioterapia", 
-    "Fonoaudiologia",
     "Aspiração",
     "Banho",
-    "Curativos",
+    "Curativo",
+    "Curativo PICC",
+    "Fisioterapia Domiciliar",
+    "Fonoaudiologia Domiciliar",
     "Oxigenoterapia",
-    "Recarga de O2",
-    "Orientação Nutricional - com dispositivo",
-    "Orientação Nutricional - sem dispositivo",
-    "Clister", 
-    "PICC"
+    "Remoção",
+    "Solicitação domiciliar de exames"
 ];
 
 window.LINHAS_CUIDADO_LIST = [
     "Assiste",
-    "APS",
+    "APS SP",
     "Cuidados Paliativos",
     "ICO (Insuficiência Coronariana)",
-    "Oncologia",
+    "Nexus SP Cardiologia",
+    "Nexus SP Gastroentereologia",
+    "Nexus SP Geriatria",
+    "Nexus SP Pneumologia",
+    "Nexus SP Psiquiatria",
+    "Nexus SP Reumatologia",
+    "Nexus SP Saúde do Fígado",
+    "Generalista",
+    "Bucomaxilofacial",
+    "Cardiologia",
+    "Cirurgia Cardíaca",
+    "Cirurgia de Cabeça e Pescoço",
+    "Cirurgia do Aparelho Digestivo",
+    "Cirurgia Geral",
+    "Cirurgia Oncológica",
+    "Cirurgia Plástica",
+    "Cirurgia Torácica",
+    "Cirurgia Vascular",
+    "Clínica Médica",
+    "Coloproctologia",
+    "Dermatologia",
+    "Endocrinologia",
+    "Fisiatria",
+    "Gastroenterologia",
+    "Geriatria",
+    "Ginecologia e Obstetrícia",
+    "Hematologia",
+    "Infectologia",
+    "Mastologia",
+    "Medicina Domiciliar",
+    "Nefrologia",
+    "Neurocirurgia",
+    "Neurologia",
+    "Oftalmologia",
+    "Onco-Hematologia",
+    "Oncologia Clínica",
+    "Ortopedia",
+    "Otorrinolaringologia",
     "Pediatria",
-    "Programa Autoimune - Gastroenterologia",
-    "Programa Autoimune - Neuro-desmielinizante",
-    "Programa Autoimune - Neuro-muscular",
-    "Programa Autoimune - Reumatologia",
-    "Vida Mais Leve Care",
-    "Crônicos - Cardiologia",
-    "Crônicos - Endocrinologia",
-    "Crônicos - Geriatria",
-    "Crônicos - Melhor Cuidado",
-    "Crônicos - Neurologia",
-    "Crônicos - Pneumologia",
-    "Crônicos - Pós-bariátrica",
-    "Crônicos - Reumatologia"
+    "Pneumologia",
+    "Psiquiatria",
+    "Reumatologia",
+    "Urologista"
 ];
 
 window.PPS_OPTIONS = ['10%', '20%', '30%', '40%', '50%', '60%', '70%', '80%', '90%', '100%'];
@@ -95,7 +121,7 @@ window.selectHospital = function(hospitalId) {
 
 // =================== FUNÇÃO PRINCIPAL DE RENDERIZAÇÃO ===================
 window.renderCards = function() {
-    logInfo('Renderizando cards V3.1 com dados REAIS da API (incluindo AS/AT)');
+    logInfo('Renderizando cards V3.2 com dados REAIS da API (incluindo AS/AT)');
     
     const container = document.getElementById('cardsContainer');
     if (!container) {
@@ -116,8 +142,8 @@ window.renderCards = function() {
                     <h3>📋 ${hospitalNome}</h3>
                 </div>
                 <div style="background: rgba(96,165,250,0.1); border-radius: 8px; padding: 20px;">
-                    <p style="margin-bottom: 15px;">Carregando dados da planilha V3.1 (46 colunas)...</p>
-                    <p style="color: #28a745;"><em>✅ API V3.1 conectada - Incluindo AS/AT</em></p>
+                    <p style="margin-bottom: 15px;">Carregando dados da planilha V3.2 (46 colunas)...</p>
+                    <p style="color: #28a745;"><em>✅ API V3.2 conectada - 11 concessões + 45 linhas</em></p>
                 </div>
             </div>
         `;
@@ -129,7 +155,7 @@ window.renderCards = function() {
         container.appendChild(card);
     });
     
-    logInfo(`${hospital.leitos.length} cards V3.1 renderizados para ${hospitalNome}`);
+    logInfo(`${hospital.leitos.length} cards V3.2 renderizados para ${hospitalNome}`);
 };
 
 // =================== FUNÇÃO: BADGE DE ISOLAMENTO ===================
@@ -159,7 +185,7 @@ function getBadgeIsolamento(isolamento) {
     return getBadgeIsolamento('NÃO ISOLAMENTO'); // Fallback
 }
 
-// =================== CRIAR CARD INDIVIDUAL V3.1 COM HEADER CORRIGIDO ===================
+// =================== CRIAR CARD INDIVIDUAL V3.2 COM HEADER CORRIGIDO ===================
 function createCard(leito, hospitalNome) {
     const card = document.createElement('div');
     card.className = 'card';
@@ -226,7 +252,7 @@ function createCard(leito, hospitalNome) {
         ? identificacaoLeito.trim().toUpperCase()
         : `LEITO ${numeroLeito}`;
     
-    // HTML do Card V3.1 (layout CORRIGIDO: Hospital | ID | Leito)
+    // HTML do Card V3.2 (layout CORRIGIDO: Hospital | ID | Leito)
     card.innerHTML = `
         <div class="card-row-1" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 12px;">
             <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 10px; min-height: 50px; display: flex; flex-direction: column; justify-content: center;">
@@ -367,7 +393,7 @@ function openAdmissaoFlow(leitoNumero) {
     setTimeout(() => {
         hideButtonLoading(button, originalText);
         openAdmissaoModal(leitoNumero);
-        logInfo(`Modal de admissão V3.1 aberto: ${window.currentHospital} - Leito ${leitoNumero}`);
+        logInfo(`Modal de admissão V3.2 aberto: ${window.currentHospital} - Leito ${leitoNumero}`);
     }, 800);
 }
 
@@ -380,11 +406,11 @@ function openAtualizacaoFlow(leitoNumero, dadosLeito) {
     setTimeout(() => {
         hideButtonLoading(button, originalText);
         openAtualizacaoModal(leitoNumero, dadosLeito);
-        logInfo(`Modal de atualização V3.1 aberto: ${window.currentHospital} - Leito ${leitoNumero}`);
+        logInfo(`Modal de atualização V3.2 aberto: ${window.currentHospital} - Leito ${leitoNumero}`);
     }, 800);
 }
 
-// =================== MODAIS CORRIGIDOS V3.1 ===================
+// =================== MODAIS CORRIGIDOS V3.2 ===================
 function openAdmissaoModal(leitoNumero) {
     const hospitalId = window.currentHospital;
     const hospitalNome = window.HOSPITAL_MAPPING[hospitalId] || 'Hospital';
@@ -428,7 +454,7 @@ function createModalOverlay() {
     return modal;
 }
 
-// *** CORREÇÃO 2 + 3: FORMULÁRIO DE ADMISSÃO CORRIGIDO COM LAYOUT 3 COLUNAS + CAMPO IDENTIFICAÇÃO PRIMEIRO ***
+// *** CORREÇÃO #2 + #4: FORMULÁRIO DE ADMISSÃO COM ISOLAMENTO REPOSICIONADO + PLACEHOLDER CORRIGIDO ***
 function createAdmissaoForm(hospitalNome, leitoNumero) {
     const idSequencial = String(leitoNumero).padStart(2, '0');
     
@@ -453,7 +479,24 @@ function createAdmissaoForm(hospitalNome, leitoNumero) {
                 <div style="font-size: 11px; color: rgba(255,255,255,0.6); margin-top: 5px;">Campo alfanumérico obrigatório com até 6 caracteres</div>
             </div>
             
-            <!-- CORREÇÃO 2: LAYOUT 3 COLUNAS IGUAL AOS CARDS -->
+            <!-- CORREÇÃO #2: CAMPO ISOLAMENTO MOVIDO PARA O TOPO (APÓS IDENTIFICAÇÃO) -->
+            <div style="margin-bottom: 20px;">
+                <div style="background: rgba(96,165,250,0.1); padding: 10px 15px; border-radius: 6px; margin-bottom: 10px;">
+                    <div style="font-size: 11px; color: #ffffff; text-transform: uppercase; font-weight: 700;">
+                        ISOLAMENTO DO PACIENTE (OBRIGATÓRIO)
+                    </div>
+                </div>
+                <div style="background: rgba(255,255,255,0.03); border-radius: 6px; padding: 15px;">
+                    ${window.ISOLAMENTO_OPTIONS.map((opcao, index) => `
+                        <label style="display: flex; align-items: center; padding: 8px 0; cursor: pointer; font-size: 14px;">
+                            <input type="radio" name="admIsolamento" value="${opcao}" ${index === 0 ? 'checked' : ''} style="margin-right: 12px; accent-color: #60a5fa;">
+                            <span>${opcao}</span>
+                        </label>
+                    `).join('')}
+                </div>
+            </div>
+            
+            <!-- LAYOUT 3 COLUNAS COM PLACEHOLDER MATRÍCULA CORRIGIDO -->
             <div class="form-grid-3-cols" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 20px;">
                 <div>
                     <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">INICIAIS</label>
@@ -461,7 +504,7 @@ function createAdmissaoForm(hospitalNome, leitoNumero) {
                 </div>
                 <div>
                     <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">MATRÍCULA</label>
-                    <input id="admMatricula" type="text" placeholder="Ex: 123456" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px;">
+                    <input id="admMatricula" type="text" placeholder="Ex: 00000-0" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px;">
                 </div>
                 <div>
                     <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">IDADE</label>
@@ -527,22 +570,6 @@ function createAdmissaoForm(hospitalNome, leitoNumero) {
                 </div>
             </div>
             
-            <div style="margin-bottom: 30px;">
-                <div style="background: rgba(96,165,250,0.1); padding: 10px 15px; border-radius: 6px; margin-bottom: 10px;">
-                    <div style="font-size: 11px; color: #ffffff; text-transform: uppercase; font-weight: 700;">
-                        ISOLAMENTO DO PACIENTE (OBRIGATÓRIO)
-                    </div>
-                </div>
-                <div style="background: rgba(255,255,255,0.03); border-radius: 6px; padding: 15px;">
-                    ${window.ISOLAMENTO_OPTIONS.map((opcao, index) => `
-                        <label style="display: flex; align-items: center; padding: 8px 0; cursor: pointer; font-size: 14px;">
-                            <input type="radio" name="admIsolamento" value="${opcao}" ${index === 0 ? 'checked' : ''} style="margin-right: 12px; accent-color: #60a5fa;">
-                            <span>${opcao}</span>
-                        </label>
-                    `).join('')}
-                </div>
-            </div>
-            
             <div style="display: flex; justify-content: flex-end; gap: 12px; padding: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
                 <button class="btn-cancelar" style="padding: 12px 30px; background: rgba(255,255,255,0.1); color: #ffffff; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; font-weight: 600; text-transform: uppercase; cursor: pointer;">CANCELAR</button>
                 <button class="btn-salvar" style="padding: 12px 30px; background: #3b82f6; color: #ffffff; border: none; border-radius: 8px; font-weight: 600; text-transform: uppercase; cursor: pointer;">SALVAR</button>
@@ -551,7 +578,7 @@ function createAdmissaoForm(hospitalNome, leitoNumero) {
     `;
 }
 
-// *** CORREÇÃO 3: FORMULÁRIO DE ATUALIZAÇÃO COM CAMPO IDENTIFICAÇÃO PRIMEIRO ***
+// *** CORREÇÃO #2 + #4: FORMULÁRIO DE ATUALIZAÇÃO COM ISOLAMENTO REPOSICIONADO + PLACEHOLDER CORRIGIDO ***
 function createAtualizacaoForm(hospitalNome, leitoNumero, dadosLeito) {
     const tempoInternacao = dadosLeito?.admAt ? calcularTempoInternacao(dadosLeito.admAt) : '';
     const iniciais = dadosLeito?.nome ? getIniciais(dadosLeito.nome) : '';
@@ -585,6 +612,23 @@ function createAtualizacaoForm(hospitalNome, leitoNumero, dadosLeito) {
                 </div>
                 <input id="updIdentificacaoLeito" type="text" value="${identificacaoAtual}" placeholder="Ex: NEO1, UTI-5, ENF12 (máx. 6 caracteres)" maxlength="6" required style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px;">
                 <div style="font-size: 11px; color: rgba(255,255,255,0.6); margin-top: 5px;">Campo alfanumérico obrigatório com até 6 caracteres</div>
+            </div>
+            
+            <!-- CORREÇÃO #2: CAMPO ISOLAMENTO MOVIDO PARA O TOPO (APÓS IDENTIFICAÇÃO) -->
+            <div style="margin-bottom: 20px;">
+                <div style="background: rgba(96,165,250,0.1); padding: 10px 15px; border-radius: 6px; margin-bottom: 10px;">
+                    <div style="font-size: 11px; color: #ffffff; text-transform: uppercase; font-weight: 700;">
+                        ISOLAMENTO DO PACIENTE
+                    </div>
+                </div>
+                <div style="background: rgba(255,255,255,0.03); border-radius: 6px; padding: 15px;">
+                    ${window.ISOLAMENTO_OPTIONS.map(opcao => `
+                        <label style="display: flex; align-items: center; padding: 8px 0; cursor: pointer; font-size: 14px;">
+                            <input type="radio" name="updIsolamento" value="${opcao}" ${isolamentoAtual === opcao ? 'checked' : ''} style="margin-right: 12px; accent-color: #60a5fa;">
+                            <span>${opcao}</span>
+                        </label>
+                    `).join('')}
+                </div>
             </div>
             
             <div class="form-grid-3-cols" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 20px;">
@@ -666,22 +710,6 @@ function createAtualizacaoForm(hospitalNome, leitoNumero, dadosLeito) {
                 </div>
             </div>
             
-            <div style="margin-bottom: 20px;">
-                <div style="background: rgba(96,165,250,0.1); padding: 10px 15px; border-radius: 6px; margin-bottom: 10px;">
-                    <div style="font-size: 11px; color: #ffffff; text-transform: uppercase; font-weight: 700;">
-                        ISOLAMENTO DO PACIENTE
-                    </div>
-                </div>
-                <div style="background: rgba(255,255,255,0.03); border-radius: 6px; padding: 15px;">
-                    ${window.ISOLAMENTO_OPTIONS.map(opcao => `
-                        <label style="display: flex; align-items: center; padding: 8px 0; cursor: pointer; font-size: 14px;">
-                            <input type="radio" name="updIsolamento" value="${opcao}" ${isolamentoAtual === opcao ? 'checked' : ''} style="margin-right: 12px; accent-color: #60a5fa;">
-                            <span>${opcao}</span>
-                        </label>
-                    `).join('')}
-                </div>
-            </div>
-            
             ${tempoInternacao ? `
             <div style="margin-bottom: 20px; padding: 12px; background: rgba(251, 191, 36, 0.1); border-radius: 8px; border-left: 4px solid #fbbf24;">
                 <strong>Tempo de Internação:</strong> ${tempoInternacao}
@@ -701,7 +729,7 @@ function createAtualizacaoForm(hospitalNome, leitoNumero, dadosLeito) {
 
 // FUNÇÃO DE PRÉ-MARCAÇÃO COM ARRAYS DIRETOS
 function forcarPreMarcacao(modal, dadosLeito) {
-    logDebug(`Forçando pré-marcação V3.1 com arrays diretos...`);
+    logDebug(`Forçando pré-marcação V3.2 com arrays diretos...`);
     
     const concessoesAtuais = Array.isArray(dadosLeito?.concessoes) ? dadosLeito.concessoes : [];
     const linhasAtuais = Array.isArray(dadosLeito?.linhas) ? dadosLeito.linhas : [];
@@ -726,7 +754,7 @@ function forcarPreMarcacao(modal, dadosLeito) {
         }
     });
     
-    logDebug(`Pré-marcação V3.1 concluída com arrays diretos`);
+    logDebug(`Pré-marcação V3.2 concluída com arrays diretos`);
 }
 
 // =================== EVENT LISTENERS DOS MODAIS ===================
@@ -738,7 +766,7 @@ function setupModalEventListeners(modal, tipo) {
             e.preventDefault();
             e.stopPropagation();
             closeModal(modal);
-            logInfo('Modal V3.1 cancelado pelo usuário');
+            logInfo('Modal V3.2 cancelado pelo usuário');
         });
     }
     
@@ -765,10 +793,10 @@ function setupModalEventListeners(modal, tipo) {
                 
                 if (tipo === 'admissao') {
                     await window.admitirPaciente(dadosFormulario.hospital, dadosFormulario.leito, dadosFormulario);
-                    showSuccessMessage('✅ Paciente admitido com sucesso (incluindo AS/AT)!');
+                    showSuccessMessage('✅ Paciente admitido com sucesso (V3.2 - 11 concessões + 45 linhas)!');
                 } else {
                     await window.atualizarPaciente(dadosFormulario.hospital, dadosFormulario.leito, dadosFormulario);
-                    showSuccessMessage('✅ Dados atualizados com sucesso (incluindo AS/AT)!');
+                    showSuccessMessage('✅ Dados atualizados com sucesso (V3.2 - 11 concessões + 45 linhas)!');
                 }
                 
                 hideButtonLoading(this, originalText);
@@ -780,7 +808,7 @@ function setupModalEventListeners(modal, tipo) {
             } catch (error) {
                 hideButtonLoading(this, originalText);
                 showErrorMessage('❌ Erro ao salvar: ' + error.message);
-                logError('Erro ao salvar V3.1:', error);
+                logError('Erro ao salvar V3.2:', error);
             }
         });
     }
@@ -810,7 +838,7 @@ function setupModalEventListeners(modal, tipo) {
             } catch (error) {
                 hideButtonLoading(this, originalText);
                 showErrorMessage('❌ Erro ao processar alta: ' + error.message);
-                logError('Erro ao processar alta V3.1:', error);
+                logError('Erro ao processar alta V3.2:', error);
             }
         });
     }
@@ -835,12 +863,12 @@ function closeModal(modal) {
                 modal.parentNode.removeChild(modal);
             }
             window.selectedLeito = null;
-            logInfo('Modal V3.1 fechado');
+            logInfo('Modal V3.2 fechado');
         }, 300);
     }
 }
 
-// *** COLETA DE DADOS V3.1 COM ARRAYS DIRETOS + AS/AT ***
+// *** COLETA DE DADOS V3.2 COM ARRAYS DIRETOS + AS/AT ***
 function coletarDadosFormulario(modal, tipo) {
     const dados = {
         hospital: window.currentHospital,
@@ -890,7 +918,7 @@ function coletarDadosFormulario(modal, tipo) {
         dados.linhas = linhasSelecionadas;          // Array direto
     }
     
-    logInfo('Dados V3.1 coletados (incluindo AS/AT):', {
+    logInfo('Dados V3.2 coletados (incluindo AS/AT):', {
         isolamento: dados.isolamento,
         identificacaoLeito: dados.identificacaoLeito || 'vazio',
         concessoes: dados.concessoes.length,
@@ -1065,22 +1093,22 @@ function formatarDataHora(dataISO) {
 
 // =================== FUNÇÕES DE LOG ===================
 function logInfo(message, data = null) {
-    console.log(`🔵 [CARDS V3.1] ${message}`, data || '');
+    console.log(`🔵 [CARDS V3.2] ${message}`, data || '');
 }
 
 function logError(message, error = null) {
-    console.error(`🔴 [CARDS V3.1 ERROR] ${message}`, error || '');
+    console.error(`🔴 [CARDS V3.2 ERROR] ${message}`, error || '');
 }
 
 function logSuccess(message) {
-    console.log(`🟢 [CARDS V3.1 SUCCESS] ${message}`);
+    console.log(`🟢 [CARDS V3.2 SUCCESS] ${message}`);
 }
 
 function logDebug(message, data = null) {
-    console.log(`🟡 [CARDS V3.1 DEBUG] ${message}`, data || '');
+    console.log(`🟡 [CARDS V3.2 DEBUG] ${message}`, data || '');
 }
 
-// =================== CSS CONSOLIDADO COMPLETO V3.1 ===================
+// =================== CSS CONSOLIDADO COMPLETO V3.2 ===================
 if (!document.getElementById('cardsConsolidadoCSS')) {
     const style = document.createElement('style');
     style.id = 'cardsConsolidadoCSS';
@@ -1529,9 +1557,9 @@ if (!document.getElementById('cardsConsolidadoCSS')) {
     document.head.appendChild(style);
 }
 
-// =================== INICIALIZAÇÃO V3.1 ===================
+// =================== INICIALIZAÇÃO V3.2 ===================
 document.addEventListener('DOMContentLoaded', function() {
-    logSuccess('✅ Cards.js V3.1 CORREÇÕES 2 E 3 IMPLEMENTADAS - Todo CSS responsivo incluído');
+    logSuccess('✅ Cards.js V3.2 CORREÇÕES #4, #2, #7 IMPLEMENTADAS');
     
     // Verificar dependências
     if (typeof window.CONFIG === 'undefined') {
@@ -1540,21 +1568,25 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (typeof window.hospitalData === 'undefined') {
         window.hospitalData = {};
-        logInfo('hospitalData V3.1 inicializado');
+        logInfo('hospitalData V3.2 inicializado');
     }
     
-    // Verificar se API V3.1 está disponível
+    // Verificar se API V3.2 está disponível
     if (typeof window.admitirPaciente === 'undefined') {
-        logError('Funções da API V3.1 não encontradas - verificar api.js');
+        logError('Funções da API V3.2 não encontradas - verificar api.js');
     }
     
-    // Verificar listas
-    if (window.CONCESSOES_LIST.length !== 13) {
-        logError(`ERRO: Esperadas 13 concessões, encontradas ${window.CONCESSOES_LIST.length}`);
+    // Verificar listas V3.2
+    if (window.CONCESSOES_LIST.length !== 11) {
+        logError(`ERRO: Esperadas 11 concessões, encontradas ${window.CONCESSOES_LIST.length}`);
+    } else {
+        logSuccess(`✅ CORREÇÃO #7: ${window.CONCESSOES_LIST.length} concessões atualizadas conforme manual`);
     }
     
-    if (window.LINHAS_CUIDADO_LIST.length !== 19) {
-        logError(`ERRO: Esperadas 19 linhas, encontradas ${window.LINHAS_CUIDADO_LIST.length}`);
+    if (window.LINHAS_CUIDADO_LIST.length !== 45) {
+        logError(`ERRO: Esperadas 45 linhas, encontradas ${window.LINHAS_CUIDADO_LIST.length}`);
+    } else {
+        logSuccess(`✅ CORREÇÃO #7: ${window.LINHAS_CUIDADO_LIST.length} linhas de cuidado atualizadas conforme manual`);
     }
     
     if (window.PREVISAO_ALTA_OPTIONS.length !== 10) {
@@ -1571,23 +1603,25 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Garantir que seleção inicial funcione
     if (window.currentHospital && window.HOSPITAL_MAPPING[window.currentHospital]) {
-        logInfo(`Hospital inicial V3.1: ${window.currentHospital} - ${window.HOSPITAL_MAPPING[window.currentHospital]}`);
+        logInfo(`Hospital inicial V3.2: ${window.currentHospital} - ${window.HOSPITAL_MAPPING[window.currentHospital]}`);
     }
     
-    // Log das melhorias ativas V3.1
-    logInfo('🚀 Melhorias V3.1 ativas:');
+    // Log das correções implementadas V3.2
+    logInfo('🚀 CORREÇÕES V3.2 IMPLEMENTADAS:');
+    logInfo('  • ✅ CORREÇÃO #4: Placeholder matrícula "Ex: 00000-0"');
+    logInfo('  • ✅ CORREÇÃO #2: Campo isolamento reposicionado para o TOPO');
+    logInfo('  • ✅ CORREÇÃO #7: Listas atualizadas - 11 concessões + 45 linhas');
     logInfo('  • Arrays diretos - SEM parsing');
     logInfo('  • Timeline com 10 opções (96h incluído)');
-    logInfo('  • 13 concessões + 19 linhas');
     logInfo('  • ISOLAMENTO (AS): 3 opções obrigatórias');
     logInfo('  • IDENTIFICAÇÃO LEITO (AT): alfanumérico 6 chars');
     logInfo('  • Campo idade: dropdown 14-115 anos (mobile)');
     logInfo('  • Cards exibem APENAS INICIAIS');
     logInfo('  • Badge isolamento no rodapé dos cards');
-    logInfo('  • ✅ CORREÇÃO 1: Header dos cards corrigido');
-    logInfo('  • ✅ CORREÇÃO 2: Layout formulário 3 colunas implementado');
-    logInfo('  • ✅ CORREÇÃO 3: Campo identificação PRIMEIRO e OBRIGATÓRIO');
-    logInfo('  • Performance otimizada V3.1');
+    logInfo('  • Header dos cards: Hospital | ID | Leito');
+    logInfo('  • Layout formulário 3 colunas implementado');
+    logInfo('  • Campo identificação PRIMEIRO e OBRIGATÓRIO');
+    logInfo('  • Performance otimizada V3.2');
     logInfo('  • Validação automática AS/AT');
     logInfo('  • Layout 3x3 mobile FORÇADO');
     logInfo('  • Leitos: VERDE=vago, AMARELO=ocupado');
@@ -1598,13 +1632,13 @@ document.addEventListener('DOMContentLoaded', function() {
     window.addEventListener('resize', function() {
         const width = window.innerWidth;
         if (width <= 480) {
-            logDebug('Modo mobile pequeno V3.1 ativado');
+            logDebug('Modo mobile pequeno V3.2 ativado');
         } else if (width <= 768) {
-            logDebug('Modo mobile V3.1 ativado');
+            logDebug('Modo mobile V3.2 ativado');
         } else if (width <= 1024) {
-            logDebug('Modo tablet V3.1 ativado');
+            logDebug('Modo tablet V3.2 ativado');
         } else {
-            logDebug('Modo desktop V3.1 ativado');
+            logDebug('Modo desktop V3.2 ativado');
         }
     });
 });
@@ -1617,14 +1651,14 @@ window.forcarPreMarcacao = forcarPreMarcacao;
 window.coletarDadosFormulario = coletarDadosFormulario;
 window.getBadgeIsolamento = getBadgeIsolamento;
 
-logSuccess('🏥 CARDS.JS V3.1 CORREÇÕES 2 E 3 FINALIZADAS!');
-logInfo('📋 Todo CSS responsivo consolidado neste arquivo');
+logSuccess('🏥 CARDS.JS V3.2 FINALIZADAS - 3 CORREÇÕES IMPLEMENTADAS!');
+logInfo('📋 CORREÇÃO #4: Placeholder matrícula = "Ex: 00000-0"');
+logInfo('📋 CORREÇÃO #2: Campo isolamento no TOPO após identificação');
+logInfo('📋 CORREÇÃO #7: 11 concessões + 45 linhas conforme manual');
+logInfo('✅ Todo CSS responsivo consolidado neste arquivo');
 logInfo('✅ Eliminada dependência do mobile.css');
 logInfo('✅ Cores hardcoded: Verde=vago, Amarelo=ocupado');
 logInfo('✅ Layout 3x3 forçado no mobile');
 logInfo('✅ Modais responsivos com 3 colunas');
 logInfo('✅ Performance otimizada com CSS inline');
 logInfo('✅ ✨ TODAS AS 3 CORREÇÕES IMPLEMENTADAS ✨');
-logInfo('✅ ✨ 1. Header: Hospital | ID | Leito ✨');
-logInfo('✅ ✨ 2. Formulário: Layout 3 colunas desktop ✨');
-logInfo('✅ ✨ 3. Identificação: Primeiro campo obrigatório ✨');
