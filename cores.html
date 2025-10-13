@@ -255,8 +255,8 @@
 
         .cores-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 10px;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 8px;
         }
 
         .cor-item {
@@ -266,7 +266,7 @@
             padding: 8px;
             background: rgba(255,255,255,0.03);
             border-radius: 6px;
-            font-size: 11px;
+            font-size: 10px;
             transition: all 0.2s;
         }
 
@@ -296,7 +296,7 @@
 <body>
     <div class="container">
         <h1>🎨 Seletor de Cores - Archipelago Dashboard</h1>
-        <p class="subtitle">Atribua cores para as novas concessões e linhas de cuidado</p>
+        <p class="subtitle">Atribua cores para as novas concessões e linhas de cuidado • 42 cores disponíveis</p>
 
         <div class="progress">
             <div style="min-width: 120px;">
@@ -311,7 +311,7 @@
         </div>
 
         <div class="cores-disponiveis">
-            <h3>🎨 Cores Disponíveis (atualiza em tempo real)</h3>
+            <h3>🎨 Paleta Completa: 42 Cores Pantone (atualiza em tempo real)</h3>
             <div class="cores-grid" id="coresDisponiveisGrid"></div>
         </div>
 
@@ -411,21 +411,61 @@
         };
 
         const CORES_DISPONIVEIS = {
-            '#FFB81C': 'Amarelo (Vida Mais Leve)',
-            '#C8102E': 'Vermelho (Crônicos Cardio)',
-            '#FF6F1D': 'Laranja (Crônicos Geriatria)',
-            '#556F44': 'Verde oliva (Crônicos Melhor)',
-            '#0072CE': 'Azul (Crônicos Neurologia)',
-            '#E35205': 'Laranja escuro (Crônicos Pneumo)',
-            '#003C57': 'Azul petróleo (Crônicos Pós-bar)',
-            '#5A0020': 'Bordô (Crônicos Reumato)',
-            '#5C5EBE': 'Azul roxo (Autoimune Gastro)',
-            '#00AEEF': 'Azul (Autoimune Neuro-desm)',
-            '#00263A': 'Azul marinho (Autoimune Neuro-musc)',
-            '#582D40': 'Roxo escuro (Autoimune Reumato)',
-            '#FFC72C': 'Amarelo (Orient Nutric com)',
-            '#F4E285': 'Amarelo claro (Orient Nutric sem)',
-            '#E8927C': 'Salmão (Clister)'
+            // === CORES ORIGINAIS (15) ===
+            '#FFB81C': '🟡 Amarelo Ouro',
+            '#C8102E': '🔴 Vermelho Cardeal',
+            '#FF6F1D': '🟠 Laranja Vivo',
+            '#556F44': '🟢 Verde Oliva',
+            '#0072CE': '🔵 Azul Processo',
+            '#E35205': '🟠 Laranja Queimado',
+            '#003C57': '🔵 Azul Petróleo',
+            '#5A0020': '🔴 Bordô Profundo',
+            '#5C5EBE': '🟣 Azul Roxo',
+            '#00AEEF': '🔵 Azul Caribe',
+            '#00263A': '🔵 Azul Marinho',
+            '#582D40': '🟣 Roxo Vinho',
+            '#FFC72C': '🟡 Amarelo Solar',
+            '#F4E285': '🟡 Amarelo Pastel',
+            '#E8927C': '🟠 Salmão Coral',
+            
+            // === TONS DE VERDE (5) ===
+            '#2D5016': '🟢 Verde Musgo',
+            '#4A7C59': '🟢 Verde Sálvia',
+            '#7CB342': '🟢 Verde Menta',
+            '#9CCC65': '🟢 Verde Lima',
+            '#AED581': '🟢 Verde Claro',
+            
+            // === TONS DE AZUL (5) ===
+            '#1565C0': '🔵 Azul Royal',
+            '#1976D2': '🔵 Azul Celeste',
+            '#1E88E5': '🔵 Azul Céu',
+            '#42A5F5': '🔵 Azul Bebê',
+            '#64B5F6': '🔵 Azul Glacial',
+            
+            // === TONS DE ROXO/LILÁS (5) ===
+            '#4A148C': '🟣 Roxo Imperial',
+            '#6A1B9A': '🟣 Roxo Ametista',
+            '#7B1FA2': '🟣 Roxo Médio',
+            '#8E24AA': '🟣 Lilás Intenso',
+            '#9C27B0': '🟣 Lilás Radiante',
+            
+            // === TONS DE ROSA/MAGENTA (4) ===
+            '#880E4F': '🌸 Rosa Escuro',
+            '#AD1457': '🌸 Magenta Profundo',
+            '#C2185B': '🌸 Rosa Cereja',
+            '#D81B60': '🌸 Rosa Pink',
+            
+            // === TONS DE MARROM/TERRA (4) ===
+            '#3E2723': '🟤 Marrom Expresso',
+            '#4E342E': '🟤 Marrom Cacau',
+            '#5D4037': '🟤 Marrom Canela',
+            '#6D4C41': '🟤 Marrom Terra',
+            
+            // === TONS DE CINZA/NEUTROS (4) ===
+            '#37474F': '⚫ Cinza Grafite',
+            '#455A64': '⚫ Cinza Chumbo',
+            '#546E7A': '⚫ Cinza Azulado',
+            '#607D8B': '⚫ Cinza Pérola'
         };
 
         let coresUsadas = new Set();
