@@ -291,6 +291,26 @@
             color: #e2e8f0;
             flex: 1;
         }
+
+        .status-resumo {
+            background: #0f172a;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .status-resumo .numero {
+            font-size: 48px;
+            font-weight: bold;
+            color: #10b981;
+            margin-bottom: 5px;
+        }
+
+        .status-resumo .label {
+            color: #94a3b8;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
@@ -298,9 +318,14 @@
         <h1>🎨 Seletor de Cores - Archipelago Dashboard</h1>
         <p class="subtitle">Atribua cores para as novas concessões e linhas de cuidado • 42 cores disponíveis</p>
 
+        <div class="status-resumo">
+            <div class="numero">42</div>
+            <div class="label">Cores Pantone Disponíveis</div>
+        </div>
+
         <div class="progress">
             <div style="min-width: 120px;">
-                <strong id="progressText">0/28 selecionadas</strong>
+                <strong id="progressText">0/56 selecionadas</strong>
             </div>
             <div class="progress-bar">
                 <div class="progress-fill" id="progressFill" style="width: 0%"></div>
@@ -444,16 +469,17 @@
             
             // === TONS DE ROXO/LILÁS (5) ===
             '#4A148C': '🟣 Roxo Imperial',
-            '#6A1B9A': '🟣 Roxo Ametista',
             '#7B1FA2': '🟣 Roxo Médio',
             '#8E24AA': '🟣 Lilás Intenso',
             '#9C27B0': '🟣 Lilás Radiante',
+            '#BA68C8': '🟣 Lilás Suave',
             
-            // === TONS DE ROSA/MAGENTA (4) ===
+            // === TONS DE ROSA/MAGENTA (5) ===
             '#880E4F': '🌸 Rosa Escuro',
             '#AD1457': '🌸 Magenta Profundo',
             '#C2185B': '🌸 Rosa Cereja',
             '#D81B60': '🌸 Rosa Pink',
+            '#E91E63': '🌸 Rosa Vibrante',
             
             // === TONS DE MARROM/TERRA (4) ===
             '#3E2723': '🟤 Marrom Expresso',
@@ -461,11 +487,10 @@
             '#5D4037': '🟤 Marrom Canela',
             '#6D4C41': '🟤 Marrom Terra',
             
-            // === TONS DE CINZA/NEUTROS (4) ===
+            // === TONS DE CINZA/NEUTROS (3) ===
             '#37474F': '⚫ Cinza Grafite',
             '#455A64': '⚫ Cinza Chumbo',
-            '#546E7A': '⚫ Cinza Azulado',
-            '#607D8B': '⚫ Cinza Pérola'
+            '#546E7A': '⚫ Cinza Azulado'
         };
 
         let coresUsadas = new Set();
@@ -536,7 +561,7 @@
                 `;
             } else {
                 // Precisa selecionar cor
-                const selectId = `select_${tipo}_${nome.replace(/\s+/g, '_')}`;
+                const selectId = `select_${tipo}_${nome.replace(/\s+/g, '_').replace(/[()]/g, '')}`;
                 div.innerHTML = `
                     <div class="item-name">${nome}</div>
                     <span class="status pendente">⚠ Pendente</span>
@@ -661,6 +686,7 @@ Gerado em: ${new Date().toLocaleString('pt-BR')}
 • Concessões: ${Object.keys(CONCESSOES).length} itens
 • Linhas de Cuidado: ${Object.keys(LINHAS_CUIDADO).length} itens
 • Total de cores: ${Object.keys(CONCESSOES).length + Object.keys(LINHAS_CUIDADO).length}
+• Cores disponíveis: ${Object.keys(CORES_DISPONIVEIS).length}
 
 ===============================================
 💊 CONCESSÕES
@@ -693,18 +719,19 @@ const CORES_CONCESSOES = {
             conteudo += `4. Substitua os arrays existentes pelos novos\n`;
             conteudo += `5. Teste em ambiente de desenvolvimento antes de publicar\n\n`;
             conteudo += `===============================================\n`;
-            conteudo += `🎨 CORES UTILIZADAS\n`;
+            conteudo += `🎨 CORES UTILIZADAS (${coresUsadas.size} de ${Object.keys(CORES_DISPONIVEIS).length} disponíveis)\n`;
             conteudo += `===============================================\n\n`;
 
             // Listar todas as cores usadas
             const coresUsadasArray = Array.from(coresUsadas).sort();
             coresUsadasArray.forEach(cor => {
-                const desc = CORES_DISPONIVEIS[cor] || 'Cor original';
+                const desc = CORES_DISPONIVEIS[cor] || 'Cor original do sistema';
                 conteudo += `${cor} - ${desc}\n`;
             });
 
             conteudo += `\n===============================================\n`;
             conteudo += `✅ ARQUIVO GERADO COM SUCESSO!\n`;
+            conteudo += `Total de cores disponíveis restantes: ${Object.keys(CORES_DISPONIVEIS).length - coresUsadas.size}\n`;
             conteudo += `===============================================\n`;
 
             // Criar blob e download
@@ -728,18 +755,24 @@ const CORES_CONCESSOES = {
 
             const total = Object.keys(CONCESSOES).length + Object.keys(LINHAS_CUIDADO).length;
             const selecionadas = total - pendentes;
+            const coresDisponiveis = Object.keys(CORES_DISPONIVEIS).length;
+            const coresUsadasCount = coresUsadas.size;
 
             if (pendentes > 0) {
                 alert(`📊 Status da Seleção:\n\n` +
                       `✅ Completas: ${selecionadas}/${total}\n` +
-                      `⚠️ Pendentes: ${pendentes}\n\n` +
+                      `⚠️ Pendentes: ${pendentes}\n` +
+                      `🎨 Cores usadas: ${coresUsadasCount}/${coresDisponiveis}\n` +
+                      `🎨 Cores restantes: ${coresDisponiveis - coresUsadasCount}\n\n` +
                       `Complete todas as seleções para baixar o arquivo!`);
             } else {
                 alert(`✅ Todas as cores foram selecionadas!\n\n` +
-                      `📊 Resumo:\n` +
+                      `📊 Resumo Final:\n` +
                       `• Concessões: ${Object.keys(CONCESSOES).length} itens\n` +
                       `• Linhas de Cuidado: ${Object.keys(LINHAS_CUIDADO).length} itens\n` +
-                      `• Total: ${total} cores definidas\n\n` +
+                      `• Total: ${total} cores definidas\n` +
+                      `• Cores utilizadas: ${coresUsadasCount}/${coresDisponiveis}\n` +
+                      `• Cores disponíveis restantes: ${coresDisponiveis - coresUsadasCount}\n\n` +
                       `Clique em "Baixar TXT" para exportar!`);
             }
         }
