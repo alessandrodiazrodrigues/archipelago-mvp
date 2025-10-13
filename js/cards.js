@@ -1,4 +1,4 @@
-// =================== CARDS.JS V3.2 - CORREÇÕES #4, #2, #7 IMPLEMENTADAS ===================
+// =================== CARDS.JS V3.2 - ESTRUTURA 4 LINHAS IMPLEMENTADA ===================
 // =================== TODO CSS RESPONSIVO INCLUÍDO - SEM mobile.css ===================
 
 // =================== VARIÁVEIS GLOBAIS ===================  
@@ -94,6 +94,25 @@ window.ISOLAMENTO_OPTIONS = [
     'ISOLAMENTO RESPIRATÓRIO'
 ];
 
+// *** NOVA V3.2: OPÇÕES DE REGIÃO - 9 OPÇÕES CONFORME ESPECIFICADO ***
+window.REGIAO_OPTIONS = [
+    'Norte',
+    'Sul', 
+    'Leste',
+    'Oeste',
+    'Centro',
+    'Nordeste',
+    'Noroeste',
+    'Sudeste',
+    'Sudoeste'
+];
+
+// *** NOVA V3.2: OPÇÕES DE SEXO ***
+window.SEXO_OPTIONS = [
+    'M',
+    'F'
+];
+
 // *** NOVA V3.1: OPÇÕES DE IDADE DROPDOWN 14-115 ANOS (MOBILE) ***
 window.IDADE_OPTIONS = [];
 for (let i = 14; i <= 115; i++) {
@@ -121,7 +140,7 @@ window.selectHospital = function(hospitalId) {
 
 // =================== FUNÇÃO PRINCIPAL DE RENDERIZAÇÃO ===================
 window.renderCards = function() {
-    logInfo('Renderizando cards V3.2 com dados REAIS da API (incluindo AS/AT)');
+    logInfo('Renderizando cards V3.2 com estrutura 4 linhas - dados REAIS da API (incluindo AS/AT)');
     
     const container = document.getElementById('cardsContainer');
     if (!container) {
@@ -143,7 +162,7 @@ window.renderCards = function() {
                 </div>
                 <div style="background: rgba(96,165,250,0.1); border-radius: 8px; padding: 20px;">
                     <p style="margin-bottom: 15px;">Carregando dados da planilha V3.2 (46 colunas)...</p>
-                    <p style="color: #28a745;"><em>✅ API V3.2 conectada - 11 concessões + 45 linhas</em></p>
+                    <p style="color: #28a745;"><em>✅ API V3.2 conectada - 11 concessões + 45 linhas + 4 linhas cards</em></p>
                 </div>
             </div>
         `;
@@ -155,7 +174,7 @@ window.renderCards = function() {
         container.appendChild(card);
     });
     
-    logInfo(`${hospital.leitos.length} cards V3.2 renderizados para ${hospitalNome}`);
+    logInfo(`${hospital.leitos.length} cards V3.2 estrutura 4 linhas renderizados para ${hospitalNome}`);
 };
 
 // =================== FUNÇÃO: BADGE DE ISOLAMENTO ===================
@@ -185,7 +204,7 @@ function getBadgeIsolamento(isolamento) {
     return getBadgeIsolamento('NÃO ISOLAMENTO'); // Fallback
 }
 
-// =================== CRIAR CARD INDIVIDUAL V3.2 COM HEADER CORRIGIDO ===================
+// =================== CRIAR CARD INDIVIDUAL V3.2 COM ESTRUTURA 4 LINHAS ===================
 function createCard(leito, hospitalNome) {
     const card = document.createElement('div');
     card.className = 'card';
@@ -221,6 +240,10 @@ function createCard(leito, hospitalNome) {
     const identificacaoLeito = leito.identificacaoLeito || '';
     const badgeIsolamento = getBadgeIsolamento(isolamento);
     
+    // *** NOVA V3.2: DADOS REGIÃO E SEXO (VAZIOS POR ENQUANTO) ***
+    const regiao = leito.regiao || '';
+    const sexo = leito.sexo || '';
+    
     // Arrays diretos - sem parsing
     const concessoes = Array.isArray(leito.concessoes) ? leito.concessoes : [];
     const linhas = Array.isArray(leito.linhas) ? leito.linhas : [];
@@ -252,7 +275,7 @@ function createCard(leito, hospitalNome) {
         ? identificacaoLeito.trim().toUpperCase()
         : `LEITO ${numeroLeito}`;
     
-    // HTML do Card V3.2 (layout CORRIGIDO: Hospital | ID | Leito)
+    // HTML do Card V3.2 (layout NOVA ESTRUTURA: 4 LINHAS)
     card.innerHTML = `
         <div class="card-row-1" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 12px;">
             <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 10px; min-height: 50px; display: flex; flex-direction: column; justify-content: center;">
@@ -273,6 +296,25 @@ function createCard(leito, hospitalNome) {
         </div>
 
         <div class="card-row-2" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+            <div style="background: ${badgeIsolamento.cor}; border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; padding: 10px; min-height: 50px; display: flex; flex-direction: column; justify-content: center;">
+                <div style="font-size: 10px; color: ${badgeIsolamento.textoCor}; font-weight: 600; text-transform: uppercase; margin-bottom: 3px;">ISOLAMENTO</div>
+                <div style="color: ${badgeIsolamento.textoCor}; font-weight: 600; font-size: 11px; line-height: 1.2; display: flex; align-items: center; gap: 4px;">
+                    ${badgeIsolamento.icone} ${badgeIsolamento.texto}
+                </div>
+            </div>
+            
+            <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 10px; min-height: 50px; display: flex; flex-direction: column; justify-content: center;">
+                <div style="font-size: 10px; color: rgba(255,255,255,0.7); font-weight: 600; text-transform: uppercase; margin-bottom: 3px;">REGIÃO</div>
+                <div style="color: #ffffff; font-weight: 600; font-size: 12px; line-height: 1.2;">${regiao || '—'}</div>
+            </div>
+            
+            <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 10px; min-height: 50px; display: flex; flex-direction: column; justify-content: center;">
+                <div style="font-size: 10px; color: rgba(255,255,255,0.7); font-weight: 600; text-transform: uppercase; margin-bottom: 3px;">SEXO</div>
+                <div style="color: #ffffff; font-weight: 600; font-size: 12px; line-height: 1.2;">${sexo || '—'}</div>
+            </div>
+        </div>
+
+        <div class="card-row-3" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 12px;">
             <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 10px; min-height: 50px; display: flex; flex-direction: column; justify-content: center;">
                 <div style="font-size: 10px; color: rgba(255,255,255,0.7); font-weight: 600; text-transform: uppercase; margin-bottom: 3px;">INICIAIS</div>
                 <div style="color: #ffffff; font-weight: 600; font-size: 12px; line-height: 1.2;">${iniciais}</div>
@@ -289,7 +331,7 @@ function createCard(leito, hospitalNome) {
             </div>
         </div>
 
-        <div class="card-row-3" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+        <div class="card-row-4" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 15px;">
             <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 10px; min-height: 50px; display: flex; flex-direction: column; justify-content: center;">
                 <div style="font-size: 10px; color: rgba(255,255,255,0.7); font-weight: 600; text-transform: uppercase; margin-bottom: 3px;">PPS</div>
                 <div style="color: #ffffff; font-weight: 600; font-size: 12px; line-height: 1.2;">${ppsFormatado}</div>
@@ -346,9 +388,6 @@ function createCard(leito, hospitalNome) {
                 
                 ${!isVago ? `
                 <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                    <div style="background: ${badgeIsolamento.cor}; color: ${badgeIsolamento.textoCor}; padding: 4px 8px; border-radius: 12px; font-size: 9px; font-weight: 700; text-transform: uppercase; display: flex; align-items: center; gap: 4px;">
-                        ${badgeIsolamento.icone} ${badgeIsolamento.texto}
-                    </div>
                     <div style="background: rgba(96,165,250,0.2); color: #60a5fa; padding: 4px 8px; border-radius: 8px; font-size: 9px; font-weight: 600; text-transform: uppercase;">ID: ${idSequencial}</div>
                 </div>
                 ` : ''}
@@ -393,7 +432,7 @@ function openAdmissaoFlow(leitoNumero) {
     setTimeout(() => {
         hideButtonLoading(button, originalText);
         openAdmissaoModal(leitoNumero);
-        logInfo(`Modal de admissão V3.2 aberto: ${window.currentHospital} - Leito ${leitoNumero}`);
+        logInfo(`Modal de admissão V3.2 estrutura 4 linhas aberto: ${window.currentHospital} - Leito ${leitoNumero}`);
     }, 800);
 }
 
@@ -406,11 +445,11 @@ function openAtualizacaoFlow(leitoNumero, dadosLeito) {
     setTimeout(() => {
         hideButtonLoading(button, originalText);
         openAtualizacaoModal(leitoNumero, dadosLeito);
-        logInfo(`Modal de atualização V3.2 aberto: ${window.currentHospital} - Leito ${leitoNumero}`);
+        logInfo(`Modal de atualização V3.2 estrutura 4 linhas aberto: ${window.currentHospital} - Leito ${leitoNumero}`);
     }, 800);
 }
 
-// =================== MODAIS CORRIGIDOS V3.2 ===================
+// =================== MODAIS CORRIGIDOS V3.2 COM REGIÃO/SEXO ===================
 function openAdmissaoModal(leitoNumero) {
     const hospitalId = window.currentHospital;
     const hospitalNome = window.HOSPITAL_MAPPING[hospitalId] || 'Hospital';
@@ -454,7 +493,7 @@ function createModalOverlay() {
     return modal;
 }
 
-// *** CORREÇÃO #2 + #4: FORMULÁRIO DE ADMISSÃO COM ISOLAMENTO REPOSICIONADO + PLACEHOLDER CORRIGIDO ***
+// *** FORMULÁRIO DE ADMISSÃO V3.2 COM REGIÃO/SEXO ***
 function createAdmissaoForm(hospitalNome, leitoNumero) {
     const idSequencial = String(leitoNumero).padStart(2, '0');
     
@@ -468,7 +507,7 @@ function createAdmissaoForm(hospitalNome, leitoNumero) {
                 <strong>Hospital:</strong> ${hospitalNome} | <strong>ID:</strong> ${idSequencial} | <strong>Leito:</strong> ${leitoNumero}
             </div>
             
-            <!-- CORREÇÃO 3: CAMPO IDENTIFICAÇÃO PRIMEIRO E OBRIGATÓRIO -->
+            <!-- CAMPO IDENTIFICAÇÃO PRIMEIRO E OBRIGATÓRIO -->
             <div style="margin-bottom: 20px;">
                 <div style="background: rgba(96,165,250,0.1); padding: 10px 15px; border-radius: 6px; margin-bottom: 10px;">
                     <div style="font-size: 11px; color: #ffffff; text-transform: uppercase; font-weight: 700;">
@@ -479,7 +518,7 @@ function createAdmissaoForm(hospitalNome, leitoNumero) {
                 <div style="font-size: 11px; color: rgba(255,255,255,0.6); margin-top: 5px;">Campo alfanumérico obrigatório com até 6 caracteres</div>
             </div>
             
-            <!-- CORREÇÃO #2: CAMPO ISOLAMENTO MOVIDO PARA O TOPO (APÓS IDENTIFICAÇÃO) -->
+            <!-- CAMPO ISOLAMENTO -->
             <div style="margin-bottom: 20px;">
                 <div style="background: rgba(96,165,250,0.1); padding: 10px 15px; border-radius: 6px; margin-bottom: 10px;">
                     <div style="font-size: 11px; color: #ffffff; text-transform: uppercase; font-weight: 700;">
@@ -493,6 +532,31 @@ function createAdmissaoForm(hospitalNome, leitoNumero) {
                             <span>${opcao}</span>
                         </label>
                     `).join('')}
+                </div>
+            </div>
+            
+            <!-- NOVO V3.2: CAMPOS REGIÃO E SEXO -->
+            <div style="margin-bottom: 20px;">
+                <div style="background: rgba(96,165,250,0.1); padding: 10px 15px; border-radius: 6px; margin-bottom: 10px;">
+                    <div style="font-size: 11px; color: #ffffff; text-transform: uppercase; font-weight: 700;">
+                        REGIÃO E SEXO (OPCIONAL)
+                    </div>
+                </div>
+                <div class="form-grid-2-cols" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div>
+                        <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">REGIÃO</label>
+                        <select id="admRegiao" style="width: 100%; padding: 12px; background: #374151 !important; color: #ffffff !important; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px;">
+                            <option value="">Selecionar...</option>
+                            ${window.REGIAO_OPTIONS.map(regiao => `<option value="${regiao}">${regiao}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">SEXO</label>
+                        <select id="admSexo" style="width: 100%; padding: 12px; background: #374151 !important; color: #ffffff !important; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px;">
+                            <option value="">Selecionar...</option>
+                            ${window.SEXO_OPTIONS.map(sexo => `<option value="${sexo}">${sexo}</option>`).join('')}
+                        </select>
+                    </div>
                 </div>
             </div>
             
@@ -578,7 +642,7 @@ function createAdmissaoForm(hospitalNome, leitoNumero) {
     `;
 }
 
-// *** CORREÇÃO #2 + #4: FORMULÁRIO DE ATUALIZAÇÃO COM ISOLAMENTO REPOSICIONADO + PLACEHOLDER CORRIGIDO ***
+// *** FORMULÁRIO DE ATUALIZAÇÃO V3.2 COM REGIÃO/SEXO ***
 function createAtualizacaoForm(hospitalNome, leitoNumero, dadosLeito) {
     const tempoInternacao = dadosLeito?.admAt ? calcularTempoInternacao(dadosLeito.admAt) : '';
     const iniciais = dadosLeito?.nome ? getIniciais(dadosLeito.nome) : '';
@@ -592,6 +656,8 @@ function createAtualizacaoForm(hospitalNome, leitoNumero, dadosLeito) {
     const linhasAtuais = Array.isArray(dadosLeito?.linhas) ? dadosLeito.linhas : [];
     const isolamentoAtual = dadosLeito?.isolamento || 'NÃO ISOLAMENTO';
     const identificacaoAtual = dadosLeito?.identificacaoLeito || '';
+    const regiaoAtual = dadosLeito?.regiao || '';
+    const sexoAtual = dadosLeito?.sexo || '';
     
     return `
         <div class="modal-content" style="background: #1a1f2e; border-radius: 12px; padding: 30px; max-width: 700px; width: 95%; max-height: 90vh; overflow-y: auto; color: #ffffff;">
@@ -603,7 +669,7 @@ function createAtualizacaoForm(hospitalNome, leitoNumero, dadosLeito) {
                 <strong>Hospital:</strong> ${hospitalNome} | <strong>ID:</strong> ${idSequencial} | <strong>Leito:</strong> ${leitoPersonalizado}
             </div>
             
-            <!-- CORREÇÃO 3: CAMPO IDENTIFICAÇÃO PRIMEIRO E OBRIGATÓRIO -->
+            <!-- CAMPO IDENTIFICAÇÃO PRIMEIRO E OBRIGATÓRIO -->
             <div style="margin-bottom: 20px;">
                 <div style="background: rgba(96,165,250,0.1); padding: 10px 15px; border-radius: 6px; margin-bottom: 10px;">
                     <div style="font-size: 11px; color: #ffffff; text-transform: uppercase; font-weight: 700;">
@@ -614,7 +680,7 @@ function createAtualizacaoForm(hospitalNome, leitoNumero, dadosLeito) {
                 <div style="font-size: 11px; color: rgba(255,255,255,0.6); margin-top: 5px;">Campo alfanumérico obrigatório com até 6 caracteres</div>
             </div>
             
-            <!-- CORREÇÃO #2: CAMPO ISOLAMENTO MOVIDO PARA O TOPO (APÓS IDENTIFICAÇÃO) -->
+            <!-- CAMPO ISOLAMENTO -->
             <div style="margin-bottom: 20px;">
                 <div style="background: rgba(96,165,250,0.1); padding: 10px 15px; border-radius: 6px; margin-bottom: 10px;">
                     <div style="font-size: 11px; color: #ffffff; text-transform: uppercase; font-weight: 700;">
@@ -628,6 +694,31 @@ function createAtualizacaoForm(hospitalNome, leitoNumero, dadosLeito) {
                             <span>${opcao}</span>
                         </label>
                     `).join('')}
+                </div>
+            </div>
+            
+            <!-- CAMPOS REGIÃO E SEXO -->
+            <div style="margin-bottom: 20px;">
+                <div style="background: rgba(96,165,250,0.1); padding: 10px 15px; border-radius: 6px; margin-bottom: 10px;">
+                    <div style="font-size: 11px; color: #ffffff; text-transform: uppercase; font-weight: 700;">
+                        REGIÃO E SEXO
+                    </div>
+                </div>
+                <div class="form-grid-2-cols" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div>
+                        <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">REGIÃO</label>
+                        <select id="updRegiao" style="width: 100%; padding: 12px; background: #374151 !important; color: #ffffff !important; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px;">
+                            <option value="">Selecionar...</option>
+                            ${window.REGIAO_OPTIONS.map(regiao => `<option value="${regiao}" ${regiaoAtual === regiao ? 'selected' : ''}>${regiao}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">SEXO</label>
+                        <select id="updSexo" style="width: 100%; padding: 12px; background: #374151 !important; color: #ffffff !important; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px;">
+                            <option value="">Selecionar...</option>
+                            ${window.SEXO_OPTIONS.map(sexo => `<option value="${sexo}" ${sexoAtual === sexo ? 'selected' : ''}>${sexo}</option>`).join('')}
+                        </select>
+                    </div>
                 </div>
             </div>
             
@@ -729,7 +820,7 @@ function createAtualizacaoForm(hospitalNome, leitoNumero, dadosLeito) {
 
 // FUNÇÃO DE PRÉ-MARCAÇÃO COM ARRAYS DIRETOS
 function forcarPreMarcacao(modal, dadosLeito) {
-    logDebug(`Forçando pré-marcação V3.2 com arrays diretos...`);
+    logDebug(`Forçando pré-marcação V3.2 estrutura 4 linhas com arrays diretos...`);
     
     const concessoesAtuais = Array.isArray(dadosLeito?.concessoes) ? dadosLeito.concessoes : [];
     const linhasAtuais = Array.isArray(dadosLeito?.linhas) ? dadosLeito.linhas : [];
@@ -754,7 +845,7 @@ function forcarPreMarcacao(modal, dadosLeito) {
         }
     });
     
-    logDebug(`Pré-marcação V3.2 concluída com arrays diretos`);
+    logDebug(`Pré-marcação V3.2 estrutura 4 linhas concluída com arrays diretos`);
 }
 
 // =================== EVENT LISTENERS DOS MODAIS ===================
@@ -766,7 +857,7 @@ function setupModalEventListeners(modal, tipo) {
             e.preventDefault();
             e.stopPropagation();
             closeModal(modal);
-            logInfo('Modal V3.2 cancelado pelo usuário');
+            logInfo('Modal V3.2 estrutura 4 linhas cancelado pelo usuário');
         });
     }
     
@@ -793,10 +884,10 @@ function setupModalEventListeners(modal, tipo) {
                 
                 if (tipo === 'admissao') {
                     await window.admitirPaciente(dadosFormulario.hospital, dadosFormulario.leito, dadosFormulario);
-                    showSuccessMessage('✅ Paciente admitido com sucesso (V3.2 - 11 concessões + 45 linhas)!');
+                    showSuccessMessage('✅ Paciente admitido com sucesso (V3.2 - estrutura 4 linhas + região/sexo)!');
                 } else {
                     await window.atualizarPaciente(dadosFormulario.hospital, dadosFormulario.leito, dadosFormulario);
-                    showSuccessMessage('✅ Dados atualizados com sucesso (V3.2 - 11 concessões + 45 linhas)!');
+                    showSuccessMessage('✅ Dados atualizados com sucesso (V3.2 - estrutura 4 linhas + região/sexo)!');
                 }
                 
                 hideButtonLoading(this, originalText);
@@ -808,7 +899,7 @@ function setupModalEventListeners(modal, tipo) {
             } catch (error) {
                 hideButtonLoading(this, originalText);
                 showErrorMessage('❌ Erro ao salvar: ' + error.message);
-                logError('Erro ao salvar V3.2:', error);
+                logError('Erro ao salvar V3.2 estrutura 4 linhas:', error);
             }
         });
     }
@@ -838,7 +929,7 @@ function setupModalEventListeners(modal, tipo) {
             } catch (error) {
                 hideButtonLoading(this, originalText);
                 showErrorMessage('❌ Erro ao processar alta: ' + error.message);
-                logError('Erro ao processar alta V3.2:', error);
+                logError('Erro ao processar alta V3.2 estrutura 4 linhas:', error);
             }
         });
     }
@@ -863,12 +954,12 @@ function closeModal(modal) {
                 modal.parentNode.removeChild(modal);
             }
             window.selectedLeito = null;
-            logInfo('Modal V3.2 fechado');
+            logInfo('Modal V3.2 estrutura 4 linhas fechado');
         }, 300);
     }
 }
 
-// *** COLETA DE DADOS V3.2 COM ARRAYS DIRETOS + AS/AT ***
+// *** COLETA DE DADOS V3.2 COM ARRAYS DIRETOS + AS/AT + REGIÃO/SEXO ***
 function coletarDadosFormulario(modal, tipo) {
     const dados = {
         hospital: window.currentHospital,
@@ -884,11 +975,15 @@ function coletarDadosFormulario(modal, tipo) {
         dados.complexidade = modal.querySelector('#admComplexidade')?.value || 'I';
         dados.prevAlta = modal.querySelector('#admPrevAlta')?.value || 'SP';
         
-        // *** NOVA V3.1: COLETAR ISOLAMENTO (AS) ***
+        // *** COLETAR ISOLAMENTO (AS) ***
         dados.isolamento = modal.querySelector('input[name="admIsolamento"]:checked')?.value || 'NÃO ISOLAMENTO';
         
-        // *** NOVA V3.1: COLETAR IDENTIFICAÇÃO DO LEITO (AT) ***
+        // *** COLETAR IDENTIFICAÇÃO DO LEITO (AT) ***
         dados.identificacaoLeito = modal.querySelector('#admIdentificacaoLeito')?.value?.trim().toUpperCase() || '';
+        
+        // *** NOVA V3.2: COLETAR REGIÃO E SEXO ***
+        dados.regiao = modal.querySelector('#admRegiao')?.value || '';
+        dados.sexo = modal.querySelector('#admSexo')?.value || '';
         
         // Arrays diretos - sem join
         const concessoesSelecionadas = coletarCheckboxesSelecionados(modal, '#admConcessoes');
@@ -904,11 +999,15 @@ function coletarDadosFormulario(modal, tipo) {
         dados.complexidade = modal.querySelector('#updComplexidade')?.value || 'I';
         dados.prevAlta = modal.querySelector('#updPrevAlta')?.value || 'SP';
         
-        // *** NOVA V3.1: COLETAR ISOLAMENTO (AS) ***
+        // *** COLETAR ISOLAMENTO (AS) ***
         dados.isolamento = modal.querySelector('input[name="updIsolamento"]:checked')?.value || 'NÃO ISOLAMENTO';
         
-        // *** NOVA V3.1: COLETAR IDENTIFICAÇÃO DO LEITO (AT) ***
+        // *** COLETAR IDENTIFICAÇÃO DO LEITO (AT) ***
         dados.identificacaoLeito = modal.querySelector('#updIdentificacaoLeito')?.value?.trim().toUpperCase() || '';
+        
+        // *** NOVA V3.2: COLETAR REGIÃO E SEXO ***
+        dados.regiao = modal.querySelector('#updRegiao')?.value || '';
+        dados.sexo = modal.querySelector('#updSexo')?.value || '';
         
         // Arrays diretos - sem join
         const concessoesSelecionadas = coletarCheckboxesSelecionados(modal, '#updConcessoes');
@@ -918,9 +1017,11 @@ function coletarDadosFormulario(modal, tipo) {
         dados.linhas = linhasSelecionadas;          // Array direto
     }
     
-    logInfo('Dados V3.2 coletados (incluindo AS/AT):', {
+    logInfo('Dados V3.2 estrutura 4 linhas coletados (incluindo AS/AT + região/sexo):', {
         isolamento: dados.isolamento,
         identificacaoLeito: dados.identificacaoLeito || 'vazio',
+        regiao: dados.regiao || 'vazio',
+        sexo: dados.sexo || 'vazio',
         concessoes: dados.concessoes.length,
         linhas: dados.linhas.length
     });
@@ -1093,22 +1194,22 @@ function formatarDataHora(dataISO) {
 
 // =================== FUNÇÕES DE LOG ===================
 function logInfo(message, data = null) {
-    console.log(`🔵 [CARDS V3.2] ${message}`, data || '');
+    console.log(`🔵 [CARDS V3.2 - 4 LINHAS] ${message}`, data || '');
 }
 
 function logError(message, error = null) {
-    console.error(`🔴 [CARDS V3.2 ERROR] ${message}`, error || '');
+    console.error(`🔴 [CARDS V3.2 - 4 LINHAS ERROR] ${message}`, error || '');
 }
 
 function logSuccess(message) {
-    console.log(`🟢 [CARDS V3.2 SUCCESS] ${message}`);
+    console.log(`🟢 [CARDS V3.2 - 4 LINHAS SUCCESS] ${message}`);
 }
 
 function logDebug(message, data = null) {
-    console.log(`🟡 [CARDS V3.2 DEBUG] ${message}`, data || '');
+    console.log(`🟡 [CARDS V3.2 - 4 LINHAS DEBUG] ${message}`, data || '');
 }
 
-// =================== CSS CONSOLIDADO COMPLETO V3.2 ===================
+// =================== CSS CONSOLIDADO COMPLETO V3.2 COM 4 LINHAS ===================
 if (!document.getElementById('cardsConsolidadoCSS')) {
     const style = document.createElement('style');
     style.id = 'cardsConsolidadoCSS';
@@ -1232,10 +1333,17 @@ if (!document.getElementById('cardsConsolidadoCSS')) {
             box-shadow: 0 8px 25px rgba(0,0,0,0.15);
         }
         
-        /* =================== CORREÇÃO 2: LAYOUT 3 COLUNAS DESKTOP =================== */
+        /* =================== LAYOUT 3 COLUNAS DESKTOP =================== */
         .form-grid-3-cols {
             display: grid !important;
             grid-template-columns: 1fr 1fr 1fr !important;
+            gap: 15px !important;
+        }
+        
+        /* =================== LAYOUT 2 COLUNAS (REGIÃO/SEXO) =================== */
+        .form-grid-2-cols {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr !important;
             gap: 15px !important;
         }
         
@@ -1259,6 +1367,12 @@ if (!document.getElementById('cardsConsolidadoCSS')) {
             /* Layout 3 colunas em tablet */
             .form-grid-3-cols {
                 grid-template-columns: 1fr 1fr 1fr !important;
+                gap: 12px !important;
+            }
+            
+            /* Layout 2 colunas em tablet */
+            .form-grid-2-cols {
+                grid-template-columns: 1fr 1fr !important;
                 gap: 12px !important;
             }
         }
@@ -1292,20 +1406,22 @@ if (!document.getElementById('cardsConsolidadoCSS')) {
                 gap: 15px !important;
             }
             
-            /* *** FORÇAR LAYOUT 3x3 DOS CARDS EM MOBILE *** */
+            /* *** ESTRUTURA 4 LINHAS NO MOBILE - FORÇAR LAYOUT 3x3 POR LINHA *** */
             .card-row-1,
-            .card-row-2, 
-            .card-row-3 {
+            .card-row-2,
+            .card-row-3,
+            .card-row-4 {
                 display: grid !important;
                 grid-template-columns: 1fr 1fr 1fr !important;
                 gap: 8px !important;
-                margin-bottom: 12px !important;
+                margin-bottom: 10px !important;
             }
             
-            /* GARANTIR LARGURA IGUAL PARA TODOS OS BOXES */
+            /* GARANTIR LARGURA IGUAL PARA TODOS OS BOXES DAS 4 LINHAS */
             .card-row-1 > div,
             .card-row-2 > div,
-            .card-row-3 > div {
+            .card-row-3 > div,
+            .card-row-4 > div {
                 background: rgba(255,255,255,0.05) !important;
                 border: 1px solid rgba(255,255,255,0.1) !important;
                 border-radius: 8px !important;
@@ -1316,7 +1432,12 @@ if (!document.getElementById('cardsConsolidadoCSS')) {
                 justify-content: center !important;
             }
             
-            /* *** CORREÇÃO CRÍTICA: CORES DO LEITO NO MOBILE *** */
+            /* *** CORES ESPECÍFICAS PARA ISOLAMENTO NA LINHA 2 *** */
+            .card-row-2 > div:first-child {
+                /* O campo isolamento mantém sua cor específica definida inline */
+            }
+            
+            /* *** CORREÇÃO CRÍTICA: CORES DO LEITO NO MOBILE (LINHA 1) *** */
             .leito-badge {
                 background: #22c55e !important; /* Verde para vago */
                 color: #000000 !important;
@@ -1327,8 +1448,8 @@ if (!document.getElementById('cardsConsolidadoCSS')) {
                 color: #000000 !important;
             }
             
-            /* Previsão de alta mantém cor especial */
-            .card-row-3 > div:last-child {
+            /* Previsão de alta mantém cor especial (LINHA 4) */
+            .card-row-4 > div:last-child {
                 background: #8FD3F4 !important;
                 color: #000000 !important;
             }
@@ -1352,7 +1473,7 @@ if (!document.getElementById('cardsConsolidadoCSS')) {
                 font-size: 14px;
             }
             
-            /* *** MODAL RESPONSIVO COM 3 COLUNAS FORÇADO *** */
+            /* *** MODAL RESPONSIVO COM 3/2 COLUNAS *** */
             .modal-overlay .modal-content {
                 width: 95% !important;
                 max-width: none !important;
@@ -1361,22 +1482,32 @@ if (!document.getElementById('cardsConsolidadoCSS')) {
                 padding: 20px !important;
             }
             
-            /* *** CORREÇÃO: LAYOUT 3 COLUNAS NO MOBILE *** */
+            /* *** LAYOUT 3 COLUNAS NO MOBILE *** */
             .form-grid-3-cols {
                 display: grid !important;
                 grid-template-columns: 1fr 1fr 1fr !important;
                 gap: 8px !important;
             }
             
-            /* Inputs e selects menores para caber em 3 colunas */
+            /* *** LAYOUT 2 COLUNAS NO MOBILE (REGIÃO/SEXO) *** */
+            .form-grid-2-cols {
+                display: grid !important;
+                grid-template-columns: 1fr 1fr !important;
+                gap: 10px !important;
+            }
+            
+            /* Inputs e selects menores para caber em 3/2 colunas */
             .form-grid-3-cols input,
-            .form-grid-3-cols select {
+            .form-grid-3-cols select,
+            .form-grid-2-cols input,
+            .form-grid-2-cols select {
                 padding: 8px 6px !important;
                 font-size: 12px !important;
             }
             
             /* Labels menores */
-            .form-grid-3-cols label {
+            .form-grid-3-cols label,
+            .form-grid-2-cols label {
                 font-size: 10px !important;
                 margin-bottom: 3px !important;
             }
@@ -1449,17 +1580,19 @@ if (!document.getElementById('cardsConsolidadoCSS')) {
                 margin-bottom: 10px !important;
             }
             
-            /* Layout 3x3 ainda mais compacto */
+            /* Layout 4 linhas 3x3 ainda mais compacto */
             .card-row-1,
             .card-row-2,
-            .card-row-3 {
+            .card-row-3,
+            .card-row-4 {
                 gap: 6px !important;
                 margin-bottom: 8px !important;
             }
             
             .card-row-1 > div,
             .card-row-2 > div,
-            .card-row-3 > div {
+            .card-row-3 > div,
+            .card-row-4 > div {
                 padding: 6px 3px !important;
                 min-height: 40px !important;
             }
@@ -1467,13 +1600,15 @@ if (!document.getElementById('cardsConsolidadoCSS')) {
             /* Labels e valores ainda menores */
             .card-row-1 div[style*="font-size: 10px"],
             .card-row-2 div[style*="font-size: 10px"],
-            .card-row-3 div[style*="font-size: 10px"] {
+            .card-row-3 div[style*="font-size: 10px"],
+            .card-row-4 div[style*="font-size: 10px"] {
                 font-size: 8px !important;
             }
             
             .card-row-1 div[style*="font-size: 12px"],
             .card-row-2 div[style*="font-size: 12px"],
-            .card-row-3 div[style*="font-size: 12px"] {
+            .card-row-3 div[style*="font-size: 12px"],
+            .card-row-4 div[style*="font-size: 12px"] {
                 font-size: 10px !important;
             }
             
@@ -1486,14 +1621,28 @@ if (!document.getElementById('cardsConsolidadoCSS')) {
                 gap: 6px !important;
             }
             
+            .form-grid-2-cols {
+                gap: 8px !important;
+            }
+            
             .form-grid-3-cols input,
             .form-grid-3-cols select {
                 padding: 6px 4px !important;
                 font-size: 11px !important;
             }
             
+            .form-grid-2-cols input,
+            .form-grid-2-cols select {
+                padding: 8px 6px !important;
+                font-size: 11px !important;
+            }
+            
             .form-grid-3-cols label {
                 font-size: 9px !important;
+            }
+            
+            .form-grid-2-cols label {
+                font-size: 10px !important;
             }
         }
         
@@ -1510,10 +1659,11 @@ if (!document.getElementById('cardsConsolidadoCSS')) {
                 gap: 12px !important;
             }
             
-            /* MANTER LAYOUT 3x3 MESMO EM LANDSCAPE */
+            /* MANTER ESTRUTURA 4 LINHAS 3x3 MESMO EM LANDSCAPE */
             .card-row-1,
             .card-row-2,
-            .card-row-3 {
+            .card-row-3,
+            .card-row-4 {
                 grid-template-columns: 1fr 1fr 1fr !important;
                 gap: 6px !important;
             }
@@ -1541,25 +1691,13 @@ if (!document.getElementById('cardsConsolidadoCSS')) {
             animation: spin 0.8s linear infinite;
             margin-right: 8px;
         }
-        
-        /* =================== TIMELINE COLORS =================== */
-        .prev-alta-hoje-ouro { background: #fbbf24 !important; color: #000 !important; }
-        .prev-alta-hoje-2r { background: #3b82f6 !important; color: #fff !important; }
-        .prev-alta-hoje-3r { background: #8b5cf6 !important; color: #fff !important; }
-        .prev-alta-24h-ouro { background: #fbbf24 !important; color: #000 !important; opacity: 0.8; }
-        .prev-alta-24h-2r { background: #3b82f6 !important; color: #fff !important; opacity: 0.8; }
-        .prev-alta-24h-3r { background: #8b5cf6 !important; color: #fff !important; opacity: 0.8; }
-        .prev-alta-48h { background: #10b981 !important; color: #fff !important; }
-        .prev-alta-72h { background: #f59e0b !important; color: #fff !important; }
-        .prev-alta-96h { background: #ef4444 !important; color: #fff !important; }
-        .prev-alta-sp { background: #6b7280 !important; color: #fff !important; }
     `;
     document.head.appendChild(style);
 }
 
 // =================== INICIALIZAÇÃO V3.2 ===================
 document.addEventListener('DOMContentLoaded', function() {
-    logSuccess('✅ Cards.js V3.2 CORREÇÕES #4, #2, #7 IMPLEMENTADAS');
+    logSuccess('✅ Cards.js V3.2 ESTRUTURA 4 LINHAS IMPLEMENTADA');
     
     // Verificar dependências
     if (typeof window.CONFIG === 'undefined') {
@@ -1568,7 +1706,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (typeof window.hospitalData === 'undefined') {
         window.hospitalData = {};
-        logInfo('hospitalData V3.2 inicializado');
+        logInfo('hospitalData V3.2 estrutura 4 linhas inicializado');
     }
     
     // Verificar se API V3.2 está disponível
@@ -1580,13 +1718,13 @@ document.addEventListener('DOMContentLoaded', function() {
     if (window.CONCESSOES_LIST.length !== 11) {
         logError(`ERRO: Esperadas 11 concessões, encontradas ${window.CONCESSOES_LIST.length}`);
     } else {
-        logSuccess(`✅ CORREÇÃO #7: ${window.CONCESSOES_LIST.length} concessões atualizadas conforme manual`);
+        logSuccess(`✅ ${window.CONCESSOES_LIST.length} concessões atualizadas conforme manual`);
     }
     
     if (window.LINHAS_CUIDADO_LIST.length !== 45) {
         logError(`ERRO: Esperadas 45 linhas, encontradas ${window.LINHAS_CUIDADO_LIST.length}`);
     } else {
-        logSuccess(`✅ CORREÇÃO #7: ${window.LINHAS_CUIDADO_LIST.length} linhas de cuidado atualizadas conforme manual`);
+        logSuccess(`✅ ${window.LINHAS_CUIDADO_LIST.length} linhas de cuidado atualizadas conforme manual`);
     }
     
     if (window.PREVISAO_ALTA_OPTIONS.length !== 10) {
@@ -1595,6 +1733,18 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (window.ISOLAMENTO_OPTIONS.length !== 3) {
         logError(`ERRO: Esperadas 3 opções isolamento, encontradas ${window.ISOLAMENTO_OPTIONS.length}`);
+    }
+    
+    if (window.REGIAO_OPTIONS.length !== 9) {
+        logError(`ERRO: Esperadas 9 opções região, encontradas ${window.REGIAO_OPTIONS.length}`);
+    } else {
+        logSuccess(`✅ ${window.REGIAO_OPTIONS.length} opções de região implementadas`);
+    }
+    
+    if (window.SEXO_OPTIONS.length !== 2) {
+        logError(`ERRO: Esperadas 2 opções sexo, encontradas ${window.SEXO_OPTIONS.length}`);
+    } else {
+        logSuccess(`✅ ${window.SEXO_OPTIONS.length} opções de sexo implementadas`);
     }
     
     if (window.IDADE_OPTIONS.length !== 102) {
@@ -1606,39 +1756,35 @@ document.addEventListener('DOMContentLoaded', function() {
         logInfo(`Hospital inicial V3.2: ${window.currentHospital} - ${window.HOSPITAL_MAPPING[window.currentHospital]}`);
     }
     
-    // Log das correções implementadas V3.2
-    logInfo('🚀 CORREÇÕES V3.2 IMPLEMENTADAS:');
-    logInfo('  • ✅ CORREÇÃO #4: Placeholder matrícula "Ex: 00000-0"');
-    logInfo('  • ✅ CORREÇÃO #2: Campo isolamento reposicionado para o TOPO');
-    logInfo('  • ✅ CORREÇÃO #7: Listas atualizadas - 11 concessões + 45 linhas');
-    logInfo('  • Arrays diretos - SEM parsing');
-    logInfo('  • Timeline com 10 opções (96h incluído)');
-    logInfo('  • ISOLAMENTO (AS): 3 opções obrigatórias');
-    logInfo('  • IDENTIFICAÇÃO LEITO (AT): alfanumérico 6 chars');
-    logInfo('  • Campo idade: dropdown 14-115 anos (mobile)');
-    logInfo('  • Cards exibem APENAS INICIAIS');
-    logInfo('  • Badge isolamento no rodapé dos cards');
-    logInfo('  • Header dos cards: Hospital | ID | Leito');
-    logInfo('  • Layout formulário 3 colunas implementado');
-    logInfo('  • Campo identificação PRIMEIRO e OBRIGATÓRIO');
-    logInfo('  • Performance otimizada V3.2');
-    logInfo('  • Validação automática AS/AT');
-    logInfo('  • Layout 3x3 mobile FORÇADO');
-    logInfo('  • Leitos: VERDE=vago, AMARELO=ocupado');
-    logInfo('  • Modais 3 colunas no mobile');
-    logInfo('  • CSS CONSOLIDADO - sem mobile.css');
+    // Log das alterações implementadas V3.2
+    logInfo('🚀 ESTRUTURA 4 LINHAS V3.2 IMPLEMENTADA:');
+    logInfo('  • ✅ LINHA 1: HOSPITAL | LEITO | TIPO (mantida)');
+    logInfo('  • ✅ LINHA 2: ISOLAMENTO | REGIÃO | SEXO (NOVA)');
+    logInfo('  • ✅ LINHA 3: INICIAIS | MATRÍCULA | IDADE (movida)');
+    logInfo('  • ✅ LINHA 4: PPS | SPICT-BR | PREV ALTA (movida)');
+    logInfo('  • ✅ RODAPÉ: sem badge isolamento (removido)');
+    logInfo('  • ✅ REGIÃO: 9 opções (Norte, Sul, Leste, etc.)');
+    logInfo('  • ✅ SEXO: 2 opções (M, F)');
+    logInfo('  • ✅ ISOLAMENTO: integrado na linha 2 com cores');
+    logInfo('  • ✅ Formulários: campos região/sexo adicionados');
+    logInfo('  • ✅ CSS: estrutura 4 linhas mobile 3x3 forçado');
+    logInfo('  • ✅ Responsivo: mobile pequeno + landscape');
+    logInfo('  • ✅ Performance: otimizada para 4 linhas');
+    logInfo('  • ✅ Validação: campos região/sexo opcionais');
+    logInfo('  • ✅ Layout: 2 colunas para região/sexo');
+    logInfo('  • ✅ Cores: isolamento com background próprio');
     
     // Adicionar listener para resize
     window.addEventListener('resize', function() {
         const width = window.innerWidth;
         if (width <= 480) {
-            logDebug('Modo mobile pequeno V3.2 ativado');
+            logDebug('Modo mobile pequeno V3.2 estrutura 4 linhas ativado');
         } else if (width <= 768) {
-            logDebug('Modo mobile V3.2 ativado');
+            logDebug('Modo mobile V3.2 estrutura 4 linhas ativado');
         } else if (width <= 1024) {
-            logDebug('Modo tablet V3.2 ativado');
+            logDebug('Modo tablet V3.2 estrutura 4 linhas ativado');
         } else {
-            logDebug('Modo desktop V3.2 ativado');
+            logDebug('Modo desktop V3.2 estrutura 4 linhas ativado');
         }
     });
 });
@@ -1651,14 +1797,16 @@ window.forcarPreMarcacao = forcarPreMarcacao;
 window.coletarDadosFormulario = coletarDadosFormulario;
 window.getBadgeIsolamento = getBadgeIsolamento;
 
-logSuccess('🏥 CARDS.JS V3.2 FINALIZADAS - 3 CORREÇÕES IMPLEMENTADAS!');
-logInfo('📋 CORREÇÃO #4: Placeholder matrícula = "Ex: 00000-0"');
-logInfo('📋 CORREÇÃO #2: Campo isolamento no TOPO após identificação');
-logInfo('📋 CORREÇÃO #7: 11 concessões + 45 linhas conforme manual');
+logSuccess('🏥 CARDS.JS V3.2 ESTRUTURA 4 LINHAS FINALIZADA!');
+logInfo('📋 NOVA ESTRUTURA:');
+logInfo('  • Linha 1: Hospital | Leito | Tipo');
+logInfo('  • Linha 2: Isolamento | Região | Sexo');
+logInfo('  • Linha 3: Iniciais | Matrícula | Idade');
+logInfo('  • Linha 4: PPS | SPICT-BR | Prev Alta');
 logInfo('✅ Todo CSS responsivo consolidado neste arquivo');
 logInfo('✅ Eliminada dependência do mobile.css');
 logInfo('✅ Cores hardcoded: Verde=vago, Amarelo=ocupado');
-logInfo('✅ Layout 3x3 forçado no mobile');
-logInfo('✅ Modais responsivos com 3 colunas');
+logInfo('✅ Layout 4 linhas 3x3 forçado no mobile');
+logInfo('✅ Modais responsivos com campos região/sexo');
 logInfo('✅ Performance otimizada com CSS inline');
-logInfo('✅ ✨ TODAS AS 3 CORREÇÕES IMPLEMENTADAS ✨');
+logInfo('✅ ✨ ESTRUTURA 4 LINHAS IMPLEMENTADA ✨');
