@@ -96,15 +96,15 @@ window.ISOLAMENTO_OPTIONS = [
 
 // *** NOVA V3.2: OPÇÕES DE REGIÃO - 9 OPÇÕES CONFORME ESPECIFICADO ***
 window.REGIAO_OPTIONS = [
-    'Norte',
-    'Sul', 
-    'Leste',
-    'Oeste',
-    'Centro',
-    'Nordeste',
-    'Noroeste',
-    'Sudeste',
-    'Sudoeste'
+    'Zona Central',
+    'Zona Sul',
+    'Zona Norte',
+    'Zona Leste',
+    'Zona Oeste',
+    'ABC',
+    'Guarulhos',
+    'Osasco',
+    'Outra'
 ];
 
 // *** NOVA V3.2: OPÇÕES DE SEXO ***
@@ -183,21 +183,21 @@ function getBadgeIsolamento(isolamento) {
         return {
             cor: '#9ca3af',
             icone: '⚪',
-            texto: 'SEM ISOLAMENTO',
+            texto: 'Não Isolamento',
             textoCor: '#ffffff'
         };
     } else if (isolamento === 'ISOLAMENTO DE CONTATO') {
         return {
             cor: '#f59e0b',
             icone: '🟡',
-            texto: 'CONTATO',
+            texto: 'Isolamento de Contato',
             textoCor: '#000000'
         };
     } else if (isolamento === 'ISOLAMENTO RESPIRATÓRIO') {
         return {
             cor: '#ef4444',
             icone: '🔴',
-            texto: 'RESPIRATÓRIO',
+            texto: 'Isolamento Respiratório',
             textoCor: '#ffffff'
         };
     }
@@ -1763,7 +1763,7 @@ document.addEventListener('DOMContentLoaded', function() {
     logInfo('  • ✅ LINHA 3: INICIAIS | MATRÍCULA | IDADE (movida)');
     logInfo('  • ✅ LINHA 4: PPS | SPICT-BR | PREV ALTA (movida)');
     logInfo('  • ✅ RODAPÉ: sem badge isolamento (removido)');
-    logInfo('  • ✅ REGIÃO: 9 opções (Norte, Sul, Leste, etc.)');
+    logInfo('  • ✅ REGIÃO: 9 opções (Zona Central, Zona Sul, ABC, etc.)');
     logInfo('  • ✅ SEXO: 2 opções (M, F)');
     logInfo('  • ✅ ISOLAMENTO: integrado na linha 2 com cores');
     logInfo('  • ✅ Formulários: campos região/sexo adicionados');
