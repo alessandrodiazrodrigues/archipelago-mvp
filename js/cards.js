@@ -298,8 +298,8 @@ function createCard(leito, hospitalNome) {
         <div class="card-row-2" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 12px;">
             <div style="background: ${badgeIsolamento.cor}; border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; padding: 10px; min-height: 50px; display: flex; flex-direction: column; justify-content: center;">
                 <div style="font-size: 10px; color: ${badgeIsolamento.textoCor}; font-weight: 600; text-transform: uppercase; margin-bottom: 3px;">ISOLAMENTO</div>
-                <div style="color: ${badgeIsolamento.textoCor}; font-weight: 600; font-size: 11px; line-height: 1.2; display: flex; align-items: center; gap: 4px;">
-                    ${badgeIsolamento.icone} ${badgeIsolamento.texto}
+                <div style="color: ${badgeIsolamento.textoCor}; font-weight: 600; font-size: 11px; line-height: 1.2; display: flex; align-items: center;">
+                    ${badgeIsolamento.texto}
                 </div>
             </div>
             
