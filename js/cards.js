@@ -190,14 +190,14 @@ function getBadgeIsolamento(isolamento) {
         return {
             cor: '#f59e0b',
             icone: '🟡',
-            texto: 'Isolamento de Contato',
+            texto: 'Contato',
             textoCor: '#000000'
         };
     } else if (isolamento === 'ISOLAMENTO RESPIRATÓRIO') {
         return {
             cor: '#ef4444',
             icone: '🔴',
-            texto: 'Isolamento Respiratório',
+            texto: 'Respiratório',
             textoCor: '#ffffff'
         };
     }
