@@ -517,41 +517,30 @@ function createAdmissaoForm(hospitalNome, leitoNumero) {
                 <div style="font-size: 11px; color: rgba(255,255,255,0.6); margin-top: 5px;">Campo alfanumérico obrigatório com até 6 caracteres</div>
             </div>
             
-            <!-- CAMPO ISOLAMENTO -->
+            <!-- ISOLAMENTO, REGIÃO E SEXO - 3 COLUNAS OBRIGATÓRIAS -->
             <div style="margin-bottom: 20px;">
                 <div style="background: rgba(96,165,250,0.1); padding: 10px 15px; border-radius: 6px; margin-bottom: 10px;">
                     <div style="font-size: 11px; color: #ffffff; text-transform: uppercase; font-weight: 700;">
-                        ISOLAMENTO DO PACIENTE (OBRIGATÓRIO)
+                        ISOLAMENTO, REGIÃO E SEXO (OBRIGATÓRIOS)
                     </div>
                 </div>
-                <div style="background: rgba(255,255,255,0.03); border-radius: 6px; padding: 15px;">
-                    ${window.ISOLAMENTO_OPTIONS.map((opcao, index) => `
-                        <label style="display: flex; align-items: center; padding: 8px 0; cursor: pointer; font-size: 14px;">
-                            <input type="radio" name="admIsolamento" value="${opcao}" ${index === 0 ? 'checked' : ''} style="margin-right: 12px; accent-color: #60a5fa;">
-                            <span>${opcao}</span>
-                        </label>
-                    `).join('')}
-                </div>
-            </div>
-            
-            <!-- NOVO V3.2: CAMPOS REGIÃO E SEXO -->
-            <div style="margin-bottom: 20px;">
-                <div style="background: rgba(96,165,250,0.1); padding: 10px 15px; border-radius: 6px; margin-bottom: 10px;">
-                    <div style="font-size: 11px; color: #ffffff; text-transform: uppercase; font-weight: 700;">
-                        REGIÃO E SEXO (OPCIONAL)
-                    </div>
-                </div>
-                <div class="form-grid-2-cols" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="form-grid-3-cols" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
                     <div>
-                        <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">REGIÃO</label>
-                        <select id="admRegiao" style="width: 100%; padding: 12px; background: #374151 !important; color: #ffffff !important; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px;">
+                        <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">ISOLAMENTO <span style="color: #ef4444;">*</span></label>
+                        <select id="admIsolamento" required style="width: 100%; padding: 12px; background: #374151 !important; color: #ffffff !important; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px;">
+                            ${window.ISOLAMENTO_OPTIONS.map((opcao, index) => `<option value="${opcao}" ${index === 0 ? 'selected' : ''}>${opcao}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">REGIÃO <span style="color: #ef4444;">*</span></label>
+                        <select id="admRegiao" required style="width: 100%; padding: 12px; background: #374151 !important; color: #ffffff !important; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px;">
                             <option value="">Selecionar...</option>
                             ${window.REGIAO_OPTIONS.map(regiao => `<option value="${regiao}">${regiao}</option>`).join('')}
                         </select>
                     </div>
                     <div>
-                        <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">SEXO</label>
-                        <select id="admSexo" style="width: 100%; padding: 12px; background: #374151 !important; color: #ffffff !important; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px;">
+                        <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">SEXO <span style="color: #ef4444;">*</span></label>
+                        <select id="admSexo" required style="width: 100%; padding: 12px; background: #374151 !important; color: #ffffff !important; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px;">
                             <option value="">Selecionar...</option>
                             ${window.SEXO_OPTIONS.map(sexo => `<option value="${sexo}">${sexo}</option>`).join('')}
                         </select>
@@ -567,7 +556,7 @@ function createAdmissaoForm(hospitalNome, leitoNumero) {
                 </div>
                 <div>
                     <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">MATRÍCULA</label>
-                    <input id="admMatricula" type="text" placeholder="Ex: 00000-0" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px;">
+                    <input id="admMatricula" type="text" placeholder="Ex: 00000-0" maxlength="8" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px;" oninput="formatarMatricula(this)">
                 </div>
                 <div>
                     <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">IDADE</label>
@@ -679,41 +668,30 @@ function createAtualizacaoForm(hospitalNome, leitoNumero, dadosLeito) {
                 <div style="font-size: 11px; color: rgba(255,255,255,0.6); margin-top: 5px;">Campo alfanumérico obrigatório com até 6 caracteres</div>
             </div>
             
-            <!-- CAMPO ISOLAMENTO -->
+            <!-- ISOLAMENTO, REGIÃO E SEXO - 3 COLUNAS OBRIGATÓRIAS -->
             <div style="margin-bottom: 20px;">
                 <div style="background: rgba(96,165,250,0.1); padding: 10px 15px; border-radius: 6px; margin-bottom: 10px;">
                     <div style="font-size: 11px; color: #ffffff; text-transform: uppercase; font-weight: 700;">
-                        ISOLAMENTO DO PACIENTE
+                        ISOLAMENTO, REGIÃO E SEXO (OBRIGATÓRIOS)
                     </div>
                 </div>
-                <div style="background: rgba(255,255,255,0.03); border-radius: 6px; padding: 15px;">
-                    ${window.ISOLAMENTO_OPTIONS.map(opcao => `
-                        <label style="display: flex; align-items: center; padding: 8px 0; cursor: pointer; font-size: 14px;">
-                            <input type="radio" name="updIsolamento" value="${opcao}" ${isolamentoAtual === opcao ? 'checked' : ''} style="margin-right: 12px; accent-color: #60a5fa;">
-                            <span>${opcao}</span>
-                        </label>
-                    `).join('')}
-                </div>
-            </div>
-            
-            <!-- CAMPOS REGIÃO E SEXO -->
-            <div style="margin-bottom: 20px;">
-                <div style="background: rgba(96,165,250,0.1); padding: 10px 15px; border-radius: 6px; margin-bottom: 10px;">
-                    <div style="font-size: 11px; color: #ffffff; text-transform: uppercase; font-weight: 700;">
-                        REGIÃO E SEXO
-                    </div>
-                </div>
-                <div class="form-grid-2-cols" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="form-grid-3-cols" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
                     <div>
-                        <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">REGIÃO</label>
-                        <select id="updRegiao" style="width: 100%; padding: 12px; background: #374151 !important; color: #ffffff !important; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px;">
+                        <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">ISOLAMENTO <span style="color: #ef4444;">*</span></label>
+                        <select id="updIsolamento" required style="width: 100%; padding: 12px; background: #374151 !important; color: #ffffff !important; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px;">
+                            ${window.ISOLAMENTO_OPTIONS.map(opcao => `<option value="${opcao}" ${isolamentoAtual === opcao ? 'selected' : ''}>${opcao}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">REGIÃO <span style="color: #ef4444;">*</span></label>
+                        <select id="updRegiao" required style="width: 100%; padding: 12px; background: #374151 !important; color: #ffffff !important; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px;">
                             <option value="">Selecionar...</option>
                             ${window.REGIAO_OPTIONS.map(regiao => `<option value="${regiao}" ${regiaoAtual === regiao ? 'selected' : ''}>${regiao}</option>`).join('')}
                         </select>
                     </div>
                     <div>
-                        <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">SEXO</label>
-                        <select id="updSexo" style="width: 100%; padding: 12px; background: #374151 !important; color: #ffffff !important; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px;">
+                        <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">SEXO <span style="color: #ef4444;">*</span></label>
+                        <select id="updSexo" required style="width: 100%; padding: 12px; background: #374151 !important; color: #ffffff !important; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px;">
                             <option value="">Selecionar...</option>
                             ${window.SEXO_OPTIONS.map(sexo => `<option value="${sexo}" ${sexoAtual === sexo ? 'selected' : ''}>${sexo}</option>`).join('')}
                         </select>
@@ -875,6 +853,29 @@ function setupModalEventListeners(modal, tipo) {
                 return;
             }
             
+            // VALIDAÇÃO: Campos isolamento, região e sexo obrigatórios
+            const isolamentoField = modal.querySelector(tipo === 'admissao' ? '#admIsolamento' : '#updIsolamento');
+            const regiaoField = modal.querySelector(tipo === 'admissao' ? '#admRegiao' : '#updRegiao');
+            const sexoField = modal.querySelector(tipo === 'admissao' ? '#admSexo' : '#updSexo');
+            
+            if (!isolamentoField.value) {
+                showErrorMessage('❌ Campo "Isolamento" é obrigatório!');
+                isolamentoField.focus();
+                return;
+            }
+            
+            if (!regiaoField.value) {
+                showErrorMessage('❌ Campo "Região" é obrigatório!');
+                regiaoField.focus();
+                return;
+            }
+            
+            if (!sexoField.value) {
+                showErrorMessage('❌ Campo "Sexo" é obrigatório!');
+                sexoField.focus();
+                return;
+            }
+            
             const originalText = this.innerHTML;
             showButtonLoading(this, 'SALVANDO...');
             
@@ -974,13 +975,13 @@ function coletarDadosFormulario(modal, tipo) {
         dados.complexidade = modal.querySelector('#admComplexidade')?.value || 'I';
         dados.prevAlta = modal.querySelector('#admPrevAlta')?.value || 'SP';
         
-        // *** COLETAR ISOLAMENTO (AS) ***
-        dados.isolamento = modal.querySelector('input[name="admIsolamento"]:checked')?.value || 'NÃO ISOLAMENTO';
+        // *** COLETAR ISOLAMENTO (AS) DO DROPDOWN ***
+        dados.isolamento = modal.querySelector('#admIsolamento')?.value || 'NÃO ISOLAMENTO';
         
         // *** COLETAR IDENTIFICAÇÃO DO LEITO (AT) ***
         dados.identificacaoLeito = modal.querySelector('#admIdentificacaoLeito')?.value?.trim().toUpperCase() || '';
         
-        // *** NOVA V3.2: COLETAR REGIÃO E SEXO ***
+        // *** COLETAR REGIÃO E SEXO (OBRIGATÓRIOS) ***
         dados.regiao = modal.querySelector('#admRegiao')?.value || '';
         dados.sexo = modal.querySelector('#admSexo')?.value || '';
         
@@ -998,13 +999,13 @@ function coletarDadosFormulario(modal, tipo) {
         dados.complexidade = modal.querySelector('#updComplexidade')?.value || 'I';
         dados.prevAlta = modal.querySelector('#updPrevAlta')?.value || 'SP';
         
-        // *** COLETAR ISOLAMENTO (AS) ***
-        dados.isolamento = modal.querySelector('input[name="updIsolamento"]:checked')?.value || 'NÃO ISOLAMENTO';
+        // *** COLETAR ISOLAMENTO (AS) DO DROPDOWN ***
+        dados.isolamento = modal.querySelector('#updIsolamento')?.value || 'NÃO ISOLAMENTO';
         
         // *** COLETAR IDENTIFICAÇÃO DO LEITO (AT) ***
         dados.identificacaoLeito = modal.querySelector('#updIdentificacaoLeito')?.value?.trim().toUpperCase() || '';
         
-        // *** NOVA V3.2: COLETAR REGIÃO E SEXO ***
+        // *** COLETAR REGIÃO E SEXO (OBRIGATÓRIOS) ***
         dados.regiao = modal.querySelector('#updRegiao')?.value || '';
         dados.sexo = modal.querySelector('#updSexo')?.value || '';
         
@@ -1040,6 +1041,25 @@ function coletarCheckboxesSelecionados(modal, seletor) {
     });
     
     return selecionados;
+}
+
+// =================== FUNÇÃO: FORMATAÇÃO AUTOMÁTICA DA MATRÍCULA ===================
+function formatarMatricula(input) {
+    // Remove todos os caracteres não numéricos
+    let valor = input.value.replace(/\D/g, '');
+    
+    // Limita a 6 dígitos
+    if (valor.length > 6) {
+        valor = valor.substring(0, 6);
+    }
+    
+    // Adiciona o hífen automaticamente após 5 dígitos
+    if (valor.length > 5) {
+        valor = valor.substring(0, 5) + '-' + valor.substring(5);
+    }
+    
+    // Atualiza o valor do campo
+    input.value = valor;
 }
 
 // =================== FUNÇÕES AUXILIARES ===================
@@ -1758,19 +1778,21 @@ document.addEventListener('DOMContentLoaded', function() {
     // Log das alterações implementadas V3.2
     logInfo('🚀 ESTRUTURA 4 LINHAS V3.2 IMPLEMENTADA:');
     logInfo('  • ✅ LINHA 1: HOSPITAL | LEITO | TIPO (mantida)');
-    logInfo('  • ✅ LINHA 2: ISOLAMENTO | REGIÃO | SEXO (NOVA)');
+    logInfo('  • ✅ LINHA 2: ISOLAMENTO | REGIÃO | SEXO (NOVA - 3 colunas)');
     logInfo('  • ✅ LINHA 3: INICIAIS | MATRÍCULA | IDADE (movida)');
     logInfo('  • ✅ LINHA 4: PPS | SPICT-BR | PREV ALTA (movida)');
     logInfo('  • ✅ RODAPÉ: sem badge isolamento (removido)');
     logInfo('  • ✅ REGIÃO: 9 opções (Zona Central, Zona Sul, ABC, etc.)');
     logInfo('  • ✅ SEXO: 2 opções (M, F)');
-    logInfo('  • ✅ ISOLAMENTO: integrado na linha 2 com cores');
-    logInfo('  • ✅ Formulários: campos região/sexo adicionados');
+    logInfo('  • ✅ ISOLAMENTO: dropdown (não radio buttons)');
+    logInfo('  • ✅ OBRIGATÓRIOS: isolamento + região + sexo');
+    logInfo('  • ✅ MATRÍCULA: formatação automática com hífen');
+    logInfo('  • ✅ Formulários: 3 colunas para isolamento/região/sexo');
     logInfo('  • ✅ CSS: estrutura 4 linhas mobile 3x3 forçado');
     logInfo('  • ✅ Responsivo: mobile pequeno + landscape');
     logInfo('  • ✅ Performance: otimizada para 4 linhas');
-    logInfo('  • ✅ Validação: campos região/sexo opcionais');
-    logInfo('  • ✅ Layout: 2 colunas para região/sexo');
+    logInfo('  • ✅ Validação: campos obrigatórios com foco');
+    logInfo('  • ✅ Layout: 3 colunas equalizadas');
     logInfo('  • ✅ Cores: isolamento com background próprio');
     
     // Adicionar listener para resize
@@ -1795,6 +1817,7 @@ window.openAtualizacaoModal = openAtualizacaoModal;
 window.forcarPreMarcacao = forcarPreMarcacao;
 window.coletarDadosFormulario = coletarDadosFormulario;
 window.getBadgeIsolamento = getBadgeIsolamento;
+window.formatarMatricula = formatarMatricula;
 
 logSuccess('🏥 CARDS.JS V3.2 ESTRUTURA 4 LINHAS FINALIZADA!');
 logInfo('📋 NOVA ESTRUTURA:');
