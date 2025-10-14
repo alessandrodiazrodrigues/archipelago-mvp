@@ -1438,11 +1438,33 @@ if (!document.getElementById('cardsConsolidadoCSS')) {
             
             /* GARANTIR LARGURA IGUAL PARA TODOS OS BOXES DAS 4 LINHAS */
             .card-row-1 > div,
-            .card-row-2 > div,
             .card-row-3 > div,
             .card-row-4 > div {
                 background: rgba(255,255,255,0.05) !important;
                 border: 1px solid rgba(255,255,255,0.1) !important;
+                border-radius: 8px !important;
+                padding: 8px 4px !important;
+                min-height: 45px !important;
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: center !important;
+            }
+            
+            /* EXCEÇÃO: Preservar cores específicas do isolamento na linha 2 */
+            .card-row-2 > div:not(:first-child) {
+                background: rgba(255,255,255,0.05) !important;
+                border: 1px solid rgba(255,255,255,0.1) !important;
+                border-radius: 8px !important;
+                padding: 8px 4px !important;
+                min-height: 45px !important;
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: center !important;
+            }
+            
+            /* ISOLAMENTO: Manter cores originais no mobile */
+            .card-row-2 > div:first-child {
+                /* Cores definidas via style inline - não sobrescrever */
                 border-radius: 8px !important;
                 padding: 8px 4px !important;
                 min-height: 45px !important;
@@ -1609,9 +1631,20 @@ if (!document.getElementById('cardsConsolidadoCSS')) {
             }
             
             .card-row-1 > div,
-            .card-row-2 > div,
             .card-row-3 > div,
             .card-row-4 > div {
+                padding: 6px 3px !important;
+                min-height: 40px !important;
+            }
+            
+            /* Região e sexo na linha 2 */
+            .card-row-2 > div:not(:first-child) {
+                padding: 6px 3px !important;
+                min-height: 40px !important;
+            }
+            
+            /* Isolamento na linha 2 - manter cores originais */
+            .card-row-2 > div:first-child {
                 padding: 6px 3px !important;
                 min-height: 40px !important;
             }
