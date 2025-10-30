@@ -8,7 +8,7 @@
 window.CONFIG = {
     AUTH_PASSWORD: '1234',
     ADM_EMAIL: 'cvcalessandro@gmail.com',
-    ADM_PASSWORD: '9446',
+    ADM_PASSWORD: '2305',
     REFRESH_INTERVAL: 240000, // 4 minutos
     QR_TIMEOUT: 120000, // 2 minutos
     HOSPITAIS: {
