@@ -1447,9 +1447,9 @@ function getExecutiveCSS() {
             
             .gauge-largo-info {
                 position: absolute;
-                top: 55%;
+                top: 50%;
                 left: 50%;
-                transform: translate(-50%, -50%);
+                transform: translate(-50%, -40%);
                 text-align: center;
                 width: 100%;
                 pointer-events: none;
@@ -1457,12 +1457,12 @@ function getExecutiveCSS() {
             }
             
             .gauge-largo-number {
-                font-size: 32px;
+                font-size: 35px;
                 font-weight: 700;
                 color: white;
                 line-height: 1;
-                margin-bottom: 15px;
-                margin-top: 10px;
+                margin-bottom: 18px;
+                margin-top: 25px;
             }
             
             .gauge-largo-label {
@@ -1960,17 +1960,18 @@ function getExecutiveCSS() {
             /* ========== CORREÇÃO GAUGE IPAD ========== */
             @media (min-width: 768px) and (max-width: 1024px) {
                 .gauge-largo-info {
-                    top: 58% !important;
+                    top: 52% !important;
+                    transform: translate(-50%, -42%) !important;
                 }
                 
                 .gauge-largo-number {
-                    font-size: 30px !important;
-                    margin-top: 8px !important;
-                    margin-bottom: 12px !important;
+                    font-size: 32px !important;
+                    margin-top: 20px !important;
+                    margin-bottom: 15px !important;
                 }
                 
                 .gauge-largo-percentage {
-                    font-size: 50px !important;
+                    font-size: 55px !important;
                 }
             }
             
