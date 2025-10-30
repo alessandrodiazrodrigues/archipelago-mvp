@@ -138,21 +138,13 @@ window.renderCards = function() {
         return;
     }
 
+    container.innerHTML = '';
     const hospitalId = window.currentHospital || 'H1';
     const hospital = window.hospitalData[hospitalId];
     const hospitalNome = window.HOSPITAL_MAPPING[hospitalId] || 'Hospital';
     
-    // =================== HEADER IGUAL AO DASHBOARD HOSPITALAR ===================
-    const headerHTML = `
-        <div class="dashboard-header-cards" style="margin-bottom: 30px; padding: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 12px; border-left: 4px solid #ffffff;">
-            <div style="display: flex; justify-content: center; align-items: center;">
-                <h2 style="margin: 0; color: #0676bb; font-size: 24px; font-weight: 700; text-align: center;">Gestão de Leitos Hospitalares</h2>
-            </div>
-        </div>
-    `;
-    
     if (!hospital || !hospital.leitos || hospital.leitos.length === 0) {
-        container.innerHTML = headerHTML + `
+        container.innerHTML = `
             <div class="card" style="grid-column: 1 / -1; text-align: center; padding: 40px;">
                 <div style="color: #0676bb; margin-bottom: 15px;">
                     <h3 style="font-family: 'Poppins', sans-serif;">${hospitalNome}</h3>
@@ -165,14 +157,6 @@ window.renderCards = function() {
         `;
         return;
     }
-    
-    // Limpar container e adicionar header
-    container.innerHTML = headerHTML;
-    
-    // Criar div para os cards
-    const cardsGrid = document.createElement('div');
-    cardsGrid.className = 'cards-grid';
-    cardsGrid.style.cssText = 'display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 20px;';
     
     // ✅ ORDENAR CARDS - OCUPADOS PRIMEIRO, DEPOIS VAGOS
     const leitosOrdenados = hospital.leitos.sort((a, b) => {
@@ -187,10 +171,8 @@ window.renderCards = function() {
     
     leitosOrdenados.forEach(leito => {
         const card = createCard(leito, hospitalNome);
-        cardsGrid.appendChild(card);
+        container.appendChild(card);
     });
-    
-    container.appendChild(cardsGrid);
     
     logInfo(`${hospital.leitos.length} cards renderizados para ${hospitalNome}`);
 };
@@ -1703,34 +1685,6 @@ if (!document.getElementById('cardsConsolidadoCSS')) {
         
         * {
             font-family: 'Poppins', sans-serif !important;
-        }
-        
-        /* =================== HEADER ESTILO DASHBOARD HOSPITALAR =================== */
-        .dashboard-header-cards {
-            margin-bottom: 30px;
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            border-left: 4px solid #ffffff;
-        }
-        
-        .dashboard-header-cards h2 {
-            margin: 0;
-            color: #0676bb;
-            font-size: 24px;
-            font-weight: 700;
-            text-align: center;
-        }
-        
-        @media (max-width: 768px) {
-            .dashboard-header-cards {
-                padding: 15px;
-                margin-bottom: 20px;
-            }
-            
-            .dashboard-header-cards h2 {
-                font-size: 16px;
-            }
         }
         
         @keyframes slideIn {
