@@ -1,4 +1,4 @@
-/ js/dashboards/dashboard-hospital.js
+// js/dashboards/dashboard-hospital.js
 // =================== DASHBOARD HOSPITALAR V1.2.2 CORRIGIDO ===================
 // ✅ CORREÇÕES APLICADAS: Conflito de funções resolvido, TPH compatível com string/number, Escala TPH 10 dias
 // Data: 29/Outubro/2025
