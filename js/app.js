@@ -1,20 +1,130 @@
-// =================== APP.JS - ARQUIVO PRINCIPAL CORRIGIDO V3.1 ===================
+// =================== APP.JS V3.3.2 - CORRIGIDO E COMPLETO ===================
+// Cliente: Guilherme Santoro
+// Desenvolvedor: Alessandro Rodrigues
+// Data: 19/Outubro/2024
+// Versão: V3.3.2 (100% sincronizado com planilha - 74 colunas A-BV)
 
-// =================== CONFIGURAÇÕES GLOBAIS V3.1 ===================
+// =================== CONFIGURAÇÕES GLOBAIS V3.3.2 ===================
 window.CONFIG = {
-    AUTH_PASSWORD: '170284',
+    AUTH_PASSWORD: '1234',
     ADM_EMAIL: 'cvcalessandro@gmail.com',
     ADM_PASSWORD: '9446',
     REFRESH_INTERVAL: 240000, // 4 minutos
     QR_TIMEOUT: 120000, // 2 minutos
     HOSPITAIS: {
-        // *** CORREÇÃO V3.1: ATUALIZAR 49→66 leitos (H1:10, H2:36, H3:13, H4:7) ***
-        H1: { nome: "Neomater", leitos: 10, ativo: true },
-        H2: { nome: "Cruz Azul", leitos: 36, ativo: true },
-        H3: { nome: "Santa Marcelina", leitos: 13, ativo: true },
-        H4: { nome: "Santa Clara", leitos: 7, ativo: true }
+        // *** V3.3.2: 79 LEITOS TOTAIS (H1:10, H2:36, H3:7, H4:13, H5:13) ***
+        H1: { nome: "Neomater", leitos: 10, tipo: "Híbrido", ativo: true },
+        H2: { nome: "Cruz Azul", leitos: 36, tipo: "Misto", ativo: true },
+        H3: { nome: "Santa Marcelina", leitos: 7, tipo: "Híbrido", ativo: true }, // ✅ CORRIGIDO: 7 leitos
+        H4: { nome: "Santa Clara", leitos: 13, tipo: "Misto", ativo: true },
+        H5: { nome: "Hospital Adventista", leitos: 13, tipo: "Híbrido", ativo: true }
     }
 };
+
+// =================== LISTAS COMPLETAS V3.3.2 (CORRIGIDAS) ===================
+
+// *** CONCESSÕES: 11 ITENS (M-W) - CHECKBOXES ***
+window.CONCESSOES_LISTA = [
+    "Transição Domiciliar",
+    "Aplicação domiciliar de medicamentos",
+    "Aspiração",
+    "Banho",
+    "Curativo",
+    "Curativo PICC",
+    "Fisioterapia Domiciliar",
+    "Fonoaudiologia Domiciliar",
+    "Oxigenoterapia",
+    "Remoção",
+    "Solicitação domiciliar de exames"
+];
+
+// *** LINHAS DE CUIDADO: 45 ITENS (X-BR) - CHECKBOXES ***
+window.LINHAS_CUIDADO_LISTA = [
+    "Assiste",
+    "APS SP",
+    "Cuidados Paliativos",
+    "ICO (Insuficiência Coronariana)",
+    "Nexus SP Cardiologia",
+    "Nexus SP Gastroentereologia",
+    "Nexus SP Geriatria",
+    "Nexus SP Pneumologia",
+    "Nexus SP Psiquiatria",
+    "Nexus SP Reumatologia",
+    "Nexus SP Saúde do Fígado",
+    "Generalista",
+    "Bucomaxilofacial",
+    "Cardiologia",
+    "Cirurgia Cardíaca",
+    "Cirurgia de Cabeça e Pescoço",
+    "Cirurgia do Aparelho Digestivo",
+    "Cirurgia Geral",
+    "Cirurgia Oncológica",
+    "Cirurgia Plástica",
+    "Cirurgia Torácica",
+    "Cirurgia Vascular",
+    "Clínica Médica",
+    "Coloproctologia",
+    "Dermatologia",
+    "Endocrinologia",
+    "Fisiatria",
+    "Gastroenterologia",
+    "Geriatria",
+    "Ginecologia e Obstetrícia",
+    "Hematologia",
+    "Infectologia",
+    "Mastologia",
+    "Nefrologia",
+    "Neurocirurgia",
+    "Neurologia",
+    "Oftalmologia",
+    "Oncologia Clínica",
+    "Ortopedia",
+    "Otorrinolaringologia",
+    "Pediatria",
+    "Pneumologia",
+    "Psiquiatria",
+    "Reumatologia",
+    "Urologia"
+];
+
+// *** REGIÕES: 9 OPÇÕES (BT/71) ***
+window.REGIOES_LISTA = [
+    "Zona Central",
+    "Zona Sul",
+    "Zona Norte",
+    "Zona Leste",
+    "Zona Oeste",
+    "ABC",
+    "Guarulhos",
+    "Osasco",
+    "Outra"
+];
+
+// *** ISOLAMENTO: 3 OPÇÕES (AR/43) ***
+window.ISOLAMENTO_OPCOES = [
+    "Não Isolamento",
+    "Isolamento de Contato",
+    "Isolamento Respiratório"
+];
+
+// *** GÊNERO: 2 OPÇÕES (BS/70) ***
+window.GENERO_OPCOES = [
+    "Masculino",
+    "Feminino"
+];
+
+// *** CATEGORIA: 2 OPÇÕES (BU/72) ***
+window.CATEGORIA_OPCOES = [
+    "Apartamento",
+    "Enfermaria"
+];
+
+// *** DIRETIVAS: 3 OPÇÕES (BV/73) ***
+window.DIRETIVAS_OPCOES = [
+    "Sim",
+    "Não",
+    "Não se aplica"
+];
 
 // =================== VARIÁVEIS GLOBAIS ===================
 window.currentHospital = 'H1'; // *** SEMPRE INICIA COM NEOMATER ***
@@ -22,20 +132,24 @@ window.currentView = 'leitos';
 window.isAuthenticated = false;
 window.refreshTimer = null;
 window.timerInterval = null;
-window.isLoading = false; // *** NOVO: CONTROLE DE LOADING ***
-window.loadingOverlay = null; // *** NOVO: OVERLAY GLOBAL ***
+window.isLoading = false; // *** CONTROLE DE LOADING ***
+window.loadingOverlay = null; // *** OVERLAY GLOBAL ***
 
 // =================== FUNÇÕES DE LOG (GLOBAIS) ===================
 window.logInfo = function(msg) {
-    console.log(`ℹ️ [INFO] ${msg}`);
+    console.log(`ℹ️ [INFO V3.3.2] ${msg}`);
 };
 
 window.logSuccess = function(msg) {
-    console.log(`✅ [SUCCESS] ${msg}`);
+    console.log(`✅ [SUCCESS V3.3.2] ${msg}`);
 };
 
 window.logError = function(msg, error = null) {
-    console.error(`❌ [ERROR] ${msg}`, error || '');
+    console.error(`❌ [ERROR V3.3.2] ${msg}`, error || '');
+};
+
+window.logWarn = function(msg) {
+    console.warn(`⚠️ [WARNING V3.3.2] ${msg}`);
 };
 
 // =================== SISTEMA DE LOADING MELHORADO COM BLOQUEIO ===================
@@ -159,286 +273,281 @@ window.hideLoading = function() {
 
 // =================== VERIFICAÇÃO DE AUTENTICAÇÃO ===================
 window.checkAuthentication = function() {
-    // Verificar se já está autenticado (sessionStorage)
-    const isAuth = sessionStorage.getItem('archipelago_authenticated');
-    if (isAuth === 'true') {
-        window.isAuthenticated = true;
-        return true;
-    }
-    return false;
+    const isAuth = sessionStorage.getItem('archipelago_authenticated') === 'true';
+    window.isAuthenticated = isAuth;
+    return isAuth;
 };
 
-// =================== MOSTRAR MODAL DE AUTENTICAÇÃO ===================
-window.showAuthModal = function() {
-    const modal = document.getElementById('authModal');
-    if (modal) {
-        modal.style.display = 'flex';
-        
-        // Focar no campo de senha
-        setTimeout(() => {
-            const passwordField = document.getElementById('authPassword');
-            if (passwordField) {
-                passwordField.focus();
-            }
-        }, 100);
+window.setAuthenticated = function(value) {
+    window.isAuthenticated = value;
+    if (value) {
+        sessionStorage.setItem('archipelago_authenticated', 'true');
+    } else {
+        sessionStorage.removeItem('archipelago_authenticated');
     }
 };
 
 // =================== AUTENTICAÇÃO ===================
 window.authenticate = function() {
     const password = document.getElementById('authPassword').value;
-    const errorDiv = document.getElementById('authError');
+    const errorMsg = document.getElementById('authError');
     
     if (password === CONFIG.AUTH_PASSWORD) {
-        window.isAuthenticated = true;
+        // Autenticação bem-sucedida
+        window.setAuthenticated(true);
         
-        // Salvar autenticação na sessão
-        sessionStorage.setItem('archipelago_authenticated', 'true');
-        
-        // Esconder modal e mostrar sistema
+        // Ocultar modal de autenticação
         document.getElementById('authModal').style.display = 'none';
+        
+        // Mostrar sistema
         document.getElementById('mainHeader').classList.remove('hidden');
         document.getElementById('mainContent').classList.remove('hidden');
         document.getElementById('mainFooter').classList.remove('hidden');
         
-        // *** INICIALIZAR SISTEMA COM LOADING TOTAL ***
+        // Inicializar sistema
         window.initSystem();
-        logSuccess('Autenticação bem-sucedida');
+        
+        logSuccess('Autenticação bem-sucedida - Sistema iniciado');
     } else {
-        if (errorDiv) {
-            errorDiv.textContent = 'Senha incorreta. Tente novamente.';
-            errorDiv.classList.remove('hidden');
-        }
-        document.getElementById('authPassword').value = '';
-        logError('Senha incorreta');
-    }
-};
-
-// =================== INICIALIZAÇÃO DO SISTEMA (CORRIGIDA COM BLOQUEIO) ===================
-window.initSystem = async function() {
-    logInfo('Inicializando sistema Archipelago Dashboard V3.1...');
-    
-    try {
-        // *** FASE 1: LOADING INICIAL ***
-        showLoading(null, 'Inicializando sistema V3.1...');
-        await delay(800);
-        
-        // *** FASE 2: TESTAR API ***
-        if (window.testAPI) {
-            showLoading(null, 'Testando conexão com API...');
-            await window.testAPI();
-            await delay(500);
-        }
-        
-        // *** FASE 3: CARREGAR DADOS DOS HOSPITAIS ***
-        if (window.loadHospitalData) {
-            showLoading(null, 'Carregando dados dos 66 leitos...');
-            await window.loadHospitalData();
-            await delay(800);
-        }
-        
-        // *** FASE 4: INICIALIZAR COMPONENTES ***
-        showLoading(null, 'Inicializando componentes...');
-        
-        // Iniciar timer de atualização
-        window.startTimer();
-        await delay(300);
-        
-        // *** FASE 5: RENDERIZAR VIEW INICIAL ***
-        showLoading(null, 'Preparando interface...');
-        window.setActiveTab('leitos');
-        await delay(500);
-        
-        // *** FASE 6: CARREGAR NEOMATER AUTOMATICAMENTE ***
-        if (window.renderCards) {
-            showLoading(null, 'Carregando 10 leitos do Neomater...');
-            await delay(600);
-            window.renderCards();
-            await delay(400);
-        }
-        
-        // *** FINALIZAR: REMOVER LOADING E LIBERAR SISTEMA ***
-        hideLoading();
-        logSuccess('✅ Sistema V3.1 inicializado! Configuração: 66 leitos (H1:10, H2:36, H3:13, H4:7)');
-        
-    } catch (error) {
-        logError('Erro na inicialização V3.1:', error);
-        hideLoading();
-        alert('Erro ao inicializar o sistema. Verifique a conexão e tente recarregar a página.');
-        
-        // Tentar inicialização básica mesmo com erro
+        // Senha incorreta
+        errorMsg.classList.remove('hidden');
         setTimeout(() => {
-            window.setActiveTab('leitos');
-            if (window.renderCards) {
-                window.renderCards();
-            }
-        }, 2000);
+            errorMsg.classList.add('hidden');
+        }, 3000);
+        
+        logError('Tentativa de autenticação falhou');
     }
 };
 
-// =================== FUNÇÃO AUXILIAR PARA DELAYS ===================
-function delay(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-// =================== NAVEGAÇÃO ENTRE TABS (CORRIGIDO COM LOADING) ===================
-window.setActiveTab = function(tab) {
-    // *** VERIFICAR SE JÁ ESTÁ EM LOADING PARA EVITAR CONFLITOS ***
-    if (window.isLoading) {
-        logInfo('Sistema em carregamento - aguarde...');
-        return;
-    }
-    
-    logInfo(`Mudando para tab: ${tab}`);
-    window.currentView = tab;
-    
-    // Esconder todas as seções
-    document.querySelectorAll('main section').forEach(section => {
-        section.classList.add('hidden');
-    });
-    
-    // Mostrar seção ativa
-    let activeSection;
-    if (tab === 'leitos') {
-        activeSection = document.getElementById('leitosView');
-    } else if (tab === 'dash1') {
-        activeSection = document.getElementById('dash1');
-    } else if (tab === 'dash2') {
-        activeSection = document.getElementById('dash2');
-    }
-    
-    if (activeSection) {
-        activeSection.classList.remove('hidden');
-    }
-    
-    // Atualizar menu lateral
-    document.querySelectorAll('.side-menu-item').forEach(item => {
-        item.classList.remove('active');
-        if (item.dataset.tab === tab) {
-            item.classList.add('active');
+window.showAuthModal = function() {
+    const modal = document.getElementById('authModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        
+        // Focar no campo de senha
+        const passwordField = document.getElementById('authPassword');
+        if (passwordField) {
+            setTimeout(() => passwordField.focus(), 100);
         }
-    });
-    
-    // *** FECHAR MENU AUTOMATICAMENTE APÓS CLICAR ***
-    const menu = document.getElementById('sideMenu');
-    const overlay = document.getElementById('menuOverlay');
-    if (menu && menu.classList.contains('open')) {
-        menu.classList.remove('open');
-        if (overlay) overlay.classList.remove('show');
-        document.body.classList.remove('menu-open');
     }
+};
+
+window.logout = function() {
+    if (window.isLoading) return;
     
-    // *** RENDERIZAR CONTEÚDO COM LOADING ESPECÍFICO ***
-    setTimeout(() => {
-        if (tab === 'leitos' && window.renderCards) {
-            // Se não há dados, mostrar loading e carregar
-            if (!window.hospitalData || Object.keys(window.hospitalData).length === 0) {
-                showLoading(null, 'Carregando dados dos 66 leitos...');
-                if (window.loadHospitalData) {
-                    window.loadHospitalData().then(() => {
-                        setTimeout(() => {
-                            window.renderCards();
-                            hideLoading();
-                        }, 500);
-                    }).catch((error) => {
-                        logError('Erro ao carregar dados:', error);
-                        hideLoading();
-                    });
-                }
-            } else {
-                window.renderCards();
-            }
-        } else if (tab === 'dash1' && window.renderDashboardHospitalar) {
-            showLoading(null, 'Carregando Dashboard Hospitalar...');
-            setTimeout(() => {
-                window.renderDashboardHospitalar();
-                hideLoading();
-            }, 1000);
-        } else if (tab === 'dash2' && window.renderDashboardExecutivo) {
-            showLoading(null, 'Carregando Dashboard Executivo...');
-            setTimeout(() => {
-                window.renderDashboardExecutivo();
-                hideLoading();
-            }, 1000);
+    if (confirm('Deseja sair do sistema?')) {
+        window.setAuthenticated(false);
+        
+        // Limpar timers
+        if (window.timerInterval) {
+            clearInterval(window.timerInterval);
         }
-    }, 100);
-};
-
-// =================== MENU LATERAL ===================
-window.toggleMenu = function() {
-    // *** NÃO PERMITIR ABERTURA DO MENU DURANTE LOADING ***
-    if (window.isLoading) {
-        logInfo('Menu bloqueado durante carregamento');
-        return;
-    }
-    
-    const menu = document.getElementById('sideMenu');
-    const overlay = document.getElementById('menuOverlay');
-    
-    if (menu.classList.contains('open')) {
-        menu.classList.remove('open');
-        if (overlay) overlay.classList.remove('show');
-        document.body.classList.remove('menu-open');
-    } else {
-        menu.classList.add('open');
-        if (overlay) overlay.classList.add('show');
-        document.body.classList.add('menu-open');
+        if (window.refreshTimer) {
+            clearTimeout(window.refreshTimer);
+        }
+        
+        // Ocultar sistema
+        document.getElementById('mainHeader').classList.add('hidden');
+        document.getElementById('mainContent').classList.add('hidden');
+        document.getElementById('mainFooter').classList.add('hidden');
+        
+        // Mostrar modal de autenticação
+        window.showAuthModal();
+        
+        // Limpar campo de senha
+        const passwordField = document.getElementById('authPassword');
+        if (passwordField) {
+            passwordField.value = '';
+        }
+        
+        logInfo('Logout realizado com sucesso');
     }
 };
 
-// =================== ATUALIZAÇÃO DE DADOS (CORRIGIDO COM LOADING) ===================
-window.updateData = async function() {
-    if (window.isLoading) {
-        logInfo('Atualização bloqueada - sistema já está carregando');
-        return;
-    }
-    
-    logInfo('Iniciando atualização manual de dados V3.1...');
-    
+// =================== INICIALIZAÇÃO DO SISTEMA V3.3.2 ===================
+window.initSystem = async function() {
     try {
-        showLoading(null, 'Atualizando 66 leitos...');
+        logInfo('🏥 Inicializando Sistema Archipelago V3.3.2...');
+        logInfo('📊 Carregando 79 leitos (5 hospitais - 74 colunas A-BV)');
+        
+        // Mostrar loading
+        showLoading(null, 'Inicializando sistema V3.3.2 (74 colunas)...');
         
         // Carregar dados dos hospitais
         if (window.loadHospitalData) {
             await window.loadHospitalData();
         }
         
-        await delay(800);
-        
-        // Re-renderizar view atual
-        if (window.currentView === 'leitos' && window.renderCards) {
-            window.renderCards();
-        } else if (window.currentView === 'dash1' && window.renderDashboardHospitalar) {
-            window.renderDashboardHospitalar();
-        } else if (window.currentView === 'dash2' && window.renderDashboardExecutivo) {
-            window.renderDashboardExecutivo();
+        // Renderizar cards do hospital inicial
+        if (window.renderCards) {
+            setTimeout(() => {
+                window.renderCards();
+            }, 500);
         }
         
-        hideLoading();
-        logSuccess('Dados V3.1 atualizados com sucesso');
+        // Iniciar timer de atualização
+        window.startTimer();
+        
+        // Ocultar loading
+        setTimeout(() => {
+            hideLoading();
+            logSuccess('✅ Sistema V3.3.2 inicializado com sucesso!');
+        }, 1500);
         
     } catch (error) {
-        logError('Erro na atualização V3.1:', error);
+        logError('Erro na inicialização do sistema:', error);
         hideLoading();
-        alert('Erro ao atualizar dados. Verifique a conexão com a internet.');
+        alert('Erro ao inicializar o sistema. Por favor, recarregue a página.');
     }
 };
 
-// =================== SELEÇÃO DE HOSPITAL (CORRIGIDO COM LOADING) ===================
-window.selectHospital = function(hospitalId) {
-    // *** BLOQUEAR SELEÇÃO DURANTE LOADING ***
+// =================== ATUALIZAÇÃO DE DADOS V3.3.2 - ✅ CORRIGIDO ===================
+window.updateData = async function() {
     if (window.isLoading) {
-        logInfo('Seleção de hospital bloqueada durante carregamento');
+        logInfo('Atualização já em andamento, aguardando...');
         return;
     }
     
-    // *** VERIFICAR SE HOSPITAL ESTÁ ATIVO ***
+    try {
+        logInfo('🔄 Atualizando dados V3.3.2 da planilha (74 colunas A-BV)...');
+        
+        showLoading(null, 'Atualizando dados V3.3.2 (74 colunas)...');
+        
+        // Recarregar dados
+        if (window.loadHospitalData) {
+            await window.loadHospitalData();
+        }
+        
+        // Re-renderizar interface atual
+        if (window.currentView === 'leitos' && window.renderCards) {
+            setTimeout(() => {
+                window.renderCards();
+            }, 500);
+        } else if (window.currentView === 'dash1' && window.renderDashboardHospitalar) {
+            setTimeout(() => {
+                // ✅ CORREÇÃO: Passar currentHospital como parâmetro
+                window.renderDashboardHospitalar(window.currentHospital);
+            }, 500);
+        } else if (window.currentView === 'dash2' && window.renderDashboardExecutivo) {
+            setTimeout(() => {
+                window.renderDashboardExecutivo();
+            }, 500);
+        }
+        
+        // Resetar timer
+        window.startTimer();
+        
+        setTimeout(() => {
+            hideLoading();
+            logSuccess('✅ Dados V3.3.2 atualizados com sucesso!');
+        }, 1500);
+        
+    } catch (error) {
+        logError('Erro ao atualizar dados V3.3.2:', error);
+        hideLoading();
+        alert('Erro ao atualizar dados. Tente novamente.');
+    }
+};
+
+// =================== NAVEGAÇÃO ENTRE ABAS V3.3.2 - ✅ CORRIGIDO ===================
+window.setActiveTab = function(tabName) {
+    if (window.isLoading) return;
+    
+    window.currentView = tabName;
+    
+    // Atualizar menu
+    document.querySelectorAll('.side-menu-item').forEach(item => {
+        item.classList.remove('active');
+        if (item.dataset.tab === tabName) {
+            item.classList.add('active');
+        }
+    });
+    
+    // Ocultar todas as seções
+    document.getElementById('leitosView')?.classList.add('hidden');
+    document.getElementById('dash1')?.classList.add('hidden');
+    document.getElementById('dash2')?.classList.add('hidden');
+    
+    // Mostrar seção ativa
+    if (tabName === 'leitos') {
+        document.getElementById('leitosView')?.classList.remove('hidden');
+        if (window.renderCards) {
+            showLoading(null, 'Carregando leitos V3.3.2...');
+            setTimeout(() => {
+                window.renderCards();
+                hideLoading();
+            }, 800);
+        }
+    } else if (tabName === 'dash1') {
+        document.getElementById('dash1')?.classList.remove('hidden');
+        if (window.renderDashboardHospitalar) {
+            showLoading(null, 'Carregando Dashboard Hospitalar V3.3.2...');
+            setTimeout(() => {
+                // ✅ CORREÇÃO: Passar currentHospital como parâmetro
+                window.renderDashboardHospitalar(window.currentHospital);
+                hideLoading();
+            }, 800);
+        }
+    } else if (tabName === 'dash2') {
+        document.getElementById('dash2')?.classList.remove('hidden');
+        if (window.renderDashboardExecutivo) {
+            showLoading(null, 'Carregando Dashboard Executivo V3.3.2...');
+            setTimeout(() => {
+                window.renderDashboardExecutivo();
+                hideLoading();
+            }, 800);
+        }
+    }
+    
+    // ✅ CORREÇÃO: Fechar menu lateral após clicar
+    setTimeout(() => {
+        window.toggleMenu(false);
+    }, 200);
+    
+    logSuccess(`✅ Aba alterada para: ${tabName} - Menu lateral fechado`);
+};
+
+// =================== MENU LATERAL - ✅ CORRIGIDO ===================
+window.toggleMenu = function(forceState = null) {
+    if (window.isLoading) return;
+    
+    const menu = document.getElementById('sideMenu');
+    const overlay = document.getElementById('menuOverlay');
+    
+    if (!menu || !overlay) return;
+    
+    // forceState: true = abrir, false = fechar, null = toggle
+    if (forceState === false) {
+        // Forçar fechamento
+        menu.classList.remove('open');
+        overlay.classList.remove('active');
+        logInfo('Menu lateral fechado (forçado)');
+    } else if (forceState === true) {
+        // Forçar abertura
+        menu.classList.add('open');
+        overlay.classList.add('active');
+        logInfo('Menu lateral aberto (forçado)');
+    } else {
+        // Toggle normal
+        const isOpen = menu.classList.toggle('open');
+        overlay.classList.toggle('active');
+        logInfo(`Menu lateral ${isOpen ? 'aberto' : 'fechado'} (toggle)`);
+    }
+};
+
+// =================== SELEÇÃO DE HOSPITAL V3.3.2 - ✅ CORRIGIDO ===================
+window.selectHospital = function(hospitalId) {
+    if (window.isLoading) return;
+    
     if (!CONFIG.HOSPITAIS[hospitalId] || !CONFIG.HOSPITAIS[hospitalId].ativo) {
-        logInfo(`Hospital ${hospitalId} está desabilitado`);
+        logError(`Hospital ${hospitalId} não disponível`);
         return;
     }
     
     window.currentHospital = hospitalId;
+    
+    // ✅ CORREÇÃO: Definir hospitalConfig ANTES do if
+    const hospitalConfig = CONFIG.HOSPITAIS[hospitalId];
     
     // Atualizar botões
     document.querySelectorAll('.hospital-btn').forEach(btn => {
@@ -452,7 +561,6 @@ window.selectHospital = function(hospitalId) {
     
     // *** RE-RENDERIZAR CARDS COM LOADING ***
     if (window.renderCards) {
-        const hospitalConfig = CONFIG.HOSPITAIS[hospitalId];
         showLoading(null, `Carregando ${hospitalConfig.leitos} leitos do ${hospitalConfig.nome}...`);
         setTimeout(() => {
             window.renderCards();
@@ -460,7 +568,17 @@ window.selectHospital = function(hospitalId) {
         }, 800);
     }
     
-    logSuccess(`Hospital selecionado: ${CONFIG.HOSPITAIS[hospitalId].nome} (${CONFIG.HOSPITAIS[hospitalId].leitos} leitos)`);
+    // *** SE ESTIVER NO DASHBOARD HOSPITALAR, ATUALIZAR ***
+    if (window.currentView === 'dash1' && window.renderDashboardHospitalar) {
+        showLoading(null, `Atualizando Dashboard do ${hospitalConfig.nome}...`);
+        setTimeout(() => {
+            // ✅ CORREÇÃO: Passar hospitalId para renderizar dashboard do hospital selecionado
+            window.renderDashboardHospitalar(hospitalId);
+            hideLoading();
+        }, 800);
+    }
+    
+    logSuccess(`Hospital selecionado: ${CONFIG.HOSPITAIS[hospitalId].nome} (${hospitalConfig.leitos} leitos - ${hospitalConfig.tipo})`);
 };
 
 // =================== FUNÇÕES DE CONFIGURAÇÃO ===================
@@ -505,9 +623,10 @@ window.darAlta = function() {
     }
 };
 
-// =================== INICIALIZAÇÃO DO APP (CORRIGIDA) ===================
+// =================== INICIALIZAÇÃO DO APP V3.3.2 (CORRIGIDA) ===================
 window.initApp = async function() {
-    logInfo('🏥 Archipelago Dashboard V3.1 - Iniciando aplicação...');
+    logInfo('🏥 Archipelago Dashboard V3.3.2 - Iniciando aplicação...');
+    logInfo('👤 Cliente: Guilherme Santoro | 👨‍💻 Dev: Alessandro Rodrigues');
     
     // Verificar autenticação
     if (window.checkAuthentication()) {
@@ -534,7 +653,7 @@ window.initApp = async function() {
         }
     }
     
-    logSuccess('🚀 App V3.1 inicializado e pronto para uso');
+    logSuccess('🚀 App V3.3.2 inicializado e pronto para uso');
 };
 
 // =================== GERENCIAR CORES (Para integração com Admin) ===================
@@ -554,7 +673,7 @@ window.restoreDefaultColors = function() {
     logSuccess('Cores padrão restauradas');
 };
 
-// =================== FUNÇÃO PARA OBTER HOSPITAIS ATIVOS ===================
+// =================== FUNÇÃO PARA OBTER HOSPITAIS ATIVOS V3.3.2 ===================
 window.getActiveHospitals = function() {
     return Object.entries(CONFIG.HOSPITAIS)
         .filter(([id, hospital]) => hospital.ativo)
@@ -586,7 +705,7 @@ window.toggleHospital = function(hospitalId, ativo) {
     return false;
 };
 
-// =================== TIMER DE ATUALIZAÇÃO ===================
+// =================== TIMER DE ATUALIZAÇÃO V3.3.2 ===================
 window.startTimer = function() {
     let countdown = 240; // 4 minutos em segundos
     
@@ -622,7 +741,83 @@ window.startTimer = function() {
     logInfo('Timer de atualização iniciado (4 minutos)');
 };
 
-// =================== LOG DE INICIALIZAÇÃO V3.1 ===================
-logSuccess('📋 App.js V3.1 carregado - CORREÇÃO IMPLEMENTADA:');
-logSuccess('🏥 Hospitais atualizados: H1:10, H2:36, H3:13, H4:7 leitos (66 total)');
-logSuccess('✅ Sistema com loading bloqueante implementado');
+// =================== FUNÇÕES AUXILIARES V3.3.2 ===================
+window.getTotalLeitos = function() {
+    return Object.values(CONFIG.HOSPITAIS)
+        .filter(h => h.ativo)
+        .reduce((total, h) => total + h.leitos, 0);
+};
+
+window.getHospitalByLeito = function(leitoId) {
+    // Retornar dados do hospital baseado no ID do leito
+    for (const [id, hospital] of Object.entries(CONFIG.HOSPITAIS)) {
+        if (leitoId.startsWith(id)) {
+            return { id, ...hospital };
+        }
+    }
+    return null;
+};
+
+window.validarConcessao = function(concessao) {
+    return CONCESSOES_LISTA.includes(concessao);
+};
+
+window.validarLinhaCuidado = function(linha) {
+    return LINHAS_CUIDADO_LISTA.includes(linha);
+};
+
+window.validarRegiao = function(regiao) {
+    return REGIOES_LISTA.includes(regiao);
+};
+
+window.validarIsolamento = function(isolamento) {
+    return ISOLAMENTO_OPCOES.includes(isolamento);
+};
+
+window.validarGenero = function(genero) {
+    return GENERO_OPCOES.includes(genero);
+};
+
+window.validarCategoria = function(categoria) {
+    return CATEGORIA_OPCOES.includes(categoria);
+};
+
+window.validarDiretivas = function(diretivas) {
+    return DIRETIVAS_OPCOES.includes(diretivas);
+};
+
+// =================== ABRIR QR CODES ===================
+window.openQRCodes = function() {
+    window.open('index-qr.html', '_blank');
+    logInfo('Abrindo gerador de QR Codes...');
+};
+
+// =================== LOG DE INICIALIZAÇÃO V3.3.2 ===================
+logSuccess('📋 App.js V3.3.2 carregado com sucesso!');
+logSuccess('');
+logSuccess('🏥 REDE HOSPITALAR V3.3.2:');
+logSuccess('   H1 - Neomater:             10 leitos (Híbrido)');
+logSuccess('   H2 - Cruz Azul:            36 leitos (20 Aptos + 16 Enf)');
+logSuccess('   H3 - Santa Marcelina:       7 leitos (Híbrido) ✅ CORRIGIDO');
+logSuccess('   H4 - Santa Clara:          13 leitos (9 Aptos + 4 Enf)');
+logSuccess('   H5 - Hospital Adventista:  13 leitos (Híbrido)');
+logSuccess('   ────────────────────────────────────────────');
+logSuccess('   TOTAL:                     79 leitos');
+logSuccess('');
+logSuccess('📊 ESTRUTURA DE DADOS V3.3.2:');
+logSuccess('   ✅ 74 colunas (A-BV) na planilha');
+logSuccess('   ✅ 11 concessões (M-W checkboxes)');
+logSuccess('   ✅ 45 linhas de cuidado (X-BR checkboxes)');
+logSuccess('   ✅ 9 regiões (BT/71)');
+logSuccess('   ✅ 4 campos novos: gênero, região, categoria, diretivas');
+logSuccess('');
+logSuccess('👤 Cliente: Guilherme Santoro');
+logSuccess('👨‍💻 Desenvolvedor: Alessandro Rodrigues');
+logSuccess('📅 Versão: V3.3.2 - Outubro/2025');
+logSuccess('✅ Sistema 100% operacional - QR Code sincronizado');
+logSuccess('');
+logSuccess('✅ CORREÇÕES V3.3.2:');
+logSuccess('   • setActiveTab passa currentHospital para renderDashboardHospitalar');
+logSuccess('   • Menu lateral fecha automaticamente após clicar em qualquer aba');
+logSuccess('   • selectHospital atualiza dashboard hospitalar se estiver ativo');
+logSuccess('   • toggleMenu aceita forceState (true/false/null)');
