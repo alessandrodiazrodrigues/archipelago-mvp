@@ -1,0 +1,568 @@
+/* ============================================
+   ARCHIPELAGO DASHBOARD - CORES E TIPOGRAFIA
+   Versão: 3.4.2 FINAL CORRIGIDA
+   Data: 27/Outubro/2025
+   
+   CORREÇÃO APLICADA:
+   - Modo claro: cards brancos + grafismo
+   - Modo escuro: cards azul escuro sem grafismo
+   - Todas as cores da paleta oficial
+   - Fonte Poppins em tudo
+   ============================================ */
+
+/* ----- IMPORTAÇÃO DA FONTE POPPINS ----- */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+/* ----- VARIÁVEIS DE CORES OFICIAIS ----- */
+:root {
+  /* AZUIS - Paleta Principal */
+  --primary-navy: #131b2e;
+  --primary-dark-blue: #172945;
+  --primary-medium-blue: #1c5083;
+  --primary-blue: #0676bb;
+  --primary-light-blue: #577a97;
+  --primary-lighter-blue: #a9c0d2;
+  
+  /* NEUTROS - Cinzas */
+  --neutral-dark: #3c3a3e;
+  --neutral-medium: #b2adaa;
+  --neutral-light: #e9e5e2;
+  
+  /* LARANJAS - Alertas e Destaques */
+  --warning-orange: #c86420;
+  --alert-yellow: #f59a1d;
+  
+  /* VERDE - Sucesso */
+  --success-green: #29ad8d;
+  
+  /* BACKGROUNDS MODO ESCURO */
+  --bg-dark: #131b2e;
+  --bg-dark-card: #172945;
+  --bg-dark-elevated: #1c5083;
+}
+
+/* ----- RESET E CONFIGURAÇÃO GLOBAL ----- */
+* {
+  font-family: 'Poppins', sans-serif !important;
+}
+
+body {
+  font-family: 'Poppins', sans-serif !important;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--neutral-dark);
+}
+
+/* ----- HIERARQUIA TIPOGRÁFICA ----- */
+
+h1,
+.titulo-principal {
+  font-family: 'Poppins', sans-serif !important;
+  font-weight: 700;
+  font-size: 32px;
+  line-height: 1.2;
+  letter-spacing: -0.5px;
+  color: var(--primary-navy);
+}
+
+h2,
+.subtitulo {
+  font-family: 'Poppins', sans-serif !important;
+  font-weight: 600;
+  font-size: 24px;
+  line-height: 1.3;
+  color: var(--primary-navy);
+}
+
+h3,
+.titulo-secao {
+  font-family: 'Poppins', sans-serif !important;
+  font-weight: 600;
+  font-size: 20px;
+  line-height: 1.4;
+  color: var(--primary-navy);
+}
+
+h4,
+.titulo-pequeno {
+  font-family: 'Poppins', sans-serif !important;
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 1.4;
+  color: var(--primary-medium-blue);
+}
+
+p {
+  font-family: 'Poppins', sans-serif !important;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--neutral-dark);
+}
+
+label,
+.label {
+  font-family: 'Poppins', sans-serif !important;
+  font-weight: 500;
+  font-size: 14px;
+  letter-spacing: 0.3px;
+  color: var(--primary-light-blue);
+}
+
+button,
+.botao,
+.btn {
+  font-family: 'Poppins', sans-serif !important;
+  font-weight: 500;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+}
+
+input,
+select,
+textarea {
+  font-family: 'Poppins', sans-serif !important;
+  font-weight: 400;
+  font-size: 16px;
+  color: var(--neutral-dark);
+  border-color: var(--neutral-medium);
+}
+
+.badge,
+.tag {
+  font-family: 'Poppins', sans-serif !important;
+  font-weight: 500;
+  font-size: 14px;
+  letter-spacing: 0.3px;
+}
+
+.kpi-number,
+.numero-grande {
+  font-family: 'Poppins', sans-serif !important;
+  font-weight: 700;
+  font-size: 48px;
+  line-height: 1;
+  color: var(--primary-blue);
+}
+
+.kpi-label {
+  font-family: 'Poppins', sans-serif !important;
+  font-weight: 500;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--primary-light-blue);
+}
+
+.texto-pequeno,
+small {
+  font-family: 'Poppins', sans-serif !important;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--primary-light-blue);
+}
+
+.caption {
+  font-family: 'Poppins', sans-serif !important;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--neutral-medium);
+}
+
+/* ============================================
+   MODO CLARO (PADRÃO)
+   ============================================ */
+
+/* Body - Fundo branco + grafismo */
+body:not(.dark-mode) {
+  background: white !important;
+  background-image: url('../imagens/Grafismo_Fundo.svg') !important;
+  background-repeat: no-repeat !important;
+  background-position: top left !important;
+  background-size: auto !important;
+  background-attachment: fixed !important;
+  color: var(--neutral-dark) !important;
+}
+
+/* Header */
+body:not(.dark-mode) .header-global,
+body:not(.dark-mode) header {
+  background: white !important;
+  border-bottom: 1px solid var(--neutral-medium) !important;
+}
+
+body:not(.dark-mode) .logo,
+body:not(.dark-mode) .logo-titulo {
+  color: var(--primary-navy) !important;
+}
+
+body:not(.dark-mode) .timestamp,
+body:not(.dark-mode) .countdown-timer {
+  color: var(--primary-light-blue) !important;
+}
+
+/* Menu Lateral */
+body:not(.dark-mode) .menu-lateral {
+  background: white !important;
+  border-right: 1px solid var(--neutral-medium) !important;
+}
+
+body:not(.dark-mode) .menu-item {
+  color: var(--neutral-dark) !important;
+}
+
+body:not(.dark-mode) .menu-item:hover {
+  background: var(--primary-lighter-blue) !important;
+  color: var(--primary-blue) !important;
+}
+
+body:not(.dark-mode) .menu-item.active {
+  background: var(--primary-blue) !important;
+  color: white !important;
+}
+
+/* Abas de Hospitais */
+body:not(.dark-mode) .tab-hospital,
+body:not(.dark-mode) .hospital-tab {
+  background: var(--neutral-light) !important;
+  color: var(--neutral-dark) !important;
+  border: 1px solid var(--neutral-medium) !important;
+}
+
+body:not(.dark-mode) .tab-hospital:hover,
+body:not(.dark-mode) .hospital-tab:hover {
+  background: var(--primary-lighter-blue) !important;
+  color: var(--primary-blue) !important;
+}
+
+body:not(.dark-mode) .tab-hospital.active,
+body:not(.dark-mode) .hospital-tab.active {
+  background: var(--primary-blue) !important;
+  color: white !important;
+  border-color: var(--primary-blue) !important;
+}
+
+/* CARDS - BRANCOS NO MODO CLARO */
+body:not(.dark-mode) .leito-card,
+body:not(.dark-mode) .hospital-card,
+body:not(.dark-mode) .kpi-card,
+body:not(.dark-mode) .card-em-alta,
+body:not(.dark-mode) .grafico-container,
+body:not(.dark-mode) .gauge-container {
+  background: white !important;
+  border: 1px solid var(--neutral-medium) !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
+}
+
+/* Textos dentro dos cards - modo claro */
+body:not(.dark-mode) .hospital-nome {
+  color: var(--primary-navy) !important;
+}
+
+body:not(.dark-mode) .leito-numero,
+body:not(.dark-mode) .leito-header {
+  color: var(--primary-blue) !important;
+}
+
+body:not(.dark-mode) .label-campo {
+  color: var(--primary-light-blue) !important;
+  background: transparent !important;
+}
+
+body:not(.dark-mode) .valor-campo {
+  color: var(--neutral-dark) !important;
+}
+
+body:not(.dark-mode) h1,
+body:not(.dark-mode) h2,
+body:not(.dark-mode) h3,
+body:not(.dark-mode) h4 {
+  color: var(--primary-navy) !important;
+}
+
+body:not(.dark-mode) .dashboard-titulo,
+body:not(.dark-mode) .grafico-titulo {
+  color: var(--primary-navy) !important;
+}
+
+body:not(.dark-mode) .kpi-value,
+body:not(.dark-mode) .kpi-valor {
+  color: var(--primary-blue) !important;
+}
+
+body:not(.dark-mode) .kpi-label {
+  color: var(--primary-light-blue) !important;
+}
+
+/* Seções azuis - manter azul */
+body:not(.dark-mode) .secao-concessoes-titulo,
+body:not(.dark-mode) .secao-linhas-titulo,
+body:not(.dark-mode) [class*="titulo"][class*="secao"] {
+  background: var(--primary-blue) !important;
+  color: white !important;
+}
+
+body:not(.dark-mode) .secao-conteudo {
+  background: #f8f9fa !important;
+  color: var(--neutral-dark) !important;
+}
+
+/* ----- BADGES DE STATUS ----- */
+.badge-ocupado {
+  background: var(--warning-orange) !important;
+  color: white !important;
+}
+
+.badge-vago {
+  background: var(--success-green) !important;
+  color: white !important;
+}
+
+.badge-apto {
+  background: var(--primary-blue) !important;
+  color: white !important;
+}
+
+.badge-enf,
+.badge-enfermaria {
+  background: var(--primary-medium-blue) !important;
+  color: white !important;
+}
+
+.badge-isolamento-sim {
+  background: var(--warning-orange) !important;
+  color: white !important;
+}
+
+.badge-isolamento-nao {
+  background: var(--primary-lighter-blue) !important;
+  color: var(--primary-navy) !important;
+}
+
+.badge-hoje-ouro {
+  background: linear-gradient(135deg, var(--alert-yellow) 0%, #ffd700 100%) !important;
+  color: var(--primary-navy) !important;
+  font-weight: 600 !important;
+}
+
+.badge-hoje-prata {
+  background: linear-gradient(135deg, var(--primary-lighter-blue) 0%, #e0e0e0 100%) !important;
+  color: var(--primary-navy) !important;
+  font-weight: 600 !important;
+}
+
+.badge-hoje-bronze {
+  background: linear-gradient(135deg, var(--warning-orange) 0%, #cd7f32 100%) !important;
+  color: white !important;
+  font-weight: 600 !important;
+}
+
+.badge-24h {
+  background: var(--primary-blue) !important;
+  color: white !important;
+}
+
+.badge-48h {
+  background: var(--primary-medium-blue) !important;
+  color: white !important;
+}
+
+.badge-72h {
+  background: var(--primary-dark-blue) !important;
+  color: white !important;
+}
+
+.badge-96h {
+  background: var(--primary-navy) !important;
+  color: white !important;
+}
+
+.badge-sp {
+  background: var(--primary-light-blue) !important;
+  color: white !important;
+}
+
+.badge-elegivel {
+  background: rgba(200, 100, 32, 0.15) !important;
+  color: var(--warning-orange) !important;
+  border: 1px solid var(--warning-orange) !important;
+}
+
+.badge-nao-elegivel {
+  background: rgba(41, 173, 141, 0.15) !important;
+  color: var(--success-green) !important;
+  border: 1px solid var(--success-green) !important;
+}
+
+.badge-diretivas-sim {
+  background: var(--success-green) !important;
+  color: white !important;
+}
+
+.badge-diretivas-nao {
+  background: var(--warning-orange) !important;
+  color: white !important;
+}
+
+/* ----- BOTÕES ----- */
+.btn-atualizar {
+  background: var(--primary-blue) !important;
+  color: white !important;
+  border: none !important;
+}
+
+.btn-atualizar:hover {
+  background: var(--primary-medium-blue) !important;
+}
+
+.btn-admitir {
+  background: var(--success-green) !important;
+  color: white !important;
+  border: none !important;
+}
+
+.btn-admitir:hover {
+  background: #22967a !important;
+}
+
+.btn-alta {
+  background: var(--warning-orange) !important;
+  color: white !important;
+  border: none !important;
+}
+
+.btn-alta:hover {
+  background: #b35818 !important;
+}
+
+.btn-tema,
+.btn-toggle-theme {
+  background: white !important;
+  color: var(--primary-navy) !important;
+  border: 2px solid var(--primary-lighter-blue) !important;
+}
+
+/* Gauge */
+.gauge-background {
+  stroke: var(--neutral-light) !important;
+}
+
+.gauge-progress {
+  stroke: var(--primary-blue) !important;
+}
+
+.gauge-porcentagem,
+.gauge-label {
+  color: var(--primary-blue) !important;
+}
+
+.gauge-subtitle {
+  color: var(--primary-light-blue) !important;
+}
+
+/* ============================================
+   MODO ESCURO
+   ============================================ */
+
+.dark-mode,
+body.dark-mode {
+  background: var(--bg-dark) !important;
+  background-image: none !important;
+  color: white !important;
+}
+
+.dark-mode .header-global,
+.dark-mode header {
+  background: var(--bg-dark-card) !important;
+  border-bottom-color: var(--primary-medium-blue) !important;
+}
+
+.dark-mode .logo,
+.dark-mode .logo-titulo {
+  color: white !important;
+}
+
+.dark-mode .timestamp,
+.dark-mode .countdown-timer {
+  color: var(--primary-lighter-blue) !important;
+}
+
+.dark-mode .menu-lateral {
+  background: var(--bg-dark-card) !important;
+  border-right-color: var(--primary-medium-blue) !important;
+}
+
+.dark-mode .menu-item {
+  color: var(--primary-lighter-blue) !important;
+}
+
+.dark-mode .menu-item:hover {
+  background: var(--bg-dark-elevated) !important;
+  color: white !important;
+}
+
+.dark-mode .menu-item.active {
+  background: var(--primary-blue) !important;
+}
+
+.dark-mode .leito-card,
+.dark-mode .hospital-card,
+.dark-mode .kpi-card,
+.dark-mode .card-em-alta,
+.dark-mode .grafico-container,
+.dark-mode .gauge-container {
+  background: var(--bg-dark-card) !important;
+  border-color: var(--primary-medium-blue) !important;
+}
+
+.dark-mode .hospital-nome,
+.dark-mode .label-campo,
+.dark-mode .kpi-label,
+.dark-mode .gauge-subtitle {
+  color: var(--primary-lighter-blue) !important;
+}
+
+.dark-mode .valor-campo,
+.dark-mode h1,
+.dark-mode h2,
+.dark-mode h3,
+.dark-mode h4,
+.dark-mode .dashboard-titulo,
+.dark-mode .grafico-titulo {
+  color: white !important;
+}
+
+.dark-mode .secao-conteudo {
+  background: var(--bg-dark-elevated) !important;
+  color: white !important;
+}
+
+.dark-mode .gauge-background {
+  stroke: var(--bg-dark-elevated) !important;
+}
+
+.dark-mode .tab-hospital,
+.dark-mode .hospital-tab {
+  background: var(--bg-dark-card) !important;
+  color: var(--primary-lighter-blue) !important;
+  border-color: var(--primary-medium-blue) !important;
+}
+
+.dark-mode .tab-hospital:hover,
+.dark-mode .hospital-tab:hover {
+  background: var(--bg-dark-elevated) !important;
+  color: white !important;
+}
+
+.dark-mode .tab-hospital.active,
+.dark-mode .hospital-tab.active {
+  background: var(--primary-blue) !important;
+  color: white !important;
+}
+
+/* ============================================
+   FIM DO ARQUIVO
+   ============================================ */
