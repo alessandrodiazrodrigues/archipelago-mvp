@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Archipelago Dashboard</title>
+    <title>Archipelago Dashboard V3.3.2 CORRIGIDO</title>
     
     <!-- CSS MODULAR -->
     <link rel="stylesheet" href="css/variables.css">
@@ -11,6 +11,9 @@
     <link rel="stylesheet" href="css/cards.css">
     <link rel="stylesheet" href="css/modals.css">
     <link rel="stylesheet" href="css/dashboards.css">
+    <link rel="stylesheet" href="css/dashboard-hospitalar-styles.css">
+    <link rel="stylesheet" href="css/dashboard-classico-styles.css">
+    <link rel="stylesheet" href="css/background-grafismo.css">
     
     <!-- BIBLIOTECAS EXTERNAS -->
     <!-- Chart.js para gráficos -->
@@ -51,20 +54,20 @@
         </div>
         
         <nav class="menu-items">
-            <a href="#" class="side-menu-item active" data-tab="leitos" onclick="setActiveTab('leitos')">
+            <a href="#" class="side-menu-item active" data-tab="leitos" onclick="setActiveTabAndCloseMenu('leitos'); return false;">
                 Leitos
             </a>
-            <a href="#" class="side-menu-item" data-tab="dash1" onclick="setActiveTab('dash1')">
+            <a href="#" class="side-menu-item" data-tab="dash1" onclick="setActiveTabAndCloseMenu('dash1'); return false;">
                 Dashboard Hospitalar
             </a>
-            <a href="#" class="side-menu-item" data-tab="dash2" onclick="setActiveTab('dash2')">
+            <a href="#" class="side-menu-item" data-tab="dash2" onclick="setActiveTabAndCloseMenu('dash2'); return false;">
                 Dashboard Executivo
             </a>
         </nav>
         
         <div class="menu-footer">
             <div class="menu-divider"></div>
-            <a href="#" class="menu-qr" onclick="openQRCodes()">
+            <a href="#" class="menu-qr" onclick="openQRCodesAndCloseMenu(); return false;">
                 <span>📱</span> Gerar QR Codes
             </a>
         </div>
@@ -87,6 +90,7 @@
                     <button class="hospital-btn" data-hospital="H2" onclick="selectHospital('H2')">Cruz Azul</button>
                     <button class="hospital-btn" data-hospital="H3" onclick="selectHospital('H3')">Santa Marcelina</button>
                     <button class="hospital-btn" data-hospital="H4" onclick="selectHospital('H4')">Santa Clara</button>
+                    <button class="hospital-btn" data-hospital="H5" onclick="selectHospital('H5')">Hospital Adventista</button>
                 </div>
             </div>
             
@@ -106,12 +110,11 @@
         
     </main>
 
-    <!-- =================== FOOTER V3.1 COM CRÉDITOS COMPLETOS =================== -->
+    <!-- =================== FOOTER V3.3.2 COM CRÉDITOS COMPLETOS =================== -->
     <footer id="mainFooter" class="footer hidden">
         <p>Sistema em versão BETA - não pode ser usado como única fonte de referência</p>
         <p>Para decisões críticas, consulte sempre fontes adicionais e profissionais qualificados</p>
-        <p><strong>Criado por: Guilherme Santori | Desenvolvido por: Alessandro Rodrigues</strong></p>
-        <p><strong>Archipelago Dashboard - Outubro/2025</strong></p>
+        <p><strong>Archipelago Dashboard V3.3.2 CORRIGIDO - Outubro/2025</strong></p>
     </footer>
 
     <!-- =================== MODAL DE PACIENTE =================== -->
@@ -134,90 +137,124 @@
         </div>
     </div>
 
-    <!-- =================== SCRIPTS MODULARES V3.1 =================== -->
+    <!-- =================== SCRIPTS MODULARES V3.3.2 CORRIGIDOS =================== -->
     
-    <!-- Scripts Core -->
+    <!-- ✅ CORREÇÃO APLICADA: Scripts dos Dashboards ANTES de cards.js -->
+    <!-- Isso resolve a Race Condition identificada nos 3 pareceres técnicos -->
+    
+    <!-- Scripts Core (ORDEM IMPORTA!) -->
     <script src="js/app.js"></script>
     <script src="js/api.js"></script>
     
-    <!-- Scripts de Dashboards -->
-    <script src="js/dashboards/charts-config.js"></script>
+    <!-- ✅ DASHBOARDS CARREGADOS ESTATICAMENTE (SOLUÇÃO DO PROBLEMA) -->
     <script src="js/dashboards/dashboard-hospital.js"></script>
     <script src="js/dashboards/dashboard-executive.js"></script>
     
     <!-- Scripts de Interface -->
     <script src="js/cards.js"></script>
     
-    <!-- Scripts de Funcionalidades - QRCode.js DEVE vir APÓS a biblioteca -->
+    <!-- Scripts de Funcionalidades -->
     <script src="js/qrcode.js"></script>
-    <script src="js/admin.js"></script>
+    
+    <!-- Script de Inicialização -->
     <script src="js/main.js"></script>
     
-    <!-- =================== INICIALIZAÇÃO V3.1 =================== -->
+    <!-- =================== FUNÇÕES AUXILIARES MENU V3.3.2 =================== -->
     <script>
-        // Verificar se QRCode.js foi carregada
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 Archipelago Dashboard V3.1 - Inicializando...');
-            console.log('👨‍💼 Criado por: Guilherme Santori');
-            console.log('👨‍💻 Desenvolvido por: Alessandro Rodrigues');
-            console.log('📅 Outubro/2025 - Versão V3.1');
-            console.log('');
-            console.log('✅ CORREÇÕES V3.1 IMPLEMENTADAS:');
-            console.log('   • Mobile: Campo idade dropdown 14-115 anos');
-            console.log('   • Desktop: Cards exibem apenas INICIAIS');
-            console.log('   • Hospitais: 66 leitos (H1:10, H2:36, H3:13, H4:7)');
-            console.log('   • Dashboard Executivo: "SPICT-BR ELEGÍVEIS" + títulos "Geral"');
-            console.log('   • BUG CORRIGIDO: Legendas dos gráficos funcionais');
-            console.log('   • Coluna AS: ISOLAMENTO (dropdown obrigatório)');
-            console.log('   • Coluna AT: IDENTIFICACAO_LEITO (alfanumérico 6 chars)');
-            console.log('   • Créditos: Guilherme Santori + Alessandro Rodrigues');
-            console.log('');
+        console.log('🚀 Archipelago Dashboard V3.3.2 CORRIGIDO - Inicializando...');
+        console.log('📅 Outubro/2025 - Versão V3.3.2 CORRIGIDA');
+        console.log('');
+        console.log('✅ CORREÇÃO APLICADA:');
+        console.log('   • ✅ Dashboards carregados ESTATICAMENTE');
+        console.log('   • ✅ Scripts na ordem correta (antes de cards.js)');
+        console.log('   • ✅ Race Condition RESOLVIDA');
+        console.log('   • ✅ Baseado nos 3 pareceres técnicos');
+        console.log('');
+        console.log('📊 Ordem de carregamento:');
+        console.log('   1️⃣ app.js');
+        console.log('   2️⃣ api.js');
+        console.log('   3️⃣ dashboard-hospital.js ⭐ NOVO');
+        console.log('   4️⃣ dashboard-executive.js ⭐ NOVO');
+        console.log('   5️⃣ cards.js');
+        console.log('   6️⃣ qrcode.js');
+        console.log('   7️⃣ main.js');
+        console.log('');
+        console.log('🎯 Dashboard Hospitalar deve funcionar na 1ª tentativa agora!');
+        
+        /**
+         * Função que combina mudança de aba + fechamento do menu
+         */
+        function setActiveTabAndCloseMenu(tabName) {
+            // Primeiro fecha o menu
+            const menu = document.getElementById('sideMenu');
+            const overlay = document.getElementById('menuOverlay');
             
-            // Verificar biblioteca QRCode
-            if (typeof QRCode !== 'undefined') {
-                console.log('✅ QRCode.js carregada com sucesso');
-            } else {
-                console.warn('⚠️ QRCode.js não encontrada - QR Codes podem não funcionar');
+            if (menu && menu.classList.contains('open')) {
+                menu.classList.remove('open');
             }
             
-            // Inicialização normal do sistema
-            setTimeout(() => {
-                if (typeof window.initApp === 'function') {
-                    window.initApp();
-                    console.log('✅ Sistema V3.1 inicializado com sucesso');
-                } else {
-                    console.error('❌ initApp não encontrada');
-                    // Retry
-                    setTimeout(() => {
-                        if (typeof window.initApp === 'function') {
-                            window.initApp();
-                            console.log('✅ Sistema V3.1 inicializado após retry');
-                        }
-                    }, 1000);
-                }
-            }, 200);
-        });
+            if (overlay) {
+                overlay.style.display = 'none';
+            }
+            
+            // Depois muda a aba
+            if (typeof setActiveTab === 'function') {
+                setActiveTab(tabName);
+            }
+        }
         
-        // Log de informações importantes V3.1
-        console.log('📱 QR Codes apontam para: https://qrcode-seven-gamma.vercel.app');
-        console.log('🖨️ Impressão configurada: 12 QR codes por A4 (3x4)');
-        console.log('📊 Planilha V3.1: 46 colunas (AS: ISOLAMENTO, AT: IDENTIFICACAO_LEITO)');
-        console.log('🏥 Hospitais configurados: 66 leitos totais');
-        console.log('🔧 Status: TODAS as 8 correções implementadas - 100% concluído');
+        /**
+         * Função para fechar menu antes de navegar para página externa
+         */
+        function closeMenuBeforeNavigation() {
+            const menu = document.getElementById('sideMenu');
+            const overlay = document.getElementById('menuOverlay');
+            
+            if (menu && menu.classList.contains('open')) {
+                menu.classList.remove('open');
+            }
+            
+            if (overlay) {
+                overlay.style.display = 'none';
+            }
+        }
+        
+        /**
+         * Função para abrir QR Codes e fechar menu
+         */
+        function openQRCodesAndCloseMenu() {
+            // Primeiro fecha o menu
+            const menu = document.getElementById('sideMenu');
+            const overlay = document.getElementById('menuOverlay');
+            
+            if (menu && menu.classList.contains('open')) {
+                menu.classList.remove('open');
+            }
+            
+            if (overlay) {
+                overlay.style.display = 'none';
+            }
+            
+            // Depois abre QR Codes
+            if (typeof openQRCodes === 'function') {
+                openQRCodes();
+            }
+        }
     </script>
     
-    <!-- =================== CSS BASE V3.1 =================== -->
+    <!-- =================== ESTILOS INLINE =================== -->
     <style>
+        /* Reset e Base */
         * {
+            margin: 0;
+            padding: 0;
             box-sizing: border-box;
         }
         
         body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            color: white;
+            color: #e2e8f0;
             min-height: 100vh;
         }
         
@@ -225,17 +262,17 @@
             display: none !important;
         }
         
-        /* Modal de autenticação */
+        /* Modal de Autenticação */
         .modal-auth {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(15, 23, 42, 0.95);
+            background: rgba(0, 0, 0, 0.8);
             display: flex;
-            align-items: center;
             justify-content: center;
+            align-items: center;
             z-index: 10000;
         }
         
@@ -243,35 +280,33 @@
             background: #1e293b;
             padding: 40px;
             border-radius: 16px;
-            text-align: center;
-            max-width: 400px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
             width: 90%;
-            border: 2px solid #60a5fa;
-            box-shadow: 0 20px 60px rgba(96, 165, 250, 0.3);
+            max-width: 400px;
+            text-align: center;
         }
         
         .auth-container h1 {
-            margin: 0 0 20px;
             color: #60a5fa;
-            font-size: 24px;
-            font-weight: 700;
+            margin-bottom: 10px;
+            font-size: 28px;
         }
         
         .auth-container p {
-            color: #e2e8f0;
-            margin-bottom: 20px;
-            font-size: 16px;
+            color: #9ca3af;
+            margin-bottom: 25px;
+            font-size: 14px;
         }
         
         .auth-container input {
             width: 100%;
             padding: 12px;
-            margin: 10px 0;
-            border: 1px solid #334155;
             background: #0f172a;
-            color: white;
+            border: 2px solid #334155;
             border-radius: 8px;
+            color: white;
             font-size: 16px;
+            margin-bottom: 20px;
             transition: border-color 0.3s;
         }
         
@@ -283,66 +318,63 @@
         .auth-container button {
             width: 100%;
             padding: 12px;
-            background: #3b82f6;
+            background: #60a5fa;
             color: white;
             border: none;
             border-radius: 8px;
             font-size: 16px;
-            cursor: pointer;
-            margin-top: 10px;
-            transition: background 0.3s;
             font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
         }
         
         .auth-container button:hover {
-            background: #2563eb;
+            background: #3b82f6;
         }
         
         .error-msg {
-            color: #ef4444;
-            margin-top: 10px;
+            color: #f87171;
+            text-align: center;
+            margin-top: 15px;
             font-size: 14px;
-            font-weight: 500;
         }
         
-        /* Header V3.1 */
+        /* Header */
         .header {
-            background: rgba(15, 23, 42, 0.95);
-            padding: 15px 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            position: sticky;
-            top: 0;
-            z-index: 100;
+            background: #1e293b;
+            padding: 20px 30px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
         }
         
         .header-left {
             display: flex;
             align-items: center;
-            gap: 15px;
-        }
-        
-        .header-left h1 {
-            color: #60a5fa;
-            margin: 0;
-            font-size: 20px;
-            font-weight: 700;
+            gap: 20px;
         }
         
         .hamburger {
             font-size: 24px;
             cursor: pointer;
-            color: #e2e8f0;
-            padding: 5px;
-            border-radius: 4px;
+            padding: 8px;
+            border-radius: 6px;
             transition: background 0.3s;
         }
         
         .hamburger:hover {
             background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .header-left h1 {
+            margin: 0;
+            font-size: 22px;
+            color: #60a5fa;
+            font-weight: 700;
         }
         
         .header-right {
@@ -351,35 +383,38 @@
             gap: 15px;
         }
         
+        #updateTimer {
+            color: #9ca3af;
+            font-size: 14px;
+        }
+        
         .header-right button {
-            background: #3b82f6;
+            background: #60a5fa;
             color: white;
             border: none;
-            padding: 8px 16px;
+            padding: 10px 20px;
             border-radius: 6px;
             cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
+            font-weight: 600;
             transition: background 0.3s;
         }
         
         .header-right button:hover {
-            background: #2563eb;
+            background: #3b82f6;
         }
         
-        /* Side Menu */
+        /* Menu Lateral */
         .side-menu {
             position: fixed;
-            left: -300px;
+            left: -280px;
             top: 0;
-            width: 300px;
+            width: 280px;
             height: 100vh;
             background: #1e293b;
-            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 2px 0 8px rgba(0, 0, 0, 0.2);
             transition: left 0.3s ease;
-            z-index: 1000;
-            display: flex;
-            flex-direction: column;
+            z-index: 2000;
+            overflow-y: auto;
         }
         
         .side-menu.open {
@@ -395,24 +430,24 @@
         }
         
         .menu-header h2 {
-            color: #60a5fa;
             margin: 0;
-            font-size: 18px;
+            color: #60a5fa;
+            font-size: 20px;
         }
         
         .menu-close {
             background: none;
             border: none;
-            color: #e2e8f0;
-            font-size: 24px;
+            color: white;
+            font-size: 28px;
             cursor: pointer;
             padding: 0;
-            width: 30px;
-            height: 30px;
+            width: 32px;
+            height: 32px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 4px;
+            border-radius: 6px;
             transition: background 0.3s;
         }
         
@@ -421,7 +456,6 @@
         }
         
         .menu-items {
-            flex: 1;
             padding: 20px 0;
         }
         
@@ -436,345 +470,84 @@
         
         .side-menu-item:hover {
             background: rgba(255, 255, 255, 0.05);
-            color: #60a5fa;
+            border-left-color: #60a5fa;
         }
         
         .side-menu-item.active {
             background: rgba(96, 165, 250, 0.1);
-            color: #60a5fa;
             border-left-color: #60a5fa;
+            color: #60a5fa;
+            font-weight: 600;
         }
         
         .menu-footer {
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            position: absolute;
+            bottom: 0;
+            width: 100%;
             padding: 20px;
+            background: #1e293b;
+        }
+        
+        .menu-divider {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.1);
+            margin-bottom: 20px;
         }
         
         .menu-qr {
             display: flex;
             align-items: center;
             gap: 10px;
+            padding: 12px 20px;
             color: #e2e8f0;
             text-decoration: none;
-            padding: 10px;
             border-radius: 6px;
-            transition: background 0.3s;
+            transition: all 0.3s;
+            margin: 0 -20px;
         }
         
         .menu-qr:hover {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
             color: #60a5fa;
         }
         
         .menu-overlay {
+            display: none;
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             background: rgba(0, 0, 0, 0.5);
-            z-index: 999;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s;
+            z-index: 1500;
         }
         
-        .menu-overlay.show {
-            opacity: 1;
-            visibility: visible;
+        .side-menu.open ~ .menu-overlay {
+            display: block;
         }
         
-        /* Main Content */
+        /* Conteúdo Principal */
         .main-content {
-            padding: 20px;
-            max-width: 1400px;
-            margin: 0 auto;
-            min-height: calc(100vh - 80px);
+            padding: 30px;
+            min-height: calc(100vh - 200px);
         }
         
-        /* Hospital Selector */
-        .hospital-selector {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-bottom: 20px;
-        }
-        
-        .hospital-btn {
-            padding: 10px 20px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: #e2e8f0;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-size: 14px;
-            font-weight: 500;
-        }
-        
-        .hospital-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-            border-color: #60a5fa;
-        }
-        
-        .hospital-btn.active {
-            background: #60a5fa;
-            border-color: #60a5fa;
-            color: white;
-        }
-        
-        /* Footer V3.1 com créditos */
+        /* Footer */
         .footer {
+            background: #1e293b;
+            padding: 20px;
             text-align: center;
-            padding: 30px 20px;
-            background: rgba(0, 0, 0, 0.3);
+            color: #9ca3af;
+            font-size: 13px;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
-            margin-top: 40px;
-            backdrop-filter: blur(10px);
         }
         
         .footer p {
-            margin: 8px 0;
-            font-size: 14px;
-            color: #9ca3af;
-            line-height: 1.5;
+            margin: 5px 0;
         }
         
-        .footer p strong {
-            color: #60a5fa;
-            font-weight: 600;
-        }
-        
-        /* Cards Grid */
-        .cards-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
-            padding: 20px 0;
-        }
-        
-        /* Modal Styles */
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 10000;
-        }
-        
-        .modal-content {
-            background: #1e293b;
-            border-radius: 12px;
-            max-width: 600px;
-            width: 90%;
-            max-height: 90vh;
-            overflow-y: auto;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .modal-header {
-            padding: 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .modal-header h2 {
-            color: #60a5fa;
-            margin: 0;
-            font-size: 18px;
-        }
-        
-        .modal-close {
-            background: none;
-            border: none;
+        .footer strong {
             color: #e2e8f0;
-            font-size: 24px;
-            cursor: pointer;
-            padding: 5px;
-            border-radius: 4px;
-            transition: background 0.3s;
-        }
-        
-        .modal-close:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-        
-        .modal-body {
-            padding: 20px;
-        }
-        
-        .modal-footer {
-            padding: 20px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            display: flex;
-            gap: 10px;
-            justify-content: flex-end;
-        }
-        
-        .modal-footer button {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            transition: background 0.3s;
-        }
-        
-        .btn-cancel {
-            background: rgba(255, 255, 255, 0.1);
-            color: #e2e8f0;
-        }
-        
-        .btn-cancel:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-        
-        .btn-save {
-            background: #10b981;
-            color: white;
-        }
-        
-        .btn-save:hover {
-            background: #059669;
-        }
-        
-        .btn-alta {
-            background: #f59e0b;
-            color: white;
-        }
-        
-        .btn-alta:hover {
-            background: #d97706;
-        }
-        
-        /* Responsividade V3.1 */
-        @media (max-width: 768px) {
-            .header {
-                flex-direction: column;
-                gap: 10px;
-                padding: 15px 10px;
-            }
-            
-            .header-left h1 {
-                font-size: 18px;
-            }
-            
-            .side-menu {
-                width: 100%;
-                left: -100%;
-            }
-            
-            .side-menu.open {
-                left: 0;
-            }
-            
-            .hospital-selector {
-                flex-direction: column;
-                gap: 10px;
-            }
-            
-            .hospital-btn {
-                width: 100%;
-                text-align: center;
-            }
-            
-            .main-content {
-                padding: 15px 10px;
-            }
-            
-            .cards-grid {
-                grid-template-columns: 1fr;
-                gap: 15px;
-                padding: 15px 0;
-            }
-            
-            .footer {
-                padding: 20px 15px;
-            }
-            
-            .footer p {
-                font-size: 12px;
-                line-height: 1.4;
-            }
-            
-            .modal-content {
-                width: 95%;
-                margin: 10px;
-            }
-            
-            .modal-header,
-            .modal-body,
-            .modal-footer {
-                padding: 15px;
-            }
-            
-            .modal-footer {
-                flex-direction: column;
-            }
-            
-            .modal-footer button {
-                width: 100%;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .header-left h1 {
-                font-size: 16px;
-            }
-            
-            .auth-container {
-                padding: 30px 20px;
-            }
-            
-            .main-content {
-                padding: 10px 5px;
-            }
-            
-            .footer p {
-                font-size: 11px;
-            }
-        }
-        
-        /* Animações suaves */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .main-content {
-            animation: fadeIn 0.5s ease-out;
-        }
-        
-        /* Estados de carregamento */
-        .loading {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 200px;
-            color: #9ca3af;
-        }
-        
-        .loading::before {
-            content: '';
-            width: 20px;
-            height: 20px;
-            border: 2px solid #334155;
-            border-top-color: #60a5fa;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-right: 10px;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
         }
     </style>
 </body>
