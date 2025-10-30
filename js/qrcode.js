@@ -1,5 +1,6 @@
-// =================== QRCODE-NOVA-JANELA.JS - SOLUÇÃO DEFINITIVA PARA IMPRESSÃO ===================
-// Sistema com nova janela dedicada para impressão - 100% funcional
+// =================== QRCODE-OPTIMIZED.JS - GERADOR OTIMIZADO V3.3 ===================
+// ✅ CORRIGIDO: 5 hospitais com quantidades corretas (79 QR codes total)
+// Sistema otimizado com carregamento sequencial
 
 const QR_API = {
     BASE_URL: 'https://qrcode-seven-gamma.vercel.app',
@@ -9,8 +10,9 @@ const QR_API = {
     HOSPITAIS: {
         H1: { nome: 'Neomater', leitos: 10 },
         H2: { nome: 'Cruz Azul', leitos: 36 },
-        H3: { nome: 'Santa Marcelina', leitos: 13 },
-        H4: { nome: 'Santa Clara', leitos: 7 }
+        H3: { nome: 'Sta Marcelina', leitos: 7 },
+        H4: { nome: 'Santa Clara', leitos: 13 },
+        H5: { nome: 'Adventista', leitos: 13 }
     }
 };
 
@@ -19,9 +21,30 @@ let isGenerating = false;
 let generationProgress = 0;
 let totalQRCodes = 0;
 
+// Função para obter nome do leito formatado
+function getNomeLeitoFormatado(hospitalId, numeroLeito) {
+    // H2 (Cruz Azul) tem numeração especial
+    if (hospitalId === 'H2') {
+        if (numeroLeito >= 1 && numeroLeito <= 20) {
+            // Apartamentos 1-20
+            return `Apartamento ${String(numeroLeito).padStart(2, '0')}`;
+        } else if (numeroLeito >= 21 && numeroLeito <= 36) {
+            // Enfermarias 21-36 com numeração especial
+            // 21=711.1, 22=711.2, 23=713.1, 24=713.2, etc
+            const parIndex = Math.floor((numeroLeito - 21) / 2); // 0,0,1,1,2,2,3,3...
+            const numeroQuarto = 711 + (parIndex * 2); // 711, 711, 713, 713, 715, 715...
+            const subNumero = ((numeroLeito - 21) % 2) + 1; // 1,2,1,2,1,2...
+            return `Enfermaria ${numeroQuarto}.${subNumero}`;
+        }
+    }
+    
+    // Outros hospitais: apenas "Leito XX"
+    return `Leito ${String(numeroLeito).padStart(2, '0')}`;
+}
+
 // Função principal para abrir modal
 window.openQRCodesSimple = function() {
-    console.log('🔵 Abrindo gerador de QR Codes com nova janela de impressão...');
+    console.log('🔵 Abrindo gerador de QR Codes otimizado V3.3...');
     
     // Prevenir múltiplas aberturas
     if (document.querySelector('.qr-modal-simple')) {
@@ -35,7 +58,7 @@ window.openQRCodesSimple = function() {
     modal.innerHTML = `
         <div class="qr-modal-content">
             <div class="qr-modal-header">
-                <h2>📱 QR Codes dos Leitos - Sistema V3.1</h2>
+                <h2>📱 QR Codes dos Leitos - Sistema V3.3 Corrigido</h2>
                 <button onclick="closeQRModalSimple()" class="close-btn">✕</button>
             </div>
             <div class="qr-modal-body">
@@ -43,21 +66,21 @@ window.openQRCodesSimple = function() {
                     <select id="qrHospitalSelect" onchange="generateQRCodesSimple()">
                         <option value="H1">Neomater (10 leitos)</option>
                         <option value="H2">Cruz Azul (36 leitos)</option>
-                        <option value="H3">Santa Marcelina (13 leitos)</option>
-                        <option value="H4">Santa Clara (7 leitos)</option>
+                        <option value="H3">Sta Marcelina (7 leitos)</option>
+                        <option value="H4">Santa Clara (13 leitos)</option>
+                        <option value="H5">Adventista (13 leitos)</option>
                     </select>
                     <button onclick="generateAllQRCodesOptimized()" class="btn-all" id="btnGenerateAll">
-                        Gerar Todos (66 QR Codes)
+                        Gerar Todos (79 QR Codes)
                     </button>
-                    <button onclick="abrirJanelaImpressao()" class="btn-print">🖨️ Imprimir (Nova Janela)</button>
-                    <button onclick="imprimirDireto()" class="btn-print-direct">⚡ Imprimir Direto</button>
+                    <button onclick="window.print()" class="btn-print">🖨️ Imprimir</button>
                 </div>
                 
                 <!-- Barra de progresso -->
                 <div id="progressContainer" class="progress-container" style="display: none;">
                     <div class="progress-info">
                         <span id="progressText">Gerando QR Codes...</span>
-                        <span id="progressCount">0/66</span>
+                        <span id="progressCount">0/79</span>
                     </div>
                     <div class="progress-bar">
                         <div id="progressFill" class="progress-fill"></div>
@@ -79,283 +102,6 @@ window.openQRCodesSimple = function() {
     generateQRCodesSimple();
 };
 
-// =================== NOVA FUNÇÃO: ABRIR JANELA DE IMPRESSÃO ===================
-window.abrirJanelaImpressao = function() {
-    const container = document.getElementById('qrCodesContainer');
-    if (!container || container.innerHTML.trim() === '') {
-        alert('Gere os QR Codes primeiro!');
-        return;
-    }
-    
-    console.log('🖨️ Abrindo nova janela para impressão...');
-    
-    // Extrair apenas o conteúdo dos QR codes
-    const qrContent = container.innerHTML;
-    
-    // Criar HTML completo para impressão
-    const printHTML = `
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QR Codes - Archipelago Dashboard</title>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        
-        body {
-            font-family: Arial, sans-serif;
-            background: white;
-            color: #000;
-            padding: 10mm;
-        }
-        
-        .hospital-titulo,
-        .hospital-title,
-        h3 {
-            text-align: center;
-            color: #000;
-            margin: 0 0 8mm 0;
-            font-size: 20px;
-            font-weight: bold;
-            page-break-before: always;
-            padding: 3mm;
-            border-bottom: 2px solid #000;
-        }
-        
-        .hospital-titulo:first-child,
-        .hospital-title:first-child,
-        h3:first-child {
-            page-break-before: auto;
-        }
-        
-        .qr-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 5mm;
-            margin-bottom: 10mm;
-            page-break-inside: avoid;
-        }
-        
-        .qr-item {
-            width: 60mm;
-            height: 65mm;
-            padding: 3mm;
-            border: 2px solid #000;
-            text-align: center;
-            background: white;
-            page-break-inside: avoid;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-        
-        .qr-item:nth-child(12n+1) {
-            page-break-before: always;
-        }
-        
-        .qr-label {
-            font-size: 12px;
-            color: #000;
-            font-weight: bold;
-            line-height: 1.2;
-            margin-bottom: 2mm;
-        }
-        
-        .qr-label strong {
-            font-size: 13px;
-            color: #000;
-        }
-        
-        .qr-img {
-            width: 48mm;
-            height: 48mm;
-            margin: 0 auto;
-            display: block;
-        }
-        
-        /* Impressão específica */
-        @media print {
-            body {
-                padding: 5mm;
-            }
-            
-            .qr-item {
-                width: 65mm;
-                height: 70mm;
-            }
-            
-            .qr-img {
-                width: 50mm;
-                height: 50mm;
-            }
-        }
-        
-        @page {
-            size: A4;
-            margin: 5mm;
-        }
-    </style>
-</head>
-<body>
-    <div class="print-content">
-        ${qrContent}
-    </div>
-    
-    <script>
-        // Auto-impressão após carregamento completo das imagens
-        window.addEventListener('load', function() {
-            console.log('📄 Janela de impressão carregada');
-            
-            // Aguardar 2 segundos para garantir que todas as imagens carregaram
-            setTimeout(function() {
-                console.log('🖨️ Iniciando impressão automática...');
-                window.print();
-                
-                // Fechar janela após impressão (optional)
-                setTimeout(function() {
-                    window.close();
-                }, 1000);
-            }, 2000);
-        });
-        
-        // Verificar carregamento das imagens
-        const images = document.querySelectorAll('.qr-img');
-        let loadedImages = 0;
-        
-        images.forEach(img => {
-            if (img.complete) {
-                loadedImages++;
-            } else {
-                img.addEventListener('load', function() {
-                    loadedImages++;
-                    console.log('✅ Imagem carregada:', loadedImages + '/' + images.length);
-                });
-            }
-        });
-    </script>
-</body>
-</html>
-    `;
-    
-    // Abrir nova janela
-    const printWindow = window.open('', '_blank', 'width=800,height=600,scrollbars=yes');
-    printWindow.document.write(printHTML);
-    printWindow.document.close();
-    
-    console.log('✅ Nova janela de impressão aberta');
-};
-
-// =================== FUNÇÃO ALTERNATIVA: IMPRESSÃO DIRETA ===================
-window.imprimirDireto = function() {
-    const container = document.getElementById('qrCodesContainer');
-    if (!container || container.innerHTML.trim() === '') {
-        alert('Gere os QR Codes primeiro!');
-        return;
-    }
-    
-    console.log('⚡ Preparando impressão direta...');
-    
-    // Salvar estado atual
-    const originalContent = document.body.innerHTML;
-    const originalStyles = document.head.innerHTML;
-    
-    // Substituir body inteiro
-    document.body.innerHTML = `
-        <div id="print-only-content">
-            ${container.innerHTML}
-        </div>
-    `;
-    
-    // Adicionar CSS específico para impressão
-    const printStyle = document.createElement('style');
-    printStyle.innerHTML = `
-        body {
-            font-family: Arial, sans-serif;
-            background: white;
-            color: #000;
-            padding: 5mm;
-        }
-        
-        .hospital-titulo,
-        .hospital-title,
-        h3 {
-            text-align: center;
-            color: #000;
-            margin: 0 0 8mm 0;
-            font-size: 18px;
-            font-weight: bold;
-            page-break-before: always;
-            padding: 3mm;
-            border-bottom: 2px solid #000;
-        }
-        
-        .hospital-titulo:first-child,
-        .hospital-title:first-child,
-        h3:first-child {
-            page-break-before: auto;
-        }
-        
-        .qr-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 5mm;
-            margin-bottom: 10mm;
-        }
-        
-        .qr-item {
-            width: 65mm;
-            height: 70mm;
-            padding: 3mm;
-            border: 2px solid #000;
-            text-align: center;
-            background: white;
-            page-break-inside: avoid;
-        }
-        
-        .qr-label {
-            font-size: 12px;
-            color: #000;
-            font-weight: bold;
-            line-height: 1.2;
-            margin-bottom: 2mm;
-        }
-        
-        .qr-img {
-            width: 50mm;
-            height: 50mm;
-            margin: 0 auto;
-            display: block;
-        }
-        
-        @page {
-            size: A4;
-            margin: 5mm;
-        }
-    `;
-    document.head.appendChild(printStyle);
-    
-    // Aguardar carregamento e imprimir
-    setTimeout(() => {
-        window.print();
-        
-        // Restaurar conteúdo original após impressão
-        setTimeout(() => {
-            document.head.innerHTML = originalStyles;
-            document.body.innerHTML = originalContent;
-            
-            // Re-abrir modal se necessário
-            if (!document.querySelector('.qr-modal-simple')) {
-                window.openQRCodesSimple();
-            }
-        }, 1000);
-    }, 500);
-};
-
 // Gerar QR Codes de um hospital específico
 window.generateQRCodesSimple = function() {
     const hospitalId = document.getElementById('qrHospitalSelect').value;
@@ -365,20 +111,21 @@ window.generateQRCodesSimple = function() {
     // Esconder progresso
     document.getElementById('progressContainer').style.display = 'none';
     
-    container.innerHTML = `<h3 class="hospital-titulo">${hospital.nome}</h3><div class="qr-grid">`;
+    container.innerHTML = `<h3>${hospital.nome}</h3><div class="qr-grid">`;
     
     // Gerar QR para cada leito
     for (let i = 1; i <= hospital.leitos; i++) {
         const qrURL = `${QR_API.BASE_URL}/?h=${hospitalId}&l=${i}`;
         const imgURL = `${QR_API.API_URL}?size=${QR_API.SIZE}x${QR_API.SIZE}&data=${encodeURIComponent(qrURL)}`;
+        const nomeLeitoFormatado = getNomeLeitoFormatado(hospitalId, i);
         
         container.innerHTML += `
             <div class="qr-item">
                 <div class="qr-label">
                     <strong>${hospital.nome}</strong><br>
-                    Leito ${String(i).padStart(2, '0')}
+                    ${nomeLeitoFormatado}
                 </div>
-                <img src="${imgURL}" alt="QR Code Leito ${i}" class="qr-img" loading="eager">
+                <img src="${imgURL}" alt="QR Code ${nomeLeitoFormatado}" class="qr-img" loading="lazy">
             </div>
         `;
     }
@@ -431,14 +178,14 @@ window.generateAllQRCodesOptimized = async function() {
     } finally {
         isGenerating = false;
         btnGenerateAll.disabled = false;
-        btnGenerateAll.textContent = 'Gerar Todos (66 QR Codes)';
+        btnGenerateAll.textContent = 'Gerar Todos (79 QR Codes)';
     }
 };
 
 // Gerar QR codes de um hospital com delay
 async function generateHospitalQRCodes(hospitalId, hospital, container) {
     // Título do hospital
-    container.innerHTML += `<h3 class="hospital-titulo">${hospital.nome}</h3><div class="qr-grid" id="grid-${hospitalId}">`;
+    container.innerHTML += `<h3 class="hospital-title">${hospital.nome}</h3><div class="qr-grid" id="grid-${hospitalId}">`;
     
     const grid = document.getElementById(`grid-${hospitalId}`);
     
@@ -446,6 +193,7 @@ async function generateHospitalQRCodes(hospitalId, hospital, container) {
     for (let i = 1; i <= hospital.leitos; i++) {
         const qrURL = `${QR_API.BASE_URL}/?h=${hospitalId}&l=${i}`;
         const imgURL = `${QR_API.API_URL}?size=${QR_API.SIZE}x${QR_API.SIZE}&data=${encodeURIComponent(qrURL)}`;
+        const nomeLeitoFormatado = getNomeLeitoFormatado(hospitalId, i);
         
         // Criar elemento
         const qrItem = document.createElement('div');
@@ -453,9 +201,9 @@ async function generateHospitalQRCodes(hospitalId, hospital, container) {
         qrItem.innerHTML = `
             <div class="qr-label">
                 <strong>${hospital.nome}</strong><br>
-                Leito ${String(i).padStart(2, '0')}
+                ${nomeLeitoFormatado}
             </div>
-            <img src="${imgURL}" alt="QR Code" class="qr-img" loading="eager">
+            <img src="${imgURL}" alt="QR Code ${nomeLeitoFormatado}" class="qr-img" loading="lazy">
         `;
         
         grid.appendChild(qrItem);
@@ -583,7 +331,7 @@ function addOptimizedStyles() {
             border-radius: 8px;
             font-size: 16px;
             background: white;
-            min-width: 200px;
+            min-width: 250px;
         }
         
         .qr-controls button {
@@ -619,14 +367,6 @@ function addOptimizedStyles() {
             background: #7c3aed !important;
         }
         
-        .btn-print-direct {
-            background: #f59e0b !important;
-        }
-        
-        .btn-print-direct:hover {
-            background: #d97706 !important;
-        }
-        
         /* Barra de progresso */
         .progress-container {
             background: #f1f5f9;
@@ -660,7 +400,7 @@ function addOptimizedStyles() {
         }
         
         /* Container de QR codes */
-        .qr-container .hospital-titulo {
+        .qr-container h3 {
             text-align: center;
             color: #1a1f2e;
             margin: 30px 0 20px 0;
@@ -671,7 +411,7 @@ function addOptimizedStyles() {
             border-left: 4px solid #3b82f6;
         }
         
-        .qr-container .hospital-titulo:first-child {
+        .qr-container h3:first-child {
             margin-top: 0;
         }
         
@@ -716,6 +456,117 @@ function addOptimizedStyles() {
             border-radius: 8px;
         }
         
+        /* IMPRESSÃO OTIMIZADA - 12 POR A4 (3x4) */
+        @media print {
+            @page {
+                margin: 10mm;
+                size: A4 portrait;
+            }
+            
+            /* Esconder elementos desnecessários */
+            body > *:not(.qr-modal-simple) {
+                display: none !important;
+            }
+            
+            .qr-modal-simple {
+                position: static !important;
+                background: white !important;
+                display: block !important;
+                overflow: visible !important;
+            }
+            
+            .qr-modal-content {
+                width: 100% !important;
+                max-width: none !important;
+                max-height: none !important;
+                border: none !important;
+                box-shadow: none !important;
+                margin: 0 !important;
+                overflow: visible !important;
+                border-radius: 0 !important;
+            }
+            
+            .qr-modal-header,
+            .qr-controls,
+            .progress-container,
+            .close-btn {
+                display: none !important;
+            }
+            
+            .qr-modal-body {
+                padding: 0 !important;
+            }
+            
+            .qr-container {
+                width: 100% !important;
+            }
+            
+            .qr-container h3 {
+                page-break-before: always;
+                page-break-after: avoid;
+                margin: 0 0 5mm 0 !important;
+                font-size: 16px !important;
+                background: white !important;
+                border: none !important;
+                padding: 2mm 0 !important;
+                color: #000 !important;
+                text-align: left !important;
+            }
+            
+            .qr-container h3:first-child {
+                page-break-before: auto;
+            }
+            
+            .qr-grid {
+                display: grid !important;
+                grid-template-columns: repeat(3, 1fr) !important;
+                gap: 2mm !important;
+                page-break-inside: avoid;
+                margin-bottom: 5mm !important;
+            }
+            
+            .qr-item {
+                width: 62mm !important;
+                height: 68mm !important;
+                padding: 2mm !important;
+                page-break-inside: avoid !important;
+                border: 1px solid #333 !important;
+                background: white !important;
+                margin: 0 !important;
+                border-radius: 2mm !important;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                justify-content: center !important;
+            }
+            
+            .qr-item:nth-child(12n+1) {
+                page-break-before: always;
+            }
+            
+            .qr-label {
+                font-size: 11px !important;
+                margin-bottom: 2mm !important;
+                color: #000 !important;
+                line-height: 1.3 !important;
+                text-align: center !important;
+            }
+            
+            .qr-label strong {
+                color: #000 !important;
+                font-size: 12px !important;
+                font-weight: bold !important;
+            }
+            
+            .qr-img {
+                width: 48mm !important;
+                height: 48mm !important;
+                border: none !important;
+                border-radius: 1mm !important;
+                display: block !important;
+            }
+        }
+        
         /* Responsivo */
         @media (max-width: 768px) {
             .qr-modal-content {
@@ -749,12 +600,11 @@ function addOptimizedStyles() {
 
 // Inicialização
 document.addEventListener('DOMContentLoaded', function() {
-    // Substituir função openQRCodes pela versão corrigida
+    // Substituir função openQRCodes pela versão otimizada
     window.openQRCodes = window.openQRCodesSimple;
-    console.log('✅ Sistema QR Code V3.1 - NOVA JANELA DE IMPRESSÃO');
+    console.log('✅ Sistema QR Code V3.3 CORRIGIDO carregado');
     console.log('📱 Base URL: https://qrcode-seven-gamma.vercel.app');
-    console.log('🏥 Totais V3.1: H1:10, H2:36, H3:13, H4:7 = 66 QR codes');
-    console.log('🖨️ SOLUÇÃO: Nova janela dedicada para impressão');
-    console.log('⚡ ALTERNATIVA: Impressão direta substituindo body');
-    console.log('✅ PROBLEMA RESOLVIDO: 100% funcional');
+    console.log('🏥 Totais CORRETOS: H1:10, H2:36, H3:7, H4:13, H5:13 = 79 QR codes');
+    console.log('🖨️ Impressão: 12 QR codes por A4 (3x4)');
+    console.log('⚡ Carregamento sequencial com delay otimizado');
 });
