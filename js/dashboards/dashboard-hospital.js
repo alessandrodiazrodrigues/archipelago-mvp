@@ -512,19 +512,31 @@ window.processarDadosHospital = function(hospitalId) {
     }
     
     // ✅ TPH Médio CORRIGIDO - COM 2 CASAS DECIMAIS
-    const tphValues = ocupados
-        .map(l => {
-            const admAt = l.admAt;
-            if (!admAt) return 0;
-            
-            const admData = parseAdmDate_Hosp(admAt);
-            if (!admData || isNaN(admData.getTime())) return 0;
-            
-            const hoje = new Date();
-            const dias = Math.floor((hoje - admData) / (1000 * 60 * 60 * 24));
-            return (dias > 0 && dias <= 365) ? dias : 0;
-        })
-        .filter(v => v > 0);
+const tphValues = ocupados
+
+    .map(l => {
+
+        const admAt = l.admAt;
+
+        if (!admAt) return null;
+
+        
+
+        const admData = parseAdmDate_Hosp(admAt);
+
+        if (!admData || isNaN(admData.getTime())) return null;
+
+        
+
+        const hoje = new Date();
+
+        const dias = Math.floor((hoje - admData) / (1000 * 60 * 60 * 24));
+
+        return (dias >= 0 && dias <= 365) ? dias : null;
+
+    })
+
+    .filter(v => v !== null);
     
     const tphMedio = tphValues.length > 0 
         ? (tphValues.reduce((a, b) => a + b, 0) / tphValues.length).toFixed(2)  // ✅ 2 CASAS DECIMAIS
