@@ -840,9 +840,9 @@ window.renderDashboardHospitalar = function() {
     
     const hoje = new Date().toLocaleDateString('pt-BR');
     
-    container.innerHTML = `
+container.innerHTML = `
         <div class="dashboard-hospitalar-wrapper" style="background: linear-gradient(135deg, ${CORES_ARCHIPELAGO.azulMarinhoEscuro} 0%, ${CORES_ARCHIPELAGO.azulEscuro} 100%); min-height: 100vh; padding: 20px; color: white; font-family: 'Poppins', sans-serif;">
-            <div class="dashboard-header" style="margin-bottom: 30px; padding: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 12px; border-left: 4px solid ${CORES_ARCHIPELAGO.azulPrincipal};">
+            <div class="dashboard-header" style="margin-bottom: 30px; padding: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 12px; border-left: 4px solid #ffffff;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 15px;">
                     <h2 style="margin: 0; color: #0676bb; font-size: 24px; font-weight: 700; text-align: center; width: 100%; font-family: 'Poppins', sans-serif;">Dashboard Hospitalar</h2>
                     <div style="display: flex; gap: 10px; margin: 0 auto;">
