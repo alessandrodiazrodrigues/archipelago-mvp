@@ -508,9 +508,10 @@ function createCard(leito, hospitalNome) {
         leitoDisplay = identificacaoLeito;
     }
     
-    // COR DO CIRCULO PESSOA - SEMPRE AZUL VIBRANTE
-    const circuloCor = '#60a5fa';
-    const circuloStroke = '#ffffff';
+    // COR DO CIRCULO PESSOA
+    const circuloCor = '#60a5fa'; // Sempre azul vibrante
+    // COR DO DESENHO (SVG): azul escuro quando vago, branco quando ocupado
+    const circuloStroke = isVago ? '#1a1f2e' : '#ffffff';
     
     // HTML do Card
     card.innerHTML = `
