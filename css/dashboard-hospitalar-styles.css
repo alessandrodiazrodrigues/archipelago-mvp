@@ -66,6 +66,8 @@
     padding: 20px;
     text-align: center;
     transition: all 0.3s ease;
+    border-top: 3px solid #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 
@@ -84,7 +86,6 @@
 
 .kpi-label {
     font-size: 12px;
-    text-transform: uppercase;
     color: #9ca3af;
     font-weight: 600;
     letter-spacing: 0.5px;
@@ -119,7 +120,6 @@
 
 .gauge-label {
     font-size: 12px;
-    text-transform: uppercase;
     color: #9ca3af;
     font-weight: 600;
     letter-spacing: 0.5px;
@@ -148,7 +148,6 @@
 .kpi-card h4 {
     margin: 0 0 10px 0;
     font-size: 12px;
-    text-transform: uppercase;
     color: #9ca3af;
     font-weight: 600;
     letter-spacing: 0.5px;
