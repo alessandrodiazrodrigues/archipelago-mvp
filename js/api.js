@@ -12,7 +12,7 @@
 // ==================================================================================
 
 // *** URL DA API V4.0 - ATUALIZADA ***
-window.API_URL = 'https://script.google.com/macros/s/AKfycbxduw4WmDBu_SNJnDJ6WCR1M4kOAtibKeXd2IwBJ3HpImiHtricIlxyxdYpBp6g3UzJ/exec';
+window.API_URL = 'https://script.google.com/macros/s/AKfycbwyG8hANGlHiYLqPTcajm0WsyCcF6romyV4IWoVhMhQAj2udXMOaqEwR6h7mUfcRa3G/exec';
 
 // =================== CONFIGURAÇÃO DOS HOSPITAIS V4.0 (7 HOSPITAIS - 93 LEITOS) ===================
 window.HOSPITAIS_CONFIG = {
