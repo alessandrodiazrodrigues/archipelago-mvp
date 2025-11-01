@@ -165,7 +165,7 @@ window.searchLeitos = function() {
     logInfo(`Busca: "${searchTerm}" - ${visibleCards.length} resultados`);
 };
 
-// =================== FUNCAO PRINCIPAL DE RENDERIZACAO ===================
+// =================== FUNCAO PRINCIPAL DE RENDERIZACAO - CORRIGIDA ===================
 window.renderCards = function() {
     logInfo('Renderizando cards - Gestao de Leitos Hospitalares');
     
@@ -195,10 +195,44 @@ window.renderCards = function() {
         return;
     }
     
-    // ORDENAR CARDS POR NUMERO DE LEITO (ORDEM NUMERICA)
-    const leitosOrdenados = hospital.leitos.sort((a, b) => {
+    // =================== ✅ ORDENAÇÃO CORRIGIDA ===================
+    
+    // Separar ocupados e vagos
+    const leitosOcupados = hospital.leitos.filter(l => 
+        l.status === 'Ocupado' || l.status === 'Em uso' || l.status === 'ocupado'
+    );
+    const leitosVagos = hospital.leitos.filter(l => 
+        l.status === 'Vago' || l.status === 'vago'
+    );
+    
+    // Ordenar OCUPADOS por identificacao_leito (coluna AQ)
+    leitosOcupados.sort((a, b) => {
+        const idA = a.identificacaoLeito || a.identificacao_leito || '';
+        const idB = b.identificacaoLeito || b.identificacao_leito || '';
+        
+        // Se ambos têm identificação, ordenar alfabeticamente
+        if (idA && idB) {
+            return idA.localeCompare(idB);
+        }
+        
+        // Se só A tem identificação, A vem primeiro
+        if (idA) return -1;
+        if (idB) return 1;
+        
+        // Se nenhum tem, ordenar por número do leito
         return (a.leito || 0) - (b.leito || 0);
     });
+    
+    // Ordenar VAGOS por número do leito
+    leitosVagos.sort((a, b) => (a.leito || 0) - (b.leito || 0));
+    
+    // Juntar: OCUPADOS primeiro, depois VAGOS
+    const leitosOrdenados = [...leitosOcupados, ...leitosVagos];
+    
+    console.log('[CARDS] Total de leitos:', leitosOrdenados.length);
+    console.log('[CARDS] Ocupados:', leitosOcupados.length, '| Vagos:', leitosVagos.length);
+    
+    // =================== RENDERIZAR CARDS ===================
     
     leitosOrdenados.forEach(leito => {
         const card = createCard(leito, hospitalNome);
@@ -382,7 +416,7 @@ function validarLimiteSantaClara(tipoQuarto) {
     return { permitido: true };
 }
 
-// =================== CRIAR CARD INDIVIDUAL ===================
+// =================== CRIAR CARD INDIVIDUAL - CORRIGIDO ===================
 function createCard(leito, hospitalNome) {
     const card = document.createElement('div');
     card.className = 'card';
@@ -487,8 +521,8 @@ function createCard(leito, hospitalNome) {
         tempoInternacao = calcularTempoInternacao(admissao);
     }
     
-    // INICIAIS SEM TRANSFORMACAO
-    const iniciais = isVago ? '—' : (nome.trim() || '—');
+    // ✅ CORREÇÃO CRÍTICA: Linha 491 - Evitar erro "nome.trim is not a function"
+    const iniciais = isVago ? '—' : (nome ? String(nome).trim() : '—');
     
     let ppsFormatado = pps ? `${pps}%` : '—';
     if (ppsFormatado !== '—' && !ppsFormatado.includes('%')) {
