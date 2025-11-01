@@ -870,11 +870,11 @@ window.renderDashboardExecutivo = function() {
                                 <span class="valor">${previsaoEnfMasc}</span>
                             </div>
                         </div>
-                    </div>
-                    
-                    <div class="kpi-detalhes">
-                        <div class="detalhe-titulo">Leitos Divididos Conforme Modalidade Contratual com o Credenciado</div>
-                        ${renderModalidadeContratual(modalidadePrevisao)}
+                        
+                        <div class="kpi-modalidade-section">
+                            <div class="modalidade-titulo">Leitos Divididos Conforme Modalidade Contratual com o Credenciado</div>
+                            ${renderModalidadeContratual(modalidadePrevisao)}
+                        </div>
                     </div>
                 </div>
 
@@ -899,11 +899,11 @@ window.renderDashboardExecutivo = function() {
                                 <span class="valor">até ${disponiveisEnfMasc}</span>
                             </div>
                         </div>
-                    </div>
-                    
-                    <div class="kpi-detalhes">
-                        <div class="detalhe-titulo">Leitos Divididos Conforme Modalidade Contratual com o Credenciado</div>
-                        ${renderModalidadeContratual(modalidadeDisponiveis)}
+                        
+                        <div class="kpi-modalidade-section">
+                            <div class="modalidade-titulo">Leitos Divididos Conforme Modalidade Contratual com o Credenciado</div>
+                            ${renderModalidadeContratual(modalidadeDisponiveis)}
+                        </div>
                     </div>
                 </div>
 
@@ -1569,7 +1569,6 @@ function getExecutiveCSS() {
                 align-items: center;
                 gap: 20px;
                 margin-bottom: 20px;
-                flex: 1;
             }
             
             .kpi-items-lista {
@@ -1579,6 +1578,23 @@ function getExecutiveCSS() {
                 gap: 8px;
                 padding-top: 15px;
                 border-top: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            
+            .kpi-modalidade-section {
+                width: 100%;
+                margin-top: 20px;
+                padding-top: 15px;
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            
+            .modalidade-titulo {
+                font-size: 11px;
+                font-weight: 600;
+                color: #60a5fa;
+                text-transform: none !important;
+                letter-spacing: 0.5px;
+                margin-bottom: 10px;
+                text-align: left;
             }
             
             .item-lista {
@@ -2177,6 +2193,17 @@ function getExecutiveCSS() {
                 .kpi-items-lista {
                     gap: 5px !important;
                     padding-top: 10px !important;
+                }
+                
+                .kpi-modalidade-section {
+                    margin-top: 15px !important;
+                    padding-top: 10px !important;
+                }
+                
+                .modalidade-titulo {
+                    font-size: 10px !important;
+                    margin-bottom: 8px !important;
+                    line-height: 1.3 !important;
                 }
                 
                 .item-lista {
