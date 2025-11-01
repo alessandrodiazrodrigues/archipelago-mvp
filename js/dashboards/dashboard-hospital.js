@@ -1607,7 +1607,6 @@ function getHospitalConsolidadoCSS() {
                 font-size: 20px;
                 font-weight: 700;
                 margin: 0 0 20px 0;
-                text-transform: uppercase;
                 letter-spacing: 0.5px;
             }
             
@@ -1622,8 +1621,7 @@ function getHospitalConsolidadoCSS() {
                 background: rgba(255, 255, 255, 0.05);
                 border-radius: 12px;
                 padding: 20px;
-                transition: all 0.3s ease;
-                border: 1px solid rgba(255, 255, 255, 0.1);
+                border: 1px solid rgba(255, 255, 255, 0.2);
                 border-top: 3px solid #ffffff !important;
                 min-height: 350px;
                 display: flex;
