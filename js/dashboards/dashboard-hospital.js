@@ -1553,6 +1553,7 @@ function getHospitalConsolidadoCSS() {
             
             * {
                 font-family: 'Poppins', sans-serif;
+                text-transform: none !important;
             }
             
             #dashHospitalarContent,
@@ -1608,6 +1609,7 @@ function getHospitalConsolidadoCSS() {
                 font-weight: 700;
                 margin: 0 0 20px 0;
                 letter-spacing: 0.5px;
+                text-transform: none !important;
             }
             
             .kpis-grid {
@@ -1621,11 +1623,12 @@ function getHospitalConsolidadoCSS() {
                 background: rgba(255, 255, 255, 0.05);
                 border-radius: 12px;
                 padding: 20px;
-                border: 1px solid rgba(255, 255, 255, 0.2);
+                border: 1px solid rgba(255, 255, 255, 0.8);
                 border-top: 3px solid #ffffff !important;
                 min-height: 350px;
                 display: flex;
                 flex-direction: column;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
             }
             
             .kpi-title {
@@ -1635,6 +1638,7 @@ function getHospitalConsolidadoCSS() {
                 letter-spacing: 0.5px;
                 margin-bottom: 15px;
                 text-align: center;
+                text-transform: none !important;
             }
             
             .v5-gauge-container {
@@ -1708,6 +1712,7 @@ function getHospitalConsolidadoCSS() {
             .item-lista .label {
                 font-size: 12px;
                 color: ${CORES_ARCHIPELAGO.cinzaMedio};
+                text-transform: none !important;
             }
             
             .item-lista .valor {
@@ -1722,6 +1727,7 @@ function getHospitalConsolidadoCSS() {
                 font-style: italic;
                 text-align: center;
                 margin-bottom: 8px;
+                text-transform: none !important;
             }
             
             .kpi-detalhes {
@@ -1735,6 +1741,7 @@ function getHospitalConsolidadoCSS() {
                 color: #60a5fa;
                 letter-spacing: 0.5px;
                 margin-bottom: 8px;
+                text-transform: none !important;
             }
             
             .lista-simples-compacta {
@@ -1760,6 +1767,7 @@ function getHospitalConsolidadoCSS() {
             .lista-item-compacto .label {
                 font-size: 11px;
                 color: ${CORES_ARCHIPELAGO.cinzaMedio};
+                text-transform: none !important;
             }
             
             .lista-item-compacto .valor {
@@ -1792,6 +1800,7 @@ function getHospitalConsolidadoCSS() {
                 font-size: 11px;
                 color: ${CORES_ARCHIPELAGO.cinzaMedio};
                 letter-spacing: 0.5px;
+                text-transform: none !important;
             }
             
             .divisor-vertical {
@@ -1816,6 +1825,7 @@ function getHospitalConsolidadoCSS() {
                 font-size: 13px;
                 color: ${CORES_ARCHIPELAGO.cinzaMedio};
                 margin-top: 6px;
+                text-transform: none !important;
             }
             
             .tph-mini-gauge {
@@ -1852,6 +1862,7 @@ function getHospitalConsolidadoCSS() {
                 font-size: 11px;
                 font-weight: 600;
                 color: ${CORES_ARCHIPELAGO.cinzaMedio};
+                text-transform: none !important;
             }
             
             .tph-gauge-bar.green { color: ${CORES_ARCHIPELAGO.verde}; }
@@ -1874,6 +1885,7 @@ function getHospitalConsolidadoCSS() {
                 font-weight: 600;
                 font-size: 9px;
                 letter-spacing: 0.5px;
+                text-transform: none !important;
             }
             
             .hospitais-table td {
@@ -1922,6 +1934,7 @@ function getHospitalConsolidadoCSS() {
                 color: ${CORES_ARCHIPELAGO.azulAcinzentado};
                 font-style: italic;
                 font-size: 11px;
+                text-transform: none !important;
             }
             
             .graficos-verticais {
@@ -1957,6 +1970,7 @@ function getHospitalConsolidadoCSS() {
                 letter-spacing: 0.5px;
                 text-align: center;
                 width: 100%;
+                text-transform: none !important;
             }
             
             .chart-container {
@@ -2006,6 +2020,7 @@ function getHospitalConsolidadoCSS() {
                 letter-spacing: 0.5px;
                 color: ${CORES_ARCHIPELAGO.azulPrincipal};
                 border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                text-transform: none !important;
             }
             
             .timeline-chart-container {
@@ -2051,6 +2066,7 @@ function getHospitalConsolidadoCSS() {
                 font-weight: 600;
                 margin-bottom: 6px;
                 color: #ffffff;
+                text-transform: none !important;
             }
             
             .timeline-item-mats {
