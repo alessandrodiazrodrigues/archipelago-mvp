@@ -72,8 +72,8 @@
         
         <div class="menu-footer">
             <div class="menu-divider"></div>
-            <a href="#" class="menu-qr" onclick="openQRCodesAndCloseMenu(); return false;">
-                <span>📱</span> Gerar QR Codes
+            <a href="#" class="side-menu-item" onclick="openQRCodesAndCloseMenu(); return false;">
+                Gerar QR Codes
             </a>
         </div>
     </aside>
@@ -136,8 +136,7 @@
     <footer id="mainFooter" class="footer hidden">
         <p>Sistema em versao BETA - nao pode ser usado como unica fonte de referencia</p>
         <p>Para decisoes criticas, consulte sempre fontes adicionais e profissionais qualificados</p>
-        <p><strong>Archipelago Dashboard V4.0 - Outubro/2025</strong></p>
-        <p style="margin-top: 10px; color: #60a5fa;">Cliente: Guilherme Santoro | Desenvolvedor: Alessandro Rodrigues</p>
+        <p><strong>Archipelago Dashboard V4.0 - Novembro/2025</strong></p>
     </footer>
 
     <!-- =================== MODAL DE PACIENTE =================== -->
@@ -182,7 +181,7 @@
     <!-- =================== FUNÇÕES AUXILIARES MENU V4.0 =================== -->
     <script>
         console.log('🚀 Archipelago Dashboard V4.0 - Inicializando...');
-        console.log('📅 Outubro/2025 - Versão V4.0');
+        console.log('📅 Novembro/2025 - Versão V4.0');
         console.log('');
         console.log('✅ NOVIDADES V4.0:');
         console.log('   • ✅ 7 Hospitais (H1-H7) - Total: 93 leitos');
@@ -277,18 +276,19 @@
             display: none !important;
         }
         
-        /* =================== MODAL DE AUTENTICAÇÃO =================== */
+        /* =================== MODAL DE AUTENTICAÇÃO (TRANSPARENTE PARA VER FUNDO) =================== */
         .modal-auth {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.9);
+            background: rgba(0, 0, 0, 0.6); /* REDUZIDO DE 0.9 PARA 0.6 */
             display: flex;
             justify-content: center;
             align-items: center;
             z-index: 10000;
+            backdrop-filter: blur(4px); /* BLUR LEVE PARA VER O FUNDO */
         }
         
         .auth-container {
@@ -511,33 +511,14 @@
             position: absolute;
             bottom: 0;
             width: 100%;
-            padding: 20px;
+            padding: 20px 0;
             background: #1e293b;
         }
         
         .menu-divider {
             height: 1px;
             background: rgba(255, 255, 255, 0.1);
-            margin-bottom: 20px;
-        }
-        
-        .menu-qr {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 12px 20px;
-            color: #e2e8f0;
-            text-decoration: none;
-            border-radius: 6px;
-            transition: all 0.3s;
-            margin: 0 -20px;
-            font-family: 'Poppins', sans-serif;
-            font-weight: 700;
-        }
-        
-        .menu-qr:hover {
-            background: rgba(255, 255, 255, 0.05);
-            color: #60a5fa;
+            margin: 0 20px 20px;
         }
         
         .menu-overlay {
