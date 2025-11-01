@@ -1733,7 +1733,6 @@ function getHospitalConsolidadoCSS() {
                 font-size: 10px;
                 font-weight: 600;
                 color: #60a5fa;
-                text-transform: uppercase;
                 letter-spacing: 0.5px;
                 margin-bottom: 8px;
             }
@@ -1792,7 +1791,6 @@ function getHospitalConsolidadoCSS() {
             .kpi-valor-metade .label {
                 font-size: 11px;
                 color: ${CORES_ARCHIPELAGO.cinzaMedio};
-                text-transform: uppercase;
                 letter-spacing: 0.5px;
             }
             
@@ -1874,7 +1872,6 @@ function getHospitalConsolidadoCSS() {
                 padding: 6px;
                 color: ${CORES_ARCHIPELAGO.azulPrincipal};
                 font-weight: 600;
-                text-transform: uppercase;
                 font-size: 9px;
                 letter-spacing: 0.5px;
             }
@@ -1957,8 +1954,9 @@ function getHospitalConsolidadoCSS() {
                 color: #e2e8f0;
                 font-size: 16px;
                 font-weight: 600;
-                text-transform: uppercase;
                 letter-spacing: 0.5px;
+                text-align: center;
+                width: 100%;
             }
             
             .chart-container {
@@ -2005,7 +2003,6 @@ function getHospitalConsolidadoCSS() {
                 text-align: center;
                 font-size: 14px;
                 font-weight: 700;
-                text-transform: uppercase;
                 letter-spacing: 0.5px;
                 color: ${CORES_ARCHIPELAGO.azulPrincipal};
                 border-bottom: 1px solid rgba(255, 255, 255, 0.1);
