@@ -799,7 +799,7 @@ window.renderDashboardExecutivo = function() {
             
             <div class="dashboard-header-exec" style="margin-bottom: 30px; padding: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 12px; border-left: 4px solid #ffffff;">
                 <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 10px;">
-                    <h2 style="margin: 0; color: #0676bb; font-size: 24px; font-weight: 700; text-align: center; text-transform: none !important;">Rede Hospitalar Externa - Dashboard Geral</h2>
+                    <h2 style="margin: 0; color: #60a5fa; font-size: 24px; font-weight: 700; text-align: center; text-transform: none !important;">Rede Hospitalar Externa - Dashboard Geral</h2>
                 </div>
                 <div style="display: flex; justify-content: center; gap: 15px; flex-wrap: wrap;">
                     <button id="btnWhatsAppExec" style="padding: 8px 16px; background: #25D366; border: 1px solid #25D366; border-radius: 8px; color: white; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 8px; text-transform: none !important;">
