@@ -1632,7 +1632,6 @@ function getHospitalConsolidadoCSS() {
                 font-size: 14px;
                 font-weight: 700;
                 color: #ffffff;
-                text-transform: uppercase;
                 letter-spacing: 0.5px;
                 margin-bottom: 15px;
                 text-align: center;
