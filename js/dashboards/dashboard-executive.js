@@ -1,5 +1,10 @@
-// =================== DASHBOARD EXECUTIVO V4.0 - CORRIGIDO COMPLETO + ACENTOS ===================
+// =================== DASHBOARD EXECUTIVO V4.0 - CORRIGIDO COMPLETO ===================
 // =================== 7 HOSPITAIS | 93 LEITOS | DIRETIVAS CORRIGIDAS ===================
+
+// Estado global para fundo branco (compartilhado com dashboard hospitalar)
+if (typeof window.fundoBranco === 'undefined') {
+    window.fundoBranco = false;
+}
 
 // =================== MAPAS DE DESNORMALIZAÇÃO (RESTAURAR ACENTOS) ===================
 const CONCESSOES_DISPLAY_MAP = {
@@ -66,26 +71,18 @@ const LINHAS_DISPLAY_MAP = {
 };
 
 // =================== FUNÇÃO DE DESNORMALIZAÇÃO ===================
-function desnormalizarTexto(texto) {
+function desnormalizarTextoExec(texto) {
     if (!texto || typeof texto !== 'string') return texto;
     
-    // Tentar mapear concessão
     if (CONCESSOES_DISPLAY_MAP[texto]) {
         return CONCESSOES_DISPLAY_MAP[texto];
     }
     
-    // Tentar mapear linha
     if (LINHAS_DISPLAY_MAP[texto]) {
         return LINHAS_DISPLAY_MAP[texto];
     }
     
-    // Se não encontrou, retorna original
     return texto;
-}
-
-// Estado global para fundo branco (compartilhado com dashboard hospitalar)
-if (typeof window.fundoBranco === 'undefined') {
-    window.fundoBranco = false;
 }
 
 // =================== FUNÇÃO PARSE DATE CORRIGIDA ===================
@@ -1400,7 +1397,7 @@ function calcularDadosConcessoesReais(hospitaisComDados) {
                     concessoesList.forEach(concessao => {
                         if (concessao && concessao.trim()) {
                             const nomeOriginal = concessao.trim();
-                            const nomeComAcentos = desnormalizarTexto(nomeOriginal); // ✅ APLICAR DESNORMALIZAÇÃO
+                            const nomeComAcentos = desnormalizarTextoExec(nomeOriginal);
                             
                             if (!concessoesPorItem[nomeComAcentos]) {
                                 concessoesPorItem[nomeComAcentos] = {};
@@ -1452,7 +1449,7 @@ function calcularDadosLinhasReais(hospitaisComDados) {
                     linhasList.forEach(linha => {
                         if (linha && linha.trim()) {
                             const nomeOriginal = linha.trim();
-                            const nomeComAcentos = desnormalizarTexto(nomeOriginal); // ✅ APLICAR DESNORMALIZAÇÃO
+                            const nomeComAcentos = desnormalizarTextoExec(nomeOriginal);
                             
                             if (!linhasPorItem[nomeComAcentos]) {
                                 linhasPorItem[nomeComAcentos] = {};
