@@ -44,9 +44,9 @@ window.CRUZ_AZUL_IRMAOS = {
     33: 34, 34: 33, 35: 36, 36: 35
 };
 
-// =================== LISTAS FINAIS - ✅ COM ACENTOS UTF-8 ===================
+// =================== ✅ LISTAS FINAIS - 12 CONCESSÕES COM ACENTOS UTF-8 ===================
 
-// CONCESSÕES - 12 ITENS (✅ COM ACENTOS - api.js normaliza depois)
+// ✅ CONCESSÕES - 13 ITENS (12 + "Não se aplica")
 window.CONCESSOES_LIST = [
     "Não se aplica",
     "Transição Domiciliar",
@@ -55,11 +55,12 @@ window.CONCESSOES_LIST = [
     "Banho",
     "Curativo",
     "Curativo PICC",
-    "Fisioterapia Domiciliar",
+    "Fisioterapia Motora Domiciliar",           // ✅ RENOMEADA
     "Fonoaudiologia Domiciliar",
     "Oxigenoterapia",
     "Remoção",
-    "Solicitação domiciliar de exames"
+    "Solicitação domiciliar de exames",
+    "Fisioterapia Respiratória Domiciliar"      // ✅ NOVA (12ª)
 ];
 
 // LINHAS DE CUIDADO: 45 ESPECIALIDADES (✅ COM ACENTOS - api.js normaliza depois)
@@ -1694,7 +1695,7 @@ function coletarDadosFormulario(modal, tipo) {
     return dados;
 }
 
-// =================== ✅ COLETAR CHECKBOXES - CORRIGIDO (LINHA 2329) ===================
+// =================== ✅ COLETAR CHECKBOXES - PRESERVA ACENTOS UTF-8 ===================
 function coletarCheckboxesSelecionados(modal, seletor) {
     const checkboxes = modal.querySelectorAll(`${seletor} input[type="checkbox"]`);
     const selecionados = [];
@@ -2082,18 +2083,18 @@ if (!document.getElementById('cardsConsolidadoCSS')) {
 
 // =================== INICIALIZAÇÃO ===================
 document.addEventListener('DOMContentLoaded', function() {
-    logSuccess('CARDS.JS CARREGADO - Gestão de Leitos Hospitalares');
+    logSuccess('CARDS.JS V4.1 CARREGADO - Gestão de Leitos Hospitalares');
     
-    if (window.CONCESSOES_LIST.length !== 12) {
-        logError(`ERRO: Esperadas 12 concessões, encontradas ${window.CONCESSOES_LIST.length}`);
+    if (window.CONCESSOES_LIST.length !== 13) {
+        logError(`ERRO: Esperadas 13 concessões (12 + "Não se aplica"), encontradas ${window.CONCESSOES_LIST.length}`);
     } else {
-        logSuccess(`${window.CONCESSOES_LIST.length} concessões confirmadas`);
+        logSuccess(`✅ ${window.CONCESSOES_LIST.length} concessões confirmadas (12 + "Não se aplica")`);
     }
     
     if (window.LINHAS_CUIDADO_LIST.length !== 45) {
         logError(`ERRO: Esperadas 45 linhas, encontradas ${window.LINHAS_CUIDADO_LIST.length}`);
     } else {
-        logSuccess(`${window.LINHAS_CUIDADO_LIST.length} linhas de cuidado confirmadas`);
+        logSuccess(`✅ ${window.LINHAS_CUIDADO_LIST.length} linhas de cuidado confirmadas`);
     }
 });
 
@@ -2111,7 +2112,7 @@ window.formatarMatriculaExibicao = formatarMatriculaExibicao;
 window.setupSearchFilter = setupSearchFilter;
 window.searchLeitos = searchLeitos;
 
-logSuccess('CARDS.JS COMPLETO - Gestão de Leitos Hospitalares!');
-console.log('✅ LINHAS DE CUIDADO: Exibidas nos cards!');
-console.log('✅ CONCESSÕES E LINHAS: Mesmas cores e fontes!');
-console.log('✅ ACENTOS UTF-8: Mantidos e enviados para api.js normalizar!');
+logSuccess('✅ CARDS.JS V4.1 COMPLETO - 12 CONCESSÕES!');
+logSuccess('✅ Fisioterapia Motora Domiciliar (renomeada)');
+logSuccess('✅ Fisioterapia Respiratória Domiciliar (12ª concessão)');
+logSuccess('✅ Acentos UTF-8 preservados para api.js normalizar!');
