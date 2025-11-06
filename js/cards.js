@@ -1,3 +1,7 @@
+// =================== 🔵 DEBUG INICIAL ===================
+console.log('🔵 [DEBUG] cards.js - INÍCIO DO CARREGAMENTO');
+console.log('🔵 [DEBUG] window.desnormalizarTexto existe?', typeof window.desnormalizarTexto !== 'undefined');
+
 // =================== CARDS.JS - GESTÃO DE LEITOS HOSPITALARES ===================
 
 // =================== ✅ FUNÇÃO DE NORMALIZAÇÃO (PARA COMPARAÇÕES) ===================
@@ -78,6 +82,10 @@ const LINHAS_DISPLAY_MAP = {
     "Urologia": "Urologia"
 };
 
+// =================== 🔵 DEBUG ANTES DA DECLARAÇÃO ===================
+console.log('🔵 [DEBUG] Antes de declarar desnormalizarTexto');
+console.log('🔵 [DEBUG] window.desnormalizarTexto =', window.desnormalizarTexto);
+
 // =================== ✅ FUNÇÃO DE DESNORMALIZAÇÃO - CORRIGIDA PARA EVITAR CONFLITO ===================
 // Verificar se já existe antes de declarar (evita conflito com dashboard-hospital.js)
 if (typeof window.desnormalizarTexto === 'undefined') {
@@ -101,6 +109,11 @@ if (typeof window.desnormalizarTexto === 'undefined') {
 
 // Criar referência local para uso interno
 const desnormalizarTexto = window.desnormalizarTexto;
+
+// =================== 🔵 DEBUG DEPOIS DA DECLARAÇÃO ===================
+console.log('🔵 [DEBUG] Depois de declarar desnormalizarTexto');
+console.log('🔵 [DEBUG] window.desnormalizarTexto =', typeof window.desnormalizarTexto);
+console.log('🔵 [DEBUG] desnormalizarTexto local =', typeof desnormalizarTexto);
 
 // =================== VARIÁVEIS GLOBAIS ===================  
 window.selectedLeito = null;
@@ -2237,8 +2250,4 @@ window.setupSearchFilter = setupSearchFilter;
 window.searchLeitos = searchLeitos;
 window.desnormalizarTexto = desnormalizarTexto; // ✅ NOVO
 
-logSuccess('✅ CARDS.JS V4.1.1 FINAL - SOLUÇÃO DEFINITIVA APLICADA!');
-logSuccess('✅ Conflito de declaração de função resolvido!');
-logSuccess('✅ Função desnormalizarTexto verifica se já existe antes de declarar!');
-logSuccess('✅ Concessões e linhas aparecem COM acentos nos cards!');
-logSuccess('✅ Sistema de normalização/desnormalização funcionando perfeitamente!');
+logSuccess('✅ CARDS.JS V4.1.1 FINAL COM DEBUG - PRONTO PARA TESTE!');
