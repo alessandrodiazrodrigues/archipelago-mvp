@@ -71,7 +71,7 @@ window.CONCESSOES_LIST = [
     "Solicitação domiciliar de exames"
 ];
 
-// LINHAS DE CUIDADO: 45 ESPECIALIDADES (MANTIDO PARA COMPATIBILIDADE)
+// LINHAS DE CUIDADO: 45 ESPECIALIDADES
 window.LINHAS_CUIDADO_LIST = [
     "Assiste", "APS SP", "Cuidados Paliativos", "ICO (Insuficiência Coronariana)",
     "Nexus SP Cardiologia", "Nexus SP Gastroentereologia", "Nexus SP Geriatria",
@@ -781,6 +781,7 @@ function openAdmissaoModal(leitoNumero) {
     
     setupModalEventListeners(modal, 'admissao');
     setupSearchFilter(modal, 'admConcessoes', 'searchConcessoes');
+    setupSearchFilter(modal, 'admLinhas', 'searchLinhas');
 }
 
 function openAtualizacaoModal(leitoNumero, dadosLeito) {
@@ -795,6 +796,7 @@ function openAtualizacaoModal(leitoNumero, dadosLeito) {
     
     setupModalEventListeners(modal, 'atualizacao');
     setupSearchFilter(modal, 'updConcessoes', 'searchConcessoesUpd');
+    setupSearchFilter(modal, 'updLinhas', 'searchLinhasUpd');
     
     setTimeout(() => {
         forcarPreMarcacao(modal, dadosLeito);
@@ -862,7 +864,7 @@ function setupSearchFilter(modal, containerId, searchId) {
     logSuccess(`Busca dinâmica configurada: ${searchId}`);
 }
 
-// =================== FORMULÁRIO DE ADMISSÃO - SEM LINHAS ===================
+// =================== FORMULÁRIO DE ADMISSÃO - COM LINHAS ===================
 function createAdmissaoForm(hospitalNome, leitoNumero, hospitalId) {
     const idSequencial = String(leitoNumero).padStart(2, '0');
     const isHibrido = window.HOSPITAIS_HIBRIDOS.includes(hospitalId);
@@ -1055,6 +1057,33 @@ function createAdmissaoForm(hospitalNome, leitoNumero, hospitalId) {
                     `).join('')}
                 </div>
             </div>
+
+            <!-- LINHAS DE CUIDADO COM BUSCA -->
+            <div style="margin-bottom: 20px;">
+                <div style="background: rgba(96,165,250,0.1); padding: 10px 15px; border-radius: 6px; margin-bottom: 10px;">
+                    <div style="font-size: 11px; color: #ffffff; text-transform: uppercase; font-weight: 700;">
+                        Linhas de Cuidado (${window.LINHAS_CUIDADO_LIST.length} opções)
+                    </div>
+                </div>
+                
+                <!-- CAMPO DE BUSCA COM ÍCONE SVG -->
+                <div style="position: relative; margin-bottom: 8px;">
+                    <svg style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: #9ca3af; pointer-events: none;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                    <input type="text" id="searchLinhas" placeholder="Digite para buscar... (ex: 'cardiologia', 'geriatria')" style="width: 100%; padding: 10px 10px 10px 36px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 13px; font-family: 'Poppins', sans-serif;">
+                </div>
+                
+                <div id="admLinhas" style="max-height: 150px; overflow-y: auto; background: rgba(255,255,255,0.03); border-radius: 6px; padding: 10px; display: grid; grid-template-columns: 1fr; gap: 6px;">
+                    ${window.LINHAS_CUIDADO_LIST.map(linha => `
+                        <label style="display: flex; align-items: center; padding: 4px 0; cursor: pointer; font-size: 12px; font-family: 'Poppins', sans-serif;">
+                            <input type="checkbox" value="${linha}" style="margin-right: 8px; accent-color: #60a5fa;">
+                            <span>${linha}</span>
+                        </label>
+                    `).join('')}
+                </div>
+            </div>
             
             <!-- BOTÕES -->
             <div class="modal-buttons" style="display: flex; justify-content: flex-end; gap: 12px; padding: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
@@ -1065,7 +1094,7 @@ function createAdmissaoForm(hospitalNome, leitoNumero, hospitalId) {
     `;
 }
 
-// =================== FORMULÁRIO DE ATUALIZAÇÃO - SEM LINHAS ===================
+// =================== FORMULÁRIO DE ATUALIZAÇÃO - COM LINHAS ===================
 function createAtualizacaoForm(hospitalNome, leitoNumero, dadosLeito) {
     const tempoInternacao = dadosLeito?.admAt ? calcularTempoInternacao(dadosLeito.admAt) : '';
     const iniciais = dadosLeito?.nome ? dadosLeito.nome.trim() : '';
@@ -1269,6 +1298,37 @@ function createAtualizacaoForm(hospitalNome, leitoNumero, dadosLeito) {
                     }).join('')}
                 </div>
             </div>
+
+            <!-- LINHAS DE CUIDADO COM BUSCA -->
+            <div style="margin-bottom: 20px;">
+                <div style="background: rgba(96,165,250,0.1); padding: 10px 15px; border-radius: 6px; margin-bottom: 10px;">
+                    <div style="font-size: 11px; color: #ffffff; text-transform: uppercase; font-weight: 700;">
+                        Linhas de Cuidado (${window.LINHAS_CUIDADO_LIST.length} opções)
+                    </div>
+                </div>
+                
+                <!-- CAMPO DE BUSCA COM ÍCONE SVG -->
+                <div style="position: relative; margin-bottom: 8px;">
+                    <svg style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: #9ca3af; pointer-events: none;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                    <input type="text" id="searchLinhasUpd" placeholder="Digite para buscar... (ex: 'cardiologia', 'geriatria')" style="width: 100%; padding: 10px 10px 10px 36px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 13px; font-family: 'Poppins', sans-serif;">
+                </div>
+                
+                <div id="updLinhas" style="max-height: 150px; overflow-y: auto; background: rgba(255,255,255,0.03); border-radius: 6px; padding: 10px; display: grid; grid-template-columns: 1fr; gap: 6px;">
+                    ${window.LINHAS_CUIDADO_LIST.map(linha => {
+                        const linhasAtuais = Array.isArray(dadosLeito?.linhas) ? dadosLeito.linhas : [];
+                        const isChecked = linhasAtuais.includes(linha);
+                        return `
+                            <label style="display: flex; align-items: center; padding: 4px 0; cursor: pointer; font-size: 12px; font-family: 'Poppins', sans-serif;">
+                                <input type="checkbox" value="${linha}" ${isChecked ? 'checked' : ''} style="margin-right: 8px; accent-color: #60a5fa;">
+                                <span>${linha}</span>
+                            </label>
+                        `;
+                    }).join('')}
+                </div>
+            </div>
             
             <!-- BOTÕES -->
             <div class="modal-buttons" style="display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
@@ -1305,6 +1365,18 @@ function forcarPreMarcacao(modal, dadosLeito) {
             checkbox.checked = true;
         }
     });
+
+    // PRÉ-MARCAÇÃO DE LINHAS
+    const linhasAtuais = Array.isArray(dadosLeito?.linhas) ? dadosLeito.linhas : [];
+    const linhasCheckboxes = modal.querySelectorAll('#updLinhas input[type="checkbox"]');
+
+    linhasCheckboxes.forEach(checkbox => {
+        if (linhasAtuais.includes(checkbox.value)) {
+            checkbox.checked = true;
+        }
+    });
+
+    logDebug(`Linhas pré-marcadas: ${linhasAtuais.length}`);
     
     logDebug(`Pré-marcação concluída`);
 }
@@ -1559,7 +1631,7 @@ function coletarDadosFormulario(modal, tipo) {
         }
         
         dados.concessoes = coletarCheckboxesSelecionados(modal, '#admConcessoes');
-        dados.linhas = [];
+        dados.linhas = coletarCheckboxesSelecionados(modal, '#admLinhas');
         
     } else {
         dados.idade = parseInt(modal.querySelector('#updIdade')?.value) || null;
@@ -1578,7 +1650,7 @@ function coletarDadosFormulario(modal, tipo) {
         }
         
         dados.concessoes = coletarCheckboxesSelecionados(modal, '#updConcessoes');
-        dados.linhas = [];
+        dados.linhas = coletarCheckboxesSelecionados(modal, '#updLinhas');
     }
     
     return dados;
@@ -1899,7 +1971,8 @@ if (!document.getElementById('cardsConsolidadoCSS')) {
                 margin-bottom: 3px !important;
             }
             
-            .modal-content div[id$="Concessoes"] {
+            .modal-content div[id$="Concessoes"],
+            .modal-content div[id$="Linhas"] {
                 grid-template-columns: 1fr !important;
                 max-height: 120px !important;
             }
@@ -1980,7 +2053,11 @@ document.addEventListener('DOMContentLoaded', function() {
         logSuccess(`${window.CONCESSOES_LIST.length} concessões confirmadas`);
     }
     
-    logInfo('LINHAS DE CUIDADO INIBIDAS - Não aparecerão na interface');
+    if (window.LINHAS_CUIDADO_LIST.length !== 45) {
+        logError(`ERRO: Esperadas 45 linhas, encontradas ${window.LINHAS_CUIDADO_LIST.length}`);
+    } else {
+        logSuccess(`${window.LINHAS_CUIDADO_LIST.length} linhas de cuidado confirmadas`);
+    }
 });
 
 // =================== EXPORTS ===================
@@ -1998,5 +2075,5 @@ window.setupSearchFilter = setupSearchFilter;
 window.searchLeitos = searchLeitos;
 
 logSuccess('CARDS.JS COMPLETO - Gestão de Leitos Hospitalares!');
-console.log('CARDS.JS - LINHAS DE CUIDADO REMOVIDAS DA INTERFACE!');
-console.log('✅ CORREÇÃO APLICADA: Normalização de acentos nas concessões!');
+console.log('✅ LINHAS DE CUIDADO: REATIVADAS!');
+console.log('✅ CONCESSÕES E LINHAS: Normalização de acentos aplicada!');
