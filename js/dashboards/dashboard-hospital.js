@@ -3,6 +3,79 @@
 
 console.log('Dashboard Hospitalar V4.0 - Inicializando...');
 
+// =================== MAPAS DE DESNORMALIZAÇÃO ===================
+// Convertem texto sem acentos → texto com acentos para exibição
+
+const CONCESSOES_DISPLAY_MAP = {
+    "Transicao Domiciliar": "Transição Domiciliar",
+    "Aplicacao domiciliar de medicamentos": "Aplicação domiciliar de medicamentos",
+    "Aspiracao": "Aspiração",
+    "Banho": "Banho",
+    "Curativo": "Curativo",
+    "Curativo PICC": "Curativo PICC",
+    "Fisioterapia Domiciliar": "Fisioterapia Domiciliar",
+    "Fonoaudiologia Domiciliar": "Fonoaudiologia Domiciliar",
+    "Oxigenoterapia": "Oxigenoterapia",
+    "Remocao": "Remoção",
+    "Solicitacao de Exames Domiciliar": "Solicitação de Exames Domiciliar"
+};
+
+const LINHAS_DISPLAY_MAP = {
+    "Assiste": "Assiste",
+    "APS SP": "APS SP",
+    "Cuidados Paliativos": "Cuidados Paliativos",
+    "ICO (Insuficiencia Coronariana)": "ICO (Insuficiência Coronariana)",
+    "Nexus SP Saude do Figado": "Nexus SP Saúde do Fígado",
+    "Cardiologia": "Cardiologia",
+    "Clinica Medica": "Clínica Médica",
+    "Dermatologia": "Dermatologia",
+    "Endocrinologia": "Endocrinologia",
+    "Gastroenterologia": "Gastroenterologia",
+    "Geriatria": "Geriatria",
+    "Ginecologia": "Ginecologia",
+    "Hematologia": "Hematologia",
+    "Nefrologia": "Nefrologia",
+    "Neurologia": "Neurologia",
+    "Nutrição": "Nutrição",
+    "Nutricao": "Nutrição",
+    "Oncologia": "Oncologia",
+    "Ortopedia": "Ortopedia",
+    "Pneumologia": "Pneumologia",
+    "Psicologia": "Psicologia",
+    "Psiquiatria": "Psiquiatria",
+    "Reumatologia": "Reumatologia",
+    "Urologia": "Urologia",
+    "Fisioterapia": "Fisioterapia",
+    "Fonoaudiologia": "Fonoaudiologia",
+    "Terapia Ocupacional": "Terapia Ocupacional",
+    "Servico Social": "Serviço Social",
+    "Servico de Atencao Domiciliar": "Serviço de Atenção Domiciliar",
+    "Farmacia": "Farmácia",
+    "Odontologia": "Odontologia"
+};
+
+/**
+ * Desnormaliza texto restaurando acentos para exibição
+ * @param {string} texto - Texto sem acentos
+ * @returns {string} Texto com acentos
+ */
+function desnormalizarTexto(texto) {
+    if (!texto || typeof texto !== 'string') return texto;
+    
+    // Tentar concessões primeiro
+    if (CONCESSOES_DISPLAY_MAP[texto]) {
+        return CONCESSOES_DISPLAY_MAP[texto];
+    }
+    
+    // Depois tentar linhas
+    if (LINHAS_DISPLAY_MAP[texto]) {
+        return LINHAS_DISPLAY_MAP[texto];
+    }
+    
+    // Se não encontrar, retornar o texto original
+    return texto;
+}
+
 // Variável global para controlar o filtro atual
 window.hospitalFiltroAtual = 'todos';
 
@@ -273,7 +346,7 @@ window.copiarDashboardParaWhatsApp = function() {
             texto += `48h: ${altasTimeline['48H'].join(', ')}\n\n`;
         }
         
-        // ========== CONCESSÕES PREVISTAS ==========
+        // ========== CONCESSÕES PREVISTAS (✅ COM DESNORMALIZAÇÃO) ==========
         const concessoesTimeline = {
             'HOJE': {},
             '24H': {}
@@ -299,7 +372,8 @@ window.copiarDashboardParaWhatsApp = function() {
                     if (timeline) {
                         concessoesList.forEach(concessao => {
                             if (concessao && concessao.trim()) {
-                                const nome = concessao.trim();
+                                // ✅ APLICAR DESNORMALIZAÇÃO AQUI
+                                const nome = desnormalizarTexto(concessao.trim());
                                 if (!concessoesTimeline[timeline][nome]) {
                                     concessoesTimeline[timeline][nome] = [];
                                 }
@@ -317,7 +391,8 @@ window.copiarDashboardParaWhatsApp = function() {
         if (temConcessoesHoje) {
             texto += `*Concessões Previstas HOJE:*\n`;
             Object.entries(concessoesTimeline['HOJE']).forEach(([nome, mats]) => {
-                texto += `${nome}: ${mats.join(', ')}\n`;
+                // ✅ APLICAR DESNORMALIZAÇÃO AQUI TAMBÉM
+                texto += `${desnormalizarTexto(nome)}: ${mats.join(', ')}\n`;
             });
             texto += `\n`;
         }
@@ -325,7 +400,8 @@ window.copiarDashboardParaWhatsApp = function() {
         if (temConcessoes24h) {
             texto += `*Concessões Previstas 24H:*\n`;
             Object.entries(concessoesTimeline['24H']).forEach(([nome, mats]) => {
-                texto += `${nome}: ${mats.join(', ')}\n`;
+                // ✅ APLICAR DESNORMALIZAÇÃO AQUI TAMBÉM
+                texto += `${desnormalizarTexto(nome)}: ${mats.join(', ')}\n`;
             });
             texto += `\n`;
         }
@@ -1424,7 +1500,8 @@ function renderConcessoesHospital(hospitalId) {
                 if (timeline) {
                     concessoesList.forEach(concessao => {
                         if (concessao && concessao.trim()) {
-                            const nome = concessao.trim();
+                            // ✅ APLICAR DESNORMALIZAÇÃO AQUI
+                            const nome = desnormalizarTexto(concessao.trim());
                             if (!concessoesPorTimeline[timeline][nome]) {
                                 concessoesPorTimeline[timeline][nome] = [];
                             }
@@ -1590,7 +1667,8 @@ function renderLinhasHospital(hospitalId) {
                 if (timeline) {
                     linhasList.forEach(linha => {
                         if (linha && linha.trim()) {
-                            const nome = linha.trim();
+                            // ✅ APLICAR DESNORMALIZAÇÃO AQUI
+                            const nome = desnormalizarTexto(linha.trim());
                             if (!linhasPorTimeline[timeline][nome]) {
                                 linhasPorTimeline[timeline][nome] = [];
                             }
