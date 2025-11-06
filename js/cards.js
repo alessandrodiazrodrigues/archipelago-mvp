@@ -1,6 +1,6 @@
 // =================== CARDS.JS - GESTÃO DE LEITOS HOSPITALARES ===================
 
-// =================== ✅ FUNÇÃO DE NORMALIZAÇÃO (DUPLICADA DO API.JS) ===================
+// =================== ✅ FUNÇÃO DE NORMALIZAÇÃO (PARA COMPARAÇÕES) ===================
 function normalizarTexto(texto) {
     if (!texto || typeof texto !== 'string') return texto;
     return texto
@@ -8,6 +8,92 @@ function normalizarTexto(texto) {
         .replace(/[\u0300-\u036f]/g, '')
         .replace(/ç/g, 'c')
         .replace(/Ç/g, 'C');
+}
+
+// =================== ✅ MAPAS DE DESNORMALIZAÇÃO - EXIBIÇÃO COM ACENTOS ===================
+
+// Converte texto SEM acentos (vindo da planilha) → COM acentos (exibição)
+const CONCESSOES_DISPLAY_MAP = {
+    // Chave = texto sem acentos (como vem da planilha)
+    // Valor = texto com acentos (como deve ser exibido)
+    "Transicao Domiciliar": "Transição Domiciliar",
+    "Aplicacao domiciliar de medicamentos": "Aplicação domiciliar de medicamentos",
+    "Aspiracao": "Aspiração",
+    "Banho": "Banho",
+    "Curativo": "Curativo",
+    "Curativo PICC": "Curativo PICC",
+    "Fisioterapia Motora Domiciliar": "Fisioterapia Motora Domiciliar",
+    "Fonoaudiologia Domiciliar": "Fonoaudiologia Domiciliar",
+    "Oxigenoterapia": "Oxigenoterapia",
+    "Remocao": "Remoção",
+    "Solicitacao domiciliar de exames": "Solicitação domiciliar de exames",
+    "Fisioterapia Respiratoria Domiciliar": "Fisioterapia Respiratória Domiciliar"
+};
+
+const LINHAS_DISPLAY_MAP = {
+    "Assiste": "Assiste",
+    "APS SP": "APS SP",
+    "Cuidados Paliativos": "Cuidados Paliativos",
+    "ICO (Insuficiencia Coronariana)": "ICO (Insuficiência Coronariana)",
+    "Nexus SP Cardiologia": "Nexus SP Cardiologia",
+    "Nexus SP Gastroentereologia": "Nexus SP Gastroentereologia",
+    "Nexus SP Geriatria": "Nexus SP Geriatria",
+    "Nexus SP Pneumologia": "Nexus SP Pneumologia",
+    "Nexus SP Psiquiatria": "Nexus SP Psiquiatria",
+    "Nexus SP Reumatologia": "Nexus SP Reumatologia",
+    "Nexus SP Saude do Figado": "Nexus SP Saúde do Fígado",
+    "Generalista": "Generalista",
+    "Bucomaxilofacial": "Bucomaxilofacial",
+    "Cardiologia": "Cardiologia",
+    "Cirurgia Cardiaca": "Cirurgia Cardíaca",
+    "Cirurgia de Cabeca e Pescoco": "Cirurgia de Cabeça e Pescoço",
+    "Cirurgia do Aparelho Digestivo": "Cirurgia do Aparelho Digestivo",
+    "Cirurgia Geral": "Cirurgia Geral",
+    "Cirurgia Oncologica": "Cirurgia Oncológica",
+    "Cirurgia Plastica": "Cirurgia Plástica",
+    "Cirurgia Toracica": "Cirurgia Torácica",
+    "Cirurgia Vascular": "Cirurgia Vascular",
+    "Clinica Medica": "Clínica Médica",
+    "Coloproctologia": "Coloproctologia",
+    "Dermatologia": "Dermatologia",
+    "Endocrinologia": "Endocrinologia",
+    "Fisiatria": "Fisiatria",
+    "Gastroenterologia": "Gastroenterologia",
+    "Geriatria": "Geriatria",
+    "Ginecologia e Obstetricia": "Ginecologia e Obstetrícia",
+    "Hematologia": "Hematologia",
+    "Infectologia": "Infectologia",
+    "Mastologia": "Mastologia",
+    "Nefrologia": "Nefrologia",
+    "Neurocirurgia": "Neurocirurgia",
+    "Neurologia": "Neurologia",
+    "Oftalmologia": "Oftalmologia",
+    "Oncologia Clinica": "Oncologia Clínica",
+    "Ortopedia": "Ortopedia",
+    "Otorrinolaringologia": "Otorrinolaringologia",
+    "Pediatria": "Pediatria",
+    "Pneumologia": "Pneumologia",
+    "Psiquiatria": "Psiquiatria",
+    "Reumatologia": "Reumatologia",
+    "Urologia": "Urologia"
+};
+
+// ✅ FUNÇÃO DE DESNORMALIZAÇÃO - EXIBE COM ACENTOS
+function desnormalizarTexto(texto) {
+    if (!texto || typeof texto !== 'string') return texto;
+    
+    // Tentar encontrar no mapa de concessões
+    if (CONCESSOES_DISPLAY_MAP[texto]) {
+        return CONCESSOES_DISPLAY_MAP[texto];
+    }
+    
+    // Tentar encontrar no mapa de linhas
+    if (LINHAS_DISPLAY_MAP[texto]) {
+        return LINHAS_DISPLAY_MAP[texto];
+    }
+    
+    // Se não encontrar nos mapas, retornar o texto original
+    return texto;
 }
 
 // =================== VARIÁVEIS GLOBAIS ===================  
@@ -461,7 +547,7 @@ function validarLimiteSantaClara(tipoQuarto) {
     return { permitido: true };
 }
 
-// =================== CRIAR CARD INDIVIDUAL ===================
+// =================== CRIAR CARD INDIVIDUAL - ✅ COM DESNORMALIZAÇÃO ===================
 function createCard(leito, hospitalNome) {
     const card = document.createElement('div');
     card.className = 'card';
@@ -559,8 +645,12 @@ function createCard(leito, hospitalNome) {
     const badgeGenero = getBadgeGenero(sexo);
     const badgeDiretivas = getBadgeDiretivas(diretivas);
     
-    const concessoes = Array.isArray(leito.concessoes) ? leito.concessoes : [];
-    const linhas = Array.isArray(leito.linhas) ? leito.linhas : [];
+    // ✅ DESNORMALIZAR CONCESSÕES E LINHAS PARA EXIBIÇÃO
+    const concessoesRaw = Array.isArray(leito.concessoes) ? leito.concessoes : [];
+    const concessoes = concessoesRaw.map(c => desnormalizarTexto(c));
+    
+    const linhasRaw = Array.isArray(leito.linhas) ? leito.linhas : [];
+    const linhas = linhasRaw.map(l => desnormalizarTexto(l));
     
     let tempoInternacao = '';
     if (!isVago && admissao) {
@@ -689,7 +779,7 @@ function createCard(leito, hospitalNome) {
             </div>
         </div>
 
-        <!-- CONCESSÕES -->
+        <!-- CONCESSÕES - ✅ COM DESNORMALIZAÇÃO -->
         <div class="card-section" style="margin-bottom: 15px; font-family: 'Poppins', sans-serif;">
             <div class="section-header" style="background: #60a5fa; color: #ffffff; font-size: 10px; padding: 6px 8px; border-radius: 4px; margin-bottom: 6px; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px;">
                 CONCESSÕES PREVISTAS NA ALTA
@@ -702,7 +792,7 @@ function createCard(leito, hospitalNome) {
             </div>
         </div>
 
-        <!-- LINHAS DE CUIDADO -->
+        <!-- LINHAS DE CUIDADO - ✅ COM DESNORMALIZAÇÃO -->
         <div class="card-section" style="margin-bottom: 15px; font-family: 'Poppins', sans-serif;">
             <div class="section-header" style="background: #60a5fa; color: #ffffff; font-size: 10px; padding: 6px 8px; border-radius: 4px; margin-bottom: 6px; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px;">
                 LINHAS DE CUIDADO
@@ -2111,7 +2201,7 @@ if (!document.getElementById('cardsConsolidadoCSS')) {
 
 // =================== INICIALIZAÇÃO ===================
 document.addEventListener('DOMContentLoaded', function() {
-    logSuccess('CARDS.JS V4.1 FINAL CARREGADO - Gestão de Leitos Hospitalares');
+    logSuccess('CARDS.JS V4.1.1 FINAL CARREGADO - Gestão de Leitos Hospitalares');
     
     if (window.CONCESSOES_LIST.length !== 13) {
         logError(`ERRO: Esperadas 13 concessões (12 + "Não se aplica"), encontradas ${window.CONCESSOES_LIST.length}`);
@@ -2139,7 +2229,8 @@ window.formatarMatriculaInput = formatarMatriculaInput;
 window.formatarMatriculaExibicao = formatarMatriculaExibicao;
 window.setupSearchFilter = setupSearchFilter;
 window.searchLeitos = searchLeitos;
+window.desnormalizarTexto = desnormalizarTexto; // ✅ NOVO
 
-logSuccess('✅ CARDS.JS V4.1 FINAL - 12 CONCESSÕES COM NORMALIZAÇÃO!');
-logSuccess('✅ Bug de pré-marcação CORRIGIDO!');
-logSuccess('✅ Concessões/linhas com acentos agora aparecem marcadas!');
+logSuccess('✅ CARDS.JS V4.1.1 FINAL - EXIBIÇÃO COM ACENTOS CORRIGIDA!');
+logSuccess('✅ Concessões e linhas agora aparecem COM acentos nos cards!');
+logSuccess('✅ Função desnormalizarTexto implementada!');
