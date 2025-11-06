@@ -3,118 +3,58 @@
 // Desenvolvedor: Alessandro Rodrigues
 // Data: Outubro/2025
 // Versão: V4.0 (7 HOSPITAIS - 93 LEITOS)
-// =================== CHANGELOG V3.3.1 → V4.0 ===================
-// ✅ URL da API atualizada (nova URL de produção)
-// ✅ Adicionados H6 (Santa Cruz) e H7 (Santa Virgínia)
-// ✅ HOSPITAIS_CONFIG criado com os 7 hospitais
-// ✅ Total de leitos atualizado: 79 → 93
-// ✅ Todas as funcionalidades V3.3.1 mantidas
-// ✅ CORREÇÃO CRÍTICA: Normalização de acentos para compatibilidade com backend
+// ✅ CORREÇÃO CRÍTICA: Acentos preservados em toda a cadeia
 // ==================================================================================
 
-// *** URL DA API V4.0 - ATUALIZADA ***
 window.API_URL = 'https://script.google.com/macros/s/AKfycbyBUvZ703tGkuKVHMv5W0K-m7f1j7gCUZdA8MW9-bBrETzr9M5f1YjvjN_lBlIXqXUZ/exec';
 
-// =================== CONFIGURAÇÃO DOS HOSPITAIS V4.0 (7 HOSPITAIS - 93 LEITOS) ===================
+// =================== CONFIGURAÇÃO DOS HOSPITAIS V4.0 ===================
 window.HOSPITAIS_CONFIG = {
     H1: { nome: 'Neomater', leitos: 10 },
     H2: { nome: 'Cruz Azul', leitos: 36 },
     H3: { nome: 'Santa Marcelina', leitos: 7 },
     H4: { nome: 'Santa Clara', leitos: 13 },
     H5: { nome: 'Adventista', leitos: 13 },
-    H6: { nome: 'Santa Cruz', leitos: 7 },        // ✅ NOVO V4.0
-    H7: { nome: 'Santa Virgínia', leitos: 7 }     // ✅ NOVO V4.0
+    H6: { nome: 'Santa Cruz', leitos: 7 },
+    H7: { nome: 'Santa Virgínia', leitos: 7 }
 };
 
 // =================== VARIÁVEIS GLOBAIS ===================
 window.hospitalData = {};
 window.apiCache = {};
 window.lastAPICall = 0;
-window.API_TIMEOUT = 15000; // 15 segundos
+window.API_TIMEOUT = 15000;
 
 // =================== MAPEAMENTO DE COLUNAS V4.0 (74 COLUNAS: A-BV) ===================
 window.COLUNAS = {
-    // DADOS BÁSICOS (A-L) - 12 colunas
-    HOSPITAL: 0,           // A
-    LEITO: 1,              // B
-    TIPO: 2,               // C
-    STATUS: 3,             // D
-    NOME: 4,               // E
-    MATRICULA: 5,          // F
-    IDADE: 6,              // G
-    ADM_AT: 7,             // H
-    PPS: 8,                // I
-    SPICT: 9,              // J
-    COMPLEXIDADE: 10,      // K
-    PREV_ALTA: 11,         // L
-    
-    // CONCESSÕES (M-W) - 11 checkboxes
-    C1_TRANSICAO_DOMICILIAR: 12,              // M
-    C2_APLICACAO_MED_DOMICILIAR: 13,          // N
-    C3_ASPIRACAO: 14,                          // O
-    C4_BANHO: 15,                              // P
-    C5_CURATIVO: 16,                           // Q
-    C6_CURATIVO_PICC: 17,                      // R
-    C7_FISIOTERAPIA_DOMICILIAR: 18,           // S
-    C8_FONOAUDIOLOGIA_DOMICILIAR: 19,         // T
-    C9_OXIGENOTERAPIA: 20,                     // U
-    C10_REMOCAO: 21,                           // V
-    C11_SOLICITACAO_EXAMES_DOMICILIAR: 22,    // W
-    
-    // LINHAS DE CUIDADO (X-BR) - 45 checkboxes
-    L1_ASSISTE: 23,                            // X
-    L2_APS_SP: 24,                             // Y
-    L3_CUIDADOS_PALIATIVOS: 25,                // Z
-    L4_ICO: 26,                                // AA
-    L5_NEXUS_SP_CARDIOLOGIA: 27,              // AB
-    L6_NEXUS_SP_GASTROENTEREOLOGIA: 28,       // AC
-    L7_NEXUS_SP_GERIATRIA: 29,                // AD
-    L8_NEXUS_SP_PNEUMOLOGIA: 30,              // AE
-    L9_NEXUS_SP_PSIQUIATRIA: 31,              // AF
-    L10_NEXUS_SP_REUMATOLOGIA: 32,            // AG
-    L11_NEXUS_SP_SAUDE_FIGADO: 33,            // AH
-    L12_GENERALISTA: 34,                       // AI
-    L13_BUCOMAXILOFACIAL: 35,                  // AJ
-    L14_CARDIOLOGIA: 36,                       // AK
-    L15_CIRURGIA_CARDIACA: 37,                 // AL
-    L16_CIRURGIA_CABECA_PESCOCO: 38,          // AM
-    L17_CIRURGIA_APARELHO_DIGESTIVO: 39,      // AN
-    L18_CIRURGIA_GERAL: 40,                    // AO
-    L19_CIRURGIA_ONCOLOGICA: 41,               // AP
-    IDENTIFICACAO_LEITO: 42,                   // AQ (campo especial)
-    ISOLAMENTO: 43,                            // AR (campo especial)
-    L20_CIRURGIA_PLASTICA: 44,                 // AS
-    L21_CIRURGIA_TORACICA: 45,                 // AT
-    L22_CIRURGIA_VASCULAR: 46,                 // AU
-    L23_CLINICA_MEDICA: 47,                    // AV
-    L24_COLOPROCTOLOGIA: 48,                   // AW
-    L25_DERMATOLOGIA: 49,                      // AX
-    L26_ENDOCRINOLOGIA: 50,                    // AY
-    L27_FISIATRIA: 51,                         // AZ
-    L28_GASTROENTEROLOGIA: 52,                 // BA
-    L29_GERIATRIA: 53,                         // BB
-    L30_GINECOLOGIA_OBSTETRICIA: 54,          // BC
-    L31_HEMATOLOGIA: 55,                       // BD
-    L32_INFECTOLOGIA: 56,                      // BE
-    L33_MASTOLOGIA: 57,                        // BF
-    L34_NEFROLOGIA: 58,                        // BG
-    L35_NEUROCIRURGIA: 59,                     // BH
-    L36_NEUROLOGIA: 60,                        // BI
-    L37_OFTALMOLOGIA: 61,                      // BJ
-    L38_ONCOLOGIA_CLINICA: 62,                 // BK
-    L39_ORTOPEDIA: 63,                         // BL
-    L40_OTORRINOLARINGOLOGIA: 64,              // BM
-    L41_PEDIATRIA: 65,                         // BN
-    L42_PNEUMOLOGIA: 66,                       // BO
-    L43_PSIQUIATRIA: 67,                       // BP
-    L44_REUMATOLOGIA: 68,                      // BQ
-    L45_UROLOGIA: 69,                          // BR
-    
-    // CAMPOS NOVOS V3.2/V3.3 (BS-BV) - 4 dropdowns
-    GENERO: 70,                                // BS
-    REGIAO: 71,                                // BT
-    CATEGORIA_ESCOLHIDA: 72,                   // BU
-    DIRETIVAS: 73                              // BV
+    HOSPITAL: 0, LEITO: 1, TIPO: 2, STATUS: 3, NOME: 4, MATRICULA: 5,
+    IDADE: 6, ADM_AT: 7, PPS: 8, SPICT: 9, COMPLEXIDADE: 10, PREV_ALTA: 11,
+    C1_TRANSICAO_DOMICILIAR: 12, C2_APLICACAO_MED_DOMICILIAR: 13,
+    C3_ASPIRACAO: 14, C4_BANHO: 15, C5_CURATIVO: 16, C6_CURATIVO_PICC: 17,
+    C7_FISIOTERAPIA_DOMICILIAR: 18, C8_FONOAUDIOLOGIA_DOMICILIAR: 19,
+    C9_OXIGENOTERAPIA: 20, C10_REMOCAO: 21, C11_SOLICITACAO_EXAMES_DOMICILIAR: 22,
+    L1_ASSISTE: 23, L2_APS_SP: 24, L3_CUIDADOS_PALIATIVOS: 25, L4_ICO: 26,
+    L5_NEXUS_SP_CARDIOLOGIA: 27, L6_NEXUS_SP_GASTROENTEREOLOGIA: 28,
+    L7_NEXUS_SP_GERIATRIA: 29, L8_NEXUS_SP_PNEUMOLOGIA: 30,
+    L9_NEXUS_SP_PSIQUIATRIA: 31, L10_NEXUS_SP_REUMATOLOGIA: 32,
+    L11_NEXUS_SP_SAUDE_FIGADO: 33, L12_GENERALISTA: 34,
+    L13_BUCOMAXILOFACIAL: 35, L14_CARDIOLOGIA: 36, L15_CIRURGIA_CARDIACA: 37,
+    L16_CIRURGIA_CABECA_PESCOCO: 38, L17_CIRURGIA_APARELHO_DIGESTIVO: 39,
+    L18_CIRURGIA_GERAL: 40, L19_CIRURGIA_ONCOLOGICA: 41,
+    IDENTIFICACAO_LEITO: 42, ISOLAMENTO: 43,
+    L20_CIRURGIA_PLASTICA: 44, L21_CIRURGIA_TORACICA: 45,
+    L22_CIRURGIA_VASCULAR: 46, L23_CLINICA_MEDICA: 47,
+    L24_COLOPROCTOLOGIA: 48, L25_DERMATOLOGIA: 49,
+    L26_ENDOCRINOLOGIA: 50, L27_FISIATRIA: 51,
+    L28_GASTROENTEROLOGIA: 52, L29_GERIATRIA: 53,
+    L30_GINECOLOGIA_OBSTETRICIA: 54, L31_HEMATOLOGIA: 55,
+    L32_INFECTOLOGIA: 56, L33_MASTOLOGIA: 57, L34_NEFROLOGIA: 58,
+    L35_NEUROCIRURGIA: 59, L36_NEUROLOGIA: 60, L37_OFTALMOLOGIA: 61,
+    L38_ONCOLOGIA_CLINICA: 62, L39_ORTOPEDIA: 63,
+    L40_OTORRINOLARINGOLOGIA: 64, L41_PEDIATRIA: 65,
+    L42_PNEUMOLOGIA: 66, L43_PSIQUIATRIA: 67, L44_REUMATOLOGIA: 68,
+    L45_UROLOGIA: 69, GENERO: 70, REGIAO: 71,
+    CATEGORIA_ESCOLHIDA: 72, DIRETIVAS: 73
 };
 
 // =================== TIMELINE (10 OPÇÕES) ===================
@@ -124,49 +64,22 @@ window.TIMELINE_OPCOES = [
     "48h", "48H", "72h", "72H", "96h", "96H", "SP"
 ];
 
-// =================== ISOLAMENTO (3 OPÇÕES - COLUNA AR) ===================
 window.ISOLAMENTO_OPCOES = [
     "Não Isolamento",
     "Isolamento de Contato",
     "Isolamento Respiratório"
 ];
 
-// =================== REGIÕES (9 OPÇÕES - COLUNA BT/71) ===================
 window.REGIOES_OPCOES = [
-    "Zona Central",
-    "Zona Sul",
-    "Zona Norte",
-    "Zona Leste",
-    "Zona Oeste",
-    "ABC",
-    "Guarulhos",
-    "Osasco",
-    "Outra"
+    "Zona Central", "Zona Sul", "Zona Norte", "Zona Leste", "Zona Oeste",
+    "ABC", "Guarulhos", "Osasco", "Outra"
 ];
 
-// =================== GÊNERO (2 OPÇÕES - COLUNA BS/70) ===================
-window.GENERO_OPCOES = [
-    "Masculino",
-    "Feminino"
-];
+window.GENERO_OPCOES = ["Masculino", "Feminino"];
+window.CATEGORIA_OPCOES = ["Apartamento", "Enfermaria"];
+window.DIRETIVAS_OPCOES = ["Sim", "Não", "Não se aplica"];
 
-// =================== CATEGORIA (2 OPÇÕES - COLUNA BU/72) ===================
-window.CATEGORIA_OPCOES = [
-    "Apartamento",
-    "Enfermaria"
-];
-
-// =================== DIRETIVAS (3 OPÇÕES - COLUNA BV/73) ===================
-window.DIRETIVAS_OPCOES = [
-    "Sim",
-    "Não",
-    "Não se aplica"
-];
-
-// =================== LISTAS V4.0 CORRIGIDAS E VALIDADAS ===================
-
-// *** CONCESSÕES: 11 ITENS CORRETOS (M-W checkboxes) ***
-// ✅ CORRIGIDO: SEM ACENTOS (compatível com backend Google Apps Script)
+// =================== ✅ LISTAS PARA VALIDAÇÃO (SEM ACENTOS) ===================
 window.CONCESSOES_VALIDAS = [
     "Transicao Domiciliar",
     "Aplicacao domiciliar de medicamentos",
@@ -181,58 +94,28 @@ window.CONCESSOES_VALIDAS = [
     "Solicitacao domiciliar de exames"
 ];
 
-// *** LINHAS DE CUIDADO: 45 ITENS CORRETOS (X-BR checkboxes) ***
-// ✅ CORRIGIDO: SEM ACENTOS (compatível com backend Google Apps Script)
 window.LINHAS_VALIDAS = [
-    "Assiste",
-    "APS SP",
-    "Cuidados Paliativos",
-    "ICO (Insuficiencia Coronariana)",
-    "Nexus SP Cardiologia",
-    "Nexus SP Gastroentereologia",
-    "Nexus SP Geriatria",
-    "Nexus SP Pneumologia",
-    "Nexus SP Psiquiatria",
-    "Nexus SP Reumatologia",
-    "Nexus SP Saude do Figado",
-    "Generalista",
-    "Bucomaxilofacial",
-    "Cardiologia",
-    "Cirurgia Cardiaca",
-    "Cirurgia de Cabeca e Pescoco",
-    "Cirurgia do Aparelho Digestivo",
-    "Cirurgia Geral",
-    "Cirurgia Oncologica",
-    "Cirurgia Plastica",
-    "Cirurgia Toracica",
-    "Cirurgia Vascular",
-    "Clinica Medica",
-    "Coloproctologia",
-    "Dermatologia",
-    "Endocrinologia",
-    "Fisiatria",
-    "Gastroenterologia",
-    "Geriatria",
-    "Ginecologia e Obstetricia",
-    "Hematologia",
-    "Infectologia",
-    "Mastologia",
-    "Nefrologia",
-    "Neurocirurgia",
-    "Neurologia",
-    "Oftalmologia",
-    "Oncologia Clinica",
-    "Ortopedia",
-    "Otorrinolaringologia",
-    "Pediatria",
-    "Pneumologia",
-    "Psiquiatria",
-    "Reumatologia",
-    "Urologia"
+    "Assiste", "APS SP", "Cuidados Paliativos",
+    "ICO (Insuficiencia Coronariana)", "Nexus SP Cardiologia",
+    "Nexus SP Gastroentereologia", "Nexus SP Geriatria",
+    "Nexus SP Pneumologia", "Nexus SP Psiquiatria",
+    "Nexus SP Reumatologia", "Nexus SP Saude do Figado",
+    "Generalista", "Bucomaxilofacial", "Cardiologia",
+    "Cirurgia Cardiaca", "Cirurgia de Cabeca e Pescoco",
+    "Cirurgia do Aparelho Digestivo", "Cirurgia Geral",
+    "Cirurgia Oncologica", "Cirurgia Plastica",
+    "Cirurgia Toracica", "Cirurgia Vascular",
+    "Clinica Medica", "Coloproctologia", "Dermatologia",
+    "Endocrinologia", "Fisiatria", "Gastroenterologia",
+    "Geriatria", "Ginecologia e Obstetricia",
+    "Hematologia", "Infectologia", "Mastologia",
+    "Nefrologia", "Neurocirurgia", "Neurologia",
+    "Oftalmologia", "Oncologia Clinica", "Ortopedia",
+    "Otorrinolaringologia", "Pediatria", "Pneumologia",
+    "Psiquiatria", "Reumatologia", "Urologia"
 ];
 
-// =================== CORES PANTONE V4.0 - CONCESSÕES (11 CORES) ===================
-// ✅ CORRIGIDO: CHAVES SEM ACENTOS (compatível com backend)
+// =================== CORES PANTONE (SEM ACENTOS NAS CHAVES) ===================
 window.CORES_CONCESSOES = {
     'Transicao Domiciliar': '#007A53',
     'Aplicacao domiciliar de medicamentos': '#582C83',
@@ -247,11 +130,8 @@ window.CORES_CONCESSOES = {
     'Solicitacao domiciliar de exames': '#546E7A'
 };
 
-// =================== CORES PANTONE V4.0 - LINHAS DE CUIDADO (45 CORES) ===================
-// ✅ CORRIGIDO: CHAVES SEM ACENTOS (compatível com backend)
 window.CORES_LINHAS = {
-    'Assiste': '#ED0A72',
-    'APS SP': '#007A33',
+    'Assiste': '#ED0A72', 'APS SP': '#007A33',
     'Cuidados Paliativos': '#00B5A2',
     'ICO (Insuficiencia Coronariana)': '#A6192E',
     'Nexus SP Cardiologia': '#C8102E',
@@ -261,43 +141,28 @@ window.CORES_LINHAS = {
     'Nexus SP Psiquiatria': '#3E2723',
     'Nexus SP Reumatologia': '#E91E63',
     'Nexus SP Saude do Figado': '#556F44',
-    'Generalista': '#FFC72C',
-    'Bucomaxilofacial': '#D81B60',
-    'Cardiologia': '#5A0020',
-    'Cirurgia Cardiaca': '#9CCC65',
+    'Generalista': '#FFC72C', 'Bucomaxilofacial': '#D81B60',
+    'Cardiologia': '#5A0020', 'Cirurgia Cardiaca': '#9CCC65',
     'Cirurgia de Cabeca e Pescoco': '#7CB342',
     'Cirurgia do Aparelho Digestivo': '#00263A',
-    'Cirurgia Geral': '#00AEEF',
-    'Cirurgia Oncologica': '#0072CE',
-    'Cirurgia Plastica': '#8E24AA',
-    'Cirurgia Toracica': '#BA68C8',
-    'Cirurgia Vascular': '#AED581',
-    'Clinica Medica': '#F4E285',
-    'Coloproctologia': '#C2185B',
-    'Dermatologia': '#9C27B0',
-    'Endocrinologia': '#37474F',
-    'Fisiatria': '#E8927C',
-    'Gastroenterologia': '#003C57',
-    'Geriatria': '#FF6F1D',
+    'Cirurgia Geral': '#00AEEF', 'Cirurgia Oncologica': '#0072CE',
+    'Cirurgia Plastica': '#8E24AA', 'Cirurgia Toracica': '#BA68C8',
+    'Cirurgia Vascular': '#AED581', 'Clinica Medica': '#F4E285',
+    'Coloproctologia': '#C2185B', 'Dermatologia': '#9C27B0',
+    'Endocrinologia': '#37474F', 'Fisiatria': '#E8927C',
+    'Gastroenterologia': '#003C57', 'Geriatria': '#FF6F1D',
     'Ginecologia e Obstetricia': '#582D40',
-    'Hematologia': '#1E88E5',
-    'Infectologia': '#4A7C59',
-    'Mastologia': '#5C5EBE',
-    'Nefrologia': '#7B1FA2',
-    'Neurocirurgia': '#1565C0',
-    'Neurologia': '#64B5F6',
-    'Oftalmologia': '#6D4C41',
-    'Oncologia Clinica': '#6A1B9A',
-    'Ortopedia': '#42A5F5',
-    'Otorrinolaringologia': '#AD1457',
-    'Pediatria': '#5A646B',
-    'Pneumologia': '#1976D2',
-    'Psiquiatria': '#4E342E',
-    'Reumatologia': '#880E4F',
+    'Hematologia': '#1E88E5', 'Infectologia': '#4A7C59',
+    'Mastologia': '#5C5EBE', 'Nefrologia': '#7B1FA2',
+    'Neurocirurgia': '#1565C0', 'Neurologia': '#64B5F6',
+    'Oftalmologia': '#6D4C41', 'Oncologia Clinica': '#6A1B9A',
+    'Ortopedia': '#42A5F5', 'Otorrinolaringologia': '#AD1457',
+    'Pediatria': '#5A646B', 'Pneumologia': '#1976D2',
+    'Psiquiatria': '#4E342E', 'Reumatologia': '#880E4F',
     'Urologia': '#2D5016'
 };
 
-// =================== ✅ FUNÇÕES DE NORMALIZAÇÃO (NOVA - CRÍTICA) ===================
+// =================== ✅ NORMALIZAÇÃO (APENAS PARA VALIDAÇÃO) ===================
 function normalizarTexto(texto) {
     if (!texto || typeof texto !== 'string') return texto;
     return texto
@@ -305,11 +170,6 @@ function normalizarTexto(texto) {
         .replace(/[\u0300-\u036f]/g, '')
         .replace(/ç/g, 'c')
         .replace(/Ç/g, 'C');
-}
-
-function normalizarArray(array) {
-    if (!Array.isArray(array)) return [];
-    return array.map(item => normalizarTexto(item));
 }
 
 // =================== FUNÇÕES AUXILIARES ===================
@@ -325,23 +185,29 @@ function logAPISuccess(message, data = null) {
     console.log(`✅ [API SUCCESS V4.0] ${message}`, data || '');
 }
 
-// =================== VALIDAÇÃO DE DADOS V4.0 ===================
+// =================== ✅ VALIDAÇÃO QUE PRESERVA ACENTOS ORIGINAIS ===================
 function validarTimeline(prevAlta) {
     return window.TIMELINE_OPCOES.includes(prevAlta) ? prevAlta : 'SP';
 }
 
-// ✅ CORRIGIDO: Normaliza antes de validar
 function validarConcessoes(concessoes) {
     if (!Array.isArray(concessoes)) return [];
-    const normalizadas = normalizarArray(concessoes);
-    return normalizadas.filter(c => window.CONCESSOES_VALIDAS.includes(c));
+    
+    // ✅ Valida comparando versões normalizadas, mas retorna originais
+    return concessoes.filter(c => {
+        const normalizada = normalizarTexto(c);
+        return window.CONCESSOES_VALIDAS.includes(normalizada);
+    });
 }
 
-// ✅ CORRIGIDO: Normaliza antes de validar
 function validarLinhas(linhas) {
     if (!Array.isArray(linhas)) return [];
-    const normalizadas = normalizarArray(linhas);
-    return normalizadas.filter(l => window.LINHAS_VALIDAS.includes(l));
+    
+    // ✅ Valida comparando versões normalizadas, mas retorna originais
+    return linhas.filter(l => {
+        const normalizada = normalizarTexto(l);
+        return window.LINHAS_VALIDAS.includes(normalizada);
+    });
 }
 
 function validarIsolamento(isolamento) {
@@ -375,16 +241,10 @@ function validarIsolamento(isolamento) {
 }
 
 function validarIdentificacaoLeito(identificacao) {
-    // ✅ ACEITA null/undefined
     if (identificacao === null || identificacao === undefined) return '';
-    
-    // ✅ CONVERTE NUMBER → STRING (703 → "703", 711.1 → "711.1")
     const identificacaoStr = String(identificacao).trim();
-    
-    // ✅ Aceita vazio
     if (identificacaoStr === '') return '';
     
-    // ✅ VALIDA tamanho (aumentado para 10 caracteres)
     if (identificacaoStr.length > 10) {
         console.warn(`⚠️ Identificação "${identificacaoStr}" excede 10 caracteres, truncando...`);
         return identificacaoStr.substring(0, 10).toUpperCase();
@@ -419,8 +279,7 @@ function getCorLinha(linha) {
     return window.CORES_LINHAS[normalizada] || '#999999';
 }
 
-// =================== CORREÇÃO CRÍTICA PARA CORS - JSONP ===================
-
+// =================== JSONP ===================
 function jsonpRequest(url, params = {}) {
     return new Promise((resolve, reject) => {
         const callbackName = 'jsonp_callback_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
@@ -451,7 +310,7 @@ function jsonpRequest(url, params = {}) {
             reject(new Error('JSONP request failed'));
         };
         
-        const timeoutId = setTimeout(() => {
+        setTimeout(() => {
             if (window[callbackName]) {
                 delete window[callbackName];
                 if (script && script.parentNode) {
@@ -467,8 +326,7 @@ function jsonpRequest(url, params = {}) {
     });
 }
 
-// =================== CONFIGURAÇÃO DE REQUISIÇÕES COM CORS FIX ===================
-
+// =================== API REQUEST ===================
 async function apiRequest(action, params = {}, method = 'GET') {
     try {
         logAPI(`Fazendo requisição ${method}: ${action}`, params);
@@ -488,9 +346,7 @@ async function apiRequest(action, params = {}, method = 'GET') {
                 
                 const response = await fetch(url.toString(), {
                     method: 'GET',
-                    headers: {
-                        'Accept': 'application/json',
-                    },
+                    headers: { 'Accept': 'application/json' },
                     signal: controller.signal
                 });
                 
@@ -565,7 +421,7 @@ async function apiRequest(action, params = {}, method = 'GET') {
     }
 }
 
-// =================== FUNÇÃO PRINCIPAL DE CARREGAMENTO V4.0 ===================
+// =================== CARREGAMENTO DE DADOS ===================
 window.loadHospitalData = async function() {
     try {
         logAPI('🔄 Carregando dados V4.0 da planilha (7 hospitais - 93 leitos - 74 colunas A-BV)...');
@@ -605,7 +461,6 @@ window.loadHospitalData = async function() {
             throw new Error('Nenhum hospital encontrado nos dados da API V4.0');
         }
         
-        // Validação: devem existir 7 hospitais
         if (totalHospitais !== 7) {
             console.warn(`⚠️ AVISO: Esperados 7 hospitais, mas foram encontrados ${totalHospitais}`);
         }
@@ -622,6 +477,7 @@ window.loadHospitalData = async function() {
                         leito.prevAlta = validarTimeline(leito.prevAlta);
                     }
                     
+                    // ✅ Validação preserva acentos originais
                     if (leito.concessoes) {
                         leito.concessoes = validarConcessoes(leito.concessoes);
                     }
@@ -704,7 +560,6 @@ window.loadHospitalData = async function() {
             acc + (h.leitos ? h.leitos.filter(l => l.status === 'ocupado').length : 0), 0);
         const taxaOcupacao = totalLeitos > 0 ? Math.round((leitosOcupados / totalLeitos) * 100) : 0;
         
-        // Validação: devem existir 93 leitos
         if (totalLeitos !== 93) {
             console.warn(`⚠️ AVISO: Esperados 93 leitos, mas foram encontrados ${totalLeitos}`);
         }
@@ -779,18 +634,14 @@ window.loadHospitalData = async function() {
     }
 };
 
-// =================== FUNÇÕES DE SALVAMENTO V4.0 ===================
-
+// =================== ✅ ADMITIR PACIENTE (PRESERVA ACENTOS) ===================
 window.admitirPaciente = async function(hospital, leito, dadosPaciente) {
     try {
         logAPI(`Admitindo paciente V4.0 no ${hospital}-${leito} NA PLANILHA REAL (74 colunas A-BV)`);
         
-        // ✅ NORMALIZAR antes de validar
-        const concessoesNormalizadas = normalizarArray(dadosPaciente.concessoes || []);
-        const linhasNormalizadas = normalizarArray(dadosPaciente.linhas || []);
-        
-        const concessoesValidas = concessoesNormalizadas.filter(c => window.CONCESSOES_VALIDAS.includes(c));
-        const linhasValidas = linhasNormalizadas.filter(l => window.LINHAS_VALIDAS.includes(l));
+        // ✅ Valida mas MANTÉM acentos originais
+        const concessoesValidas = validarConcessoes(dadosPaciente.concessoes || []);
+        const linhasValidas = validarLinhas(dadosPaciente.linhas || []);
         const timelineValida = validarTimeline(dadosPaciente.prevAlta || 'SP');
         const isolamentoValido = validarIsolamento(dadosPaciente.isolamento || 'Não Isolamento');
         const generoValido = validarGenero(dadosPaciente.genero || '');
@@ -817,8 +668,8 @@ window.admitirPaciente = async function(hospital, leito, dadosPaciente) {
             spict: dadosPaciente.spict || '',
             complexidade: dadosPaciente.complexidade || 'I',
             prevAlta: timelineValida,
-            linhas: linhasValidas,
-            concessoes: concessoesValidas,
+            linhas: linhasValidas,  // ✅ COM acentos originais
+            concessoes: concessoesValidas,  // ✅ COM acentos originais
             isolamento: isolamentoValido,
             identificacaoLeito: identificacaoValida,
             genero: generoValido,
@@ -850,16 +701,14 @@ window.admitirPaciente = async function(hospital, leito, dadosPaciente) {
     }
 };
 
+// =================== ✅ ATUALIZAR PACIENTE (PRESERVA ACENTOS) ===================
 window.atualizarPaciente = async function(hospital, leito, dadosAtualizados) {
     try {
         logAPI(`Atualizando paciente V4.0 ${hospital}-${leito} NA PLANILHA REAL (74 colunas A-BV)`);
         
-        // ✅ NORMALIZAR antes de validar
-        const concessoesNormalizadas = normalizarArray(dadosAtualizados.concessoes || []);
-        const linhasNormalizadas = normalizarArray(dadosAtualizados.linhas || []);
-        
-        const concessoesValidas = concessoesNormalizadas.filter(c => window.CONCESSOES_VALIDAS.includes(c));
-        const linhasValidas = linhasNormalizadas.filter(l => window.LINHAS_VALIDAS.includes(l));
+        // ✅ Valida mas MANTÉM acentos originais
+        const concessoesValidas = validarConcessoes(dadosAtualizados.concessoes || []);
+        const linhasValidas = validarLinhas(dadosAtualizados.linhas || []);
         const timelineValida = dadosAtualizados.prevAlta ? validarTimeline(dadosAtualizados.prevAlta) : '';
         const isolamentoValido = dadosAtualizados.isolamento ? validarIsolamento(dadosAtualizados.isolamento) : '';
         const generoValido = dadosAtualizados.genero ? validarGenero(dadosAtualizados.genero) : '';
@@ -884,8 +733,8 @@ window.atualizarPaciente = async function(hospital, leito, dadosAtualizados) {
             spict: dadosAtualizados.spict || '',
             complexidade: dadosAtualizados.complexidade || '',
             prevAlta: timelineValida,
-            linhas: linhasValidas,
-            concessoes: concessoesValidas,
+            linhas: linhasValidas,  // ✅ COM acentos originais
+            concessoes: concessoesValidas,  // ✅ COM acentos originais
             isolamento: isolamentoValido,
             identificacaoLeito: identificacaoValida,
             genero: generoValido,
@@ -917,6 +766,7 @@ window.atualizarPaciente = async function(hospital, leito, dadosAtualizados) {
     }
 };
 
+// =================== DAR ALTA ===================
 window.darAltaPaciente = async function(hospital, leito) {
     try {
         logAPI(`Dando alta V4.0 ao paciente ${hospital}-${leito} NA PLANILHA REAL (74 colunas A-BV)`);
@@ -937,6 +787,7 @@ window.darAltaPaciente = async function(hospital, leito) {
     }
 };
 
+// =================== COLETAR DADOS FORMULÁRIO ===================
 window.coletarDadosFormulario = function(tipo) {
     const dados = {
         nome: document.getElementById(`${tipo}Nome`)?.value || '',
@@ -978,7 +829,7 @@ window.coletarDadosFormulario = function(tipo) {
     return dados;
 };
 
-// =================== REFRESH APÓS AÇÕES V4.0 ===================
+// =================== REFRESH ===================
 window.refreshAfterAction = async function() {
     try {
         logAPI('🔄 Recarregando dados V4.0 da planilha após ação...');
@@ -1019,8 +870,7 @@ window.refreshAfterAction = async function() {
     }
 };
 
-// =================== FUNÇÕES DE TESTE E MONITORAMENTO V4.0 ===================
-
+// =================== FUNÇÕES AUXILIARES ===================
 window.testAPI = async function() {
     try {
         logAPI('🔍 Testando conectividade V4.0 com a planilha (7 hospitais - 93 leitos - 74 colunas)...');
@@ -1065,8 +915,6 @@ window.monitorAPI = function() {
     logAPI('🔍 Monitoramento automático V4.0 da API ativado');
 };
 
-// =================== COMPATIBILIDADE COM VERSÕES ANTERIORES ===================
-
 window.fetchHospitalData = async function(hospital) {
     logAPI(`Buscando dados V4.0 do hospital: ${hospital}`);
     
@@ -1091,7 +939,6 @@ window.fetchLeitoData = async function(hospital, leito) {
     }
 };
 
-// =================== FUNÇÕES DE CORES V4.0 ===================
 window.loadColors = async function() {
     try {
         const colors = await apiRequest('getcolors', {}, 'GET');
@@ -1121,7 +968,7 @@ window.saveColors = async function(colors) {
     }
 };
 
-// =================== INICIALIZAÇÃO V4.0 ===================
+// =================== INICIALIZAÇÃO ===================
 window.addEventListener('load', () => {
     logAPI('🚀 API.js V4.0 CORRIGIDO carregado - Archipelago Dashboard');
     logAPI(`🏥 Hospitais configurados: 7 (H1-H7)`);
@@ -1134,10 +981,10 @@ window.addEventListener('load', () => {
     logAPI(`👤 Gênero: ${window.GENERO_OPCOES.length} opções (BS/70)`);
     logAPI(`🏠 Categoria: ${window.CATEGORIA_OPCOES.length} opções (BU/72)`);
     logAPI(`📝 Diretivas: ${window.DIRETIVAS_OPCOES.length} opções (BV/73)`);
-    logAPI(`🎁 Concessões: ${window.CONCESSOES_VALIDAS.length} tipos (M-W checkboxes) - SEM acentos`);
-    logAPI(`🏥 Linhas: ${window.LINHAS_VALIDAS.length} tipos (X-BR checkboxes) - SEM acentos`);
+    logAPI(`🎁 Concessões: ${window.CONCESSOES_VALIDAS.length} tipos (M-W checkboxes)`);
+    logAPI(`🏥 Linhas: ${window.LINHAS_VALIDAS.length} tipos (X-BR checkboxes)`);
     logAPI(`🎨 Cores: ${Object.keys(window.CORES_CONCESSOES).length + Object.keys(window.CORES_LINHAS).length} cores Pantone`);
-    logAPI(`✅ Normalização ATIVA antes de enviar para backend`);
+    logAPI(`✅ Validação preserva acentos originais`);
     
     logAPISuccess('✅ Hospitais V4.0:');
     Object.entries(window.HOSPITAIS_CONFIG).forEach(([id, config]) => {
@@ -1151,10 +998,10 @@ window.addEventListener('load', () => {
     }, 10000);
 });
 
-logAPISuccess('✅ API.js V4.0 CORRIGIDO 100% FUNCIONAL');
+logAPISuccess('✅ API.js V4.0 100% FUNCIONAL - ACENTOS PRESERVADOS');
 logAPISuccess('✅ 7 hospitais configurados (H1-H7)');
 logAPISuccess('✅ 93 leitos totais');
 logAPISuccess('✅ 74 colunas (A-BV)');
 logAPISuccess('✅ HOSPITAIS_CONFIG disponível globalmente');
-logAPISuccess('✅ Normalização de acentos ATIVA');
-logAPISuccess('✅ Compatível com Google Apps Script SEM acentos');
+logAPISuccess('✅ Validação preserva dados originais COM acentos');
+logAPISuccess('✅ Backend receberá: "Transição Domiciliar" (COM acentos)');
