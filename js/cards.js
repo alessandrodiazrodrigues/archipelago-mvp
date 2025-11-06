@@ -4,15 +4,6 @@
 window.selectedLeito = null;
 window.currentHospital = 'H1';
 
-// =================== FUNÇÃO DE NORMALIZAÇÃO DE ACENTOS ===================
-function normalizarTextoParaAPI(texto) {
-    return texto
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '') // Remove acentos
-        .replace(/ç/g, 'c')
-        .replace(/Ç/g, 'C');
-}
-
 // =================== MAPEAMENTO DE HOSPITAIS ===================
 window.HOSPITAL_MAPPING = {
     H1: 'Neomater',
@@ -1677,9 +1668,8 @@ function coletarCheckboxesSelecionados(modal, seletor) {
     
     checkboxes.forEach(checkbox => {
         if (checkbox.checked && checkbox.value !== 'Não se aplica') {
-            // NORMALIZA o texto antes de adicionar ao array
-            const valorNormalizado = normalizarTextoParaAPI(checkbox.value);
-            selecionados.push(valorNormalizado);
+            // ✅ MANTÉM o valor original COM acentos UTF-8
+            selecionados.push(checkbox.value);
         }
     });
     
@@ -2091,3 +2081,4 @@ window.searchLeitos = searchLeitos;
 logSuccess('CARDS.JS COMPLETO - Gestão de Leitos Hospitalares!');
 console.log('✅ LINHAS DE CUIDADO: Exibidas nos cards!');
 console.log('✅ CONCESSÕES E LINHAS: Mesmas cores e fontes!');
+console.log('✅ ACENTOS: Mantidos em UTF-8!');
