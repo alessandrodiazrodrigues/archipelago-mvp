@@ -9,6 +9,7 @@
 // ✅ HOSPITAIS_CONFIG criado com os 7 hospitais
 // ✅ Total de leitos atualizado: 79 → 93
 // ✅ Todas as funcionalidades V3.3.1 mantidas
+// ✅ CORREÇÃO CRÍTICA: Normalização de acentos para compatibilidade com backend
 // ==================================================================================
 
 // *** URL DA API V4.0 - ATUALIZADA ***
@@ -165,53 +166,54 @@ window.DIRETIVAS_OPCOES = [
 // =================== LISTAS V4.0 CORRIGIDAS E VALIDADAS ===================
 
 // *** CONCESSÕES: 11 ITENS CORRETOS (M-W checkboxes) ***
-// ✅ CORRIGIDO: AGORA COM ACENTOS UTF-8
+// ✅ CORRIGIDO: SEM ACENTOS (compatível com backend Google Apps Script)
 window.CONCESSOES_VALIDAS = [
-    "Transição Domiciliar",
-    "Aplicação domiciliar de medicamentos",
-    "Aspiração",
+    "Transicao Domiciliar",
+    "Aplicacao domiciliar de medicamentos",
+    "Aspiracao",
     "Banho",
     "Curativo",
     "Curativo PICC",
     "Fisioterapia Domiciliar",
     "Fonoaudiologia Domiciliar",
     "Oxigenoterapia",
-    "Remoção",
-    "Solicitação domiciliar de exames"
+    "Remocao",
+    "Solicitacao domiciliar de exames"
 ];
 
 // *** LINHAS DE CUIDADO: 45 ITENS CORRETOS (X-BR checkboxes) ***
+// ✅ CORRIGIDO: SEM ACENTOS (compatível com backend Google Apps Script)
 window.LINHAS_VALIDAS = [
     "Assiste",
     "APS SP",
     "Cuidados Paliativos",
-    "ICO (Insuficiência Coronariana)",
+    "ICO (Insuficiencia Coronariana)",
     "Nexus SP Cardiologia",
     "Nexus SP Gastroentereologia",
     "Nexus SP Geriatria",
     "Nexus SP Pneumologia",
     "Nexus SP Psiquiatria",
     "Nexus SP Reumatologia",
-    "Nexus SP Saúde do Fígado",
+    "Nexus SP Saude do Figado",
     "Generalista",
     "Bucomaxilofacial",
     "Cardiologia",
-    "Cirurgia Cardíaca",
-    "Cirurgia de Cabeça e Pescoço",
+    "Cirurgia Cardiaca",
+    "Cirurgia de Cabeca e Pescoco",
     "Cirurgia do Aparelho Digestivo",
     "Cirurgia Geral",
-    "Cirurgia Oncológica",
-    "Cirurgia Plástica",
-    "Cirurgia Torácica",
+    "Cirurgia Oncologica",
+    "Cirurgia Plastica",
+    "Cirurgia Toracica",
     "Cirurgia Vascular",
-    "Clínica Médica",
+    "Clinica Medica",
     "Coloproctologia",
     "Dermatologia",
     "Endocrinologia",
     "Fisiatria",
     "Gastroenterologia",
     "Geriatria",
-    "Ginecologia e Obstetrícia",
+    "Ginecologia e Obstetricia",
     "Hematologia",
     "Infectologia",
     "Mastologia",
@@ -219,7 +221,7 @@ window.LINHAS_VALIDAS = [
     "Neurocirurgia",
     "Neurologia",
     "Oftalmologia",
-    "Oncologia Clínica",
+    "Oncologia Clinica",
     "Ortopedia",
     "Otorrinolaringologia",
     "Pediatria",
@@ -230,53 +232,54 @@ window.LINHAS_VALIDAS = [
 ];
 
 // =================== CORES PANTONE V4.0 - CONCESSÕES (11 CORES) ===================
-// ✅ CORRIGIDO: CHAVES COM ACENTOS UTF-8
+// ✅ CORRIGIDO: CHAVES SEM ACENTOS (compatível com backend)
 window.CORES_CONCESSOES = {
-    'Transição Domiciliar': '#007A53',
-    'Aplicação domiciliar de medicamentos': '#582C83',
-    'Aspiração': '#2E1A47',
+    'Transicao Domiciliar': '#007A53',
+    'Aplicacao domiciliar de medicamentos': '#582C83',
+    'Aspiracao': '#2E1A47',
     'Banho': '#8FD3F4',
     'Curativo': '#00BFB3',
     'Curativo PICC': '#E03C31',
     'Fisioterapia Domiciliar': '#009639',
     'Fonoaudiologia Domiciliar': '#FF671F',
     'Oxigenoterapia': '#64A70B',
-    'Remoção': '#FFB81C',
-    'Solicitação domiciliar de exames': '#546E7A'
+    'Remocao': '#FFB81C',
+    'Solicitacao domiciliar de exames': '#546E7A'
 };
 
 // =================== CORES PANTONE V4.0 - LINHAS DE CUIDADO (45 CORES) ===================
+// ✅ CORRIGIDO: CHAVES SEM ACENTOS (compatível com backend)
 window.CORES_LINHAS = {
     'Assiste': '#ED0A72',
     'APS SP': '#007A33',
     'Cuidados Paliativos': '#00B5A2',
-    'ICO (Insuficiência Coronariana)': '#A6192E',
+    'ICO (Insuficiencia Coronariana)': '#A6192E',
     'Nexus SP Cardiologia': '#C8102E',
     'Nexus SP Gastroentereologia': '#455A64',
     'Nexus SP Geriatria': '#E35205',
     'Nexus SP Pneumologia': '#4A148C',
     'Nexus SP Psiquiatria': '#3E2723',
     'Nexus SP Reumatologia': '#E91E63',
-    'Nexus SP Saúde do Fígado': '#556F44',
+    'Nexus SP Saude do Figado': '#556F44',
     'Generalista': '#FFC72C',
     'Bucomaxilofacial': '#D81B60',
     'Cardiologia': '#5A0020',
-    'Cirurgia Cardíaca': '#9CCC65',
-    'Cirurgia de Cabeça e Pescoço': '#7CB342',
+    'Cirurgia Cardiaca': '#9CCC65',
+    'Cirurgia de Cabeca e Pescoco': '#7CB342',
     'Cirurgia do Aparelho Digestivo': '#00263A',
     'Cirurgia Geral': '#00AEEF',
-    'Cirurgia Oncológica': '#0072CE',
-    'Cirurgia Plástica': '#8E24AA',
-    'Cirurgia Torácica': '#BA68C8',
+    'Cirurgia Oncologica': '#0072CE',
+    'Cirurgia Plastica': '#8E24AA',
+    'Cirurgia Toracica': '#BA68C8',
     'Cirurgia Vascular': '#AED581',
-    'Clínica Médica': '#F4E285',
+    'Clinica Medica': '#F4E285',
     'Coloproctologia': '#C2185B',
     'Dermatologia': '#9C27B0',
     'Endocrinologia': '#37474F',
     'Fisiatria': '#E8927C',
     'Gastroenterologia': '#003C57',
     'Geriatria': '#FF6F1D',
-    'Ginecologia e Obstetrícia': '#582D40',
+    'Ginecologia e Obstetricia': '#582D40',
     'Hematologia': '#1E88E5',
     'Infectologia': '#4A7C59',
     'Mastologia': '#5C5EBE',
@@ -284,7 +287,7 @@ window.CORES_LINHAS = {
     'Neurocirurgia': '#1565C0',
     'Neurologia': '#64B5F6',
     'Oftalmologia': '#6D4C41',
-    'Oncologia Clínica': '#6A1B9A',
+    'Oncologia Clinica': '#6A1B9A',
     'Ortopedia': '#42A5F5',
     'Otorrinolaringologia': '#AD1457',
     'Pediatria': '#5A646B',
@@ -293,6 +296,21 @@ window.CORES_LINHAS = {
     'Reumatologia': '#880E4F',
     'Urologia': '#2D5016'
 };
+
+// =================== ✅ FUNÇÕES DE NORMALIZAÇÃO (NOVA - CRÍTICA) ===================
+function normalizarTexto(texto) {
+    if (!texto || typeof texto !== 'string') return texto;
+    return texto
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/ç/g, 'c')
+        .replace(/Ç/g, 'C');
+}
+
+function normalizarArray(array) {
+    if (!Array.isArray(array)) return [];
+    return array.map(item => normalizarTexto(item));
+}
 
 // =================== FUNÇÕES AUXILIARES ===================
 function logAPI(message, data = null) {
@@ -312,14 +330,18 @@ function validarTimeline(prevAlta) {
     return window.TIMELINE_OPCOES.includes(prevAlta) ? prevAlta : 'SP';
 }
 
+// ✅ CORRIGIDO: Normaliza antes de validar
 function validarConcessoes(concessoes) {
     if (!Array.isArray(concessoes)) return [];
-    return concessoes.filter(c => window.CONCESSOES_VALIDAS.includes(c));
+    const normalizadas = normalizarArray(concessoes);
+    return normalizadas.filter(c => window.CONCESSOES_VALIDAS.includes(c));
 }
 
+// ✅ CORRIGIDO: Normaliza antes de validar
 function validarLinhas(linhas) {
     if (!Array.isArray(linhas)) return [];
-    return linhas.filter(l => window.LINHAS_VALIDAS.includes(l));
+    const normalizadas = normalizarArray(linhas);
+    return normalizadas.filter(l => window.LINHAS_VALIDAS.includes(l));
 }
 
 function validarIsolamento(isolamento) {
@@ -388,11 +410,13 @@ function validarDiretivas(diretiva) {
 }
 
 function getCorConcessao(concessao) {
-    return window.CORES_CONCESSOES[concessao] || '#999999';
+    const normalizada = normalizarTexto(concessao);
+    return window.CORES_CONCESSOES[normalizada] || '#999999';
 }
 
 function getCorLinha(linha) {
-    return window.CORES_LINHAS[linha] || '#999999';
+    const normalizada = normalizarTexto(linha);
+    return window.CORES_LINHAS[normalizada] || '#999999';
 }
 
 // =================== CORREÇÃO CRÍTICA PARA CORS - JSONP ===================
@@ -761,8 +785,12 @@ window.admitirPaciente = async function(hospital, leito, dadosPaciente) {
     try {
         logAPI(`Admitindo paciente V4.0 no ${hospital}-${leito} NA PLANILHA REAL (74 colunas A-BV)`);
         
-        const concessoesValidas = validarConcessoes(dadosPaciente.concessoes || []);
-        const linhasValidas = validarLinhas(dadosPaciente.linhas || []);
+        // ✅ NORMALIZAR antes de validar
+        const concessoesNormalizadas = normalizarArray(dadosPaciente.concessoes || []);
+        const linhasNormalizadas = normalizarArray(dadosPaciente.linhas || []);
+        
+        const concessoesValidas = concessoesNormalizadas.filter(c => window.CONCESSOES_VALIDAS.includes(c));
+        const linhasValidas = linhasNormalizadas.filter(l => window.LINHAS_VALIDAS.includes(l));
         const timelineValida = validarTimeline(dadosPaciente.prevAlta || 'SP');
         const isolamentoValido = validarIsolamento(dadosPaciente.isolamento || 'Não Isolamento');
         const generoValido = validarGenero(dadosPaciente.genero || '');
@@ -826,8 +854,12 @@ window.atualizarPaciente = async function(hospital, leito, dadosAtualizados) {
     try {
         logAPI(`Atualizando paciente V4.0 ${hospital}-${leito} NA PLANILHA REAL (74 colunas A-BV)`);
         
-        const concessoesValidas = validarConcessoes(dadosAtualizados.concessoes || []);
-        const linhasValidas = validarLinhas(dadosAtualizados.linhas || []);
+        // ✅ NORMALIZAR antes de validar
+        const concessoesNormalizadas = normalizarArray(dadosAtualizados.concessoes || []);
+        const linhasNormalizadas = normalizarArray(dadosAtualizados.linhas || []);
+        
+        const concessoesValidas = concessoesNormalizadas.filter(c => window.CONCESSOES_VALIDAS.includes(c));
+        const linhasValidas = linhasNormalizadas.filter(l => window.LINHAS_VALIDAS.includes(l));
         const timelineValida = dadosAtualizados.prevAlta ? validarTimeline(dadosAtualizados.prevAlta) : '';
         const isolamentoValido = dadosAtualizados.isolamento ? validarIsolamento(dadosAtualizados.isolamento) : '';
         const generoValido = dadosAtualizados.genero ? validarGenero(dadosAtualizados.genero) : '';
@@ -1091,7 +1123,7 @@ window.saveColors = async function(colors) {
 
 // =================== INICIALIZAÇÃO V4.0 ===================
 window.addEventListener('load', () => {
-    logAPI('🚀 API.js V4.0 carregado - Archipelago Dashboard');
+    logAPI('🚀 API.js V4.0 CORRIGIDO carregado - Archipelago Dashboard');
     logAPI(`🏥 Hospitais configurados: 7 (H1-H7)`);
     logAPI(`🛏️  Total de leitos: 93`);
     logAPI(`🔗 URL: ${window.API_URL}`);
@@ -1102,9 +1134,10 @@ window.addEventListener('load', () => {
     logAPI(`👤 Gênero: ${window.GENERO_OPCOES.length} opções (BS/70)`);
     logAPI(`🏠 Categoria: ${window.CATEGORIA_OPCOES.length} opções (BU/72)`);
     logAPI(`📝 Diretivas: ${window.DIRETIVAS_OPCOES.length} opções (BV/73)`);
-    logAPI(`🎁 Concessões: ${window.CONCESSOES_VALIDAS.length} tipos (M-W checkboxes)`);
-    logAPI(`🏥 Linhas: ${window.LINHAS_VALIDAS.length} tipos (X-BR checkboxes)`);
+    logAPI(`🎁 Concessões: ${window.CONCESSOES_VALIDAS.length} tipos (M-W checkboxes) - SEM acentos`);
+    logAPI(`🏥 Linhas: ${window.LINHAS_VALIDAS.length} tipos (X-BR checkboxes) - SEM acentos`);
     logAPI(`🎨 Cores: ${Object.keys(window.CORES_CONCESSOES).length + Object.keys(window.CORES_LINHAS).length} cores Pantone`);
+    logAPI(`✅ Normalização ATIVA antes de enviar para backend`);
     
     logAPISuccess('✅ Hospitais V4.0:');
     Object.entries(window.HOSPITAIS_CONFIG).forEach(([id, config]) => {
@@ -1118,9 +1151,10 @@ window.addEventListener('load', () => {
     }, 10000);
 });
 
-logAPISuccess('✅ API.js V4.0 100% FUNCIONAL');
+logAPISuccess('✅ API.js V4.0 CORRIGIDO 100% FUNCIONAL');
 logAPISuccess('✅ 7 hospitais configurados (H1-H7)');
 logAPISuccess('✅ 93 leitos totais');
 logAPISuccess('✅ 74 colunas (A-BV)');
 logAPISuccess('✅ HOSPITAIS_CONFIG disponível globalmente');
-logAPISuccess('✅ Todas as funcionalidades V3.3.1 mantidas');
+logAPISuccess('✅ Normalização de acentos ATIVA');
+logAPISuccess('✅ Compatível com Google Apps Script SEM acentos');
