@@ -165,18 +165,19 @@ window.DIRETIVAS_OPCOES = [
 // =================== LISTAS V4.0 CORRIGIDAS E VALIDADAS ===================
 
 // *** CONCESSÕES: 11 ITENS CORRETOS (M-W checkboxes) ***
+// ✅ CORRIGIDO: AGORA COM ACENTOS UTF-8
 window.CONCESSOES_VALIDAS = [
-    "Transicao Domiciliar",
-    "Aplicacao domiciliar de medicamentos",
-    "Aspiracao",
+    "Transição Domiciliar",
+    "Aplicação domiciliar de medicamentos",
+    "Aspiração",
     "Banho",
     "Curativo",
     "Curativo PICC",
     "Fisioterapia Domiciliar",
     "Fonoaudiologia Domiciliar",
     "Oxigenoterapia",
-    "Remocao",
-    "Solicitacao domiciliar de exames"
+    "Remoção",
+    "Solicitação domiciliar de exames"
 ];
 
 // *** LINHAS DE CUIDADO: 45 ITENS CORRETOS (X-BR checkboxes) ***
@@ -229,18 +230,19 @@ window.LINHAS_VALIDAS = [
 ];
 
 // =================== CORES PANTONE V4.0 - CONCESSÕES (11 CORES) ===================
+// ✅ CORRIGIDO: CHAVES COM ACENTOS UTF-8
 window.CORES_CONCESSOES = {
-    'Transicao Domiciliar': '#007A53',
-    'Aplicacao domiciliar de medicamentos': '#582C83',
-    'Aspiracao': '#2E1A47',
+    'Transição Domiciliar': '#007A53',
+    'Aplicação domiciliar de medicamentos': '#582C83',
+    'Aspiração': '#2E1A47',
     'Banho': '#8FD3F4',
     'Curativo': '#00BFB3',
     'Curativo PICC': '#E03C31',
     'Fisioterapia Domiciliar': '#009639',
     'Fonoaudiologia Domiciliar': '#FF671F',
     'Oxigenoterapia': '#64A70B',
-    'Remocao': '#FFB81C',
-    'Solicitacao domiciliar de exames': '#546E7A'
+    'Remoção': '#FFB81C',
+    'Solicitação domiciliar de exames': '#546E7A'
 };
 
 // =================== CORES PANTONE V4.0 - LINHAS DE CUIDADO (45 CORES) ===================
