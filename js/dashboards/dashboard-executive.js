@@ -1,14 +1,6 @@
 // =================== DASHBOARD EXECUTIVO V4.0 - CORRIGIDO COMPLETO ===================
 // =================== 7 HOSPITAIS | 93 LEITOS | DIRETIVAS CORRIGIDAS ===================
 
-// =================== USAR FUNÇÃO GLOBAL DE DESNORMALIZAÇÃO ===================
-const getDesnormalizarTexto = () => {
-    if (typeof window.desnormalizarTexto === 'function') {
-        return window.desnormalizarTexto;
-    }
-    return (texto) => texto;
-};
-
 // Estado global para fundo branco (compartilhado com dashboard hospitalar)
 if (typeof window.fundoBranco === 'undefined') {
     window.fundoBranco = false;
@@ -1107,7 +1099,7 @@ function getCorTexto(valor) {
     return '#ffffff';
 }
 
-// =================== HEATMAP CONCESSÕES ===================
+// =================== HEATMAP CONCESSÕES (COM DESNORMALIZAÇÃO) ===================
 function renderHeatmapConcessoes() {
     const container = document.getElementById('heatmapConcessoesContainer');
     if (!container) return;
@@ -1203,7 +1195,7 @@ function renderHeatmapConcessoes() {
     container.innerHTML = html;
 }
 
-// =================== HEATMAP LINHAS ===================
+// =================== HEATMAP LINHAS (COM DESNORMALIZAÇÃO) ===================
 function renderHeatmapLinhas() {
     const container = document.getElementById('heatmapLinhasContainer');
     if (!container) return;
@@ -1299,7 +1291,7 @@ function renderHeatmapLinhas() {
     container.innerHTML = html;
 }
 
-// =================== CALCULAR DADOS CONCESSÕES COM DESNORMALIZAÇÃO ===================
+// =================== CALCULAR DADOS CONCESSÕES (COM DESNORMALIZAÇÃO) ===================
 function calcularDadosConcessoesReais(hospitaisComDados) {
     const concessoesPorItem = {};
     
@@ -1325,12 +1317,13 @@ function calcularDadosConcessoesReais(hospitaisComDados) {
                 if (periodo) {
                     concessoesList.forEach(concessao => {
                         if (concessao && concessao.trim()) {
-                            const nome = getDesnormalizarTexto()(concessao.trim());
+                            const nomeOriginal = concessao.trim();
+                            const nomeComAcentos = window.desnormalizarTexto ? window.desnormalizarTexto(nomeOriginal) : nomeOriginal;
                             
-                            if (!concessoesPorItem[nome]) {
-                                concessoesPorItem[nome] = {};
+                            if (!concessoesPorItem[nomeComAcentos]) {
+                                concessoesPorItem[nomeComAcentos] = {};
                                 hospitaisComDados.forEach(hId => {
-                                    concessoesPorItem[nome][hId] = {
+                                    concessoesPorItem[nomeComAcentos][hId] = {
                                         'HOJE': 0,
                                         '24H': 0,
                                         '48H': 0,
@@ -1339,7 +1332,7 @@ function calcularDadosConcessoesReais(hospitaisComDados) {
                                 });
                             }
                             
-                            concessoesPorItem[nome][hospitalId][periodo]++;
+                            concessoesPorItem[nomeComAcentos][hospitalId][periodo]++;
                         }
                     });
                 }
@@ -1350,7 +1343,7 @@ function calcularDadosConcessoesReais(hospitaisComDados) {
     return concessoesPorItem;
 }
 
-// =================== CALCULAR DADOS LINHAS COM DESNORMALIZAÇÃO ===================
+// =================== CALCULAR DADOS LINHAS (COM DESNORMALIZAÇÃO) ===================
 function calcularDadosLinhasReais(hospitaisComDados) {
     const linhasPorItem = {};
     
@@ -1376,12 +1369,13 @@ function calcularDadosLinhasReais(hospitaisComDados) {
                 if (periodo) {
                     linhasList.forEach(linha => {
                         if (linha && linha.trim()) {
-                            const nome = getDesnormalizarTexto()(linha.trim());
+                            const nomeOriginal = linha.trim();
+                            const nomeComAcentos = window.desnormalizarTexto ? window.desnormalizarTexto(nomeOriginal) : nomeOriginal;
                             
-                            if (!linhasPorItem[nome]) {
-                                linhasPorItem[nome] = {};
+                            if (!linhasPorItem[nomeComAcentos]) {
+                                linhasPorItem[nomeComAcentos] = {};
                                 hospitaisComDados.forEach(hId => {
-                                    linhasPorItem[nome][hId] = {
+                                    linhasPorItem[nomeComAcentos][hId] = {
                                         'HOJE': 0,
                                         '24H': 0,
                                         '48H': 0,
@@ -1390,7 +1384,7 @@ function calcularDadosLinhasReais(hospitaisComDados) {
                                 });
                             }
                             
-                            linhasPorItem[nome][hospitalId][periodo]++;
+                            linhasPorItem[nomeComAcentos][hospitalId][periodo]++;
                         }
                     });
                 }
@@ -2434,10 +2428,14 @@ function logError(message) {
     console.error('[DASHBOARD EXECUTIVO V4.0] ❌ ' + message);
 }
 
-console.log('Dashboard Executivo V4.0 - CORRIGIDO COM DESNORMALIZAÇÃO UTF-8');
+console.log('Dashboard Executivo V4.0 - CORRIGIDO COMPLETO + ACENTOS UTF-8');
 console.log('✅ 7 Hospitais (H1-H7) | 93 Leitos');
 console.log('✅ Diretivas: SPICT elegível + Diretivas = "Não"');
 console.log('✅ text-transform: none !important em TUDO');
 console.log('✅ Bordas brancas sempre visíveis');
 console.log('✅ Ordem alfabética: Adventista → Santa Virgínia');
-console.log('✅ CONCESSÕES E LINHAS COM ACENTOS CORRETOS nos heatmaps');
+console.log('✅ Gauge Leitos Disponíveis fixo em azul (#3b82f6)');
+console.log('✅ Tabelas TPH, PPS e SPICT com títulos centralizados');
+console.log('✅ Linhas de Cuidado reativadas com borda branca');
+console.log('✅ Títulos e subtítulos centralizados nos heatmaps');
+console.log('✅ CORREÇÃO UTF-8: Acentos (ç, ~, ^, ´) aplicados nos heatmaps');
