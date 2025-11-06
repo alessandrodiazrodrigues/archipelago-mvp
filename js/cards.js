@@ -1,3 +1,10 @@
+// =================== 🟢 DEBUG #1 - INÍCIO ABSOLUTO DO ARQUIVO ===================
+console.log('🟢 CARDS.JS - Iniciando carregamento (linha 1)');
+console.log('🔍 Timestamp:', new Date().toISOString());
+console.log('🔍 CONCESSOES_DISPLAY_MAP já existe?', typeof window.CONCESSOES_DISPLAY_MAP !== 'undefined');
+console.log('🔍 LINHAS_DISPLAY_MAP já existe?', typeof window.LINHAS_DISPLAY_MAP !== 'undefined');
+console.log('🔍 desnormalizarTexto já existe?', typeof window.desnormalizarTexto !== 'undefined');
+
 // =================== 🔵 DEBUG INICIAL ===================
 console.log('🔵 [DEBUG] cards.js - INÍCIO DO CARREGAMENTO');
 console.log('🔵 [DEBUG] window.desnormalizarTexto existe?', typeof window.desnormalizarTexto !== 'undefined');
@@ -15,72 +22,89 @@ function normalizarTexto(texto) {
 }
 
 // =================== ✅ MAPAS DE DESNORMALIZAÇÃO - EXIBIÇÃO COM ACENTOS ===================
+// ✅ PROTEÇÃO CONTRA DUPLICAÇÃO - SÓ DECLARA SE NÃO EXISTIR
 
 // Converte texto SEM acentos (vindo da planilha) → COM acentos (exibição)
-const CONCESSOES_DISPLAY_MAP = {
-    // Chave = texto sem acentos (como vem da planilha)
-    // Valor = texto com acentos (como deve ser exibido)
-    "Transicao Domiciliar": "Transição Domiciliar",
-    "Aplicacao domiciliar de medicamentos": "Aplicação domiciliar de medicamentos",
-    "Aspiracao": "Aspiração",
-    "Banho": "Banho",
-    "Curativo": "Curativo",
-    "Curativo PICC": "Curativo PICC",
-    "Fisioterapia Motora Domiciliar": "Fisioterapia Motora Domiciliar",
-    "Fonoaudiologia Domiciliar": "Fonoaudiologia Domiciliar",
-    "Oxigenoterapia": "Oxigenoterapia",
-    "Remocao": "Remoção",
-    "Solicitacao domiciliar de exames": "Solicitação domiciliar de exames",
-    "Fisioterapia Respiratoria Domiciliar": "Fisioterapia Respiratória Domiciliar"
-};
+if (typeof window.CONCESSOES_DISPLAY_MAP === 'undefined') {
+    console.log('✅ Declarando CONCESSOES_DISPLAY_MAP pela primeira vez');
+    window.CONCESSOES_DISPLAY_MAP = {
+        // Chave = texto sem acentos (como vem da planilha)
+        // Valor = texto com acentos (como deve ser exibido)
+        "Transicao Domiciliar": "Transição Domiciliar",
+        "Aplicacao domiciliar de medicamentos": "Aplicação domiciliar de medicamentos",
+        "Aspiracao": "Aspiração",
+        "Banho": "Banho",
+        "Curativo": "Curativo",
+        "Curativo PICC": "Curativo PICC",
+        "Fisioterapia Motora Domiciliar": "Fisioterapia Motora Domiciliar",
+        "Fonoaudiologia Domiciliar": "Fonoaudiologia Domiciliar",
+        "Oxigenoterapia": "Oxigenoterapia",
+        "Remocao": "Remoção",
+        "Solicitacao domiciliar de exames": "Solicitação domiciliar de exames",
+        "Fisioterapia Respiratoria Domiciliar": "Fisioterapia Respiratória Domiciliar"
+    };
+} else {
+    console.log('⚠️ CONCESSOES_DISPLAY_MAP já existia - usando versão existente');
+}
 
-const LINHAS_DISPLAY_MAP = {
-    "Assiste": "Assiste",
-    "APS SP": "APS SP",
-    "Cuidados Paliativos": "Cuidados Paliativos",
-    "ICO (Insuficiencia Coronariana)": "ICO (Insuficiência Coronariana)",
-    "Nexus SP Cardiologia": "Nexus SP Cardiologia",
-    "Nexus SP Gastroentereologia": "Nexus SP Gastroentereologia",
-    "Nexus SP Geriatria": "Nexus SP Geriatria",
-    "Nexus SP Pneumologia": "Nexus SP Pneumologia",
-    "Nexus SP Psiquiatria": "Nexus SP Psiquiatria",
-    "Nexus SP Reumatologia": "Nexus SP Reumatologia",
-    "Nexus SP Saude do Figado": "Nexus SP Saúde do Fígado",
-    "Generalista": "Generalista",
-    "Bucomaxilofacial": "Bucomaxilofacial",
-    "Cardiologia": "Cardiologia",
-    "Cirurgia Cardiaca": "Cirurgia Cardíaca",
-    "Cirurgia de Cabeca e Pescoco": "Cirurgia de Cabeça e Pescoço",
-    "Cirurgia do Aparelho Digestivo": "Cirurgia do Aparelho Digestivo",
-    "Cirurgia Geral": "Cirurgia Geral",
-    "Cirurgia Oncologica": "Cirurgia Oncológica",
-    "Cirurgia Plastica": "Cirurgia Plástica",
-    "Cirurgia Toracica": "Cirurgia Torácica",
-    "Cirurgia Vascular": "Cirurgia Vascular",
-    "Clinica Medica": "Clínica Médica",
-    "Coloproctologia": "Coloproctologia",
-    "Dermatologia": "Dermatologia",
-    "Endocrinologia": "Endocrinologia",
-    "Fisiatria": "Fisiatria",
-    "Gastroenterologia": "Gastroenterologia",
-    "Geriatria": "Geriatria",
-    "Ginecologia e Obstetricia": "Ginecologia e Obstetrícia",
-    "Hematologia": "Hematologia",
-    "Infectologia": "Infectologia",
-    "Mastologia": "Mastologia",
-    "Nefrologia": "Nefrologia",
-    "Neurocirurgia": "Neurocirurgia",
-    "Neurologia": "Neurologia",
-    "Oftalmologia": "Oftalmologia",
-    "Oncologia Clinica": "Oncologia Clínica",
-    "Ortopedia": "Ortopedia",
-    "Otorrinolaringologia": "Otorrinolaringologia",
-    "Pediatria": "Pediatria",
-    "Pneumologia": "Pneumologia",
-    "Psiquiatria": "Psiquiatria",
-    "Reumatologia": "Reumatologia",
-    "Urologia": "Urologia"
-};
+// Criar referência local
+const CONCESSOES_DISPLAY_MAP = window.CONCESSOES_DISPLAY_MAP;
+
+if (typeof window.LINHAS_DISPLAY_MAP === 'undefined') {
+    console.log('✅ Declarando LINHAS_DISPLAY_MAP pela primeira vez');
+    window.LINHAS_DISPLAY_MAP = {
+        "Assiste": "Assiste",
+        "APS SP": "APS SP",
+        "Cuidados Paliativos": "Cuidados Paliativos",
+        "ICO (Insuficiencia Coronariana)": "ICO (Insuficiência Coronariana)",
+        "Nexus SP Cardiologia": "Nexus SP Cardiologia",
+        "Nexus SP Gastroentereologia": "Nexus SP Gastroentereologia",
+        "Nexus SP Geriatria": "Nexus SP Geriatria",
+        "Nexus SP Pneumologia": "Nexus SP Pneumologia",
+        "Nexus SP Psiquiatria": "Nexus SP Psiquiatria",
+        "Nexus SP Reumatologia": "Nexus SP Reumatologia",
+        "Nexus SP Saude do Figado": "Nexus SP Saúde do Fígado",
+        "Generalista": "Generalista",
+        "Bucomaxilofacial": "Bucomaxilofacial",
+        "Cardiologia": "Cardiologia",
+        "Cirurgia Cardiaca": "Cirurgia Cardíaca",
+        "Cirurgia de Cabeca e Pescoco": "Cirurgia de Cabeça e Pescoço",
+        "Cirurgia do Aparelho Digestivo": "Cirurgia do Aparelho Digestivo",
+        "Cirurgia Geral": "Cirurgia Geral",
+        "Cirurgia Oncologica": "Cirurgia Oncológica",
+        "Cirurgia Plastica": "Cirurgia Plástica",
+        "Cirurgia Toracica": "Cirurgia Torácica",
+        "Cirurgia Vascular": "Cirurgia Vascular",
+        "Clinica Medica": "Clínica Médica",
+        "Coloproctologia": "Coloproctologia",
+        "Dermatologia": "Dermatologia",
+        "Endocrinologia": "Endocrinologia",
+        "Fisiatria": "Fisiatria",
+        "Gastroenterologia": "Gastroenterologia",
+        "Geriatria": "Geriatria",
+        "Ginecologia e Obstetricia": "Ginecologia e Obstetrícia",
+        "Hematologia": "Hematologia",
+        "Infectologia": "Infectologia",
+        "Mastologia": "Mastologia",
+        "Nefrologia": "Nefrologia",
+        "Neurocirurgia": "Neurocirurgia",
+        "Neurologia": "Neurologia",
+        "Oftalmologia": "Oftalmologia",
+        "Oncologia Clinica": "Oncologia Clínica",
+        "Ortopedia": "Ortopedia",
+        "Otorrinolaringologia": "Otorrinolaringologia",
+        "Pediatria": "Pediatria",
+        "Pneumologia": "Pneumologia",
+        "Psiquiatria": "Psiquiatria",
+        "Reumatologia": "Reumatologia",
+        "Urologia": "Urologia"
+    };
+} else {
+    console.log('⚠️ LINHAS_DISPLAY_MAP já existia - usando versão existente');
+}
+
+// Criar referência local
+const LINHAS_DISPLAY_MAP = window.LINHAS_DISPLAY_MAP;
 
 // =================== 🔵 DEBUG ANTES DA DECLARAÇÃO ===================
 console.log('🔵 [DEBUG] Antes de declarar desnormalizarTexto');
@@ -89,6 +113,7 @@ console.log('🔵 [DEBUG] window.desnormalizarTexto =', window.desnormalizarText
 // =================== ✅ FUNÇÃO DE DESNORMALIZAÇÃO - CORRIGIDA PARA EVITAR CONFLITO ===================
 // Verificar se já existe antes de declarar (evita conflito com dashboard-hospital.js)
 if (typeof window.desnormalizarTexto === 'undefined') {
+    console.log('✅ Declarando desnormalizarTexto pela primeira vez');
     window.desnormalizarTexto = function(texto) {
         if (!texto || typeof texto !== 'string') return texto;
         
@@ -105,6 +130,8 @@ if (typeof window.desnormalizarTexto === 'undefined') {
         // Se não encontrar nos mapas, retornar o texto original
         return texto;
     };
+} else {
+    console.log('⚠️ desnormalizarTexto já existia - usando versão existente');
 }
 
 // Criar referência local para uso interno
@@ -2248,6 +2275,8 @@ window.formatarMatriculaInput = formatarMatriculaInput;
 window.formatarMatriculaExibicao = formatarMatriculaExibicao;
 window.setupSearchFilter = setupSearchFilter;
 window.searchLeitos = searchLeitos;
-window.desnormalizarTexto = desnormalizarTexto; // ✅ NOVO
 
-logSuccess('✅ CARDS.JS V4.1.1 FINAL COM DEBUG - PRONTO PARA TESTE!');
+// =================== 🔵 DEBUG FINAL ===================
+console.log('🔵 [DEBUG] CARDS.JS - FIM DO CARREGAMENTO');
+console.log('🔵 [DEBUG] Timestamp:', new Date().toISOString());
+console.log('✅ CARDS.JS V4.1.1 COM LOGS DE DEBUG - PRONTO PARA TESTE!');
