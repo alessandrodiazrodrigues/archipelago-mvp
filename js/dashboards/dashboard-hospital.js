@@ -28,7 +28,7 @@ const CORES_ARCHIPELAGO = {
 };
 
 const CONFIG_DASHBOARD = {
-    MOSTRAR_LINHAS_CUIDADO: false,
+    MOSTRAR_LINHAS_CUIDADO: true,
     MOSTRAR_96H: false,
 };
 
@@ -928,15 +928,11 @@ window.renderDashboardHospitalar = function() {
             <div class="dashboard-header-filtro">
                 <h2 class="dashboard-title-central">Dashboard Hospitalar</h2>
                 
-                <!-- BOTÃO TODOS (PRIMEIRA LINHA) -->
-                <div class="filtro-linha-todos">
+                <!-- TODOS OS 8 BOTÕES NA MESMA LINHA -->
+                <div class="hospital-filter-selector">
                     <button class="hospital-filter-btn active" onclick="window.filtrarHospitalDashboard('todos', this)">
                         Todos
                     </button>
-                </div>
-                
-                <!-- BOTÕES DE HOSPITAIS (SEGUNDA LINHA) -->
-                <div class="hospital-filter-selector">
                     <button class="hospital-filter-btn" onclick="window.filtrarHospitalDashboard('H5', this)">
                         Adventista
                     </button>
@@ -1755,7 +1751,8 @@ function getHospitalConsolidadoCSS() {
                 background: rgba(255, 255, 255, 0.05);
                 border-radius: 12px;
                 padding: 25px;
-                border-left: 4px solid #ffffff;
+                border: 1px solid rgba(255, 255, 255, 0.8);
+                border-top: 3px solid #ffffff;
                 margin-bottom: 30px;
             }
             
@@ -1769,17 +1766,10 @@ function getHospitalConsolidadoCSS() {
                 text-transform: none !important;
             }
             
-            /* =================== LINHA DO BOTÃO "TODOS" =================== */
-            .filtro-linha-todos {
-                display: flex;
-                justify-content: center;
-                margin-bottom: 15px;
-            }
-            
-            /* =================== LINHA DOS HOSPITAIS =================== */
+            /* =================== LINHA DOS BOTÕES (8 BOTÕES) =================== */
             .hospital-filter-selector {
                 display: flex;
-                gap: 15px;
+                gap: 10px;
                 flex-wrap: wrap;
                 justify-content: center;
                 margin-bottom: 20px;
@@ -1790,17 +1780,18 @@ function getHospitalConsolidadoCSS() {
                 background-color: #60a5fa;
                 color: #ffffff;
                 border: none;
-                padding: 14px 28px;
+                padding: 12px 20px;
                 border-radius: 8px;
                 cursor: pointer;
-                font-size: 14px;
+                font-size: 13px;
                 font-weight: 700;
                 font-family: 'Poppins', sans-serif;
                 transition: all 0.3s ease;
-                flex: 1;
-                min-width: 150px;
-                max-width: 200px;
+                flex: 1 1 calc(12.5% - 10px);
+                min-width: 120px;
+                max-width: 160px;
                 text-transform: none;
+                white-space: nowrap;
             }
             
             .hospital-filter-btn:hover {
@@ -1847,7 +1838,8 @@ function getHospitalConsolidadoCSS() {
                 border-radius: 16px;
                 padding: 25px;
                 box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-                border: 1px solid rgba(255, 255, 255, 0.1);
+                border: 1px solid rgba(255, 255, 255, 0.8);
+                border-top: 3px solid #ffffff;
                 transition: all 0.3s ease;
             }
             
@@ -2206,7 +2198,8 @@ function getHospitalConsolidadoCSS() {
                 background: rgba(255, 255, 255, 0.03);
                 border-radius: 12px;
                 padding: 20px;
-                border: 1px solid rgba(255, 255, 255, 0.1);
+                border: 1px solid rgba(255, 255, 255, 0.8);
+                border-top: 3px solid #ffffff;
                 box-sizing: border-box;
             }
             
@@ -2334,7 +2327,6 @@ function getHospitalConsolidadoCSS() {
             
             /* =================== RESPONSIVIDADE MOBILE =================== */
             @media (max-width: 768px) {
-                .filtro-linha-todos,
                 .hospital-filter-selector {
                     flex-direction: column;
                     align-items: stretch;
@@ -2343,6 +2335,7 @@ function getHospitalConsolidadoCSS() {
                 .hospital-filter-btn {
                     width: 100%;
                     max-width: 100%;
+                    flex: 1 1 100%;
                 }
                 
                 .dashboard-title-central {
