@@ -797,7 +797,7 @@ window.renderDashboardExecutivo = function() {
     container.innerHTML = `
         <div style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); min-height: 100vh; padding: 20px; color: white;">
             
-            <div class="dashboard-header-exec" style="margin-bottom: 30px; padding: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 12px; border-left: 4px solid #ffffff;">
+            <div class="dashboard-header-exec" style="margin-bottom: 30px; padding: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.8); border-top: 3px solid #ffffff;">
                 <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 10px;">
                     <h2 style="margin: 0; color: #60a5fa; font-size: 24px; font-weight: 700; text-align: center; text-transform: none !important;">Rede Hospitalar Externa - Dashboard Geral</h2>
                 </div>
@@ -918,18 +918,18 @@ window.renderDashboardExecutivo = function() {
                     
                     <div class="kpi-detalhes">
                         <div class="detalhe-titulo">TPH (dias)</div>
-                        <table class="hospitais-table">
+                        <table class="hospitais-table-alinhada">
                             <thead>
                                 <tr>
-                                    <th>Hospital</th>
-                                    <th>TPH (dias)</th>
+                                    <th style="text-align: center;">Hospital</th>
+                                    <th style="text-align: center;">TPH (dias)</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 ${hospitais.map(h => `
                                     <tr>
-                                        <td>${h.nome}</td>
-                                        <td>${h.tph.medio}</td>
+                                        <td style="text-align: center;">${h.nome}</td>
+                                        <td style="text-align: center;">${h.tph.medio}</td>
                                     </tr>
                                 `).join('')}
                             </tbody>
@@ -954,18 +954,18 @@ window.renderDashboardExecutivo = function() {
                     
                     <div class="kpi-detalhes">
                         <div class="detalhe-titulo">PPS < 40% por Hospital</div>
-                        <table class="hospitais-table">
+                        <table class="hospitais-table-alinhada">
                             <thead>
                                 <tr>
-                                    <th>Hospital</th>
-                                    <th>PPS < 40%</th>
+                                    <th style="text-align: center;">Hospital</th>
+                                    <th style="text-align: center;">PPS < 40%</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 ${hospitais.map(h => `
                                     <tr>
-                                        <td>${h.nome}</td>
-                                        <td>${h.pps.menor40.length}</td>
+                                        <td style="text-align: center;">${h.nome}</td>
+                                        <td style="text-align: center;">${h.pps.menor40.length}</td>
                                     </tr>
                                 `).join('')}
                             </tbody>
@@ -990,18 +990,18 @@ window.renderDashboardExecutivo = function() {
                     
                     <div class="kpi-detalhes">
                         <div class="detalhe-titulo">Diretivas Pendentes por Hospital</div>
-                        <table class="hospitais-table">
+                        <table class="hospitais-table-alinhada">
                             <thead>
                                 <tr>
-                                    <th>Hospital</th>
-                                    <th>Diretivas Pendentes</th>
+                                    <th style="text-align: center;">Hospital</th>
+                                    <th style="text-align: center;">Diretivas Pendentes</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 ${hospitais.map(h => `
                                     <tr>
-                                        <td>${h.nome}</td>
-                                        <td>${h.spict.diretivas}</td>
+                                        <td style="text-align: center;">${h.nome}</td>
+                                        <td style="text-align: center;">${h.spict.diretivas}</td>
                                     </tr>
                                 `).join('')}
                             </tbody>
@@ -1014,26 +1014,20 @@ window.renderDashboardExecutivo = function() {
             <div class="executivo-graficos">
                 
                 <div class="executivo-grafico-card">
-                    <div class="chart-header">
-                        <div>
-                            <h3>Análise Geral - Preditiva de Concessões em ${hoje}</h3>
-                            <p>Previsão por Hospital e Período - Heatmap Temporal</p>
-                        </div>
+                    <div class="chart-header-centralizado">
+                        <h3>Análise Geral - Preditiva de Concessões em ${hoje}</h3>
+                        <p>Previsão por Hospital e Período - Heatmap Temporal</p>
                     </div>
                     <div id="heatmapConcessoesContainer"></div>
                 </div>
                 
-                ${CONFIG_DASHBOARD.MOSTRAR_LINHAS_CUIDADO ? `
                 <div class="executivo-grafico-card">
-                    <div class="chart-header">
-                        <div>
-                            <h3>Análise Geral - Preditiva de Linhas de Cuidado em ${hoje}</h3>
-                            <p>Previsão por Hospital e Período - Heatmap Temporal</p>
-                        </div>
+                    <div class="chart-header-centralizado">
+                        <h3>Análise Geral - Linha de Cuidados em ${hoje}</h3>
+                        <p>Previsão por Hospital e Período - Heatmap Temporal</p>
                     </div>
                     <div id="heatmapLinhasContainer"></div>
                 </div>
-                ` : ''}
                 
             </div>
         </div>
@@ -1067,10 +1061,7 @@ window.renderDashboardExecutivo = function() {
             }
             
             renderHeatmapConcessoes();
-            
-            if (CONFIG_DASHBOARD.MOSTRAR_LINHAS_CUIDADO) {
-                renderHeatmapLinhas();
-            }
+            renderHeatmapLinhas();
             
             logInfo('Fundo executivo alterado para: ' + (window.fundoBranco ? 'claro' : 'escuro'));
         });
@@ -1084,10 +1075,7 @@ window.renderDashboardExecutivo = function() {
         
         setTimeout(() => {
             renderHeatmapConcessoes();
-            
-            if (CONFIG_DASHBOARD.MOSTRAR_LINHAS_CUIDADO) {
-                renderHeatmapLinhas();
-            }
+            renderHeatmapLinhas();
             
             logSuccess('Dashboard Executivo renderizado com dados atualizados (7 hospitais - 93 leitos)');
         }, 200);
@@ -1558,9 +1546,9 @@ function getExecutiveCSS() {
             }
             
             .v5-badge-below.blue {
-                background: rgba(6, 118, 187, 0.2);
-                color: #0676bb;
-                border-color: #0676bb;
+                background: rgba(59, 130, 246, 0.2);
+                color: #3b82f6;
+                border-color: #3b82f6;
             }
             
             .kpi-content {
@@ -1810,6 +1798,40 @@ function getExecutiveCSS() {
                 background: rgba(255, 255, 255, 0.03);
             }
             
+            .hospitais-table-alinhada {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 13px;
+            }
+            
+            .hospitais-table-alinhada thead {
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            
+            .hospitais-table-alinhada th {
+                padding: 8px;
+                color: #60a5fa;
+                font-weight: 600;
+                text-transform: none !important;
+                font-size: 11px;
+                letter-spacing: 0.5px;
+            }
+            
+            .hospitais-table-alinhada td {
+                padding: 8px;
+                color: #e5e7eb;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+                text-transform: none !important;
+            }
+            
+            .hospitais-table-alinhada tbody tr:last-child td {
+                border-bottom: none;
+            }
+            
+            .hospitais-table-alinhada tbody tr:hover {
+                background: rgba(255, 255, 255, 0.03);
+            }
+            
             .hospitais-table-ocupacao {
                 width: 100%;
                 border-collapse: collapse;
@@ -1891,10 +1913,11 @@ function getExecutiveCSS() {
             }
             
             .executivo-grafico-card {
-                background: #1a1f2e;
+                background: rgba(255, 255, 255, 0.03);
                 border-radius: 12px;
                 padding: 25px;
-                border: 1px solid rgba(255, 255, 255, 0.1);
+                border: 1px solid rgba(255, 255, 255, 0.8);
+                border-top: 3px solid #ffffff;
                 box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
                 color: white;
             }
@@ -1918,6 +1941,26 @@ function getExecutiveCSS() {
             }
             
             .chart-header p {
+                margin: 0;
+                color: #9ca3af;
+                font-size: 14px;
+                text-transform: none !important;
+            }
+            
+            .chart-header-centralizado {
+                text-align: center;
+                margin-bottom: 20px;
+            }
+            
+            .chart-header-centralizado h3 {
+                margin: 0 0 5px 0;
+                color: white;
+                font-size: 18px;
+                font-weight: 600;
+                text-transform: none !important;
+            }
+            
+            .chart-header-centralizado p {
                 margin: 0;
                 color: #9ca3af;
                 font-size: 14px;
@@ -2178,14 +2221,17 @@ function getExecutiveCSS() {
                 }
                 
                 .hospitais-table-ocupacao,
-                .hospitais-table {
+                .hospitais-table,
+                .hospitais-table-alinhada {
                     font-size: 11px !important;
                 }
                 
                 .hospitais-table-ocupacao th,
                 .hospitais-table-ocupacao td,
                 .hospitais-table th,
-                .hospitais-table td {
+                .hospitais-table td,
+                .hospitais-table-alinhada th,
+                .hospitais-table-alinhada td {
                     padding: 6px 4px !important;
                     font-size: 11px !important;
                 }
@@ -2249,12 +2295,14 @@ function getExecutiveCSS() {
                     margin-bottom: 20px !important;
                 }
                 
-                .chart-header h3 {
+                .chart-header h3,
+                .chart-header-centralizado h3 {
                     font-size: 14px !important;
                     line-height: 1.3 !important;
                 }
                 
-                .chart-header p {
+                .chart-header p,
+                .chart-header-centralizado p {
                     font-size: 12px !important;
                 }
                 
@@ -2328,14 +2376,17 @@ function getExecutiveCSS() {
                 }
                 
                 .hospitais-table-ocupacao,
-                .hospitais-table {
+                .hospitais-table,
+                .hospitais-table-alinhada {
                     font-size: 10px !important;
                 }
                 
                 .hospitais-table-ocupacao th,
                 .hospitais-table-ocupacao td,
                 .hospitais-table th,
-                .hospitais-table td {
+                .hospitais-table td,
+                .hospitais-table-alinhada th,
+                .hospitais-table-alinhada td {
                     padding: 4px 2px !important;
                     font-size: 10px !important;
                 }
@@ -2381,3 +2432,7 @@ console.log('✅ Diretivas: SPICT elegível + Diretivas = "Não"');
 console.log('✅ text-transform: none !important em TUDO');
 console.log('✅ Bordas brancas sempre visíveis');
 console.log('✅ Ordem alfabética: Adventista → Santa Virgínia');
+console.log('✅ Gauge Leitos Disponíveis fixo em azul (#3b82f6)');
+console.log('✅ Tabelas TPH, PPS e SPICT com títulos centralizados');
+console.log('✅ Linhas de Cuidado reativadas com borda branca');
+console.log('✅ Títulos e subtítulos centralizados nos heatmaps');
