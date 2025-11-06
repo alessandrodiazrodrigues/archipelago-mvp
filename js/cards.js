@@ -1,5 +1,15 @@
 // =================== CARDS.JS - GESTÃO DE LEITOS HOSPITALARES ===================
 
+// =================== ✅ FUNÇÃO DE NORMALIZAÇÃO (DUPLICADA DO API.JS) ===================
+function normalizarTexto(texto) {
+    if (!texto || typeof texto !== 'string') return texto;
+    return texto
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/ç/g, 'c')
+        .replace(/Ç/g, 'C');
+}
+
 // =================== VARIÁVEIS GLOBAIS ===================  
 window.selectedLeito = null;
 window.currentHospital = 'H1';
@@ -451,7 +461,7 @@ function validarLimiteSantaClara(tipoQuarto) {
     return { permitido: true };
 }
 
-// =================== CRIAR CARD INDIVIDUAL - ✅ CORRIGIDO LINHA 491 ===================
+// =================== CRIAR CARD INDIVIDUAL ===================
 function createCard(leito, hospitalNome) {
     const card = document.createElement('div');
     card.className = 'card';
@@ -557,7 +567,6 @@ function createCard(leito, hospitalNome) {
         tempoInternacao = calcularTempoInternacao(admissao);
     }
     
-    // ✅ CORREÇÃO CRÍTICA: Linha 491 - Garantir que nome seja string antes de .trim()
     const iniciais = isVago ? '—' : (nome ? String(nome).trim() : '—');
     
     let ppsFormatado = pps ? `${pps}%` : '—';
@@ -1133,12 +1142,13 @@ function createAdmissaoForm(hospitalNome, leitoNumero, hospitalId) {
     `;
 }
 
-// =================== FORMULÁRIO DE ATUALIZAÇÃO - COM LINHAS ===================
+// =================== FORMULÁRIO DE ATUALIZAÇÃO - ✅ CORRIGIDO ===================
 function createAtualizacaoForm(hospitalNome, leitoNumero, dadosLeito) {
     const tempoInternacao = dadosLeito?.admAt ? calcularTempoInternacao(dadosLeito.admAt) : '';
     const iniciais = dadosLeito?.nome ? dadosLeito.nome.trim() : '';
     const idSequencial = String(leitoNumero).padStart(2, '0');
     
+    // ✅ Normalizar concessões vindas da planilha
     const concessoesAtuais = Array.isArray(dadosLeito?.concessoes) ? dadosLeito.concessoes : [];
     
     let isolamentoAtual = dadosLeito?.isolamento || 'Não Isolamento';
@@ -1308,7 +1318,7 @@ function createAtualizacaoForm(hospitalNome, leitoNumero, dadosLeito) {
                 </div>
             </div>
             
-            <!-- CONCESSÕES COM BUSCA -->
+            <!-- CONCESSÕES COM BUSCA - ✅ CORRIGIDO -->
             <div style="margin-bottom: 20px;">
                 <div style="background: rgba(96,165,250,0.1); padding: 10px 15px; border-radius: 6px; margin-bottom: 10px;">
                     <div style="font-size: 11px; color: #ffffff; text-transform: uppercase; font-weight: 700;">
@@ -1327,7 +1337,12 @@ function createAtualizacaoForm(hospitalNome, leitoNumero, dadosLeito) {
                 
                 <div id="updConcessoes" style="max-height: 150px; overflow-y: auto; background: rgba(255,255,255,0.03); border-radius: 6px; padding: 10px; display: grid; grid-template-columns: 1fr; gap: 6px;">
                     ${window.CONCESSOES_LIST.map(c => {
-                        const isChecked = concessoesAtuais.includes(c);
+                        // ✅ NORMALIZAR ambos os lados antes de comparar
+                        const checkboxNormalizado = normalizarTexto(c);
+                        const isChecked = concessoesAtuais.some(atual => 
+                            normalizarTexto(atual) === checkboxNormalizado
+                        );
+                        
                         return `
                             <label style="display: flex; align-items: center; padding: 4px 0; cursor: pointer; font-size: 12px; font-family: 'Poppins', sans-serif;">
                                 <input type="checkbox" value="${c}" ${isChecked ? 'checked' : ''} style="margin-right: 8px; accent-color: #60a5fa;">
@@ -1338,7 +1353,7 @@ function createAtualizacaoForm(hospitalNome, leitoNumero, dadosLeito) {
                 </div>
             </div>
 
-            <!-- LINHAS DE CUIDADO COM BUSCA -->
+            <!-- LINHAS DE CUIDADO COM BUSCA - ✅ CORRIGIDO -->
             <div style="margin-bottom: 20px;">
                 <div style="background: rgba(96,165,250,0.1); padding: 10px 15px; border-radius: 6px; margin-bottom: 10px;">
                     <div style="font-size: 11px; color: #ffffff; text-transform: uppercase; font-weight: 700;">
@@ -1357,8 +1372,13 @@ function createAtualizacaoForm(hospitalNome, leitoNumero, dadosLeito) {
                 
                 <div id="updLinhas" style="max-height: 150px; overflow-y: auto; background: rgba(255,255,255,0.03); border-radius: 6px; padding: 10px; display: grid; grid-template-columns: 1fr; gap: 6px;">
                     ${window.LINHAS_CUIDADO_LIST.map(linha => {
+                        // ✅ NORMALIZAR ambos os lados antes de comparar
                         const linhasAtuais = Array.isArray(dadosLeito?.linhas) ? dadosLeito.linhas : [];
-                        const isChecked = linhasAtuais.includes(linha);
+                        const linhaNormalizada = normalizarTexto(linha);
+                        const isChecked = linhasAtuais.some(atual => 
+                            normalizarTexto(atual) === linhaNormalizada
+                        );
+                        
                         return `
                             <label style="display: flex; align-items: center; padding: 4px 0; cursor: pointer; font-size: 12px; font-family: 'Poppins', sans-serif;">
                                 <input type="checkbox" value="${linha}" ${isChecked ? 'checked' : ''} style="margin-right: 8px; accent-color: #60a5fa;">
@@ -1387,12 +1407,12 @@ function createAtualizacaoForm(hospitalNome, leitoNumero, dadosLeito) {
     `;
 }
 
-// =================== PRÉ-MARCAÇÃO DE CHECKBOXES ===================
+// =================== ✅ PRÉ-MARCAÇÃO COM NORMALIZAÇÃO ===================
 function forcarPreMarcacao(modal, dadosLeito) {
-    logDebug(`Forçando pré-marcação...`);
+    logDebug(`Forçando pré-marcação com normalização...`);
     
+    // ✅ CONCESSÕES - Normalizar antes de comparar
     const concessoesAtuais = Array.isArray(dadosLeito?.concessoes) ? dadosLeito.concessoes : [];
-    
     const concessoesCheckboxes = modal.querySelectorAll('#updConcessoes input[type="checkbox"]');
     const naoSeAplicaCheckbox = Array.from(concessoesCheckboxes)
         .find(cb => cb.value === 'Não se aplica');
@@ -1400,24 +1420,32 @@ function forcarPreMarcacao(modal, dadosLeito) {
     concessoesCheckboxes.forEach(checkbox => {
         if (checkbox.value === 'Não se aplica') {
             checkbox.checked = concessoesAtuais.length === 0;
-        } else if (concessoesAtuais.includes(checkbox.value)) {
-            checkbox.checked = true;
+        } else {
+            // ✅ NORMALIZAR ambos os lados antes de comparar
+            const checkboxNormalizado = normalizarTexto(checkbox.value);
+            const isChecked = concessoesAtuais.some(atual => 
+                normalizarTexto(atual) === checkboxNormalizado
+            );
+            checkbox.checked = isChecked;
         }
     });
 
-    // PRÉ-MARCAÇÃO DE LINHAS
+    // ✅ LINHAS - Normalizar antes de comparar
     const linhasAtuais = Array.isArray(dadosLeito?.linhas) ? dadosLeito.linhas : [];
     const linhasCheckboxes = modal.querySelectorAll('#updLinhas input[type="checkbox"]');
 
     linhasCheckboxes.forEach(checkbox => {
-        if (linhasAtuais.includes(checkbox.value)) {
-            checkbox.checked = true;
-        }
+        // ✅ NORMALIZAR ambos os lados antes de comparar
+        const linhaNormalizada = normalizarTexto(checkbox.value);
+        const isChecked = linhasAtuais.some(atual => 
+            normalizarTexto(atual) === linhaNormalizada
+        );
+        checkbox.checked = isChecked;
     });
 
+    logDebug(`Concessões pré-marcadas: ${concessoesAtuais.length}`);
     logDebug(`Linhas pré-marcadas: ${linhasAtuais.length}`);
-    
-    logDebug(`Pré-marcação concluída`);
+    logSuccess(`Pré-marcação concluída com normalização!`);
 }
 
 // LÓGICA "NÃO SE APLICA" PARA CONCESSÕES
@@ -2083,7 +2111,7 @@ if (!document.getElementById('cardsConsolidadoCSS')) {
 
 // =================== INICIALIZAÇÃO ===================
 document.addEventListener('DOMContentLoaded', function() {
-    logSuccess('CARDS.JS V4.1 CARREGADO - Gestão de Leitos Hospitalares');
+    logSuccess('CARDS.JS V4.1 FINAL CARREGADO - Gestão de Leitos Hospitalares');
     
     if (window.CONCESSOES_LIST.length !== 13) {
         logError(`ERRO: Esperadas 13 concessões (12 + "Não se aplica"), encontradas ${window.CONCESSOES_LIST.length}`);
@@ -2112,7 +2140,6 @@ window.formatarMatriculaExibicao = formatarMatriculaExibicao;
 window.setupSearchFilter = setupSearchFilter;
 window.searchLeitos = searchLeitos;
 
-logSuccess('✅ CARDS.JS V4.1 COMPLETO - 12 CONCESSÕES!');
-logSuccess('✅ Fisioterapia Motora Domiciliar (renomeada)');
-logSuccess('✅ Fisioterapia Respiratória Domiciliar (12ª concessão)');
-logSuccess('✅ Acentos UTF-8 preservados para api.js normalizar!');
+logSuccess('✅ CARDS.JS V4.1 FINAL - 12 CONCESSÕES COM NORMALIZAÇÃO!');
+logSuccess('✅ Bug de pré-marcação CORRIGIDO!');
+logSuccess('✅ Concessões/linhas com acentos agora aparecem marcadas!');
