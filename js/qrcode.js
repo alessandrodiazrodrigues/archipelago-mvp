@@ -1,6 +1,6 @@
 // =================== QRCODE-OPTIMIZED.JS - V4.2 CORRIGIDO ===================
-// ✅ CORRIGIDO: Função de impressão personalizada (erro 404)
-// ✅ NOVO: Seleção individual de leitos com dados do paciente
+// CORRIGIDO: Função de impressão personalizada (erro 404)
+// NOVO: Seleção individual de leitos com dados do paciente
 // Sistema otimizado com carregamento sequencial
 
 const QR_API = {
@@ -42,7 +42,7 @@ function getNomeLeitoFormatado(hospitalId, numeroLeito) {
 
 // =================== FUNÇÃO PRINCIPAL - MODAL COM OPÇÕES ===================
 window.openQRCodesSimple = function() {
-    console.log('🔵 Abrindo gerador de QR Codes V4.2...');
+    console.log('Abrindo gerador de QR Codes V4.2...');
     
     if (document.querySelector('.qr-modal-simple')) {
         console.log('Modal já está aberto');
@@ -54,16 +54,16 @@ window.openQRCodesSimple = function() {
     modal.innerHTML = `
         <div class="qr-modal-content">
             <div class="qr-modal-header">
-                <h2>📱 QR Codes dos Leitos - Sistema V4.2</h2>
+                <h2>QR Codes dos Leitos - Sistema V4.2</h2>
                 <button onclick="closeQRModalSimple()" class="close-btn">✕</button>
             </div>
             <div class="qr-modal-body">
                 <div class="qr-tabs">
                     <button class="qr-tab active" onclick="switchQRTab('todos')">
-                        📋 Todos os Leitos
+                        Todos os Leitos
                     </button>
                     <button class="qr-tab" onclick="switchQRTab('selecao')">
-                        ✅ Seleção Personalizada
+                        Seleção Personalizada
                     </button>
                 </div>
                 
@@ -82,7 +82,7 @@ window.openQRCodesSimple = function() {
                         <button onclick="generateAllQRCodesOptimized()" class="btn-all" id="btnGenerateAll">
                             Gerar Todos (93 QR Codes)
                         </button>
-                        <button onclick="window.print()" class="btn-print">🖨️ Imprimir</button>
+                        <button onclick="window.print()" class="btn-print">Imprimir</button>
                     </div>
                     
                     <div id="progressContainer" class="progress-container" style="display: none;">
@@ -135,7 +135,7 @@ window.openQRCodesSimple = function() {
                                     <strong><span id="contadorSelecionados">0</span></strong> leitos selecionados
                                 </div>
                                 <button onclick="gerarQRCodesSelecionados()" class="btn-gerar-selecao" id="btnGerarSelecao" disabled>
-                                    🖨️ Gerar Impressão
+                                    Gerar Impressão
                                 </button>
                             </div>
                         </div>
@@ -307,7 +307,7 @@ window.gerarQRCodesSelecionados = async function() {
         return;
     }
     
-    console.log('📋 Gerando impressão de', leitosSelecionados.length, 'leitos selecionados...');
+    console.log('Gerando impressão de', leitosSelecionados.length, 'leitos selecionados...');
     
     // Buscar dados completos dos leitos selecionados
     const leitosCompletos = [];
@@ -333,7 +333,7 @@ window.gerarQRCodesSelecionados = async function() {
 
 // =================== ABRIR PÁGINA DE IMPRESSÃO PERSONALIZADA (CORRIGIDA) ===================
 function abrirPaginaImpressao(leitos) {
-    console.log('📋 Abrindo página de impressão com', leitos.length, 'leitos...');
+    console.log('Abrindo página de impressão com', leitos.length, 'leitos...');
     
     // Criar blob com o HTML
     const htmlContent = gerarHTMLImpressao(leitos);
@@ -344,7 +344,7 @@ function abrirPaginaImpressao(leitos) {
     const janelaImpressao = window.open(url, '_blank');
     
     if (!janelaImpressao) {
-        alert('⚠️ Bloqueador de pop-ups detectado! Por favor, permita pop-ups para este site.');
+        alert('Bloqueador de pop-ups detectado! Por favor, permita pop-ups para este site.');
         console.error('Não foi possível abrir a janela de impressão');
         return;
     }
@@ -354,7 +354,7 @@ function abrirPaginaImpressao(leitos) {
         URL.revokeObjectURL(url);
     }, 5000);
     
-    console.log('✅ Página de impressão aberta com sucesso!');
+    console.log('Página de impressão aberta com sucesso!');
 }
 
 // =================== GERAR HTML DA IMPRESSÃO ===================
@@ -599,12 +599,12 @@ function gerarHTMLImpressao(leitos) {
 <body>
     <div class="controles">
         <div>
-            <h1 style="font-size: 18px; margin-bottom: 5px;">📱 Impressão de QR Codes</h1>
+            <h1 style="font-size: 18px; margin-bottom: 5px;">Impressão de QR Codes</h1>
             <p style="color: #6b7280; font-size: 13px;">
                 <strong>${leitos.length} leitos</strong> selecionados
             </p>
         </div>
-        <button class="btn-imprimir" onclick="window.print()">🖨️ Imprimir</button>
+        <button class="btn-imprimir" onclick="window.print()">Imprimir</button>
     </div>
 
     <div class="impressao-container">`;
@@ -705,8 +705,8 @@ function gerarHTMLImpressao(leitos) {
     html += `
     </div>
     <script>
-        console.log('✅ Página de impressão carregada');
-        console.log('📋 ${leitos.length} leitos prontos para impressão');
+        console.log('Página de impressão carregada');
+        console.log('${leitos.length} leitos prontos para impressão');
     </script>
 </body>
 </html>`;
@@ -801,7 +801,7 @@ window.generateQRCodesSimple = function() {
     }
     
     container.innerHTML += '</div>';
-    console.log(`✅ ${hospital.leitos} QR Codes gerados para ${hospital.nome}`);
+    console.log(`${hospital.leitos} QR Codes gerados para ${hospital.nome}`);
 };
 
 // =================== GERAR TODOS OS QR CODES ===================
@@ -840,7 +840,7 @@ window.generateAllQRCodesOptimized = async function() {
         setTimeout(() => progressContainer.style.display = 'none', 2000);
         
     } catch (error) {
-        console.error('❌ Erro na geração:', error);
+        console.error('Erro na geração:', error);
     } finally {
         isGenerating = false;
         btnGenerateAll.disabled = false;
@@ -1433,9 +1433,9 @@ function addOptimizedStyles() {
 // =================== INICIALIZAÇÃO ===================
 document.addEventListener('DOMContentLoaded', function() {
     window.openQRCodes = window.openQRCodesSimple;
-    console.log('✅ Sistema QR Code V4.2 carregado');
-    console.log('📱 Base URL:', QR_API.BASE_URL);
-    console.log('🏥 Total: 93 QR codes (7 hospitais)');
-    console.log('🖨️ Impressão: 4 leitos por página A4');
-    console.log('✅ CORRIGIDO: Função de impressão personalizada');
+    console.log('Sistema QR Code V4.2 carregado');
+    console.log('Base URL:', QR_API.BASE_URL);
+    console.log('Total: 93 QR codes (7 hospitais)');
+    console.log('Impressão: 4 leitos por página A4');
+    console.log('CORRIGIDO: Função de impressão personalizada');
 });
