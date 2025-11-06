@@ -525,6 +525,7 @@ function createCard(leito, hospitalNome) {
     const badgeDiretivas = getBadgeDiretivas(diretivas);
     
     const concessoes = Array.isArray(leito.concessoes) ? leito.concessoes : [];
+    const linhas = Array.isArray(leito.linhas) ? leito.linhas : [];
     
     let tempoInternacao = '';
     if (!isVago && admissao) {
@@ -662,6 +663,19 @@ function createCard(leito, hospitalNome) {
             <div class="chips-container" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); display: flex; flex-wrap: wrap; gap: 4px; min-height: 24px; border-radius: 6px; padding: 8px;">
                 ${(concessoes && concessoes.length > 0) 
                     ? concessoes.map(concessao => `<span class="chip" style="font-size: 9px; background: rgba(96,165,250,0.2); border: 1px solid rgba(96,165,250,0.4); color: #60a5fa; padding: 3px 8px; border-radius: 10px; font-weight: 700; font-family: 'Poppins', sans-serif;">${concessao}</span>`).join('') 
+                    : '<span style="color: rgba(255,255,255,0.7); font-size: 10px;">Nenhuma</span>'
+                }
+            </div>
+        </div>
+
+        <!-- LINHAS DE CUIDADO -->
+        <div class="card-section" style="margin-bottom: 15px; font-family: 'Poppins', sans-serif;">
+            <div class="section-header" style="background: #60a5fa; color: #ffffff; font-size: 10px; padding: 6px 8px; border-radius: 4px; margin-bottom: 6px; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px;">
+                LINHAS DE CUIDADO
+            </div>
+            <div class="chips-container" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); display: flex; flex-wrap: wrap; gap: 4px; min-height: 24px; border-radius: 6px; padding: 8px;">
+                ${(linhas && linhas.length > 0) 
+                    ? linhas.map(linha => `<span class="chip" style="font-size: 9px; background: rgba(96,165,250,0.2); border: 1px solid rgba(96,165,250,0.4); color: #60a5fa; padding: 3px 8px; border-radius: 10px; font-weight: 700; font-family: 'Poppins', sans-serif;">${linha}</span>`).join('') 
                     : '<span style="color: rgba(255,255,255,0.7); font-size: 10px;">Nenhuma</span>'
                 }
             </div>
@@ -2075,5 +2089,5 @@ window.setupSearchFilter = setupSearchFilter;
 window.searchLeitos = searchLeitos;
 
 logSuccess('CARDS.JS COMPLETO - Gestão de Leitos Hospitalares!');
-console.log('✅ LINHAS DE CUIDADO: REATIVADAS!');
-console.log('✅ CONCESSÕES E LINHAS: Normalização de acentos aplicada!');
+console.log('✅ LINHAS DE CUIDADO: Exibidas nos cards!');
+console.log('✅ CONCESSÕES E LINHAS: Mesmas cores e fontes!');
