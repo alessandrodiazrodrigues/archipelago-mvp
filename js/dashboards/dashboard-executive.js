@@ -161,7 +161,7 @@ function calcularGaugeOffset(porcentagem) {
 
 function renderGaugeV5(porcentagem, cor, numero) {
     const offset = calcularGaugeOffset(porcentagem);
-    const badgeClass = cor === '#22c55e' ? 'green' : (cor === '#0676bb' ? 'blue' : 'orange');
+    const badgeClass = cor === '#22c55e' ? 'green' : (cor === '#0676bb' || cor === '#3b82f6' ? 'blue' : 'orange');
     
     return `
         <div class="v5-gauge-container">
