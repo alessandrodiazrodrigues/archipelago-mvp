@@ -1099,7 +1099,7 @@ function getCorTexto(valor) {
     return '#ffffff';
 }
 
-// =================== HEATMAP CONCESSÕES (COM DESNORMALIZAÇÃO) ===================
+// =================== HEATMAP CONCESSÕES ===================
 function renderHeatmapConcessoes() {
     const container = document.getElementById('heatmapConcessoesContainer');
     if (!container) return;
@@ -1195,7 +1195,7 @@ function renderHeatmapConcessoes() {
     container.innerHTML = html;
 }
 
-// =================== HEATMAP LINHAS (COM DESNORMALIZAÇÃO) ===================
+// =================== HEATMAP LINHAS ===================
 function renderHeatmapLinhas() {
     const container = document.getElementById('heatmapLinhasContainer');
     if (!container) return;
@@ -1291,7 +1291,7 @@ function renderHeatmapLinhas() {
     container.innerHTML = html;
 }
 
-// =================== CALCULAR DADOS CONCESSÕES (COM DESNORMALIZAÇÃO) ===================
+// =================== CALCULAR DADOS CONCESSÕES ===================
 function calcularDadosConcessoesReais(hospitaisComDados) {
     const concessoesPorItem = {};
     
@@ -1317,13 +1317,12 @@ function calcularDadosConcessoesReais(hospitaisComDados) {
                 if (periodo) {
                     concessoesList.forEach(concessao => {
                         if (concessao && concessao.trim()) {
-                            const nomeOriginal = concessao.trim();
-                            const nomeComAcentos = window.desnormalizarTexto ? window.desnormalizarTexto(nomeOriginal) : nomeOriginal;
+                            const nome = concessao.trim();
                             
-                            if (!concessoesPorItem[nomeComAcentos]) {
-                                concessoesPorItem[nomeComAcentos] = {};
+                            if (!concessoesPorItem[nome]) {
+                                concessoesPorItem[nome] = {};
                                 hospitaisComDados.forEach(hId => {
-                                    concessoesPorItem[nomeComAcentos][hId] = {
+                                    concessoesPorItem[nome][hId] = {
                                         'HOJE': 0,
                                         '24H': 0,
                                         '48H': 0,
@@ -1332,7 +1331,7 @@ function calcularDadosConcessoesReais(hospitaisComDados) {
                                 });
                             }
                             
-                            concessoesPorItem[nomeComAcentos][hospitalId][periodo]++;
+                            concessoesPorItem[nome][hospitalId][periodo]++;
                         }
                     });
                 }
@@ -1343,7 +1342,7 @@ function calcularDadosConcessoesReais(hospitaisComDados) {
     return concessoesPorItem;
 }
 
-// =================== CALCULAR DADOS LINHAS (COM DESNORMALIZAÇÃO) ===================
+// =================== CALCULAR DADOS LINHAS ===================
 function calcularDadosLinhasReais(hospitaisComDados) {
     const linhasPorItem = {};
     
@@ -1369,13 +1368,12 @@ function calcularDadosLinhasReais(hospitaisComDados) {
                 if (periodo) {
                     linhasList.forEach(linha => {
                         if (linha && linha.trim()) {
-                            const nomeOriginal = linha.trim();
-                            const nomeComAcentos = window.desnormalizarTexto ? window.desnormalizarTexto(nomeOriginal) : nomeOriginal;
+                            const nome = linha.trim();
                             
-                            if (!linhasPorItem[nomeComAcentos]) {
-                                linhasPorItem[nomeComAcentos] = {};
+                            if (!linhasPorItem[nome]) {
+                                linhasPorItem[nome] = {};
                                 hospitaisComDados.forEach(hId => {
-                                    linhasPorItem[nomeComAcentos][hId] = {
+                                    linhasPorItem[nome][hId] = {
                                         'HOJE': 0,
                                         '24H': 0,
                                         '48H': 0,
@@ -1384,7 +1382,7 @@ function calcularDadosLinhasReais(hospitaisComDados) {
                                 });
                             }
                             
-                            linhasPorItem[nomeComAcentos][hospitalId][periodo]++;
+                            linhasPorItem[nome][hospitalId][periodo]++;
                         }
                     });
                 }
@@ -2428,7 +2426,7 @@ function logError(message) {
     console.error('[DASHBOARD EXECUTIVO V4.0] ❌ ' + message);
 }
 
-console.log('Dashboard Executivo V4.0 - CORRIGIDO COMPLETO + ACENTOS UTF-8');
+console.log('Dashboard Executivo V4.0 - CORRIGIDO COMPLETO');
 console.log('✅ 7 Hospitais (H1-H7) | 93 Leitos');
 console.log('✅ Diretivas: SPICT elegível + Diretivas = "Não"');
 console.log('✅ text-transform: none !important em TUDO');
@@ -2438,4 +2436,3 @@ console.log('✅ Gauge Leitos Disponíveis fixo em azul (#3b82f6)');
 console.log('✅ Tabelas TPH, PPS e SPICT com títulos centralizados');
 console.log('✅ Linhas de Cuidado reativadas com borda branca');
 console.log('✅ Títulos e subtítulos centralizados nos heatmaps');
-console.log('✅ CORREÇÃO UTF-8: Acentos (ç, ~, ^, ´) aplicados nos heatmaps');
