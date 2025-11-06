@@ -78,29 +78,23 @@ const LINHAS_DISPLAY_MAP = {
     "Urologia": "Urologia"
 };
 
-// =================== ✅ FUNÇÃO DE DESNORMALIZAÇÃO - CORRIGIDA PARA EVITAR CONFLITO ===================
-// Verificar se já existe antes de declarar (evita conflito com dashboard-hospital.js)
-if (typeof window.desnormalizarTexto === 'undefined') {
-    window.desnormalizarTexto = function(texto) {
-        if (!texto || typeof texto !== 'string') return texto;
-        
-        // Tentar encontrar no mapa de concessões
-        if (CONCESSOES_DISPLAY_MAP[texto]) {
-            return CONCESSOES_DISPLAY_MAP[texto];
-        }
-        
-        // Tentar encontrar no mapa de linhas
-        if (LINHAS_DISPLAY_MAP[texto]) {
-            return LINHAS_DISPLAY_MAP[texto];
-        }
-        
-        // Se não encontrar nos mapas, retornar o texto original
-        return texto;
-    };
+// ✅ FUNÇÃO DE DESNORMALIZAÇÃO - EXIBE COM ACENTOS
+function desnormalizarTexto(texto) {
+    if (!texto || typeof texto !== 'string') return texto;
+    
+    // Tentar encontrar no mapa de concessões
+    if (CONCESSOES_DISPLAY_MAP[texto]) {
+        return CONCESSOES_DISPLAY_MAP[texto];
+    }
+    
+    // Tentar encontrar no mapa de linhas
+    if (LINHAS_DISPLAY_MAP[texto]) {
+        return LINHAS_DISPLAY_MAP[texto];
+    }
+    
+    // Se não encontrar nos mapas, retornar o texto original
+    return texto;
 }
-
-// Criar referência local para uso interno
-const desnormalizarTexto = window.desnormalizarTexto;
 
 // =================== VARIÁVEIS GLOBAIS ===================  
 window.selectedLeito = null;
@@ -1008,7 +1002,7 @@ function setupSearchFilter(modal, containerId, searchId) {
     logSuccess(`Busca dinâmica configurada: ${searchId}`);
 }
 
-// =================== FORMULÁRIO DE ADMISSÃO - ARQUIVO ORIGINAL COMPLETO ===================
+// =================== FORMULÁRIO DE ADMISSÃO - COM LINHAS ===================
 function createAdmissaoForm(hospitalNome, leitoNumero, hospitalId) {
     const idSequencial = String(leitoNumero).padStart(2, '0');
     const isHibrido = window.HOSPITAIS_HIBRIDOS.includes(hospitalId);
@@ -2237,8 +2231,6 @@ window.setupSearchFilter = setupSearchFilter;
 window.searchLeitos = searchLeitos;
 window.desnormalizarTexto = desnormalizarTexto; // ✅ NOVO
 
-logSuccess('✅ CARDS.JS V4.1.1 FINAL - SOLUÇÃO DEFINITIVA APLICADA!');
-logSuccess('✅ Conflito de declaração de função resolvido!');
-logSuccess('✅ Função desnormalizarTexto verifica se já existe antes de declarar!');
-logSuccess('✅ Concessões e linhas aparecem COM acentos nos cards!');
-logSuccess('✅ Sistema de normalização/desnormalização funcionando perfeitamente!');
+logSuccess('✅ CARDS.JS V4.1.1 FINAL - EXIBIÇÃO COM ACENTOS CORRIGIDA!');
+logSuccess('✅ Concessões e linhas agora aparecem COM acentos nos cards!');
+logSuccess('✅ Função desnormalizarTexto implementada!');
