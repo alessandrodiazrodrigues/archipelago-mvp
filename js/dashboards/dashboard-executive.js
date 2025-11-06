@@ -1,6 +1,14 @@
 // =================== DASHBOARD EXECUTIVO V4.0 - CORRIGIDO COMPLETO ===================
 // =================== 7 HOSPITAIS | 93 LEITOS | DIRETIVAS CORRIGIDAS ===================
 
+// =================== USAR FUNÇÃO GLOBAL DE DESNORMALIZAÇÃO ===================
+const getDesnormalizarTexto = () => {
+    if (typeof window.desnormalizarTexto === 'function') {
+        return window.desnormalizarTexto;
+    }
+    return (texto) => texto;
+};
+
 // Estado global para fundo branco (compartilhado com dashboard hospitalar)
 if (typeof window.fundoBranco === 'undefined') {
     window.fundoBranco = false;
@@ -1291,7 +1299,7 @@ function renderHeatmapLinhas() {
     container.innerHTML = html;
 }
 
-// =================== CALCULAR DADOS CONCESSÕES ===================
+// =================== CALCULAR DADOS CONCESSÕES COM DESNORMALIZAÇÃO ===================
 function calcularDadosConcessoesReais(hospitaisComDados) {
     const concessoesPorItem = {};
     
@@ -1317,7 +1325,7 @@ function calcularDadosConcessoesReais(hospitaisComDados) {
                 if (periodo) {
                     concessoesList.forEach(concessao => {
                         if (concessao && concessao.trim()) {
-                            const nome = concessao.trim();
+                            const nome = getDesnormalizarTexto()(concessao.trim());
                             
                             if (!concessoesPorItem[nome]) {
                                 concessoesPorItem[nome] = {};
@@ -1342,7 +1350,7 @@ function calcularDadosConcessoesReais(hospitaisComDados) {
     return concessoesPorItem;
 }
 
-// =================== CALCULAR DADOS LINHAS ===================
+// =================== CALCULAR DADOS LINHAS COM DESNORMALIZAÇÃO ===================
 function calcularDadosLinhasReais(hospitaisComDados) {
     const linhasPorItem = {};
     
@@ -1368,7 +1376,7 @@ function calcularDadosLinhasReais(hospitaisComDados) {
                 if (periodo) {
                     linhasList.forEach(linha => {
                         if (linha && linha.trim()) {
-                            const nome = linha.trim();
+                            const nome = getDesnormalizarTexto()(linha.trim());
                             
                             if (!linhasPorItem[nome]) {
                                 linhasPorItem[nome] = {};
@@ -2426,13 +2434,10 @@ function logError(message) {
     console.error('[DASHBOARD EXECUTIVO V4.0] ❌ ' + message);
 }
 
-console.log('Dashboard Executivo V4.0 - CORRIGIDO COMPLETO');
+console.log('Dashboard Executivo V4.0 - CORRIGIDO COM DESNORMALIZAÇÃO UTF-8');
 console.log('✅ 7 Hospitais (H1-H7) | 93 Leitos');
 console.log('✅ Diretivas: SPICT elegível + Diretivas = "Não"');
 console.log('✅ text-transform: none !important em TUDO');
 console.log('✅ Bordas brancas sempre visíveis');
 console.log('✅ Ordem alfabética: Adventista → Santa Virgínia');
-console.log('✅ Gauge Leitos Disponíveis fixo em azul (#3b82f6)');
-console.log('✅ Tabelas TPH, PPS e SPICT com títulos centralizados');
-console.log('✅ Linhas de Cuidado reativadas com borda branca');
-console.log('✅ Títulos e subtítulos centralizados nos heatmaps');
+console.log('✅ CONCESSÕES E LINHAS COM ACENTOS CORRETOS nos heatmaps');
