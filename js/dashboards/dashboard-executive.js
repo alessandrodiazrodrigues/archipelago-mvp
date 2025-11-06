@@ -6,85 +6,6 @@ if (typeof window.fundoBranco === 'undefined') {
     window.fundoBranco = false;
 }
 
-// =================== MAPAS DE DESNORMALIZAÇÃO (RESTAURAR ACENTOS) ===================
-const CONCESSOES_DISPLAY_MAP = {
-    "Transicao Domiciliar": "Transição Domiciliar",
-    "Aplicacao domiciliar de medicamentos": "Aplicação domiciliar de medicamentos",
-    "Aspiracao": "Aspiração",
-    "Banho": "Banho",
-    "Curativo": "Curativo",
-    "Curativo PICC": "Curativo PICC",
-    "Fisioterapia Domiciliar": "Fisioterapia Domiciliar",
-    "Fonoaudiologia Domiciliar": "Fonoaudiologia Domiciliar",
-    "Oxigenoterapia": "Oxigenoterapia",
-    "Remocao": "Remoção",
-    "Solicitacao de Exames Domiciliares": "Solicitação de Exames Domiciliares"
-};
-
-const LINHAS_DISPLAY_MAP = {
-    "Assiste": "Assiste",
-    "APS SP": "APS SP",
-    "Cuidados Paliativos": "Cuidados Paliativos",
-    "ICO (Insuficiencia Coronariana)": "ICO (Insuficiência Coronariana)",
-    "Nexus SP Saude do Figado": "Nexus SP Saúde do Fígado",
-    "Nexus SP Doencas Raras": "Nexus SP Doenças Raras",
-    "Nexus SP Oncologia": "Nexus SP Oncologia",
-    "Nexus SP Esclerose Multipla": "Nexus SP Esclerose Múltipla",
-    "Nexus SP Doenca de Crohn": "Nexus SP Doença de Crohn",
-    "Nexus SP Asma Grave": "Nexus SP Asma Grave",
-    "Nexus SP Insuficiencia Cardiaca": "Nexus SP Insuficiência Cardíaca",
-    "Nexus SP Artrite Reumatoide": "Nexus SP Artrite Reumatoide",
-    "Nexus SP Espondilite Anquilosante": "Nexus SP Espondilite Anquilosante",
-    "Nexus SP Artrite Psoriasica": "Nexus SP Artrite Psoriásica",
-    "Nexus SP Doenca de Parkinson": "Nexus SP Doença de Parkinson",
-    "Nexus SP Alzheimer": "Nexus SP Alzheimer",
-    "Nexus SP DPOC": "Nexus SP DPOC",
-    "Nexus SP Diabetes": "Nexus SP Diabetes",
-    "Nexus SP Hipertensao Arterial": "Nexus SP Hipertensão Arterial",
-    "Nexus SP IRC": "Nexus SP IRC",
-    "Nexus SP Osteoporose": "Nexus SP Osteoporose",
-    "Cardiologia": "Cardiologia",
-    "Pneumologia": "Pneumologia",
-    "Nefrologia": "Nefrologia",
-    "Gastroenterologia": "Gastroenterologia",
-    "Endocrinologia": "Endocrinologia",
-    "Hematologia": "Hematologia",
-    "Reumatologia": "Reumatologia",
-    "Neurologia": "Neurologia",
-    "Psiquiatria": "Psiquiatria",
-    "Geriatria": "Geriatria",
-    "Infectologia": "Infectologia",
-    "Dermatologia": "Dermatologia",
-    "Oftalmologia": "Oftalmologia",
-    "Otorrinolaringologia": "Otorrinolaringologia",
-    "Urologia": "Urologia",
-    "Ginecologia": "Ginecologia",
-    "Ortopedia": "Ortopedia",
-    "Cirurgia Geral": "Cirurgia Geral",
-    "Cirurgia Vascular": "Cirurgia Vascular",
-    "Cirurgia Toracica": "Cirurgia Torácica",
-    "Cirurgia Plastica": "Cirurgia Plástica",
-    "Anestesiologia": "Anestesiologia",
-    "Radiologia": "Radiologia",
-    "Patologia": "Patologia",
-    "Medicina de Familia": "Medicina de Família"
-};
-
-// =================== FUNÇÃO DE DESNORMALIZAÇÃO ===================
-function desnormalizarTextoExec(texto) {
-    if (!texto || typeof texto !== 'string') return texto;
-    
-    if (CONCESSOES_DISPLAY_MAP[texto]) {
-        return CONCESSOES_DISPLAY_MAP[texto];
-    }
-    
-    if (LINHAS_DISPLAY_MAP[texto]) {
-        return LINHAS_DISPLAY_MAP[texto];
-    }
-    
-    return texto;
-}
-
 // =================== FUNÇÃO PARSE DATE CORRIGIDA ===================
 function parseAdmDate(admAt) {
     if (!admAt) return null;
@@ -1397,7 +1318,7 @@ function calcularDadosConcessoesReais(hospitaisComDados) {
                     concessoesList.forEach(concessao => {
                         if (concessao && concessao.trim()) {
                             const nomeOriginal = concessao.trim();
-                            const nomeComAcentos = desnormalizarTextoExec(nomeOriginal);
+                            const nomeComAcentos = window.desnormalizarTexto ? window.desnormalizarTexto(nomeOriginal) : nomeOriginal;
                             
                             if (!concessoesPorItem[nomeComAcentos]) {
                                 concessoesPorItem[nomeComAcentos] = {};
@@ -1449,7 +1370,7 @@ function calcularDadosLinhasReais(hospitaisComDados) {
                     linhasList.forEach(linha => {
                         if (linha && linha.trim()) {
                             const nomeOriginal = linha.trim();
-                            const nomeComAcentos = desnormalizarTextoExec(nomeOriginal);
+                            const nomeComAcentos = window.desnormalizarTexto ? window.desnormalizarTexto(nomeOriginal) : nomeOriginal;
                             
                             if (!linhasPorItem[nomeComAcentos]) {
                                 linhasPorItem[nomeComAcentos] = {};
