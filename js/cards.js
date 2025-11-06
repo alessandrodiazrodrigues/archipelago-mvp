@@ -44,9 +44,9 @@ window.CRUZ_AZUL_IRMAOS = {
     33: 34, 34: 33, 35: 36, 36: 35
 };
 
-// =================== LISTAS FINAIS ===================
+// =================== LISTAS FINAIS - ✅ COM ACENTOS UTF-8 ===================
 
-// CONCESSÕES - 12 ITENS
+// CONCESSÕES - 12 ITENS (✅ COM ACENTOS - api.js normaliza depois)
 window.CONCESSOES_LIST = [
     "Não se aplica",
     "Transição Domiciliar",
@@ -62,20 +62,53 @@ window.CONCESSOES_LIST = [
     "Solicitação domiciliar de exames"
 ];
 
-// LINHAS DE CUIDADO: 45 ESPECIALIDADES
+// LINHAS DE CUIDADO: 45 ESPECIALIDADES (✅ COM ACENTOS - api.js normaliza depois)
 window.LINHAS_CUIDADO_LIST = [
-    "Assiste", "APS SP", "Cuidados Paliativos", "ICO (Insuficiência Coronariana)",
-    "Nexus SP Cardiologia", "Nexus SP Gastroentereologia", "Nexus SP Geriatria",
-    "Nexus SP Pneumologia", "Nexus SP Psiquiatria", "Nexus SP Reumatologia",
-    "Nexus SP Saúde do Fígado", "Generalista", "Bucomaxilofacial", "Cardiologia",
-    "Cirurgia Cardíaca", "Cirurgia de Cabeça e Pescoço", "Cirurgia do Aparelho Digestivo",
-    "Cirurgia Geral", "Cirurgia Oncológica", "Cirurgia Plástica", "Cirurgia Torácica",
-    "Cirurgia Vascular", "Clínica Médica", "Coloproctologia", "Dermatologia",
-    "Endocrinologia", "Fisiatria", "Gastroenterologia", "Geriatria",
-    "Ginecologia e Obstetrícia", "Hematologia", "Infectologia", "Mastologia",
-    "Nefrologia", "Neurocirurgia", "Neurologia", "Oftalmologia", "Oncologia Clínica",
-    "Ortopedia", "Otorrinolaringologia", "Pediatria", "Pneumologia", "Psiquiatria",
-    "Reumatologia", "Urologia"
+    "Assiste", 
+    "APS SP", 
+    "Cuidados Paliativos", 
+    "ICO (Insuficiência Coronariana)",
+    "Nexus SP Cardiologia", 
+    "Nexus SP Gastroentereologia", 
+    "Nexus SP Geriatria",
+    "Nexus SP Pneumologia", 
+    "Nexus SP Psiquiatria", 
+    "Nexus SP Reumatologia",
+    "Nexus SP Saúde do Fígado", 
+    "Generalista", 
+    "Bucomaxilofacial", 
+    "Cardiologia",
+    "Cirurgia Cardíaca", 
+    "Cirurgia de Cabeça e Pescoço", 
+    "Cirurgia do Aparelho Digestivo",
+    "Cirurgia Geral", 
+    "Cirurgia Oncológica", 
+    "Cirurgia Plástica", 
+    "Cirurgia Torácica",
+    "Cirurgia Vascular", 
+    "Clínica Médica", 
+    "Coloproctologia", 
+    "Dermatologia",
+    "Endocrinologia", 
+    "Fisiatria", 
+    "Gastroenterologia", 
+    "Geriatria",
+    "Ginecologia e Obstetrícia", 
+    "Hematologia", 
+    "Infectologia", 
+    "Mastologia",
+    "Nefrologia", 
+    "Neurocirurgia", 
+    "Neurologia", 
+    "Oftalmologia", 
+    "Oncologia Clínica",
+    "Ortopedia", 
+    "Otorrinolaringologia", 
+    "Pediatria", 
+    "Pneumologia", 
+    "Psiquiatria",
+    "Reumatologia", 
+    "Urologia"
 ];
 
 // PPS: 10 OPÇÕES
@@ -417,7 +450,7 @@ function validarLimiteSantaClara(tipoQuarto) {
     return { permitido: true };
 }
 
-// =================== CRIAR CARD INDIVIDUAL - CORRIGIDO ===================
+// =================== CRIAR CARD INDIVIDUAL - ✅ CORRIGIDO LINHA 491 ===================
 function createCard(leito, hospitalNome) {
     const card = document.createElement('div');
     card.className = 'card';
@@ -523,7 +556,7 @@ function createCard(leito, hospitalNome) {
         tempoInternacao = calcularTempoInternacao(admissao);
     }
     
-    // ✅ CORREÇÃO CRÍTICA: Linha 491 - Evitar erro "nome.trim is not a function"
+    // ✅ CORREÇÃO CRÍTICA: Linha 491 - Garantir que nome seja string antes de .trim()
     const iniciais = isVago ? '—' : (nome ? String(nome).trim() : '—');
     
     let ppsFormatado = pps ? `${pps}%` : '—';
@@ -1661,14 +1694,14 @@ function coletarDadosFormulario(modal, tipo) {
     return dados;
 }
 
-// =================== COLETAR CHECKBOXES SELECIONADOS - CORRIGIDO ===================
+// =================== ✅ COLETAR CHECKBOXES - CORRIGIDO (LINHA 2329) ===================
 function coletarCheckboxesSelecionados(modal, seletor) {
     const checkboxes = modal.querySelectorAll(`${seletor} input[type="checkbox"]`);
     const selecionados = [];
     
     checkboxes.forEach(checkbox => {
         if (checkbox.checked && checkbox.value !== 'Não se aplica') {
-            // ✅ MANTÉM o valor original COM acentos UTF-8
+            // ✅ MANTÉM os acentos UTF-8 - api.js fará a normalização depois
             selecionados.push(checkbox.value);
         }
     });
@@ -2081,4 +2114,4 @@ window.searchLeitos = searchLeitos;
 logSuccess('CARDS.JS COMPLETO - Gestão de Leitos Hospitalares!');
 console.log('✅ LINHAS DE CUIDADO: Exibidas nos cards!');
 console.log('✅ CONCESSÕES E LINHAS: Mesmas cores e fontes!');
-console.log('✅ ACENTOS: Mantidos em UTF-8!');
+console.log('✅ ACENTOS UTF-8: Mantidos e enviados para api.js normalizar!');
