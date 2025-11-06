@@ -1,5 +1,5 @@
-// =================== QRCODE-OPTIMIZED.JS - V4.1 FINAL ===================
-// ✅ CORRIGIDO: Quebra de página na impressão
+// =================== QRCODE-OPTIMIZED.JS - V4.2 CORRIGIDO ===================
+// ✅ CORRIGIDO: Função de impressão personalizada (erro 404)
 // ✅ NOVO: Seleção individual de leitos com dados do paciente
 // Sistema otimizado com carregamento sequencial
 
@@ -23,7 +23,7 @@ const QR_API = {
 let isGenerating = false;
 let generationProgress = 0;
 let totalQRCodes = 0;
-let leitosSelecionados = []; // NOVO: armazena leitos selecionados
+let leitosSelecionados = [];
 
 // =================== FUNÇÃO PARA OBTER NOME DO LEITO FORMATADO ===================
 function getNomeLeitoFormatado(hospitalId, numeroLeito) {
@@ -42,7 +42,7 @@ function getNomeLeitoFormatado(hospitalId, numeroLeito) {
 
 // =================== FUNÇÃO PRINCIPAL - MODAL COM OPÇÕES ===================
 window.openQRCodesSimple = function() {
-    console.log('🔵 Abrindo gerador de QR Codes V4.1...');
+    console.log('🔵 Abrindo gerador de QR Codes V4.2...');
     
     if (document.querySelector('.qr-modal-simple')) {
         console.log('Modal já está aberto');
@@ -54,7 +54,7 @@ window.openQRCodesSimple = function() {
     modal.innerHTML = `
         <div class="qr-modal-content">
             <div class="qr-modal-header">
-                <h2>📱 QR Codes dos Leitos - Sistema V4.1</h2>
+                <h2>📱 QR Codes dos Leitos - Sistema V4.2</h2>
                 <button onclick="closeQRModalSimple()" class="close-btn">✕</button>
             </div>
             <div class="qr-modal-body">
@@ -331,12 +331,35 @@ window.gerarQRCodesSelecionados = async function() {
     abrirPaginaImpressao(leitosCompletos);
 };
 
-// =================== ABRIR PÁGINA DE IMPRESSÃO PERSONALIZADA ===================
+// =================== ABRIR PÁGINA DE IMPRESSÃO PERSONALIZADA (CORRIGIDA) ===================
 function abrirPaginaImpressao(leitos) {
-    const janelaImpressao = window.open('', '_blank');
+    console.log('📋 Abrindo página de impressão com', leitos.length, 'leitos...');
     
-    let html = `
-<!DOCTYPE html>
+    // Criar blob com o HTML
+    const htmlContent = gerarHTMLImpressao(leitos);
+    const blob = new Blob([htmlContent], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    
+    // Abrir em nova aba
+    const janelaImpressao = window.open(url, '_blank');
+    
+    if (!janelaImpressao) {
+        alert('⚠️ Bloqueador de pop-ups detectado! Por favor, permita pop-ups para este site.');
+        console.error('Não foi possível abrir a janela de impressão');
+        return;
+    }
+    
+    // Limpar URL após 5 segundos (tempo para página carregar)
+    setTimeout(() => {
+        URL.revokeObjectURL(url);
+    }, 5000);
+    
+    console.log('✅ Página de impressão aberta com sucesso!');
+}
+
+// =================== GERAR HTML DA IMPRESSÃO ===================
+function gerarHTMLImpressao(leitos) {
+    let html = `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -357,7 +380,6 @@ function abrirPaginaImpressao(leitos) {
             color: #000;
         }
 
-        /* CONTROLES - NÃO IMPRIME */
         .controles {
             background: #f3f4f6;
             padding: 15px;
@@ -384,12 +406,10 @@ function abrirPaginaImpressao(leitos) {
             background: #333;
         }
 
-        /* CONTAINER */
         .impressao-container {
             background: white;
         }
 
-        /* ITEM DE LEITO - 4 POR PÁGINA */
         .leito-item {
             display: grid;
             grid-template-columns: 160px 1fr;
@@ -403,12 +423,14 @@ function abrirPaginaImpressao(leitos) {
             align-items: center;
         }
 
-        /* A CADA 4 ITENS, QUEBRA DE PÁGINA */
         .leito-item:nth-child(4n) {
             page-break-after: always;
         }
 
-        /* QR CODE À ESQUERDA */
+        .leito-item:last-child {
+            page-break-after: auto;
+        }
+
         .qr-section {
             display: flex;
             flex-direction: column;
@@ -434,7 +456,6 @@ function abrirPaginaImpressao(leitos) {
             text-align: center;
         }
 
-        /* DADOS À DIREITA */
         .dados-section {
             display: flex;
             flex-direction: column;
@@ -459,7 +480,6 @@ function abrirPaginaImpressao(leitos) {
             font-size: 10px;
         }
 
-        /* DADOS PRINCIPAIS EM DESTAQUE */
         .dados-principais {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -488,7 +508,6 @@ function abrirPaginaImpressao(leitos) {
             font-weight: 800;
         }
 
-        /* DADOS SECUNDÁRIOS */
         .dados-secundarios {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -516,7 +535,6 @@ function abrirPaginaImpressao(leitos) {
             font-weight: 700;
         }
 
-        /* CONCESSÕES */
         .concessoes-section {
             margin-top: 6px;
             padding: 6px;
@@ -549,7 +567,6 @@ function abrirPaginaImpressao(leitos) {
             font-weight: 700;
         }
 
-        /* IMPRESSÃO */
         @media print {
             body {
                 padding: 10mm;
@@ -573,7 +590,6 @@ function abrirPaginaImpressao(leitos) {
                 margin-bottom: 0;
             }
 
-            /* Última página não quebra */
             .leito-item:last-child {
                 page-break-after: auto;
             }
@@ -591,11 +607,10 @@ function abrirPaginaImpressao(leitos) {
         <button class="btn-imprimir" onclick="window.print()">🖨️ Imprimir</button>
     </div>
 
-    <div class="impressao-container">
-    `;
+    <div class="impressao-container">`;
     
     // Gerar cada leito
-    leitos.forEach((leito, index) => {
+    leitos.forEach((leito) => {
         const qrURL = `${QR_API.BASE_URL}/?h=${leito.hospitalId}&l=${leito.leito}`;
         const qrImgURL = `${QR_API.API_URL}?size=300x300&data=${encodeURIComponent(qrURL)}`;
         
@@ -609,9 +624,7 @@ function abrirPaginaImpressao(leitos) {
         const isolamento = formatarIsolamento(leito.isolamento);
         const prevAlta = leito.prevAlta || '—';
         const diretivas = leito.diretivas || 'Não se aplica';
-        const tipo = leito.categoriaEscolhida || leito.tipo || '—';
         const tempoInternacao = leito.admAt ? calcularTempoInternacao(leito.admAt) : '—';
-        const admissao = leito.admAt ? formatarDataHora(leito.admAt) : '—';
         
         const concessoes = Array.isArray(leito.concessoes) ? leito.concessoes : [];
         const concessoesHTML = concessoes.length > 0 
@@ -686,27 +699,20 @@ function abrirPaginaImpressao(leitos) {
                     <div class="concessoes-chips">${concessoesHTML}</div>
                 </div>
             </div>
-        </div>
-        `;
+        </div>`;
     });
     
     html += `
     </div>
     <script>
-        window.onload = function() {
-            console.log('✅ Página de impressão carregada');
-            console.log('📋 ${leitos.length} leitos prontos para impressão');
-        };
+        console.log('✅ Página de impressão carregada');
+        console.log('📋 ${leitos.length} leitos prontos para impressão');
     </script>
 </body>
-</html>
-    `;
+</html>`;
     
-    janelaImpressao.document.write(html);
-    janelaImpressao.document.close();
-    
-    console.log('✅ Página de impressão aberta com', leitos.length, 'leitos');
-};
+    return html;
+}
 
 // =================== FUNÇÕES AUXILIARES ===================
 function formatarMatricula(matricula) {
@@ -768,10 +774,7 @@ function formatarDataHora(dataISO) {
     }
 }
 
-// =================== [MANTER FUNÇÕES EXISTENTES] ===================
-// generateQRCodesSimple, generateAllQRCodesOptimized, generateHospitalQRCodes, etc
-// ... (código existente continua igual)
-
+// =================== GERAR QR CODES DE UM HOSPITAL ===================
 window.generateQRCodesSimple = function() {
     const hospitalId = document.getElementById('qrHospitalSelect').value;
     const hospital = QR_API.HOSPITAIS[hospitalId];
@@ -801,6 +804,7 @@ window.generateQRCodesSimple = function() {
     console.log(`✅ ${hospital.leitos} QR Codes gerados para ${hospital.nome}`);
 };
 
+// =================== GERAR TODOS OS QR CODES ===================
 window.generateAllQRCodesOptimized = async function() {
     if (isGenerating) return;
     
@@ -895,12 +899,11 @@ window.closeQRModalSimple = function() {
     }
 };
 
-// =================== ESTILOS CSS ATUALIZADOS ===================
+// =================== ESTILOS CSS ===================
 function addOptimizedStyles() {
     const styles = document.createElement('style');
     styles.id = 'qrOptimizedStyles';
     styles.innerHTML = `
-        /* [ESTILOS EXISTENTES] */
         .qr-modal-simple {
             position: fixed;
             top: 0;
@@ -959,7 +962,6 @@ function addOptimizedStyles() {
             background: #dc2626;
         }
         
-        /* TABS */
         .qr-tabs {
             display: flex;
             gap: 10px;
@@ -992,7 +994,6 @@ function addOptimizedStyles() {
             padding: 20px;
         }
         
-        /* SELEÇÃO PERSONALIZADA */
         .selecao-controls {
             max-width: 1200px;
             margin: 0 auto;
@@ -1038,7 +1039,6 @@ function addOptimizedStyles() {
             background: #4b5563;
         }
         
-        /* TABELA DE LEITOS */
         .tabela-leitos {
             margin-top: 20px;
         }
@@ -1082,7 +1082,6 @@ function addOptimizedStyles() {
             accent-color: #60a5fa;
         }
         
-        /* FOOTER SELEÇÃO */
         .selecao-footer {
             margin-top: 20px;
             padding: 20px;
@@ -1126,7 +1125,6 @@ function addOptimizedStyles() {
             transform: none;
         }
         
-        /* [MANTER ESTILOS EXISTENTES - progress, qr-grid, etc] */
         .qr-modal-body {
             padding: 0;
         }
@@ -1278,7 +1276,6 @@ function addOptimizedStyles() {
             border-radius: 8px;
         }
         
-        /* ✅ CORREÇÃO: IMPRESSÃO OTIMIZADA - 12 POR A4 (3x4) */
         @media print {
             @page {
                 margin: 10mm;
@@ -1352,7 +1349,6 @@ function addOptimizedStyles() {
                 margin-bottom: 5mm !important;
             }
             
-            /* ✅ CORREÇÃO CRÍTICA: A cada 12 itens, forçar quebra de página */
             .qr-item {
                 width: 62mm !important;
                 height: 68mm !important;
@@ -1368,7 +1364,6 @@ function addOptimizedStyles() {
                 justify-content: center !important;
             }
             
-            /* Quebra de página a cada 12 QR codes */
             .qr-item:nth-child(12n) {
                 page-break-after: always !important;
             }
@@ -1438,12 +1433,9 @@ function addOptimizedStyles() {
 // =================== INICIALIZAÇÃO ===================
 document.addEventListener('DOMContentLoaded', function() {
     window.openQRCodes = window.openQRCodesSimple;
-    console.log('✅ Sistema QR Code V4.1 carregado');
+    console.log('✅ Sistema QR Code V4.2 carregado');
     console.log('📱 Base URL:', QR_API.BASE_URL);
     console.log('🏥 Total: 93 QR codes (7 hospitais)');
-    console.log('🖨️ Impressão: 12 QR codes por A4 (3x4)');
-    console.log('✅ NOVO: Seleção personalizada de leitos com dados');
-    console.log('✅ CORRIGIDO: Quebra de página otimizada');
+    console.log('🖨️ Impressão: 4 leitos por página A4');
+    console.log('✅ CORRIGIDO: Função de impressão personalizada');
 });
-
-└─────────────────────────────────────┘
