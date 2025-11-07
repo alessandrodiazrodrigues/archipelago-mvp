@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulador QR Code Mobile - Archipelago Dashboard</title>
+    <title>Simulador Mobile - Archipelago Dashboard</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -52,6 +52,76 @@
             font-weight: 600;
         }
         
+        /* =================== SELEÇÃO DE MODO =================== */
+        .modo-selector {
+            background: rgba(255, 255, 255, 0.08);
+            padding: 25px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            border-bottom: 2px solid rgba(96, 165, 250, 0.2);
+        }
+        
+        .modo-label {
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #9ca3af;
+        }
+        
+        .modo-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px 25px;
+            background: #1e293b;
+            border: 2px solid #334155;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            min-width: 250px;
+        }
+        
+        .modo-option:hover {
+            border-color: #60a5fa;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(96, 165, 250, 0.3);
+        }
+        
+        .modo-option.active {
+            background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+            border-color: #60a5fa;
+            box-shadow: 0 4px 16px rgba(96, 165, 250, 0.4);
+        }
+        
+        .modo-option input[type="radio"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: #60a5fa;
+        }
+        
+        .modo-option label {
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            flex: 1;
+        }
+        
+        .modo-option .modo-desc {
+            font-size: 11px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 2px;
+        }
+        
+        .modo-option.active .modo-desc {
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
         /* =================== CONTROLES =================== */
         .controles {
             background: rgba(255, 255, 255, 0.05);
@@ -62,6 +132,11 @@
             justify-content: center;
             flex-wrap: wrap;
             border-bottom: 1px solid rgba(96, 165, 250, 0.2);
+            transition: all 0.3s;
+        }
+        
+        .controles.hidden {
+            display: none;
         }
         
         .controle-group {
@@ -146,6 +221,7 @@
             border-radius: 6px;
             display: inline-block;
             margin-top: 8px;
+            word-break: break-all;
         }
         
         .info-bar .label {
@@ -331,6 +407,10 @@
             .controle-group {
                 min-width: 100%;
             }
+            
+            .modo-option {
+                min-width: 100%;
+            }
         }
         
         @media (max-width: 480px) {
@@ -382,12 +462,33 @@
 <body>
     <!-- HEADER -->
     <div class="header">
-        <h1>Simulador QR Code Mobile</h1>
-        <p>Teste os modais de admissão e atualização em tempo real</p>
+        <h1>Simulador Mobile</h1>
+        <p>Teste o Archipelago Dashboard em versão mobile</p>
     </div>
     
-    <!-- CONTROLES -->
-    <div class="controles">
+    <!-- SELEÇÃO DE MODO -->
+    <div class="modo-selector">
+        <span class="modo-label">Selecione o Modo:</span>
+        
+        <div class="modo-option active" onclick="selecionarModo('qrcode')">
+            <input type="radio" name="modo" id="modoQRCode" value="qrcode" checked>
+            <div>
+                <label for="modoQRCode">Modal Médico QR Code</label>
+                <div class="modo-desc">Teste os modais de admissão e atualização</div>
+            </div>
+        </div>
+        
+        <div class="modo-option" onclick="selecionarModo('dashboard')">
+            <input type="radio" name="modo" id="modoDashboard" value="dashboard">
+            <div>
+                <label for="modoDashboard">Archipelago Dashboard</label>
+                <div class="modo-desc">Visualize o dashboard completo mobile</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- CONTROLES (apenas para modo QR Code) -->
+    <div class="controles" id="controlesQRCode">
         <div class="controle-group">
             <label>Hospital</label>
             <select id="selectHospital" onchange="atualizarLeitos()">
@@ -444,7 +545,7 @@
                 <!-- Loading -->
                 <div class="loading-overlay" id="loadingOverlay">
                     <div class="loading-spinner"></div>
-                    <div class="loading-text">Carregando modal...</div>
+                    <div class="loading-text">Carregando...</div>
                 </div>
             </div>
         </div>
@@ -458,7 +559,7 @@
     </div>
     
     <script>
-        // =================== CONFIGURAÇÃO DOS HOSPITAIS ===================
+        // =================== CONFIGURAÇÃO ===================
         const HOSPITAIS = {
             H1: { nome: 'Neomater', leitos: 10 },
             H2: { nome: 'Cruz Azul', leitos: 36 },
@@ -469,8 +570,70 @@
             H7: { nome: 'Santa Virgínia', leitos: 7 }
         };
         
-        // URL base do sistema QR Code (VERCEL)
-        const BASE_URL = 'https://qrcode-seven-gamma.vercel.app';
+        const QRCODE_BASE_URL = 'https://qrcode-seven-gamma.vercel.app';
+        const DASHBOARD_URL = 'https://archipelago-one.vercel.app/';
+        
+        let modoAtual = 'qrcode';
+        
+        // =================== SELECIONAR MODO ===================
+        function selecionarModo(modo) {
+            modoAtual = modo;
+            
+            // Atualizar visual dos botões
+            document.querySelectorAll('.modo-option').forEach(el => {
+                el.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+            
+            // Atualizar radio button
+            document.getElementById(modo === 'qrcode' ? 'modoQRCode' : 'modoDashboard').checked = true;
+            
+            // Mostrar/esconder controles
+            const controlesQRCode = document.getElementById('controlesQRCode');
+            const infoBar = document.getElementById('infoBar');
+            const iframe = document.getElementById('deviceIframe');
+            
+            if (modo === 'dashboard') {
+                // Modo Dashboard: esconder controles e carregar direto
+                controlesQRCode.classList.add('hidden');
+                carregarDashboard();
+            } else {
+                // Modo QR Code: mostrar controles e limpar iframe
+                controlesQRCode.classList.remove('hidden');
+                iframe.src = '';
+                infoBar.style.display = 'none';
+            }
+            
+            console.log(`Modo alterado para: ${modo}`);
+        }
+        
+        // =================== CARREGAR DASHBOARD ===================
+        function carregarDashboard() {
+            const iframe = document.getElementById('deviceIframe');
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            const infoBar = document.getElementById('infoBar');
+            const urlAtual = document.getElementById('urlAtual');
+            
+            // Mostrar loading
+            loadingOverlay.classList.remove('hidden');
+            document.querySelector('.loading-text').textContent = 'Carregando dashboard...';
+            
+            // Atualizar info bar
+            infoBar.style.display = 'block';
+            urlAtual.textContent = DASHBOARD_URL;
+            
+            // Carregar iframe
+            iframe.src = DASHBOARD_URL;
+            
+            console.log(`Carregando dashboard: ${DASHBOARD_URL}`);
+            
+            // Esconder loading após delay maior (dashboard é mais pesado)
+            setTimeout(() => {
+                loadingOverlay.classList.add('hidden');
+            }, 2500);
+            
+            mostrarAlerta('Dashboard carregado em modo mobile!', 'success');
+        }
         
         // =================== ATUALIZAR LEITOS ===================
         function atualizarLeitos() {
@@ -499,7 +662,7 @@
             console.log(`${hospital.leitos} leitos carregados para ${hospital.nome}`);
         }
         
-        // =================== CARREGAR IFRAME ===================
+        // =================== CARREGAR IFRAME QR CODE ===================
         function carregarIframe() {
             const selectHospital = document.getElementById('selectHospital');
             const selectLeito = document.getElementById('selectLeito');
@@ -518,9 +681,10 @@
             
             // Mostrar loading
             loadingOverlay.classList.remove('hidden');
+            document.querySelector('.loading-text').textContent = 'Carregando modal...';
             
             // Construir URL
-            const url = `${BASE_URL}?h=${hospitalId}&l=${leitoNum}`;
+            const url = `${QRCODE_BASE_URL}?h=${hospitalId}&l=${leitoNum}`;
             
             // Atualizar info bar
             infoBar.style.display = 'block';
@@ -545,7 +709,11 @@
             const loadingOverlay = document.getElementById('loadingOverlay');
             
             if (!iframe.src) {
-                mostrarAlerta('Selecione hospital e leito primeiro!', 'error');
+                if (modoAtual === 'dashboard') {
+                    carregarDashboard();
+                } else {
+                    mostrarAlerta('Selecione hospital e leito primeiro!', 'error');
+                }
                 return;
             }
             
@@ -554,25 +722,22 @@
             
             setTimeout(() => {
                 loadingOverlay.classList.add('hidden');
-            }, 1000);
+            }, modoAtual === 'dashboard' ? 2000 : 1000);
             
             console.log('Iframe recarregado');
-            mostrarAlerta('Modal recarregado!', 'success');
+            mostrarAlerta(modoAtual === 'dashboard' ? 'Dashboard recarregado!' : 'Modal recarregado!', 'success');
         }
         
         // =================== MOSTRAR ALERTA ===================
         function mostrarAlerta(mensagem, tipo = 'error') {
-            // Remove alertas anteriores
             const alertaAntigo = document.querySelector('.alert');
             if (alertaAntigo) alertaAntigo.remove();
             
-            // Cria novo alerta
             const alerta = document.createElement('div');
             alerta.className = `alert ${tipo}`;
             alerta.textContent = mensagem;
             document.body.appendChild(alerta);
             
-            // Remove após 3 segundos
             setTimeout(() => {
                 alerta.style.animation = 'slideIn 0.3s ease reverse';
                 setTimeout(() => alerta.remove(), 300);
@@ -584,22 +749,27 @@
             const mensagem = `
 COMO USAR O SIMULADOR:
 
-1. Selecione um HOSPITAL no primeiro dropdown
-2. Selecione um LEITO no segundo dropdown
-3. O modal será carregado automaticamente no celular
-4. Use o botão Recarregar para atualizar
+MODO 1: MODAL MÉDICO QR CODE
+- Selecione um hospital
+- Selecione um leito
+- O modal será carregado automaticamente
+- Teste admissão e atualização
 
-FUNCIONAL:
-• Todos os 7 hospitais disponíveis
-• Todos os 93 leitos funcionais
-• Modais 100% interativos
-• Admissão e atualização funcionam
+MODO 2: ARCHIPELAGO DASHBOARD
+- Clique em "Archipelago Dashboard"
+- O sistema completo será carregado no celular
+- Navegue normalmente como no desktop
+- Perfeito para testar responsividade
 
-PERFEITO PARA:
-• Testar o sistema antes de imprimir QR Codes
-• Ver como fica em diferentes leitos
-• Demonstrar o sistema para o cliente
-• Debug e ajustes finos
+FUNCIONALIDADES:
+- 7 hospitais | 93 leitos
+- iPhone 11 Pro (375x812)
+- Sistema 100% funcional
+- Botão recarregar sempre disponível
+
+DICA:
+Use o modo Dashboard para demonstrar
+ao cliente como fica a versão mobile!
             `.trim();
             
             alert(mensagem);
@@ -610,14 +780,10 @@ PERFEITO PARA:
         
         // =================== INICIALIZAÇÃO ===================
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('Simulador QR Code Mobile V1.0');
-            console.log('iPhone 11 Pro (375x812)');
+            console.log('Simulador Mobile V2.0');
+            console.log('2 modos: QR Code + Dashboard');
             console.log('7 hospitais | 93 leitos');
             console.log('Sistema 100% funcional');
-            
-            // Carregar primeiro hospital automaticamente (opcional)
-            // document.getElementById('selectHospital').value = 'H5';
-            // atualizarLeitos();
         });
     </script>
 </body>
