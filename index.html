@@ -72,6 +72,9 @@
         
         <div class="menu-footer">
             <div class="menu-divider"></div>
+            <a href="#" class="side-menu-item" onclick="openSimuladorAndCloseMenu(); return false;">
+                Simulador
+            </a>
             <a href="#" class="side-menu-item" onclick="openQRCodesAndCloseMenu(); return false;">
                 Gerar QR Codes
             </a>
@@ -192,6 +195,7 @@
         console.log('   • ✅ Fonte Poppins Bold');
         console.log('   • ✅ Title Case aplicado');
         console.log('   • ✅ Ordem alfabética dos hospitais');
+        console.log('   • ✅ Simulador Mobile adicionado');
         console.log('');
         
         /**
@@ -230,6 +234,28 @@
             if (overlay) {
                 overlay.style.display = 'none';
             }
+        }
+        
+        /**
+         * Função para abrir Simulador e fechar menu
+         */
+        function openSimuladorAndCloseMenu() {
+            // Primeiro fecha o menu
+            const menu = document.getElementById('sideMenu');
+            const overlay = document.getElementById('menuOverlay');
+            
+            if (menu && menu.classList.contains('open')) {
+                menu.classList.remove('open');
+            }
+            
+            if (overlay) {
+                overlay.style.display = 'none';
+            }
+            
+            // Depois abre o simulador em nova aba
+            window.open('simulador-qrcode.html', '_blank');
+            
+            console.log('🎮 Abrindo Simulador Mobile em nova aba...');
         }
         
         /**
