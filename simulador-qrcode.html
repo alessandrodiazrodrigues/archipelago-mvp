@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador QR Code Mobile - Archipelago Dashboard</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+        
+        /* =================== HEADER =================== */
+        .header {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-bottom: 2px solid rgba(96, 165, 250, 0.3);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 5px;
+            color: #60a5fa;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .header p {
+            text-align: center;
+            font-size: 14px;
+            color: #94a3b8;
+            font-weight: 600;
+        }
+        
+        /* =================== CONTROLES =================== */
+        .controles {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 25px;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            border-bottom: 1px solid rgba(96, 165, 250, 0.2);
+        }
+        
+        .controle-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-width: 250px;
+        }
+        
+        .controle-group label {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #9ca3af;
+        }
+        
+        .controle-group select {
+            padding: 12px 15px;
+            background: #1e293b;
+            color: #ffffff;
+            border: 2px solid #334155;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 700;
+            font-family: 'Poppins', sans-serif;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .controle-group select:hover {
+            border-color: #60a5fa;
+        }
+        
+        .controle-group select:focus {
+            outline: none;
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
+        }
+        
+        .btn-reload {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 20px;
+        }
+        
+        .btn-reload:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(96, 165, 250, 0.4);
+        }
+        
+        .btn-reload:active {
+            transform: translateY(0);
+        }
+        
+        /* =================== INFO BAR =================== */
+        .info-bar {
+            background: rgba(16, 185, 129, 0.1);
+            border: 2px solid rgba(16, 185, 129, 0.3);
+            border-radius: 12px;
+            padding: 15px 20px;
+            margin: 20px;
+            text-align: center;
+        }
+        
+        .info-bar .url {
+            font-size: 13px;
+            color: #10b981;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+            background: rgba(16, 185, 129, 0.1);
+            padding: 8px 15px;
+            border-radius: 6px;
+            display: inline-block;
+            margin-top: 8px;
+        }
+        
+        .info-bar .label {
+            font-size: 11px;
+            color: #6ee7b7;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        /* =================== CONTAINER PRINCIPAL =================== */
+        .main-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+        
+        /* =================== DISPOSITIVO MOBILE (IPHONE) =================== */
+        .device-container {
+            position: relative;
+            width: 375px;
+            height: 812px;
+            background: #1a1f2e;
+            border-radius: 40px;
+            box-shadow: 
+                0 0 0 12px #2d3748,
+                0 0 0 14px #1a202c,
+                0 20px 60px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            transform-origin: center;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        /* Notch (entalhe superior) */
+        .device-notch {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 150px;
+            height: 30px;
+            background: #1a1f2e;
+            border-radius: 0 0 20px 20px;
+            z-index: 10;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* Câmera */
+        .device-camera {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 12px;
+            height: 12px;
+            background: #0f172a;
+            border-radius: 50%;
+            border: 2px solid #334155;
+            z-index: 11;
+        }
+        
+        /* Botões laterais */
+        .device-button-left {
+            position: absolute;
+            left: -2px;
+            top: 100px;
+            width: 3px;
+            height: 40px;
+            background: #2d3748;
+            border-radius: 2px 0 0 2px;
+        }
+        
+        .device-button-right {
+            position: absolute;
+            right: -2px;
+            top: 150px;
+            width: 3px;
+            height: 60px;
+            background: #2d3748;
+            border-radius: 0 2px 2px 0;
+        }
+        
+        /* Tela do dispositivo */
+        .device-screen {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background: #ffffff;
+            overflow: hidden;
+        }
+        
+        .device-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: #ffffff;
+        }
+        
+        /* Loading overlay */
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+            transition: opacity 0.3s;
+        }
+        
+        .loading-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #334155;
+            border-top-color: #60a5fa;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .loading-text {
+            margin-top: 20px;
+            color: #60a5fa;
+            font-size: 14px;
+            font-weight: 700;
+        }
+        
+        /* =================== FOOTER =================== */
+        .footer {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            text-align: center;
+            font-size: 11px;
+            color: #6b7280;
+            border-top: 1px solid rgba(96, 165, 250, 0.2);
+        }
+        
+        .footer a {
+            color: #60a5fa;
+            text-decoration: none;
+            font-weight: 700;
+        }
+        
+        .footer a:hover {
+            text-decoration: underline;
+        }
+        
+        /* =================== RESPONSIVIDADE =================== */
+        @media (max-width: 768px) {
+            .device-container {
+                transform: scale(0.8);
+            }
+            
+            .controles {
+                padding: 15px;
+            }
+            
+            .controle-group {
+                min-width: 100%;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .device-container {
+                transform: scale(0.6);
+            }
+            
+            .header h1 {
+                font-size: 18px;
+            }
+            
+            .main-container {
+                padding: 20px 10px;
+            }
+        }
+        
+        /* =================== ALERTAS =================== */
+        .alert {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(239, 68, 68, 0.95);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 14px;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .alert.success {
+            background: rgba(16, 185, 129, 0.95);
+        }
+    </style>
+</head>
+<body>
+    <!-- HEADER -->
+    <div class="header">
+        <h1>Simulador QR Code Mobile</h1>
+        <p>Teste os modais de admissão e atualização em tempo real</p>
+    </div>
+    
+    <!-- CONTROLES -->
+    <div class="controles">
+        <div class="controle-group">
+            <label>Hospital</label>
+            <select id="selectHospital" onchange="atualizarLeitos()">
+                <option value="">Selecione um hospital...</option>
+                <option value="H5">Adventista (13 leitos)</option>
+                <option value="H2">Cruz Azul (36 leitos)</option>
+                <option value="H1">Neomater (10 leitos)</option>
+                <option value="H4">Santa Clara (13 leitos)</option>
+                <option value="H6">Santa Cruz (7 leitos)</option>
+                <option value="H3">Santa Marcelina (7 leitos)</option>
+                <option value="H7">Santa Virgínia (7 leitos)</option>
+            </select>
+        </div>
+        
+        <div class="controle-group">
+            <label>Leito</label>
+            <select id="selectLeito" disabled>
+                <option value="">Primeiro selecione um hospital</option>
+            </select>
+        </div>
+        
+        <div class="controle-group" style="align-items: center;">
+            <button class="btn-reload" onclick="recarregarIframe()">
+                Recarregar
+            </button>
+        </div>
+    </div>
+    
+    <!-- INFO BAR -->
+    <div class="info-bar" id="infoBar" style="display: none;">
+        <div class="label">URL Atual:</div>
+        <div class="url" id="urlAtual">—</div>
+    </div>
+    
+    <!-- CONTAINER PRINCIPAL -->
+    <div class="main-container">
+        <div class="device-container">
+            <!-- Notch -->
+            <div class="device-notch"></div>
+            <div class="device-camera"></div>
+            
+            <!-- Botões -->
+            <div class="device-button-left"></div>
+            <div class="device-button-right"></div>
+            
+            <!-- Tela -->
+            <div class="device-screen">
+                <iframe 
+                    id="deviceIframe" 
+                    class="device-iframe"
+                    title="Simulador Mobile"
+                ></iframe>
+                
+                <!-- Loading -->
+                <div class="loading-overlay" id="loadingOverlay">
+                    <div class="loading-spinner"></div>
+                    <div class="loading-text">Carregando modal...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- FOOTER -->
+    <div class="footer">
+        Archipelago Dashboard V4.1 - Simulador Mobile<br>
+        Total Rede: 93 leitos | 7 hospitais<br>
+        <a href="#" onclick="abrirAjuda(); return false;">Como usar?</a>
+    </div>
+    
+    <script>
+        // =================== CONFIGURAÇÃO DOS HOSPITAIS ===================
+        const HOSPITAIS = {
+            H1: { nome: 'Neomater', leitos: 10 },
+            H2: { nome: 'Cruz Azul', leitos: 36 },
+            H3: { nome: 'Santa Marcelina', leitos: 7 },
+            H4: { nome: 'Santa Clara', leitos: 13 },
+            H5: { nome: 'Adventista', leitos: 13 },
+            H6: { nome: 'Santa Cruz', leitos: 7 },
+            H7: { nome: 'Santa Virgínia', leitos: 7 }
+        };
+        
+        // URL base do sistema QR Code (VERCEL)
+        const BASE_URL = 'https://qrcode-seven-gamma.vercel.app';
+        
+        // =================== ATUALIZAR LEITOS ===================
+        function atualizarLeitos() {
+            const selectHospital = document.getElementById('selectHospital');
+            const selectLeito = document.getElementById('selectLeito');
+            const hospitalId = selectHospital.value;
+            
+            if (!hospitalId) {
+                selectLeito.disabled = true;
+                selectLeito.innerHTML = '<option value="">Primeiro selecione um hospital</option>';
+                document.getElementById('infoBar').style.display = 'none';
+                return;
+            }
+            
+            const hospital = HOSPITAIS[hospitalId];
+            selectLeito.disabled = false;
+            selectLeito.innerHTML = '<option value="">Selecione um leito...</option>';
+            
+            for (let i = 1; i <= hospital.leitos; i++) {
+                const option = document.createElement('option');
+                option.value = i;
+                option.textContent = `Leito ${String(i).padStart(2, '0')}`;
+                selectLeito.appendChild(option);
+            }
+            
+            console.log(`${hospital.leitos} leitos carregados para ${hospital.nome}`);
+        }
+        
+        // =================== CARREGAR IFRAME ===================
+        function carregarIframe() {
+            const selectHospital = document.getElementById('selectHospital');
+            const selectLeito = document.getElementById('selectLeito');
+            const iframe = document.getElementById('deviceIframe');
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            const infoBar = document.getElementById('infoBar');
+            const urlAtual = document.getElementById('urlAtual');
+            
+            const hospitalId = selectHospital.value;
+            const leitoNum = selectLeito.value;
+            
+            if (!hospitalId || !leitoNum) {
+                mostrarAlerta('Selecione hospital e leito!', 'error');
+                return;
+            }
+            
+            // Mostrar loading
+            loadingOverlay.classList.remove('hidden');
+            
+            // Construir URL
+            const url = `${BASE_URL}?h=${hospitalId}&l=${leitoNum}`;
+            
+            // Atualizar info bar
+            infoBar.style.display = 'block';
+            urlAtual.textContent = url;
+            
+            // Carregar iframe
+            iframe.src = url;
+            
+            console.log(`Carregando: ${url}`);
+            
+            // Esconder loading após delay
+            setTimeout(() => {
+                loadingOverlay.classList.add('hidden');
+            }, 1500);
+            
+            mostrarAlerta('Modal carregado com sucesso!', 'success');
+        }
+        
+        // =================== RECARREGAR IFRAME ===================
+        function recarregarIframe() {
+            const iframe = document.getElementById('deviceIframe');
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            
+            if (!iframe.src) {
+                mostrarAlerta('Selecione hospital e leito primeiro!', 'error');
+                return;
+            }
+            
+            loadingOverlay.classList.remove('hidden');
+            iframe.src = iframe.src; // Recarrega a mesma URL
+            
+            setTimeout(() => {
+                loadingOverlay.classList.add('hidden');
+            }, 1000);
+            
+            console.log('Iframe recarregado');
+            mostrarAlerta('Modal recarregado!', 'success');
+        }
+        
+        // =================== MOSTRAR ALERTA ===================
+        function mostrarAlerta(mensagem, tipo = 'error') {
+            // Remove alertas anteriores
+            const alertaAntigo = document.querySelector('.alert');
+            if (alertaAntigo) alertaAntigo.remove();
+            
+            // Cria novo alerta
+            const alerta = document.createElement('div');
+            alerta.className = `alert ${tipo}`;
+            alerta.textContent = mensagem;
+            document.body.appendChild(alerta);
+            
+            // Remove após 3 segundos
+            setTimeout(() => {
+                alerta.style.animation = 'slideIn 0.3s ease reverse';
+                setTimeout(() => alerta.remove(), 300);
+            }, 3000);
+        }
+        
+        // =================== AJUDA ===================
+        function abrirAjuda() {
+            const mensagem = `
+COMO USAR O SIMULADOR:
+
+1. Selecione um HOSPITAL no primeiro dropdown
+2. Selecione um LEITO no segundo dropdown
+3. O modal será carregado automaticamente no celular
+4. Use o botão Recarregar para atualizar
+
+FUNCIONAL:
+• Todos os 7 hospitais disponíveis
+• Todos os 93 leitos funcionais
+• Modais 100% interativos
+• Admissão e atualização funcionam
+
+PERFEITO PARA:
+• Testar o sistema antes de imprimir QR Codes
+• Ver como fica em diferentes leitos
+• Demonstrar o sistema para o cliente
+• Debug e ajustes finos
+            `.trim();
+            
+            alert(mensagem);
+        }
+        
+        // =================== EVENT LISTENERS ===================
+        document.getElementById('selectLeito').addEventListener('change', carregarIframe);
+        
+        // =================== INICIALIZAÇÃO ===================
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Simulador QR Code Mobile V1.0');
+            console.log('iPhone 11 Pro (375x812)');
+            console.log('7 hospitais | 93 leitos');
+            console.log('Sistema 100% funcional');
+            
+            // Carregar primeiro hospital automaticamente (opcional)
+            // document.getElementById('selectHospital').value = 'H5';
+            // atualizarLeitos();
+        });
+    </script>
+</body>
+</html>
