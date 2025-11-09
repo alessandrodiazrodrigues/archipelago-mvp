@@ -487,44 +487,55 @@ function calcularModalidadesVagos(leitos, hospitalId) {
     }
 
     if (hospitalId === 'H2') {
-        vagos.forEach(leitoVago => {
-            const tipo = leitoVago.tipo || '';
-            
-            if (tipo === 'APTO' || tipo === 'Apartamento') {
-                modalidade.exclusivo_apto++;
-                return;
-            }
-            
-            if (tipo === 'ENFERMARIA' || tipo === 'Enfermaria') {
-                const numeroLeito = getLeitoNumero(leitoVago.leito);
-                
-                if (!numeroLeito) {
-                    modalidade.exclusivo_enf_sem_restricao++;
-                    return;
-                }
-                
-                const numeroIrmao = (numeroLeito % 2 === 0) 
-                    ? numeroLeito - 1
-                    : numeroLeito + 1;
-                
-                const irmao = leitos.find(l => getLeitoNumero(l.leito) === numeroIrmao);
-                
-                if (!irmao || isVago(irmao)) {
-                    modalidade.exclusivo_enf_sem_restricao++;
-                } else if (irmao.isolamento && irmao.isolamento !== 'Não Isolamento') {
-                    // Isolamento: leito não disponível
-                } else {
-                    if (irmao.genero === 'Feminino') {
-                        modalidade.exclusivo_enf_fem++;
-                    } else if (irmao.genero === 'Masculino') {
-                        modalidade.exclusivo_enf_masc++;
-                    } else {
-                        modalidade.exclusivo_enf_sem_restricao++;
+        const ocupados = leitos.filter(l => isOcupado(l));
+
+        // Contar apartamentos vagos
+        modalidade.exclusivo_apto = vagos.filter(l =>
+            l.tipo === 'APTO' || l.tipo === 'Apartamento'
+        ).length;
+
+        // Lógica corrigida para H2: Disponível = Total (16) - Ocupados - Descontos por Restrições
+        const totalEnfermarias = 16;
+        const enfermariasOcupadas = ocupados.filter(l =>
+            l.tipo === 'ENFERMARIA' || l.tipo === 'Enfermaria'
+        ).length;
+
+        // Base: total menos ocupados
+        modalidade.exclusivo_enf_fem = totalEnfermarias - enfermariasOcupadas;
+        modalidade.exclusivo_enf_masc = totalEnfermarias - enfermariasOcupadas;
+
+        // Descontar restrições baseado nos leitos ocupados
+        ocupados.forEach(ocupado => {
+            if (ocupado.tipo === 'ENFERMARIA' || ocupado.tipo === 'Enfermaria') {
+                const numeroLeito = getLeitoNumero(ocupado.leito);
+
+                if (numeroLeito) {
+                    const numeroIrmao = (numeroLeito % 2 === 0) ? numeroLeito - 1 : numeroLeito + 1;
+                    const irmao = leitos.find(l => getLeitoNumero(l.leito) === numeroIrmao);
+
+                    // Só aplica restrição se o irmão estiver vago
+                    if (irmao && isVago(irmao)) {
+                        if (ocupado.isolamento && ocupado.isolamento !== 'Não Isolamento') {
+                            // Isolamento: bloqueia para ambos os gêneros
+                            modalidade.exclusivo_enf_fem--;
+                            modalidade.exclusivo_enf_masc--;
+                        } else {
+                            // Sem isolamento: restrição de gênero
+                            if (ocupado.genero === 'Feminino') {
+                                modalidade.exclusivo_enf_masc--;  // Feminino ocupado bloqueia masculino
+                            } else if (ocupado.genero === 'Masculino') {
+                                modalidade.exclusivo_enf_fem--;   // Masculino ocupado bloqueia feminino
+                            }
+                        }
                     }
                 }
             }
         });
-        
+
+        // Garantir que não fiquem valores negativos
+        modalidade.exclusivo_enf_fem = Math.max(0, modalidade.exclusivo_enf_fem);
+        modalidade.exclusivo_enf_masc = Math.max(0, modalidade.exclusivo_enf_masc);
+
         return modalidade;
     }
 
@@ -640,46 +651,51 @@ window.processarDadosHospital = function(hospitalId) {
     let vagosApto, vagosEnfFem, vagosEnfMasc;
     
     if (hospitalId === 'H2') {
-        vagosApto = vagos.filter(l => 
+        vagosApto = vagos.filter(l =>
             l.tipo === 'Apartamento' || l.tipo === 'APTO'
         ).length;
-        
-        vagosEnfFem = 0;
-        vagosEnfMasc = 0;
-        let vagosEnfSemRestricao = 0;
-        
-        vagos.forEach(leitoVago => {
-            const tipo = leitoVago.tipo || '';
-            
-            if (tipo === 'ENFERMARIA' || tipo === 'Enfermaria') {
-                const numeroLeito = getLeitoNumero(leitoVago.leito);
-                
-                if (!numeroLeito) {
-                    vagosEnfSemRestricao++;
-                    return;
-                }
-                
-                const numeroIrmao = (numeroLeito % 2 === 0) 
-                    ? numeroLeito - 1
-                    : numeroLeito + 1;
-                
-                const irmao = leitos.find(l => getLeitoNumero(l.leito) === numeroIrmao);
-                
-                if (!irmao || isVago(irmao)) {
-                    vagosEnfSemRestricao++;
-                } else if (irmao.isolamento && irmao.isolamento !== 'Não Isolamento') {
-                    // Isolamento
-                } else {
-                    if (irmao.genero === 'Feminino') {
-                        vagosEnfFem++;
-                    } else if (irmao.genero === 'Masculino') {
-                        vagosEnfMasc++;
-                    } else {
-                        vagosEnfSemRestricao++;
+
+        // Lógica corrigida para H2: Disponível = Total (16) - Ocupados - Descontos por Restrições
+        const totalEnfermarias = 16;
+        const enfermariasOcupadas = ocupados.filter(l =>
+            l.tipo === 'ENFERMARIA' || l.tipo === 'Enfermaria'
+        ).length;
+
+        // Base: total menos ocupados
+        vagosEnfFem = totalEnfermarias - enfermariasOcupadas;
+        vagosEnfMasc = totalEnfermarias - enfermariasOcupadas;
+
+        // Descontar restrições baseado nos leitos ocupados
+        ocupados.forEach(ocupado => {
+            if (ocupado.tipo === 'ENFERMARIA' || ocupado.tipo === 'Enfermaria') {
+                const numeroLeito = getLeitoNumero(ocupado.leito);
+
+                if (numeroLeito) {
+                    const numeroIrmao = (numeroLeito % 2 === 0) ? numeroLeito - 1 : numeroLeito + 1;
+                    const irmao = leitos.find(l => getLeitoNumero(l.leito) === numeroIrmao);
+
+                    // Só aplica restrição se o irmão estiver vago
+                    if (irmao && isVago(irmao)) {
+                        if (ocupado.isolamento && ocupado.isolamento !== 'Não Isolamento') {
+                            // Isolamento: bloqueia para ambos os gêneros
+                            vagosEnfFem--;
+                            vagosEnfMasc--;
+                        } else {
+                            // Sem isolamento: restrição de gênero
+                            if (ocupado.genero === 'Feminino') {
+                                vagosEnfMasc--;  // Feminino ocupado bloqueia masculino
+                            } else if (ocupado.genero === 'Masculino') {
+                                vagosEnfFem--;   // Masculino ocupado bloqueia feminino
+                            }
+                        }
                     }
                 }
             }
         });
+
+        // Garantir que não fiquem valores negativos
+        vagosEnfFem = Math.max(0, vagosEnfFem);
+        vagosEnfMasc = Math.max(0, vagosEnfMasc);
     } else {
         vagosApto = vagos.filter(l => 
             l.tipo === 'Apartamento' || l.tipo === 'APTO' || l.tipo === 'Híbrido'
