@@ -1,9 +1,10 @@
 // =================== CARDS-CONFIG.JS - CONFIGURAÇÕES GLOBAIS ===================
-// Versão: 2.0
+// Versão: 2.1 - CORRIGIDO
 // Descrição: Fonte única de verdade para mapas, funções e configurações
 // Depende de: api.js (carregar ANTES para CORES_CONCESSOES e CORES_LINHAS)
+// ✅ CORREÇÃO V2.1: Adicionado window.CRUZ_AZUL_NUMERACAO (mapeamento 1-36)
 
-console.log('🔵 CARDS-CONFIG.JS v2.0 - Iniciando carregamento...');
+console.log('🔵 CARDS-CONFIG.JS v2.1 - Iniciando carregamento...');
 
 // =================== ✅ MAPAS DE DISPLAY (COM ACENTOS UTF-8) ===================
 // Converte texto SEM acentos (vindo da planilha) → COM acentos (exibição)
@@ -133,8 +134,45 @@ window.SANTA_CLARA_TOTAL_LEITOS = 13;
 window.SANTA_CLARA_LIMITE_APTOS = 9;
 window.SANTA_CLARA_LIMITE_ENFS = 4;
 
-// =================== ✅ MAPEAMENTOS CRUZ AZUL ===================
-// Sistema de "leitos irmãos" para enfermarias (21-36)
+// =================== ✅ MAPEAMENTO CRUZ AZUL - LEITOS IRMÃOS (NOVO V2.1!) ===================
+// Sistema de numeração física dos leitos do Hospital H2 (Cruz Azul)
+// Apartamentos: 1-20 → Numeração 101-120
+// Enfermarias: 21-36 → Numeração 201-216 (leitos irmãos em pares)
+// 
+// LEITOS IRMÃOS (compartilham o mesmo quarto):
+// 21 ↔ 22 (201-202), 23 ↔ 24 (203-204), 25 ↔ 26 (205-206)
+// 27 ↔ 28 (207-208), 29 ↔ 30 (209-210), 31 ↔ 32 (211-212)
+// 33 ↔ 34 (213-214), 35 ↔ 36 (215-216)
+
+window.CRUZ_AZUL_NUMERACAO = {
+    // APARTAMENTOS (1-20) - Numeração 101-120
+    1: "101", 2: "102", 3: "103", 4: "104", 5: "105",
+    6: "106", 7: "107", 8: "108", 9: "109", 10: "110",
+    11: "111", 12: "112", 13: "113", 14: "114", 15: "115",
+    16: "116", 17: "117", 18: "118", 19: "119", 20: "120",
+    
+    // ENFERMARIAS (21-36) - Numeração 201-216 (Leitos Irmãos)
+    21: "201", 22: "202", // Par 1
+    23: "203", 24: "204", // Par 2
+    25: "205", 26: "206", // Par 3
+    27: "207", 28: "208", // Par 4
+    29: "209", 30: "210", // Par 5
+    31: "211", 32: "212", // Par 6
+    33: "213", 34: "214", // Par 7
+    35: "215", 36: "216"  // Par 8
+};
+
+console.log('✅ CRUZ_AZUL_NUMERACAO carregado:', Object.keys(window.CRUZ_AZUL_NUMERACAO).length, 'leitos');
+
+// Validação de integridade
+if (Object.keys(window.CRUZ_AZUL_NUMERACAO).length !== 36) {
+    console.error('❌ ERRO CRÍTICO: CRUZ_AZUL_NUMERACAO deveria ter 36 leitos, mas tem', Object.keys(window.CRUZ_AZUL_NUMERACAO).length);
+} else {
+    console.log('✅ Validação OK: 36 leitos mapeados (20 aptos + 16 enfs)');
+}
+
+// =================== ✅ MAPEAMENTOS CRUZ AZUL - LEITOS IRMÃOS ===================
+// Sistema de leitos irmãos para enfermarias (21-36)
 // Compartilham o mesmo quarto, restrições por isolamento/gênero
 window.CRUZ_AZUL_IRMAOS = {
     21: 22, 22: 21, 23: 24, 24: 23,
@@ -142,6 +180,8 @@ window.CRUZ_AZUL_IRMAOS = {
     29: 30, 30: 29, 31: 32, 32: 31,
     33: 34, 34: 33, 35: 36, 36: 35
 };
+
+console.log('✅ CRUZ_AZUL_IRMAOS carregado:', Object.keys(window.CRUZ_AZUL_IRMAOS).length / 2, 'pares de irmãos');
 
 // =================== ✅ LISTAS DE OPÇÕES (DROPDOWNS) ===================
 
@@ -255,9 +295,11 @@ window.currentHospital = 'H1';
 window.fundoBranco = false;
 
 // =================== ✅ VALIDAÇÃO E LOG FINAL ===================
-console.log('✅ CARDS-CONFIG.JS v2.0 - Carregado com sucesso!');
+console.log('✅ CARDS-CONFIG.JS v2.1 - Carregado com sucesso!');
 console.log('✅ Concessões:', window.CONCESSOES_LIST.length, 'itens (12 + "Não se aplica")');
 console.log('✅ Linhas:', window.LINHAS_CUIDADO_LIST.length, 'itens');
 console.log('✅ Hospitais:', Object.keys(window.HOSPITAL_MAPPING).length);
+console.log('✅ Cruz Azul Numeração:', Object.keys(window.CRUZ_AZUL_NUMERACAO).length, 'leitos (1-36)');
+console.log('✅ Cruz Azul Irmãos:', Object.keys(window.CRUZ_AZUL_IRMAOS).length / 2, 'pares');
 console.log('✅ Funções:', typeof window.normalizarTexto, '/', typeof window.desnormalizarTexto);
 console.log('✅ PRONTO para uso em cards.js e dashboards!');
