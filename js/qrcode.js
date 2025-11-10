@@ -1531,13 +1531,14 @@ function addOptimizedStyles() {
                 height: 145mm !important;
                 border: 2px solid #000 !important;
                 border-radius: 2mm !important;
-                padding: 5mm !important;
+                padding: 3mm !important;
                 background: white !important;
                 page-break-inside: avoid !important;
                 display: flex !important;
                 flex-direction: column !important;
-                justify-content: space-around !important;
+                justify-content: space-evenly !important;
                 align-items: center !important;
+                gap: 2mm !important;
             }
             
             .qr-item-duplo:nth-child(4n) {
@@ -1548,18 +1549,20 @@ function addOptimizedStyles() {
                 width: 100% !important;
                 border: 1px solid #333 !important;
                 border-radius: 2mm !important;
-                padding: 3mm !important;
+                padding: 2mm !important;
                 background: white !important;
                 display: flex !important;
                 flex-direction: column !important;
                 align-items: center !important;
                 justify-content: center !important;
+                flex: 1 !important;
+                min-height: 0 !important;
             }
             
             .qr-item {
                 width: 95mm !important;
                 height: 145mm !important;
-                padding: 5mm !important;
+                padding: 3mm !important;
                 page-break-inside: avoid !important;
                 border: 2px solid #000 !important;
                 background: white !important;
@@ -1576,39 +1579,39 @@ function addOptimizedStyles() {
             }
             
             .qr-label {
-                font-size: 14px !important;
-                margin-bottom: 5mm !important;
+                font-size: 11px !important;
+                margin-bottom: 3mm !important;
                 color: #000 !important;
-                line-height: 1.4 !important;
+                line-height: 1.3 !important;
                 text-align: center !important;
             }
             
             .qr-label strong {
                 color: #000 !important;
-                font-size: 16px !important;
+                font-size: 13px !important;
                 font-weight: bold !important;
             }
             
             .qr-img {
-                width: 70mm !important;
-                height: 70mm !important;
+                width: 75mm !important;
+                height: 75mm !important;
                 border: none !important;
                 border-radius: 2mm !important;
                 display: block !important;
             }
             
             .qr-item-irmao .qr-img {
-                width: 60mm !important;
-                height: 60mm !important;
+                width: 55mm !important;
+                height: 55mm !important;
             }
             
             .qr-item-irmao .qr-label {
-                font-size: 12px !important;
-                margin-bottom: 3mm !important;
+                font-size: 10px !important;
+                margin-bottom: 2mm !important;
             }
             
             .qr-item-irmao .qr-label strong {
-                font-size: 14px !important;
+                font-size: 11px !important;
             }
         }
         
