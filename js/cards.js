@@ -302,7 +302,7 @@ function validarAdmissaoCruzAzul(leitoNumero, generoNovo) {
     if (isolamentoIrmao && isolamentoIrmao !== 'Não Isolamento' && isolamentoIrmao !== '') {
         return {
             permitido: false,
-            motivo: `Leito bloqueado! O leito ${window.CRUZ_AZUL_NUMERACAO[leitoIrmao]} está com isolamento: ${isolamentoIrmao}`,
+            motivo: `Leito bloqueado! O leito ${leitoIrmao} está com isolamento: ${isolamentoIrmao}`,
             tipo: 'isolamento'
         };
     }
@@ -311,7 +311,7 @@ function validarAdmissaoCruzAzul(leitoNumero, generoNovo) {
     if (generoIrmao && generoNovo && generoIrmao !== generoNovo) {
         return {
             permitido: false,
-            motivo: `Leito bloqueado! O leito ${window.CRUZ_AZUL_NUMERACAO[leitoIrmao]} está ocupado por paciente do gênero ${generoIrmao}`,
+            motivo: `Leito bloqueado! O leito ${leitoIrmao} está ocupado por paciente do gênero ${generoIrmao}`,
             tipo: 'genero'
         };
     }
@@ -371,7 +371,10 @@ function createCard(leito, hospitalNome) {
                 const isolamentoIrmao = dadosLeitoIrmao.isolamento || '';
                 if (isolamentoIrmao && isolamentoIrmao !== 'Não Isolamento') {
                     bloqueadoPorIsolamento = true;
-                    motivoBloqueio = `Isolamento no ${window.CRUZ_AZUL_NUMERACAO[leitoIrmao]}`;
+                const identificacaoIrmao = dadosLeitoIrmao?.identificacaoLeito || 
+                                           dadosLeitoIrmao?.identificacao_leito || 
+                                           `Leito ${leitoIrmao}`;
+                motivoBloqueio = `Isolamento no ${identificacaoIrmao}`;
                 } else if (dadosLeitoIrmao.genero) {
                     bloqueadoPorGenero = true;
                     generoPermitido = dadosLeitoIrmao.genero;
@@ -425,12 +428,7 @@ function createCard(leito, hospitalNome) {
     }
     
     // Identificação do leito
-    let identificacaoLeito = '';
-    if (isCruzAzulEnfermaria && window.CRUZ_AZUL_NUMERACAO[numeroLeito]) {
-        identificacaoLeito = window.CRUZ_AZUL_NUMERACAO[numeroLeito];
-    } else {
-        identificacaoLeito = leito.identificacaoLeito || leito.identificacao_leito || '';
-    }
+    let identificacaoLeito = leito.identificacaoLeito || leito.identificacao_leito || '';
     
     const regiao = leito.regiao || '';
     const sexo = leito.genero || '';
@@ -470,10 +468,6 @@ function createCard(leito, hospitalNome) {
     let leitoDisplay = identificacaoLeito && identificacaoLeito.trim() 
         ? identificacaoLeito.trim().toUpperCase()
         : `LEITO ${numeroLeito}`;
-    
-    if (isCruzAzulEnfermaria && identificacaoLeito) {
-        leitoDisplay = identificacaoLeito;
-    }
     
     // COR DO CÍRCULO PESSOA
     const circuloCor = '#60a5fa'; // Sempre azul vibrante
@@ -835,7 +829,11 @@ function createAdmissaoForm(hospitalNome, leitoNumero, hospitalId) {
     
     let identificacaoFixa = '';
     if (isCruzAzulEnfermaria) {
-        identificacaoFixa = window.CRUZ_AZUL_NUMERACAO[leitoNumero] || '';
+        const leitosHospital = window.hospitalData['H2']?.leitos || [];
+        const dadosLeitoAtual = leitosHospital.find(l => l.leito == leitoNumero);
+        identificacaoFixa = dadosLeitoAtual?.identificacaoLeito || 
+                           dadosLeitoAtual?.identificacao_leito || 
+                           '';
     }
     
     return `
@@ -1055,12 +1053,9 @@ function createAtualizacaoForm(hospitalNome, leitoNumero, dadosLeito) {
     const isCruzAzulApartamento = (hospitalId === 'H2' && leitoNumero >= 1 && leitoNumero <= 20);
     const isApartamentoFixo = isCruzAzulApartamento;
     
-    let identificacaoAtual = '';
-    if (isCruzAzulEnfermaria) {
-        identificacaoAtual = window.CRUZ_AZUL_NUMERACAO[leitoNumero] || '';
-    } else {
-        identificacaoAtual = dadosLeito?.identificacaoLeito || dadosLeito?.identificacao_leito || '';
-    }
+    let identificacaoAtual = dadosLeito?.identificacaoLeito || 
+                        dadosLeito?.identificacao_leito || 
+                        '';
     
     let leitoDisplay = identificacaoAtual && identificacaoAtual.trim() 
         ? identificacaoAtual.trim().toUpperCase()
