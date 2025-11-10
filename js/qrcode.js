@@ -26,15 +26,25 @@ let totalQRCodes = 0;
 let leitosSelecionados = [];
 
 // =================== FUNÇÃO PARA OBTER NOME DO LEITO FORMATADO ===================
+// =================== FUNÇÃO PARA OBTER NOME DO LEITO FORMATADO ===================
 function getNomeLeitoFormatado(hospitalId, numeroLeito) {
     if (hospitalId === 'H2') {
         if (numeroLeito >= 1 && numeroLeito <= 20) {
             return `Apartamento ${String(numeroLeito).padStart(2, '0')}`;
         } else if (numeroLeito >= 21 && numeroLeito <= 36) {
-            const parIndex = Math.floor((numeroLeito - 21) / 2);
-            const numeroQuarto = 711 + (parIndex * 2);
-            const subNumero = ((numeroLeito - 21) % 2) + 1;
-            return `Enfermaria ${numeroQuarto}.${subNumero}`;
+            // ✅ USAR O MAPEAMENTO CORRETO
+            const mapeamento = {
+                21: '711.1', 22: '711.3',
+                23: '713.1', 24: '713.3',  // ← CORRIGIDO de .2 para .3
+                25: '915.1', 26: '915.3',
+                27: '911.1', 28: '911.3',
+                29: '912.1', 30: '912.3',
+                31: '913.1', 32: '913.3',
+                33: '914.1', 34: '914.3',
+                35: '916.1', 36: '916.3'
+            };
+            
+            return `Enfermaria ${mapeamento[numeroLeito]}`;
         }
     }
     return `Leito ${String(numeroLeito).padStart(2, '0')}`;
