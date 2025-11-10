@@ -1,7 +1,8 @@
-// =================== QRCODE-OPTIMIZED.JS - V4.3 CORRIGIDO ===================
-// CORRIGIDO: Leitura da coluna AQ da planilha (identificacaoLeito)
-// CORRIGIDO: Leitos irmãos juntos na impressão "Todos os Leitos"
-// MANTIDO: QR Code com link original (?h=H2&l=21)
+// =================== QRCODE-OPTIMIZED.JS - V4.4 IMPRESSÃO OTIMIZADA ===================
+// ✅ Molduras de 14,5cm x 9,5cm
+// ✅ 4 QR Codes por página (2x2)
+// ✅ Leitos irmãos empilhados verticalmente
+// ✅ Leitura da coluna AQ da planilha (identificacaoLeito)
 
 const QR_API = {
     BASE_URL: 'https://qrcode-seven-gamma.vercel.app',
@@ -39,7 +40,7 @@ function getNomeLeitoFormatado(hospitalId, numeroLeito, leitoData = null) {
 
 // =================== FUNÇÃO PRINCIPAL - MODAL COM OPÇÕES ===================
 window.openQRCodesSimple = function() {
-    console.log('Abrindo gerador de QR Codes V4.3...');
+    console.log('Abrindo gerador de QR Codes V4.4...');
     
     if (document.querySelector('.qr-modal-simple')) {
         console.log('Modal já está aberto');
@@ -51,7 +52,7 @@ window.openQRCodesSimple = function() {
     modal.innerHTML = `
         <div class="qr-modal-content">
             <div class="qr-modal-header">
-                <h2>QR Codes dos Leitos - Sistema V4.3</h2>
+                <h2>QR Codes dos Leitos - Sistema V4.4</h2>
                 <button onclick="closeQRModalSimple()" class="close-btn">✕</button>
             </div>
             <div class="qr-modal-body">
@@ -802,7 +803,7 @@ window.generateQRCodesSimple = function() {
         }
         container.innerHTML += '</div>';
         
-        // ✅ ENFERMARIAS: Leitos irmãos lado a lado
+        // ✅ ENFERMARIAS: Leitos irmãos EMPILHADOS (um em cima do outro)
         container.innerHTML += '<div class="qr-grid-irmaos">';
         for (let i = 21; i <= 36; i += 2) {
             const leito1 = i;
@@ -943,7 +944,7 @@ async function generateHospitalQRCodes(hospitalId, hospital, container) {
         }
         container.innerHTML += '</div>';
         
-        // Enfermarias (leitos irmãos)
+        // Enfermarias (leitos irmãos EMPILHADOS)
         container.innerHTML += '<div class="qr-grid-irmaos" id="grid-enf-h2">';
         const gridEnf = container.querySelector('#grid-enf-h2');
         
@@ -1383,19 +1384,19 @@ function addOptimizedStyles() {
         
         .qr-grid-irmaos {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
             gap: 15px;
             margin-bottom: 30px;
         }
         
         .qr-item-duplo {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
             border: 3px solid #60a5fa;
             border-radius: 12px;
             padding: 10px;
             background: #f0f9ff;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
         
         .qr-item-irmao {
@@ -1511,42 +1512,56 @@ function addOptimizedStyles() {
             
             .qr-grid {
                 display: grid !important;
-                grid-template-columns: repeat(3, 1fr) !important;
-                gap: 2mm !important;
+                grid-template-columns: repeat(2, 95mm) !important;
+                gap: 5mm !important;
                 page-break-inside: auto !important;
                 margin-bottom: 5mm !important;
             }
             
             .qr-grid-irmaos {
-                display: block !important;
+                display: grid !important;
+                grid-template-columns: repeat(2, 95mm) !important;
+                gap: 5mm !important;
+                page-break-inside: auto !important;
                 margin-bottom: 5mm !important;
             }
             
             .qr-item-duplo {
-                display: grid !important;
-                grid-template-columns: 1fr 1fr !important;
-                gap: 2mm !important;
+                width: 95mm !important;
+                height: 145mm !important;
                 border: 2px solid #000 !important;
                 border-radius: 2mm !important;
-                padding: 2mm !important;
+                padding: 5mm !important;
                 background: white !important;
                 page-break-inside: avoid !important;
-                margin-bottom: 3mm !important;
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: space-around !important;
+                align-items: center !important;
+            }
+            
+            .qr-item-duplo:nth-child(4n) {
+                page-break-after: always !important;
             }
             
             .qr-item-irmao {
+                width: 100% !important;
                 border: 1px solid #333 !important;
                 border-radius: 2mm !important;
-                padding: 2mm !important;
+                padding: 3mm !important;
                 background: white !important;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                justify-content: center !important;
             }
             
             .qr-item {
-                width: 62mm !important;
-                height: 68mm !important;
-                padding: 2mm !important;
+                width: 95mm !important;
+                height: 145mm !important;
+                padding: 5mm !important;
                 page-break-inside: avoid !important;
-                border: 1px solid #333 !important;
+                border: 2px solid #000 !important;
                 background: white !important;
                 margin: 0 !important;
                 border-radius: 2mm !important;
@@ -1556,30 +1571,44 @@ function addOptimizedStyles() {
                 justify-content: center !important;
             }
             
-            .qr-item:nth-child(12n) {
+            .qr-item:nth-child(4n) {
                 page-break-after: always !important;
             }
             
             .qr-label {
-                font-size: 11px !important;
-                margin-bottom: 2mm !important;
+                font-size: 14px !important;
+                margin-bottom: 5mm !important;
                 color: #000 !important;
-                line-height: 1.3 !important;
+                line-height: 1.4 !important;
                 text-align: center !important;
             }
             
             .qr-label strong {
                 color: #000 !important;
-                font-size: 12px !important;
+                font-size: 16px !important;
                 font-weight: bold !important;
             }
             
             .qr-img {
-                width: 48mm !important;
-                height: 48mm !important;
+                width: 70mm !important;
+                height: 70mm !important;
                 border: none !important;
-                border-radius: 1mm !important;
+                border-radius: 2mm !important;
                 display: block !important;
+            }
+            
+            .qr-item-irmao .qr-img {
+                width: 60mm !important;
+                height: 60mm !important;
+            }
+            
+            .qr-item-irmao .qr-label {
+                font-size: 12px !important;
+                margin-bottom: 3mm !important;
+            }
+            
+            .qr-item-irmao .qr-label strong {
+                font-size: 14px !important;
             }
         }
         
@@ -1629,8 +1658,8 @@ function addOptimizedStyles() {
 // =================== INICIALIZAÇÃO ===================
 document.addEventListener('DOMContentLoaded', function() {
     window.openQRCodes = window.openQRCodesSimple;
-    console.log('Sistema QR Code V4.3 carregado');
-    console.log('✅ Lê identificação da coluna AQ');
-    console.log('✅ Leitos irmãos juntos (Cruz Azul)');
-    console.log('✅ QR Code mantém link original');
+    console.log('Sistema QR Code V4.4 carregado');
+    console.log('✅ Molduras de 14,5cm x 9,5cm');
+    console.log('✅ 4 QR Codes por página (2x2)');
+    console.log('✅ Leitos irmãos empilhados');
 });
