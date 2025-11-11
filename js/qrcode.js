@@ -1450,7 +1450,7 @@ function addOptimizedStyles() {
         
         @media print {
             @page {
-                margin: 10mm;
+                margin: 8mm;
                 size: A4 portrait;
             }
             
@@ -1500,11 +1500,11 @@ function addOptimizedStyles() {
             .qr-container h3 {
                 page-break-before: always;
                 page-break-after: avoid;
-                margin: 0 0 5mm 0 !important;
-                font-size: 16px !important;
+                margin: 0 0 3mm 0 !important;
+                font-size: 14px !important;
                 background: white !important;
                 border: none !important;
-                padding: 2mm 0 !important;
+                padding: 1mm 0 !important;
                 color: #000 !important;
                 text-align: left !important;
             }
@@ -1515,26 +1515,26 @@ function addOptimizedStyles() {
             
             .qr-grid {
                 display: grid !important;
-                grid-template-columns: repeat(2, 90mm) !important;
-                gap: 5mm !important;
+                grid-template-columns: repeat(2, 85mm) !important;
+                gap: 4mm !important;
                 page-break-inside: auto !important;
-                margin-bottom: 5mm !important;
+                margin-bottom: 3mm !important;
             }
             
             .qr-grid-irmaos {
                 display: grid !important;
-                grid-template-columns: repeat(2, 90mm) !important;
-                gap: 5mm !important;
+                grid-template-columns: repeat(2, 85mm) !important;
+                gap: 4mm !important;
                 page-break-inside: auto !important;
-                margin-bottom: 5mm !important;
+                margin-bottom: 3mm !important;
             }
             
             .qr-item-duplo {
-                width: 90mm !important;
-                height: 140mm !important;
+                width: 85mm !important;
+                height: 135mm !important;
                 border: 2px solid #000 !important;
                 border-radius: 2mm !important;
-                padding: 3mm !important;
+                padding: 2mm !important;
                 background: white !important;
                 page-break-inside: avoid !important;
                 display: flex !important;
@@ -1563,9 +1563,9 @@ function addOptimizedStyles() {
             }
             
             .qr-item {
-                width: 90mm !important;
-                height: 140mm !important;
-                padding: 3mm !important;
+                width: 85mm !important;
+                height: 135mm !important;
+                padding: 2mm !important;
                 page-break-inside: avoid !important;
                 border: 2px solid #000 !important;
                 background: white !important;
@@ -1582,39 +1582,39 @@ function addOptimizedStyles() {
             }
             
             .qr-label {
-                font-size: 11px !important;
-                margin-bottom: 3mm !important;
+                font-size: 10px !important;
+                margin-bottom: 2mm !important;
                 color: #000 !important;
-                line-height: 1.3 !important;
+                line-height: 1.2 !important;
                 text-align: center !important;
             }
             
             .qr-label strong {
                 color: #000 !important;
-                font-size: 13px !important;
+                font-size: 12px !important;
                 font-weight: bold !important;
             }
             
             .qr-img {
-                width: 72mm !important;
-                height: 72mm !important;
+                width: 70mm !important;
+                height: 70mm !important;
                 border: none !important;
                 border-radius: 2mm !important;
                 display: block !important;
             }
             
             .qr-item-irmao .qr-img {
-                width: 52mm !important;
-                height: 52mm !important;
+                width: 50mm !important;
+                height: 50mm !important;
             }
             
             .qr-item-irmao .qr-label {
-                font-size: 10px !important;
-                margin-bottom: 2mm !important;
+                font-size: 9px !important;
+                margin-bottom: 1mm !important;
             }
             
             .qr-item-irmao .qr-label strong {
-                font-size: 11px !important;
+                font-size: 10px !important;
             }
         }
         
