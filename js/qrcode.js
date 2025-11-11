@@ -1450,7 +1450,7 @@ function addOptimizedStyles() {
         
         @media print {
             @page {
-                margin: 8mm;
+                margin: 10mm;
                 size: A4 portrait;
             }
             
@@ -1500,11 +1500,11 @@ function addOptimizedStyles() {
             .qr-container h3 {
                 page-break-before: always;
                 page-break-after: avoid;
-                margin: 0 0 3mm 0 !important;
-                font-size: 14px !important;
+                margin: 0 0 5mm 0 !important;
+                font-size: 16px !important;
                 background: white !important;
                 border: none !important;
-                padding: 1mm 0 !important;
+                padding: 2mm 0 !important;
                 color: #000 !important;
                 text-align: left !important;
             }
@@ -1514,62 +1514,58 @@ function addOptimizedStyles() {
             }
             
             .qr-grid {
-                display: grid !important;
-                grid-template-columns: repeat(2, 85mm) !important;
-                gap: 4mm !important;
+                display: block !important;
                 page-break-inside: auto !important;
-                margin-bottom: 3mm !important;
+                margin-bottom: 5mm !important;
             }
             
             .qr-grid-irmaos {
-                display: grid !important;
-                grid-template-columns: repeat(2, 85mm) !important;
-                gap: 4mm !important;
+                display: block !important;
                 page-break-inside: auto !important;
-                margin-bottom: 3mm !important;
+                margin-bottom: 5mm !important;
             }
             
             .qr-item-duplo {
-                width: 85mm !important;
-                height: 135mm !important;
+                width: 95mm !important;
+                height: 145mm !important;
                 border: 2px solid #000 !important;
                 border-radius: 2mm !important;
-                padding: 2mm !important;
+                padding: 5mm !important;
                 background: white !important;
                 page-break-inside: avoid !important;
+                page-break-after: always !important;
                 display: flex !important;
                 flex-direction: column !important;
-                justify-content: space-evenly !important;
+                justify-content: space-around !important;
                 align-items: center !important;
-                gap: 2mm !important;
+                margin: 0 auto 5mm !important;
             }
             
-            .qr-item-duplo:nth-child(4n) {
-                page-break-after: always !important;
+            .qr-item-duplo:last-child {
+                page-break-after: auto !important;
             }
             
             .qr-item-irmao {
                 width: 100% !important;
                 border: 1px solid #333 !important;
                 border-radius: 2mm !important;
-                padding: 2mm !important;
+                padding: 3mm !important;
                 background: white !important;
                 display: flex !important;
                 flex-direction: column !important;
                 align-items: center !important;
                 justify-content: center !important;
-                flex: 1 !important;
-                min-height: 0 !important;
             }
             
             .qr-item {
-                width: 85mm !important;
-                height: 135mm !important;
-                padding: 2mm !important;
+                width: 95mm !important;
+                height: 145mm !important;
+                padding: 5mm !important;
                 page-break-inside: avoid !important;
+                page-break-after: always !important;
                 border: 2px solid #000 !important;
                 background: white !important;
-                margin: 0 !important;
+                margin: 0 auto 5mm !important;
                 border-radius: 2mm !important;
                 display: flex !important;
                 flex-direction: column !important;
@@ -1577,21 +1573,21 @@ function addOptimizedStyles() {
                 justify-content: center !important;
             }
             
-            .qr-item:nth-child(4n) {
-                page-break-after: always !important;
+            .qr-item:last-child {
+                page-break-after: auto !important;
             }
             
             .qr-label {
-                font-size: 10px !important;
-                margin-bottom: 2mm !important;
+                font-size: 14px !important;
+                margin-bottom: 5mm !important;
                 color: #000 !important;
-                line-height: 1.2 !important;
+                line-height: 1.4 !important;
                 text-align: center !important;
             }
             
             .qr-label strong {
                 color: #000 !important;
-                font-size: 12px !important;
+                font-size: 16px !important;
                 font-weight: bold !important;
             }
             
@@ -1604,17 +1600,17 @@ function addOptimizedStyles() {
             }
             
             .qr-item-irmao .qr-img {
-                width: 50mm !important;
-                height: 50mm !important;
+                width: 60mm !important;
+                height: 60mm !important;
             }
             
             .qr-item-irmao .qr-label {
-                font-size: 9px !important;
-                margin-bottom: 1mm !important;
+                font-size: 12px !important;
+                margin-bottom: 3mm !important;
             }
             
             .qr-item-irmao .qr-label strong {
-                font-size: 10px !important;
+                font-size: 14px !important;
             }
         }
         
