@@ -27,14 +27,17 @@ let totalQRCodes = 0;
 let leitosSelecionados = [];
 
 // =================== FUNÇÃO PARA OBTER NOME DO LEITO ===================
-// ✅ LÊ DA PLANILHA (coluna AQ) quando disponível
+// ✅ LÊ DA PLANILHA (coluna AQ) APENAS para enfermarias Cruz Azul (21-36)
+// ✅ Usa ID numérico para todos os outros leitos
 function getNomeLeitoFormatado(hospitalId, numeroLeito, leitoData = null) {
-    // Se temos os dados do leito, usar identificacaoLeito da planilha
-    if (leitoData && (leitoData.identificacaoLeito || leitoData.identificacao_leito)) {
-        return leitoData.identificacaoLeito || leitoData.identificacao_leito;
+    // APENAS enfermarias do Cruz Azul (leitos 21-36) usam identificacaoLeito
+    if (hospitalId === 'H2' && numeroLeito >= 21 && numeroLeito <= 36) {
+        if (leitoData && (leitoData.identificacaoLeito || leitoData.identificacao_leito)) {
+            return leitoData.identificacaoLeito || leitoData.identificacao_leito;
+        }
     }
     
-    // Fallback: usar número lógico
+    // Todos os outros: usar número do leito
     return `Leito ${String(numeroLeito).padStart(2, '0')}`;
 }
 
@@ -1512,7 +1515,7 @@ function addOptimizedStyles() {
             
             .qr-grid {
                 display: grid !important;
-                grid-template-columns: repeat(2, 95mm) !important;
+                grid-template-columns: repeat(2, 90mm) !important;
                 gap: 5mm !important;
                 page-break-inside: auto !important;
                 margin-bottom: 5mm !important;
@@ -1520,15 +1523,15 @@ function addOptimizedStyles() {
             
             .qr-grid-irmaos {
                 display: grid !important;
-                grid-template-columns: repeat(2, 95mm) !important;
+                grid-template-columns: repeat(2, 90mm) !important;
                 gap: 5mm !important;
                 page-break-inside: auto !important;
                 margin-bottom: 5mm !important;
             }
             
             .qr-item-duplo {
-                width: 95mm !important;
-                height: 145mm !important;
+                width: 90mm !important;
+                height: 140mm !important;
                 border: 2px solid #000 !important;
                 border-radius: 2mm !important;
                 padding: 3mm !important;
@@ -1560,8 +1563,8 @@ function addOptimizedStyles() {
             }
             
             .qr-item {
-                width: 95mm !important;
-                height: 145mm !important;
+                width: 90mm !important;
+                height: 140mm !important;
                 padding: 3mm !important;
                 page-break-inside: avoid !important;
                 border: 2px solid #000 !important;
@@ -1593,16 +1596,16 @@ function addOptimizedStyles() {
             }
             
             .qr-img {
-                width: 75mm !important;
-                height: 75mm !important;
+                width: 72mm !important;
+                height: 72mm !important;
                 border: none !important;
                 border-radius: 2mm !important;
                 display: block !important;
             }
             
             .qr-item-irmao .qr-img {
-                width: 55mm !important;
-                height: 55mm !important;
+                width: 52mm !important;
+                height: 52mm !important;
             }
             
             .qr-item-irmao .qr-label {
