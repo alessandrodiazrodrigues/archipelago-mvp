@@ -793,9 +793,14 @@ function createAdmissaoForm(hospitalNome, leitoNumero, hospitalId) {
     const mostrarTipoQuarto = isHibrido || isSantaClara;
     
     const isCruzAzulEnfermaria = (hospitalId === 'H2' && leitoNumero >= 21 && leitoNumero <= 36);
+    const isSantaClaraEnfermaria = (hospitalId === 'H4' && leitoNumero >= 10 && leitoNumero <= 17);
     
     let generoPreDefinido = null;
     let generoDisabled = false;
+    
+    // LÓGICA DE LEITOS IRMÃOS - CRUZ AZUL
+    let numeroBasePreenchido = '';
+    let sufixoPreDefinido = '';
     
     if (isCruzAzulEnfermaria) {
         const leitoIrmao = window.CRUZ_AZUL_IRMAOS[leitoNumero];
@@ -811,21 +816,49 @@ function createAdmissaoForm(hospitalNome, leitoNumero, hospitalId) {
                         generoDisabled = true;
                     }
                 }
+                
+                // PRÉ-PREENCHER NÚMERO BASE SE IRMÃO OCUPADO
+                const identificacaoIrmao = dadosLeitoIrmao.identificacaoLeito || dadosLeitoIrmao.identificacao_leito || '';
+                if (identificacaoIrmao) {
+                    // Extrair número base (ex: "101-1" → "101")
+                    const partes = identificacaoIrmao.split('-');
+                    if (partes.length > 0) {
+                        numeroBasePreenchido = partes[0];
+                    }
+                }
             }
         }
+        
+        // Definir sufixo padrão baseado no número do leito (par=3, ímpar=1)
+        sufixoPreDefinido = (leitoNumero % 2 === 0) ? '3' : '1';
+    }
+    
+    // LÓGICA DE LEITOS IRMÃOS - SANTA CLARA
+    if (isSantaClaraEnfermaria) {
+        const leitoIrmao = window.SANTA_CLARA_IRMAOS[leitoNumero];
+        if (leitoIrmao) {
+            const leitosHospital = window.hospitalData['H4']?.leitos || [];
+            const dadosLeitoIrmao = leitosHospital.find(l => l.leito == leitoIrmao);
+            
+            if (dadosLeitoIrmao && (dadosLeitoIrmao.status === 'Em uso' || dadosLeitoIrmao.status === 'ocupado')) {
+                // PRÉ-PREENCHER NÚMERO BASE SE IRMÃO OCUPADO
+                const identificacaoIrmao = dadosLeitoIrmao.identificacaoLeito || dadosLeitoIrmao.identificacao_leito || '';
+                if (identificacaoIrmao) {
+                    // Extrair número base (ex: "201-A" → "201")
+                    const partes = identificacaoIrmao.split('-');
+                    if (partes.length > 0) {
+                        numeroBasePreenchido = partes[0];
+                    }
+                }
+            }
+        }
+        
+        // Definir sufixo padrão baseado no número do leito (par=C, ímpar=A)
+        sufixoPreDefinido = (leitoNumero % 2 === 0) ? 'C' : 'A';
     }
     
     const isCruzAzulApartamento = (hospitalId === 'H2' && leitoNumero >= 1 && leitoNumero <= 20);
     const isApartamentoFixo = isCruzAzulApartamento;
-    
-    let identificacaoFixa = '';
-    if (isCruzAzulEnfermaria) {
-        const leitosHospital = window.hospitalData['H2']?.leitos || [];
-        const dadosLeitoAtual = leitosHospital.find(l => l.leito == leitoNumero);
-        identificacaoFixa = dadosLeitoAtual?.identificacaoLeito || 
-                           dadosLeitoAtual?.identificacao_leito || 
-                           '';
-    }
     
     return `
         <div class="modal-content" style="background: #1a1f2e; border-radius: 12px; padding: 30px; max-width: 700px; width: 95%; max-height: 90vh; overflow-y: auto; color: #ffffff; font-family: 'Poppins', sans-serif;">
@@ -841,21 +874,36 @@ function createAdmissaoForm(hospitalNome, leitoNumero, hospitalId) {
             
             <!-- LINHA 1: IDENTIFICAÇÃO | TIPO QUARTO | ISOLAMENTO -->
             <div style="margin-bottom: 20px;">
-                <div class="form-grid-3-cols" style="display: grid; grid-template-columns: ${(isHibrido || isCruzAzulEnfermaria || isApartamentoFixo || hospitalId === 'H4') ? '1fr 1fr 1fr' : '1fr 1fr'}; gap: 15px;">
+                <div class="form-grid-3-cols" style="display: grid; grid-template-columns: ${(isHibrido || isCruzAzulEnfermaria || isSantaClaraEnfermaria || isApartamentoFixo || hospitalId === 'H4') ? '1fr 1fr 1fr' : '1fr 1fr'}; gap: 15px;">
                     <div>
                         <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600; font-size: 12px; white-space: nowrap;">Identificação do Leito <span style="color: #c86420;">*</span></label>
                         ${isCruzAzulEnfermaria 
-                            ? `<input id="admIdentificacaoLeito" type="text" value="${identificacaoFixa}" readonly style="width: 100%; padding: 12px; background: #1f2937; color: #9ca3af; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; font-size: 14px; cursor: not-allowed; font-family: 'Poppins', sans-serif;">
-                               <div style="font-size: 10px; color: rgba(255,255,255,0.5); margin-top: 3px;">Numeração fixa (Cruz Azul)</div>`
+                            ? `<div style="display: grid; grid-template-columns: 1fr 60px; gap: 6px;">
+                                <input id="admIdentificacaoNumero" type="text" value="${numeroBasePreenchido}" placeholder="Ex: 101" maxlength="4" required oninput="this.value = this.value.replace(/[^0-9]/g, '')" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
+                                <select id="admIdentificacaoSufixo" required style="width: 100%; padding: 12px; background: #374151 !important; color: #ffffff !important; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
+                                    <option value="1" ${sufixoPreDefinido === '1' ? 'selected' : ''}>1</option>
+                                    <option value="3" ${sufixoPreDefinido === '3' ? 'selected' : ''}>3</option>
+                                </select>
+                               </div>
+                               <div style="font-size: 10px; color: rgba(255,255,255,0.5); margin-top: 3px;">Número + Sufixo (1 ou 3)</div>`
+                            : isSantaClaraEnfermaria
+                            ? `<div style="display: grid; grid-template-columns: 1fr 60px; gap: 6px;">
+                                <input id="admIdentificacaoNumero" type="text" value="${numeroBasePreenchido}" placeholder="Ex: 201" maxlength="4" required oninput="this.value = this.value.replace(/[^0-9]/g, '')" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
+                                <select id="admIdentificacaoSufixo" required style="width: 100%; padding: 12px; background: #374151 !important; color: #ffffff !important; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
+                                    <option value="A" ${sufixoPreDefinido === 'A' ? 'selected' : ''}>A</option>
+                                    <option value="C" ${sufixoPreDefinido === 'C' ? 'selected' : ''}>C</option>
+                                </select>
+                               </div>
+                               <div style="font-size: 10px; color: rgba(255,255,255,0.5); margin-top: 3px;">Número + Sufixo (A ou C)</div>`
                             : `<input id="admIdentificacaoLeito" type="text" placeholder="Ex: 1A, 21, 711.1" maxlength="6" required style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
                                <div style="font-size: 10px; color: rgba(255,255,255,0.5); margin-top: 3px;">Aceita números e letras (1-6)</div>`
                         }
                     </div>
                     
-                    ${(isHibrido || isCruzAzulEnfermaria || isApartamentoFixo || hospitalId === 'H4') ? `
+                    ${(isHibrido || isCruzAzulEnfermaria || isSantaClaraEnfermaria || isApartamentoFixo || hospitalId === 'H4') ? `
                     <div>
                         <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">Tipo de Quarto <span style="color: #c86420;">*</span></label>
-                        ${isCruzAzulEnfermaria 
+                        ${isCruzAzulEnfermaria || isSantaClaraEnfermaria
                             ? `<select id="admTipoQuarto" disabled style="width: 100%; padding: 12px; background: #1f2937 !important; color: #9ca3af !important; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; font-size: 14px; cursor: not-allowed; font-family: 'Poppins', sans-serif;">
                                 <option value="Enfermaria" selected>Enfermaria</option>
                                </select>
@@ -1409,18 +1457,42 @@ function setupModalEventListeners(modal, tipo) {
             e.preventDefault();
             e.stopPropagation();
             
-            const identificacaoField = modal.querySelector(tipo === 'admissao' ? '#admIdentificacaoLeito' : '#updIdentificacaoLeito');
-            if (!identificacaoField.value.trim()) {
-                showErrorMessage('Campo "Identificação do Leito" é obrigatório!');
-                identificacaoField.focus();
-                return;
-            }
+            const hospitalId = window.currentHospital;
+            const leitoNumero = window.selectedLeito;
+            const isCruzAzulEnfermaria = (hospitalId === 'H2' && leitoNumero >= 21 && leitoNumero <= 36);
+            const isSantaClaraEnfermaria = (hospitalId === 'H4' && leitoNumero >= 10 && leitoNumero <= 17);
             
-            const identificacao = identificacaoField.value.trim();
-            if (identificacao.length < 1 || identificacao.length > 6) {
-                showErrorMessage('Identificação deve ter de 1 a 6 caracteres!');
-                identificacaoField.focus();
-                return;
+            // VALIDAR IDENTIFICAÇÃO DO LEITO
+            if (isCruzAzulEnfermaria || isSantaClaraEnfermaria) {
+                const numeroField = modal.querySelector(tipo === 'admissao' ? '#admIdentificacaoNumero' : '#updIdentificacaoNumero');
+                const sufixoField = modal.querySelector(tipo === 'admissao' ? '#admIdentificacaoSufixo' : '#updIdentificacaoSufixo');
+                
+                if (numeroField && sufixoField) {
+                    if (!numeroField.value.trim()) {
+                        showErrorMessage('Campo "Número do Leito" é obrigatório!');
+                        numeroField.focus();
+                        return;
+                    }
+                    if (!sufixoField.value) {
+                        showErrorMessage('Campo "Sufixo" é obrigatório!');
+                        sufixoField.focus();
+                        return;
+                    }
+                }
+            } else {
+                const identificacaoField = modal.querySelector(tipo === 'admissao' ? '#admIdentificacaoLeito' : '#updIdentificacaoLeito');
+                if (!identificacaoField.value.trim()) {
+                    showErrorMessage('Campo "Identificação do Leito" é obrigatório!');
+                    identificacaoField.focus();
+                    return;
+                }
+                
+                const identificacao = identificacaoField.value.trim();
+                if (identificacao.length < 1 || identificacao.length > 6) {
+                    showErrorMessage('Identificação deve ter de 1 a 6 caracteres!');
+                    identificacaoField.focus();
+                    return;
+                }
             }
             
             const isolamentoField = modal.querySelector(tipo === 'admissao' ? '#admIsolamento' : '#updIsolamento');
@@ -1584,6 +1656,11 @@ function coletarDadosFormulario(modal, tipo) {
         leito: window.selectedLeito
     };
     
+    const hospitalId = window.currentHospital;
+    const leitoNumero = window.selectedLeito;
+    const isCruzAzulEnfermaria = (hospitalId === 'H2' && leitoNumero >= 21 && leitoNumero <= 36);
+    const isSantaClaraEnfermaria = (hospitalId === 'H4' && leitoNumero >= 10 && leitoNumero <= 17);
+    
     if (tipo === 'admissao') {
         dados.nome = modal.querySelector('#admNome')?.value?.trim() || '';
         const matriculaInput = modal.querySelector('#admMatricula')?.value?.trim() || '';
@@ -1593,7 +1670,16 @@ function coletarDadosFormulario(modal, tipo) {
         dados.spict = modal.querySelector('#admSPICT')?.value || 'nao_elegivel';
         dados.prevAlta = modal.querySelector('#admPrevAlta')?.value || 'Sem Previsão';
         dados.isolamento = modal.querySelector('#admIsolamento')?.value || '';
-        dados.identificacaoLeito = modal.querySelector('#admIdentificacaoLeito')?.value?.trim() || '';
+        
+        // IDENTIFICAÇÃO DO LEITO - CONCATENAR NÚMERO + SUFIXO SE FOR IRMÃO
+        if (isCruzAzulEnfermaria || isSantaClaraEnfermaria) {
+            const numero = modal.querySelector('#admIdentificacaoNumero')?.value?.trim() || '';
+            const sufixo = modal.querySelector('#admIdentificacaoSufixo')?.value || '';
+            dados.identificacaoLeito = numero && sufixo ? `${numero}-${sufixo}` : numero;
+        } else {
+            dados.identificacaoLeito = modal.querySelector('#admIdentificacaoLeito')?.value?.trim() || '';
+        }
+        
         dados.regiao = modal.querySelector('#admRegiao')?.value || '';
         dados.genero = modal.querySelector('#admSexo')?.value || '';
         dados.diretivas = modal.querySelector('#admDiretivas')?.value || 'Não se aplica';
