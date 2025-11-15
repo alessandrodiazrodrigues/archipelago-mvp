@@ -1517,9 +1517,6 @@ function setupModalEventListeners(modal, tipo) {
                 return;
             }
             
-            const hospitalId = window.currentHospital;
-            const isHibrido = window.HOSPITAIS_HIBRIDOS.includes(hospitalId);
-            const leitoNumero = parseInt(modal.querySelector('h3')?.textContent?.match(/\d+/)?.[0] || 0);
             const isSantaClara = hospitalId === 'H4';
             
             if (isHibrido || isSantaClara) {
