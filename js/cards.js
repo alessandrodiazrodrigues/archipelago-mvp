@@ -987,6 +987,8 @@ function createAdmissaoForm(hospitalNome, leitoNumero, hospitalId) {
 
     let generoPreDefinido = null;
     let generoDisabled = false;
+    let isolamentoPreDefinido = null;
+    let isolamentoDisabled = false;
     
     // LÓGICA DE LEITOS IRMÃOS - CRUZ AZUL
     let numeroBasePreenchido = '';
@@ -1000,7 +1002,12 @@ function createAdmissaoForm(hospitalNome, leitoNumero, hospitalId) {
             
             if (dadosLeitoIrmao && (dadosLeitoIrmao.status === 'Em uso' || dadosLeitoIrmao.status === 'ocupado')) {
                 const isolamentoIrmao = dadosLeitoIrmao.isolamento || '';
+                
+                // Se irmão NÃO tem isolamento → forçar "Não Isolamento" no leito atual
                 if (!isolamentoIrmao || isolamentoIrmao === 'Não Isolamento') {
+                    isolamentoPreDefinido = 'Não Isolamento';
+                    isolamentoDisabled = true;
+                    
                     if (dadosLeitoIrmao.genero) {
                         generoPreDefinido = dadosLeitoIrmao.genero;
                         generoDisabled = true;
@@ -1031,6 +1038,19 @@ function createAdmissaoForm(hospitalNome, leitoNumero, hospitalId) {
             const dadosLeitoIrmao = leitosHospital.find(l => l.leito == leitoIrmao);
             
             if (dadosLeitoIrmao && (dadosLeitoIrmao.status === 'Em uso' || dadosLeitoIrmao.status === 'ocupado')) {
+                const isolamentoIrmao = dadosLeitoIrmao.isolamento || '';
+                
+                // Se irmão NÃO tem isolamento → forçar "Não Isolamento" no leito atual
+                if (!isolamentoIrmao || isolamentoIrmao === 'Não Isolamento') {
+                    isolamentoPreDefinido = 'Não Isolamento';
+                    isolamentoDisabled = true;
+                    
+                    if (dadosLeitoIrmao.genero) {
+                        generoPreDefinido = dadosLeitoIrmao.genero;
+                        generoDisabled = true;
+                    }
+                }
+                
                 // PRÉ-PREENCHER NÚMERO BASE SE IRMÃO OCUPADO
                 const identificacaoIrmao = dadosLeitoIrmao.identificacaoLeito || dadosLeitoIrmao.identificacao_leito || '';
                 if (identificacaoIrmao) {
@@ -1113,10 +1133,11 @@ function createAdmissaoForm(hospitalNome, leitoNumero, hospitalId) {
                     
                     <div>
                         <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">Isolamento <span style="color: #c86420;">*</span></label>
-                        <select id="admIsolamento" required style="width: 100%; padding: 12px; background: #374151 !important; color: #ffffff !important; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
-                            <option value="">Selecione...</option>
-                            ${window.ISOLAMENTO_OPTIONS.map(opcao => `<option value="${opcao}">${opcao}</option>`).join('')}
+                        <select id="admIsolamento" required ${isolamentoDisabled ? 'disabled' : ''} style="width: 100%; padding: 12px; background: ${isolamentoDisabled ? '#1f2937' : '#374151'} !important; color: ${isolamentoDisabled ? '#9ca3af' : '#ffffff'} !important; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif; ${isolamentoDisabled ? 'cursor: not-allowed;' : ''}">
+                            ${isolamentoPreDefinido ? '' : '<option value="">Selecione...</option>'}
+                            ${window.ISOLAMENTO_OPTIONS.map(opcao => `<option value="${opcao}" ${isolamentoPreDefinido === opcao ? 'selected' : ''}>${opcao}</option>`).join('')}
                         </select>
+                        ${isolamentoDisabled ? '<div style="font-size: 11px; color: #9ca3af; margin-top: 4px;">⚠️ Leito irmão ocupado sem isolamento</div>' : ''}
                     </div>
                 </div>
             </div>
