@@ -108,13 +108,21 @@ function getCorExata(itemName, tipo = 'concessao') {
         return CORES_ARCHIPELAGO.cinzaMedio;
     }
     
-    let cor = paleta[itemName];
+    
+    // ✅ USAR A FUNÇÃO DE NORMALIZAÇÃO DO cards-config.js
+    const itemNormalizado = window.normalizarTexto(itemName);
+    
+    // Buscar com nome normalizado (SEM acentos)
+    let cor = paleta[itemNormalizado];
     if (cor) return cor;
     
-    const nomeNorm = itemName.trim().replace(/\s+/g, ' ').replace(/[–—]/g, '-');
+    // Tentar com limpeza adicional
+    const nomeNorm = itemNormalizado.trim().replace(/\s+/g, ' ').replace(/[–—]/g, '-');
     cor = paleta[nomeNorm];
     if (cor) return cor;
     
+    // ⚠️ Se não encontrou, avisar no console
+    console.warn(`[CORES] Não encontrada: "${itemName}" → normalizado: "${itemNormalizado}"`);
     return CORES_ARCHIPELAGO.cinzaMedio;
 }
 
