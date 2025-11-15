@@ -102,53 +102,107 @@ window.searchLeitos = function() {
     logInfo(`Busca: "${searchTerm}" - ${visibleCards.length} resultados`);
 };
 
-// =================== 🆕 FUNÇÃO: RENDERIZAR FLAG DE OCUPAÇÃO V6.1 ===================
-window.renderFlagOcupacao = function(hospitalId, status, posicaoOcupacao) {
+// =================== 🆕 FUNÇÃO: RENDERIZAR FLAG DE OCUPAÇÃO V6.2 ===================
+window.renderFlagOcupacao = function(hospitalId, status, posicaoOcupacao, tipoLeito) {
     // Se leito vago, não exibe flag
     if (status === 'Vago' || status === 'vago') {
         return '';
     }
-    
+
+    if (!posicaoOcupacao || posicaoOcupacao <= 0) return '';
+
     const capacidade = window.getCapacidade(hospitalId);
-    const ocupados = posicaoOcupacao || 0;
-    
-    if (ocupados <= 0) return '';
-    
-    const { contratuais, extras } = window.calcularLeitosExtras(hospitalId, ocupados);
-    const isExtra = window.isLeitoExtra(hospitalId, ocupados);
-    
+    const isExtra = window.isLeitoExtra(hospitalId, posicaoOcupacao);
+
+    // Determinar se é apartamento ou enfermaria
+    const tipoUpper = (tipoLeito || '').toUpperCase().trim();
+    const isApartamento = tipoUpper.includes('APTO') || tipoUpper === 'APARTAMENTO';
+    const isEnfermaria = tipoUpper.includes('ENF') || tipoUpper === 'ENFERMARIA';
+
+    // Obter estrutura de enfermarias (se disponível)
+    let enfermariasInfo = null;
+    if (hospitalId === 'H2' && window.CRUZ_AZUL_ENFERMARIAS) {
+        enfermariasInfo = window.CRUZ_AZUL_ENFERMARIAS;
+    } else if (hospitalId === 'H4' && window.SANTA_CLARA_ENFERMARIAS) {
+        enfermariasInfo = window.SANTA_CLARA_ENFERMARIAS;
+    }
+
+    // Calcular ocupação por tipo (se tiposFixos e temos info de enfermarias)
+    let textoTipo = '';
+    let ocupadosPorTipo = 0;
+    let totalPorTipo = 0;
+
+    if (enfermariasInfo && (hospitalId === 'H2' || hospitalId === 'H4')) {
+        // TIPOS FIXOS (Cruz Azul ou Santa Clara)
+        const leitosHospital = window.hospitalData[hospitalId]?.leitos || [];
+        const ocupados = leitosHospital.filter(l => l.status === 'Ocupado' || l.status === 'Em uso' || l.status === 'ocupado');
+
+        if (isApartamento) {
+            // Contar apartamentos ocupados
+            const ocupadosApto = ocupados.filter(l => {
+                const tipo = (l.tipo || '').toUpperCase();
+                return tipo.includes('APTO') || tipo === 'APARTAMENTO';
+            });
+            ocupadosPorTipo = ocupadosApto.length;
+            totalPorTipo = enfermariasInfo.apartamentos;
+            textoTipo = 'APARTAMENTO';
+        } else if (isEnfermaria) {
+            // Contar enfermarias ocupadas
+            const ocupadosEnf = ocupados.filter(l => {
+                const tipo = (l.tipo || '').toUpperCase();
+                return tipo.includes('ENF') || tipo === 'ENFERMARIA';
+            });
+            ocupadosPorTipo = ocupadosEnf.length;
+
+            // Total de enfermarias
+            const totalEnfContratuais = enfermariasInfo.contratuais.length;
+            const totalEnfExtras = enfermariasInfo.extras.length;
+            totalPorTipo = totalEnfContratuais + totalEnfExtras;
+            textoTipo = 'ENFERMARIA';
+        }
+    } else {
+        // HÍBRIDOS ou fallback
+        ocupadosPorTipo = posicaoOcupacao;
+        totalPorTipo = capacidade.total;
+        textoTipo = '';
+    }
+
     if (isExtra) {
         // LEITO EXTRA
+        const { extras } = window.calcularLeitosExtras(hospitalId, posicaoOcupacao);
+
         return `
             <div style="
-                background: ${window.COR_FLAG_EXTRA}; 
-                color: #131b2e; 
-                padding: 4px 8px; 
-                border-radius: 4px; 
-                font-size: 11px; 
+                background: ${window.COR_FLAG_EXTRA};
+                color: #131b2e;
+                padding: 4px 8px;
+                border-radius: 4px;
+                font-size: 11px;
                 font-weight: 700;
                 text-align: center;
                 margin-top: 8px;
                 font-family: 'Poppins', sans-serif;
             ">
-                EXTRA ${extras}/${capacidade.extras}
+                EXTRA ${textoTipo} ${extras}/${capacidade.extras}
             </div>
         `;
     } else {
         // LEITO CONTRATUAL
+        const { contratuais } = window.calcularLeitosExtras(hospitalId, posicaoOcupacao);
+
         return `
             <div style="
-                background: ${window.COR_FLAG_CONTRATUAL}; 
-                color: #ffffff; 
-                padding: 4px 8px; 
-                border-radius: 4px; 
-                font-size: 11px; 
+                background: ${window.COR_FLAG_CONTRATUAL};
+                color: #ffffff;
+                padding: 4px 8px;
+                border-radius: 4px;
+                font-size: 11px;
                 font-weight: 700;
                 text-align: center;
                 margin-top: 8px;
                 font-family: 'Poppins', sans-serif;
             ">
-                OCUPACAO ${contratuais}/${capacidade.contratuais}
+                OCUPACAO ${textoTipo} ${ocupadosPorTipo || contratuais}/${totalPorTipo || capacidade.contratuais}
             </div>
         `;
     }
@@ -422,7 +476,8 @@ function formatarMatriculaExibicao(matricula) {
 
 // VALIDAÇÃO DE BLOQUEIO CRUZ AZUL
 function validarAdmissaoCruzAzul(leitoNumero, generoNovo) {
-    if (window.currentHospital !== 'H2' || leitoNumero < 21 || leitoNumero > 36) {
+    // Validar TODAS enfermarias (contratuais 21-36 + extras 37-46)
+    if (window.currentHospital !== 'H2' || !window.isEnfermariaComIrmao('H2', leitoNumero)) {
         return { permitido: true };
     }
     
@@ -500,11 +555,12 @@ function createCard(leito, hospitalNome, hospitalId, posicaoOcupacao) {
     let bloqueadoPorGenero = false;
     let generoPermitido = null;
     let motivoBloqueio = '';
-    
+
     const numeroLeito = parseInt(leito.leito);
-    const isCruzAzulEnfermaria = (hospitalId === 'H2' && numeroLeito >= 21 && numeroLeito <= 36);
-    
-    if (isCruzAzulEnfermaria && (leito.status === 'Vago' || leito.status === 'vago')) {
+    const isCruzAzulEnfermaria = window.isEnfermariaComIrmao('H2', numeroLeito);
+    const isSantaClaraEnfermaria = window.isEnfermariaComIrmao('H4', numeroLeito);
+
+    if ((isCruzAzulEnfermaria || isSantaClaraEnfermaria) && (leito.status === 'Vago' || leito.status === 'vago')) {
         const leitoIrmao = window.CRUZ_AZUL_IRMAOS[numeroLeito];
         if (leitoIrmao) {
             const leitosHospital = window.hospitalData['H2']?.leitos || [];
@@ -623,7 +679,7 @@ function createCard(leito, hospitalNome, hospitalId, posicaoOcupacao) {
             <div style="font-size: 9px; color: rgba(255,255,255,0.7); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px;">HOSPITAL</div>
             <div style="font-size: 16px; color: #ffffff; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">${hospitalNome}</div>
             ${isHibrido ? '<div style="font-size: 10px; color: rgba(255,255,255,0.6); font-weight: 600; margin-top: 2px;">Leito Híbrido</div>' : ''}
-            ${window.renderFlagOcupacao(hospitalId, leito.status, posicaoOcupacao)}
+            ${window.renderFlagOcupacao(hospitalId, leito.status, posicaoOcupacao, tipoReal)}
         </div>
 
         <!-- LINHA 1: LEITO | TIPO | STATUS -->
@@ -942,10 +998,13 @@ function createAdmissaoForm(hospitalNome, leitoNumero, hospitalId) {
     const isHibrido = window.HOSPITAIS_HIBRIDOS.includes(hospitalId);
     const isSantaClara = hospitalId === 'H4';
     const mostrarTipoQuarto = isHibrido || isSantaClara;
-    
-    const isCruzAzulEnfermaria = (hospitalId === 'H2' && leitoNumero >= 21 && leitoNumero <= 36);
-    const isSantaClaraEnfermaria = (hospitalId === 'H4' && leitoNumero >= 10 && leitoNumero <= 17);
-    
+
+    // CRUZ AZUL: TODAS as enfermarias com irmão (contratuais + extras)
+    const isCruzAzulEnfermaria = window.isEnfermariaComIrmao('H2', leitoNumero);
+
+    // SANTA CLARA: TODAS as enfermarias com irmão (contratuais + extras)
+    const isSantaClaraEnfermaria = window.isEnfermariaComIrmao('H4', leitoNumero);
+
     let generoPreDefinido = null;
     let generoDisabled = false;
     
@@ -1251,7 +1310,8 @@ function createAtualizacaoForm(hospitalNome, leitoNumero, dadosLeito) {
     }
     
     const hospitalId = window.currentHospital;
-    const isCruzAzulEnfermaria = (hospitalId === 'H2' && leitoNumero >= 21 && leitoNumero <= 36);
+    const isCruzAzulEnfermaria = window.isEnfermariaComIrmao('H2', leitoNumero);
+    const isSantaClaraEnfermaria = window.isEnfermariaComIrmao('H4', leitoNumero);
     const isCruzAzulApartamento = (hospitalId === 'H2' && leitoNumero >= 1 && leitoNumero <= 20);
     const isApartamentoFixo = isCruzAzulApartamento;
     
