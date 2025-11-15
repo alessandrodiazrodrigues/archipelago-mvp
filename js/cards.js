@@ -1,5 +1,14 @@
 // =================== CARDS.JS - GESTAO DE LEITOS HOSPITALARES ===================
-// Versao: 4.3 CORRIGIDA
+// Versao: 6.1 CORRIGIDO - 15/Novembro/2025
+// Depende de: cards-config.js (carregar ANTES)
+// 
+// ✅ CORREÇÕES V6.1 APLICADAS:
+// 1. ✅ Flag de ocupação implementada (renderFlagOcupacao)
+// 2. ✅ Nome do hospital corrigido (usando .nome)
+// 3. ✅ Lógica de enfermarias corrigida (1 par livre apenas)
+// 4. ✅ Borda laranja em leitos extras
+// 5. ✅ Posição de ocupação calculada corretamente
+
 // Depende de: cards-config.js (carregar ANTES)
 
 console.log('CARDS.JS v4.3 - Carregando...');
@@ -93,6 +102,58 @@ window.searchLeitos = function() {
     logInfo(`Busca: "${searchTerm}" - ${visibleCards.length} resultados`);
 };
 
+// =================== 🆕 FUNÇÃO: RENDERIZAR FLAG DE OCUPAÇÃO V6.1 ===================
+window.renderFlagOcupacao = function(hospitalId, status, posicaoOcupacao) {
+    // Se leito vago, não exibe flag
+    if (status === 'Vago' || status === 'vago') {
+        return '';
+    }
+    
+    const capacidade = window.getCapacidade(hospitalId);
+    const ocupados = posicaoOcupacao || 0;
+    
+    if (ocupados <= 0) return '';
+    
+    const { contratuais, extras } = window.calcularLeitosExtras(hospitalId, ocupados);
+    const isExtra = window.isLeitoExtra(hospitalId, ocupados);
+    
+    if (isExtra) {
+        // LEITO EXTRA
+        return `
+            <div style="
+                background: ${window.COR_FLAG_EXTRA}; 
+                color: #131b2e; 
+                padding: 4px 8px; 
+                border-radius: 4px; 
+                font-size: 11px; 
+                font-weight: 700;
+                text-align: center;
+                margin-top: 8px;
+                font-family: 'Poppins', sans-serif;
+            ">
+                EXTRA ${extras}/${capacidade.extras}
+            </div>
+        `;
+    } else {
+        // LEITO CONTRATUAL
+        return `
+            <div style="
+                background: ${window.COR_FLAG_CONTRATUAL}; 
+                color: #ffffff; 
+                padding: 4px 8px; 
+                border-radius: 4px; 
+                font-size: 11px; 
+                font-weight: 700;
+                text-align: center;
+                margin-top: 8px;
+                font-family: 'Poppins', sans-serif;
+            ">
+                OCUPACAO ${contratuais}/${capacidade.contratuais}
+            </div>
+        `;
+    }
+};
+
 // =================== FUNÇÃO PRINCIPAL DE RENDERIZAÇÃO ===================
 window.renderCards = function() {
     logInfo('🎯 [CARDS V6.1] Renderizando com filtro inteligente de vagos...');
@@ -110,7 +171,7 @@ window.renderCards = function() {
     container.innerHTML = '';
     const hospitalId = window.currentHospital || 'H1';
     const hospital = window.hospitalData[hospitalId];
-    const hospitalNome = window.HOSPITAL_MAPPING[hospitalId] || 'Hospital';
+    const hospitalNome = window.HOSPITAL_MAPPING[hospitalId]?.nome || 'Hospital';
     
     if (!hospital || !hospital.leitos || hospital.leitos.length === 0) {
         container.innerHTML = `
@@ -180,8 +241,11 @@ window.renderCards = function() {
         // 1️⃣ APARTAMENTOS: Apenas 1 vago (menor ID)
         const apartamentoParaMostrar = vagosApartamentos.length > 0 ? [vagosApartamentos[0]] : [];
         
-        // 2️⃣ ENFERMARIAS: TODAS vagas, EXCETO bloqueadas por isolamento
+        // 2️⃣ ENFERMARIAS: ✅ CORREÇÃO V6.1
+        // ✅ TODAS com 1 ocupado + 1 vago (restrição de gênero)
+        // ✅ APENAS 1 par com AMBOS vagos (livre para isolamento)
         const enfermariasParaMostrar = [];
+        let parLivreJaAdicionado = false; // 🆕 FLAG NOVA
         
         vagosEnfermarias.forEach(leitoVago => {
             const numeroLeito = parseInt(leitoVago.leito);
@@ -191,22 +255,30 @@ window.renderCards = function() {
                 // Não tem irmão, pode mostrar
                 enfermariasParaMostrar.push(leitoVago);
             } else {
-                // Tem irmão, verificar se está ocupado e isolado
+                // Tem irmão, verificar status
                 const dadosIrmao = hospital.leitos.find(l => parseInt(l.leito) === leitoIrmao);
                 
                 if (!dadosIrmao || dadosIrmao.status === 'Vago' || dadosIrmao.status === 'vago') {
-                    // Irmão vago, pode mostrar
-                    enfermariasParaMostrar.push(leitoVago);
+                    // ✅ IRMÃO VAGO: Mostrar APENAS 1 par livre
+                    if (!parLivreJaAdicionado) {
+                        enfermariasParaMostrar.push(leitoVago);
+                        parLivreJaAdicionado = true;
+                        console.log(`[CARDS V6.1] Par livre: leitos ${numeroLeito}-${leitoIrmao} (1º par livre)`);
+                    } else {
+                        console.log(`[CARDS V6.1] Par ${numeroLeito}-${leitoIrmao} OCULTO (já tem 1 par livre)`);
+                    }
                 } else {
-                    // Irmão ocupado, verificar isolamento
+                    // ✅ IRMÃO OCUPADO: Verificar isolamento
                     const isolamentoIrmao = dadosIrmao.isolamento || '';
                     
                     if (isolamentoIrmao === 'Isolamento de Contato' || isolamentoIrmao.includes('Isolamento')) {
-                        // Irmão com isolamento, BLOQUEIA este vago
+                        // ❌ BLOQUEADO por isolamento
                         console.log(`[CARDS V6.1] Leito ${numeroLeito} BLOQUEADO - Irmão ${leitoIrmao} com isolamento`);
                     } else {
-                        // Irmão sem isolamento, pode mostrar (com restrição de gênero)
+                        // ✅ MOSTRAR (vago com restrição de gênero)
                         enfermariasParaMostrar.push(leitoVago);
+                        const generoIrmao = dadosIrmao.genero || 'desconhecido';
+                        console.log(`[CARDS V6.1] Leito ${numeroLeito} OK - Restrição ${generoIrmao}`);
                     }
                 }
             }
@@ -226,8 +298,9 @@ window.renderCards = function() {
     console.log('[CARDS V6.1] Total de leitos a exibir:', leitosOrdenados.length);
     console.log('[CARDS V6.1] Ocupados:', leitosOcupados.length, '| Vagos filtrados:', vagosParaMostrar.length);
     
-    leitosOrdenados.forEach(leito => {
-        const card = createCard(leito, hospitalNome);
+    leitosOrdenados.forEach((leito, index) => {
+        const posicaoOcupacao = leitosOcupados.findIndex(l => l.leito === leito.leito) + 1;
+        const card = createCard(leito, hospitalNome, hospitalId, posicaoOcupacao);
         container.appendChild(card);
     });
     
@@ -410,10 +483,16 @@ function validarLimiteSantaClara(tipoQuarto) {
 }
 
 // =================== CRIAR CARD INDIVIDUAL ===================
-function createCard(leito, hospitalNome) {
+function createCard(leito, hospitalNome, hospitalId, posicaoOcupacao) {
     const card = document.createElement('div');
     card.className = 'card';
     card.style.cssText = 'background: #1a1f2e; border-radius: 12px; padding: 18px; color: #ffffff; box-shadow: 0 4px 6px rgba(0,0,0,0.1); font-family: "Poppins", sans-serif;';
+    
+    // ✅ ADICIONAR BORDA LARANJA SE LEITO EXTRA
+    const isExtra = window.isLeitoExtra(hospitalId, posicaoOcupacao);
+    if (isExtra) {
+        card.style.cssText += ' border: 2px solid #f59a1d !important;';
+    }
     
     // VERIFICAR BLOQUEIO CRUZ AZUL
     let bloqueadoPorIsolamento = false;
@@ -421,7 +500,6 @@ function createCard(leito, hospitalNome) {
     let generoPermitido = null;
     let motivoBloqueio = '';
     
-    const hospitalId = window.currentHospital;
     const numeroLeito = parseInt(leito.leito);
     const isCruzAzulEnfermaria = (hospitalId === 'H2' && numeroLeito >= 21 && numeroLeito <= 36);
     
@@ -544,6 +622,7 @@ function createCard(leito, hospitalNome) {
             <div style="font-size: 9px; color: rgba(255,255,255,0.7); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px;">HOSPITAL</div>
             <div style="font-size: 16px; color: #ffffff; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">${hospitalNome}</div>
             ${isHibrido ? '<div style="font-size: 10px; color: rgba(255,255,255,0.6); font-weight: 600; margin-top: 2px;">Leito Híbrido</div>' : ''}
+            ${window.renderFlagOcupacao(hospitalId, leito.status, posicaoOcupacao)}
         </div>
 
         <!-- LINHA 1: LEITO | TIPO | STATUS -->
