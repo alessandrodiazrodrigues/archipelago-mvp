@@ -271,7 +271,8 @@ window.renderCards = function() {
                     // ✅ IRMÃO OCUPADO: Verificar isolamento
                     const isolamentoIrmao = dadosIrmao.isolamento || '';
                     
-                    if (isolamentoIrmao === 'Isolamento de Contato' || isolamentoIrmao.includes('Isolamento')) {
+                    // ✅ CORREÇÃO: Bloquear APENAS isolamentos reais (não "Não Isolamento")
+                    if (isolamentoIrmao === 'Isolamento de Contato' || isolamentoIrmao === 'Isolamento Respiratório') {
                         // ❌ BLOQUEADO por isolamento
                         console.log(`[CARDS V6.1] Leito ${numeroLeito} BLOQUEADO - Irmão ${leitoIrmao} com isolamento`);
                     } else {
