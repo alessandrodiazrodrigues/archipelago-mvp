@@ -1763,7 +1763,6 @@ function setupModalEventListeners(modal, tipo) {
             }
             
             
-            
             // ✅ VALIDAR DUPLICATAS
             const identificacaoField = modal.querySelector(tipo === 'admissao' ? '#admIdentificacaoLeito' : '#updIdentificacaoLeito');
             const identificacaoNumeroField = modal.querySelector(tipo === 'admissao' ? '#admIdentificacaoNumero' : null);
@@ -1807,49 +1806,6 @@ function setupModalEventListeners(modal, tipo) {
             }
             
             const originalText = this.innerHTML;
-            
-            // ✅ VALIDAR DUPLICATAS
-            const identificacaoField = modal.querySelector(tipo === 'admissao' ? '#admIdentificacaoLeito' : '#updIdentificacaoLeito');
-            const identificacaoNumeroField = modal.querySelector(tipo === 'admissao' ? '#admIdentificacaoNumero' : null);
-            const identificacaoSufixoField = modal.querySelector(tipo === 'admissao' ? '#admIdentificacaoSufixo' : null);
-            
-            let identificacaoParaValidar = '';
-            if (identificacaoNumeroField && identificacaoSufixoField) {
-                const numero = identificacaoNumeroField.value.trim();
-                const sufixo = identificacaoSufixoField.value;
-                identificacaoParaValidar = numero && sufixo ? `${numero}-${sufixo}` : numero;
-            } else if (identificacaoField) {
-                identificacaoParaValidar = identificacaoField.value.trim();
-            }
-            
-            if (identificacaoParaValidar) {
-                const validacaoId = validarIdentificacaoDuplicada(
-                    hospitalId, 
-                    identificacaoParaValidar,
-                    tipo === 'atualizacao' ? leitoNumero : null
-                );
-                if (!validacaoId.valido) {
-                    showErrorMessage(validacaoId.mensagem);
-                    return;
-                }
-            }
-            
-            const matriculaField = modal.querySelector(tipo === 'admissao' ? '#admMatricula' : null);
-            if (matriculaField && tipo === 'admissao') {
-                const matriculaParaValidar = matriculaField.value.trim();
-                if (matriculaParaValidar) {
-                    const validacaoMat = validarMatriculaDuplicada(
-                        hospitalId, 
-                        matriculaParaValidar,
-                        null
-                    );
-                    if (!validacaoMat.valido) {
-                        showErrorMessage(validacaoMat.mensagem);
-                        return;
-                    }
-                }
-            }
-            
             showButtonLoading(this, 'SALVANDO...');
             
             try {
@@ -1931,6 +1887,8 @@ function closeModal(modal) {
     }
 }
 
+// =================== COLETAR DADOS DO FORMULÁRIO ===================
+
 // =================== VALIDAÇÕES DE DUPLICATAS ===================
 
 // Validar se identificação já está sendo usada no hospital
@@ -1993,7 +1951,6 @@ function validarMatriculaDuplicada(hospitalId, matricula, leitoAtual = null) {
     return { valido: true };
 }
 
-// =================== COLETAR DADOS DO FORMULÁRIO ===================
 function coletarDadosFormulario(modal, tipo) {
     const dados = {
         hospital: window.currentHospital,
