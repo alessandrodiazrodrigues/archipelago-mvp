@@ -11,7 +11,7 @@
 // ✅ NOVIDADES: Santa Marcelina expandido (28 leitos)
 // ==================================================================================
 
-window.API_URL = 'https://script.google.com/macros/s/AKfycbx4pDRSHKAmBd8gZVgT5ict8-Xg4t5r1dq-DzP0XCLRLpVnLz0ys6eWItIpqVaby9oRDw/exec';
+window.API_URL = 'https://script.google.com/macros/s/AKfycbx5q3ecGVVl-LuWZE6JcuXJJV7qkIazU55kOzr3M0Zti9v4VAGq0uJVwzfXMAb1oXwyrw/exec';
 
 // =================== CONFIGURAÇÃO DOS HOSPITAIS V6.0 ===================
 window.HOSPITAIS_CONFIG = {
