@@ -642,9 +642,20 @@ function createCard(leito, hospitalNome, hospitalId, posicaoOcupacao) {
     
     const idSequencial = String(numeroLeito).padStart(2, '0');
     
-    let leitoDisplay = identificacaoLeito && identificacaoLeito.trim() 
-        ? identificacaoLeito.trim().toUpperCase()
-        : `LEITO ${numeroLeito}`;
+    // ✅ AJUSTE: Leitos vagos mostram "-" se não tiver identificação
+    let leitoDisplay;
+    if (isVago) {
+        // Se vago E tem identificação (caso dos irmãos) → mostra número
+        // Se vago SEM identificação → mostra "-"
+        leitoDisplay = (identificacaoLeito && identificacaoLeito.trim()) 
+            ? identificacaoLeito.trim().toUpperCase()
+            : '—';
+    } else {
+        // Se ocupado → mostra identificação ou "LEITO X"
+        leitoDisplay = (identificacaoLeito && identificacaoLeito.trim()) 
+            ? identificacaoLeito.trim().toUpperCase()
+            : `LEITO ${numeroLeito}`;
+    }
     
     // COR DO CÍRCULO PESSOA
     const circuloCor = '#60a5fa';
@@ -1175,9 +1186,8 @@ function createAdmissaoForm(hospitalNome, leitoNumero, hospitalId) {
             <!-- LINHA 3: INICIAIS, MATRÍCULA, IDADE -->
             <div class="form-grid-3-cols" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 20px;">
                 <div>
-                    <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">Iniciais (A D R)</label>
+                    <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">Iniciais</label>
                     <input id="admNome" type="text" placeholder="Ex: ADR" maxlength="20" oninput="window.formatarIniciaisAutomatico(this)" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif; letter-spacing: 2px;">
-                    <div style="font-size: 10px; color: rgba(255,255,255,0.5); margin-top: 3px;">Digite as letras (serão formatadas automaticamente)</div>
                 </div>
                 <div>
                     <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">Matrícula</label>
@@ -1753,7 +1763,93 @@ function setupModalEventListeners(modal, tipo) {
             }
             
             
+            
+            // ✅ VALIDAR DUPLICATAS
+            const identificacaoField = modal.querySelector(tipo === 'admissao' ? '#admIdentificacaoLeito' : '#updIdentificacaoLeito');
+            const identificacaoNumeroField = modal.querySelector(tipo === 'admissao' ? '#admIdentificacaoNumero' : null);
+            const identificacaoSufixoField = modal.querySelector(tipo === 'admissao' ? '#admIdentificacaoSufixo' : null);
+            
+            let identificacaoParaValidar = '';
+            if (identificacaoNumeroField && identificacaoSufixoField) {
+                const numero = identificacaoNumeroField.value.trim();
+                const sufixo = identificacaoSufixoField.value;
+                identificacaoParaValidar = numero && sufixo ? `${numero}-${sufixo}` : numero;
+            } else if (identificacaoField) {
+                identificacaoParaValidar = identificacaoField.value.trim();
+            }
+            
+            if (identificacaoParaValidar) {
+                const validacaoId = validarIdentificacaoDuplicada(
+                    hospitalId, 
+                    identificacaoParaValidar,
+                    tipo === 'atualizacao' ? leitoNumero : null
+                );
+                if (!validacaoId.valido) {
+                    showErrorMessage(validacaoId.mensagem);
+                    return;
+                }
+            }
+            
+            const matriculaField = modal.querySelector(tipo === 'admissao' ? '#admMatricula' : null);
+            if (matriculaField && tipo === 'admissao') {
+                const matriculaParaValidar = matriculaField.value.trim();
+                if (matriculaParaValidar) {
+                    const validacaoMat = validarMatriculaDuplicada(
+                        hospitalId, 
+                        matriculaParaValidar,
+                        null
+                    );
+                    if (!validacaoMat.valido) {
+                        showErrorMessage(validacaoMat.mensagem);
+                        return;
+                    }
+                }
+            }
+            
             const originalText = this.innerHTML;
+            
+            // ✅ VALIDAR DUPLICATAS
+            const identificacaoField = modal.querySelector(tipo === 'admissao' ? '#admIdentificacaoLeito' : '#updIdentificacaoLeito');
+            const identificacaoNumeroField = modal.querySelector(tipo === 'admissao' ? '#admIdentificacaoNumero' : null);
+            const identificacaoSufixoField = modal.querySelector(tipo === 'admissao' ? '#admIdentificacaoSufixo' : null);
+            
+            let identificacaoParaValidar = '';
+            if (identificacaoNumeroField && identificacaoSufixoField) {
+                const numero = identificacaoNumeroField.value.trim();
+                const sufixo = identificacaoSufixoField.value;
+                identificacaoParaValidar = numero && sufixo ? `${numero}-${sufixo}` : numero;
+            } else if (identificacaoField) {
+                identificacaoParaValidar = identificacaoField.value.trim();
+            }
+            
+            if (identificacaoParaValidar) {
+                const validacaoId = validarIdentificacaoDuplicada(
+                    hospitalId, 
+                    identificacaoParaValidar,
+                    tipo === 'atualizacao' ? leitoNumero : null
+                );
+                if (!validacaoId.valido) {
+                    showErrorMessage(validacaoId.mensagem);
+                    return;
+                }
+            }
+            
+            const matriculaField = modal.querySelector(tipo === 'admissao' ? '#admMatricula' : null);
+            if (matriculaField && tipo === 'admissao') {
+                const matriculaParaValidar = matriculaField.value.trim();
+                if (matriculaParaValidar) {
+                    const validacaoMat = validarMatriculaDuplicada(
+                        hospitalId, 
+                        matriculaParaValidar,
+                        null
+                    );
+                    if (!validacaoMat.valido) {
+                        showErrorMessage(validacaoMat.mensagem);
+                        return;
+                    }
+                }
+            }
+            
             showButtonLoading(this, 'SALVANDO...');
             
             try {
@@ -1833,6 +1929,68 @@ function closeModal(modal) {
             window.selectedLeito = null;
         }, 300);
     }
+}
+
+// =================== VALIDAÇÕES DE DUPLICATAS ===================
+
+// Validar se identificação já está sendo usada no hospital
+function validarIdentificacaoDuplicada(hospitalId, identificacao, leitoAtual = null) {
+    if (!identificacao || !identificacao.trim()) return { valido: true };
+    
+    const leitosHospital = window.hospitalData[hospitalId]?.leitos || [];
+    const duplicado = leitosHospital.find(l => {
+        const idLeito = l.identificacaoLeito || l.identificacao_leito || '';
+        const statusOcupado = (l.status === 'Ocupado' || l.status === 'ocupado' || l.status === 'Em uso');
+        
+        // Se for atualização, ignorar o próprio leito
+        if (leitoAtual && parseInt(l.leito) === parseInt(leitoAtual)) {
+            return false;
+        }
+        
+        return statusOcupado && idLeito.trim().toUpperCase() === identificacao.trim().toUpperCase();
+    });
+    
+    if (duplicado) {
+        const matricula = duplicado.matricula || 'sem matrícula';
+        return {
+            valido: false,
+            mensagem: `Esse número de leito já está sendo usado pelo paciente de matrícula ${matricula}`
+        };
+    }
+    
+    return { valido: true };
+}
+
+// Validar se matrícula já está sendo usada no hospital
+function validarMatriculaDuplicada(hospitalId, matricula, leitoAtual = null) {
+    if (!matricula || !matricula.trim()) return { valido: true };
+    
+    // Remover hífen para comparação
+    const matriculaSemHifen = matricula.replace(/-/g, '').trim();
+    if (!matriculaSemHifen) return { valido: true };
+    
+    const leitosHospital = window.hospitalData[hospitalId]?.leitos || [];
+    const duplicado = leitosHospital.find(l => {
+        const matLeito = (l.matricula || '').replace(/-/g, '').trim();
+        const statusOcupado = (l.status === 'Ocupado' || l.status === 'ocupado' || l.status === 'Em uso');
+        
+        // Se for atualização, ignorar o próprio leito
+        if (leitoAtual && parseInt(l.leito) === parseInt(leitoAtual)) {
+            return false;
+        }
+        
+        return statusOcupado && matLeito === matriculaSemHifen;
+    });
+    
+    if (duplicado) {
+        const numeroLeito = duplicado.identificacaoLeito || duplicado.identificacao_leito || `Leito ${duplicado.leito}`;
+        return {
+            valido: false,
+            mensagem: `Essa matrícula já está sendo usada por paciente do ${numeroLeito}`
+        };
+    }
+    
+    return { valido: true };
 }
 
 // =================== COLETAR DADOS DO FORMULÁRIO ===================
