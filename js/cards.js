@@ -1,9 +1,10 @@
 // =================== CARDS.JS - GESTAO DE LEITOS HOSPITALARES ===================
-// Versao: 6.0
+// Versao: 6.1
+// ✅ NOVIDADES V6.1: Filtro inteligente de vagos (só 1 híbrido, 1 apto + todas enf para tipos fixos)
 // ✅ NOVIDADES V6.0: H8, H9, sistema de leitos extras, Santa Clara 4 pares, anotações
 // Depende de: cards-config.js (carregar ANTES)
 
-console.log('CARDS.JS v6.0 - Carregando...');
+console.log('CARDS.JS v6.1 - Carregando...');
 
 // =================== VALIDAR DEPENDENCIAS ===================
 if (typeof window.CONCESSOES_DISPLAY_MAP === 'undefined') {
@@ -104,9 +105,9 @@ window.searchLeitos = function() {
     logInfo(`Busca: "${searchTerm}" - ${visibleCards.length} resultados`);
 };
 
-// =================== FUNÇÃO PRINCIPAL DE RENDERIZAÇÃO - V6.0 ===================
+// =================== FUNÇÃO PRINCIPAL DE RENDERIZAÇÃO - V6.1 ===================
 window.renderCards = function() {
-    logInfo('Renderizando cards - Gestão de Leitos Hospitalares V6.0');
+    logInfo('Renderizando cards - Gestão de Leitos Hospitalares V6.1');
     
     const container = document.getElementById('cardsContainer');
     if (!container) {
@@ -134,7 +135,7 @@ window.renderCards = function() {
         return;
     }
     
-    // =================== ✅ ORDENAÇÃO CORRIGIDA ===================
+    // =================== ✅ SEPARAR E ORDENAR ===================
     
     // Separar ocupados e vagos
     const leitosOcupados = hospital.leitos.filter(l => 
@@ -144,7 +145,7 @@ window.renderCards = function() {
         l.status === 'Vago' || l.status === 'vago'
     );
     
-    // ✅ V6.0: CALCULAR LEITOS EXTRAS
+    // ✅ V6.1: CALCULAR LEITOS EXTRAS
     const capacidade = window.getCapacidade(hospitalId);
     const { contratuais, extras } = window.calcularLeitosExtras(hospitalId, leitosOcupados);
     logInfo(`${hospitalId}: ${contratuais} contratuais + ${extras} extras ocupados`);
@@ -170,21 +171,101 @@ window.renderCards = function() {
     // Ordenar VAGOS por número do leito
     leitosVagos.sort((a, b) => (a.leito || 0) - (b.leito || 0));
     
-    // Juntar: OCUPADOS primeiro, depois VAGOS
-    const leitosOrdenados = [...leitosOcupados, ...leitosVagos];
+    // =================== ✅ V6.1: FILTRAR VAGOS ===================
     
-    console.log('[CARDS] Total de leitos:', leitosOrdenados.length);
-    console.log('[CARDS] Ocupados:', leitosOcupados.length, '| Vagos:', leitosVagos.length);
+    const isHibrido = window.HOSPITAIS_HIBRIDOS.includes(hospitalId);
+    const isCruzAzul = hospitalId === 'H2';
+    const isSantaClara = hospitalId === 'H4';
+    const isTiposFixos = isCruzAzul || isSantaClara;
     
-    // =================== RENDERIZAR CARDS ===================
+    let vagosFiltrados = [];
+    
+    if (isHibrido) {
+        // ✅ HÍBRIDOS: Mostrar SÓ 1 vago (menor ID)
+        if (leitosVagos.length > 0) {
+            vagosFiltrados.push(leitosVagos[0]);
+        }
+        logInfo(`${hospitalId} (híbrido): ${leitosVagos.length} vagos → mostrando 1`);
+        
+    } else if (isTiposFixos) {
+        // ✅ TIPOS FIXOS: 1 apartamento + TODAS enfermarias (exceto bloqueadas)
+        
+        // Separar apartamentos e enfermarias
+        const vagosApartamento = leitosVagos.filter(l => {
+            const numeroLeito = parseInt(l.leito);
+            if (isCruzAzul) {
+                return numeroLeito >= 1 && numeroLeito <= 20;
+            } else if (isSantaClara) {
+                return (numeroLeito <= 9) || (numeroLeito >= 27);
+            }
+            return false;
+        });
+        
+        const vagosEnfermaria = leitosVagos.filter(l => {
+            const numeroLeito = parseInt(l.leito);
+            if (isCruzAzul) {
+                return numeroLeito >= 21 && numeroLeito <= 36;
+            } else if (isSantaClara) {
+                return numeroLeito >= 10 && numeroLeito <= 26;
+            }
+            return false;
+        });
+        
+        // 1 apartamento vago (menor ID)
+        if (vagosApartamento.length > 0) {
+            vagosFiltrados.push(vagosApartamento[0]);
+        }
+        
+        // TODAS as enfermarias vagas (exceto bloqueadas por isolamento)
+        vagosEnfermaria.forEach(leitoVago => {
+            const numeroLeito = parseInt(leitoVago.leito);
+            const leitoIrmao = window.getLeitoIrmao(hospitalId, numeroLeito);
+            
+            if (!leitoIrmao) {
+                // Sem irmão: mostrar
+                vagosFiltrados.push(leitoVago);
+                return;
+            }
+            
+            // Verificar se irmão está ocupado
+            const dadosIrmao = leitosOcupados.find(l => l.leito == leitoIrmao);
+            
+            if (!dadosIrmao) {
+                // Irmão vago: mostrar
+                vagosFiltrados.push(leitoVago);
+                return;
+            }
+            
+            // Irmão ocupado: verificar isolamento
+            const isolamentoIrmao = dadosIrmao.isolamento || '';
+            if (isolamentoIrmao && isolamentoIrmao !== 'Não Isolamento') {
+                // Bloqueado por isolamento: NÃO mostrar
+                logInfo(`Leito ${numeroLeito} bloqueado por isolamento do irmão ${leitoIrmao}`);
+                return;
+            }
+            
+            // Irmão ocupado sem isolamento: mostrar (com restrição de gênero)
+            vagosFiltrados.push(leitoVago);
+        });
+        
+        logInfo(`${hospitalId} (tipos fixos): ${vagosApartamento.length} aptos → mostrando 1`);
+        logInfo(`${hospitalId} (tipos fixos): ${vagosEnfermaria.length} enfs → mostrando ${vagosFiltrados.length - (vagosApartamento.length > 0 ? 1 : 0)}`);
+    }
+    
+    // =================== ✅ JUNTAR E RENDERIZAR ===================
+    
+    const leitosOrdenados = [...leitosOcupados, ...vagosFiltrados];
+    
+    console.log('[CARDS V6.1] Total renderizado:', leitosOrdenados.length);
+    console.log('[CARDS V6.1] Ocupados:', leitosOcupados.length, '| Vagos filtrados:', vagosFiltrados.length);
     
     leitosOrdenados.forEach((leito, index) => {
-        // ✅ V6.0: Passar o índice para calcular se é extra
+        // ✅ V6.1: Passar o índice para calcular se é extra
         const card = createCard(leito, hospitalNome, index, leitosOcupados.length);
         container.appendChild(card);
     });
     
-    logInfo(`${hospital.leitos.length} cards renderizados para ${hospitalNome}`);
+    logInfo(`${leitosOrdenados.length} cards renderizados para ${hospitalNome}`);
 };
 
 // =================== FUNÇÃO: BADGE DE ISOLAMENTO ===================
@@ -1824,7 +1905,7 @@ function formatarDataHora(dataStr) {
 if (typeof document !== 'undefined') {
     const style = document.createElement('style');
     style.textContent = `
-        /* =================== LEITOS EXTRAS V6.0 =================== */
+        /* =================== LEITOS EXTRAS V6.1 =================== */
         .flag-contratual {
             background: #60a5fa;
             color: #ffffff;
@@ -1834,6 +1915,7 @@ if (typeof document !== 'undefined') {
             font-weight: 700;
             display: inline-block;
             margin-right: 8px;
+            text-align: center; /* ✅ V6.1: Centralizar texto */
         }
 
         .flag-extra {
@@ -1845,6 +1927,7 @@ if (typeof document !== 'undefined') {
             font-weight: 700;
             display: inline-block;
             margin-right: 8px;
+            text-align: center; /* ✅ V6.1: Centralizar texto */
         }
 
         .card-extra {
@@ -1856,6 +1939,7 @@ if (typeof document !== 'undefined') {
             flex-wrap: wrap;
             gap: 8px;
             margin-bottom: 12px;
+            justify-content: center; /* ✅ V6.1: Centralizar flags */
         }
 
         /* Campo anotações */
@@ -2133,16 +2217,19 @@ if (typeof document !== 'undefined') {
     document.head.appendChild(style);
 }
 
-// =================== ✅ V6.0: INICIALIZAÇÃO ===================
+// =================== ✅ V6.1: INICIALIZAÇÃO ===================
 document.addEventListener('DOMContentLoaded', function() {
-    logSuccess('✅ CARDS.JS V6.0 CARREGADO - Gestão de Leitos Hospitalares');
+    logSuccess('✅ CARDS.JS V6.1 CARREGADO - Gestão de Leitos Hospitalares');
     
     console.log('📊 Sistema de leitos extras: ATIVO');
     console.log('🏥 Hospitais: 9 ativos (H1-H9)');
     console.log('🛏️ Leitos: 341 totais');
     console.log('👥 Cruz Azul: 8 pares de irmãos');
-    console.log('👥 Santa Clara: 4 pares de irmãos (NOVO V6.0)');
+    console.log('👥 Santa Clara: 4 pares de irmãos');
     console.log('📝 Campo Anotações: 800 caracteres');
+    console.log('🎯 V6.1: Filtro inteligente de vagos ATIVO');
+    console.log('   - Híbridos: 1 vago (menor ID)');
+    console.log('   - Tipos fixos: 1 apto + todas enfs (exceto bloqueadas)');
     
     if (window.CONCESSOES_LIST.length !== 13) {
         logError(`ERRO: Esperadas 13 concessões (12 + "Não se aplica"), encontradas ${window.CONCESSOES_LIST.length}`);
@@ -2171,9 +2258,10 @@ window.formatarMatriculaExibicao = formatarMatriculaExibicao;
 window.setupSearchFilter = setupSearchFilter;
 window.searchLeitos = searchLeitos;
 
-// =================== 🔵 DEBUG FINAL V6.0 ===================
-console.log('🔵 [DEBUG] CARDS.JS V6.0 - FIM DO CARREGAMENTO');
+// =================== 🔵 DEBUG FINAL V6.1 ===================
+console.log('🔵 [DEBUG] CARDS.JS V6.1 - FIM DO CARREGAMENTO');
 console.log('🔵 [DEBUG] Timestamp:', new Date().toISOString());
-console.log('✅ CARDS.JS V6.0 - SISTEMA DE LEITOS EXTRAS ATIVO!');
+console.log('✅ CARDS.JS V6.1 - SISTEMA DE LEITOS EXTRAS ATIVO!');
 console.log('✅ SANTA CLARA COM 4 PARES DE IRMÃOS (10-11, 12-13, 14-15, 16-17)');
 console.log('✅ CAMPO ANOTAÇÕES (800 CARACTERES) IMPLEMENTADO');
+console.log('✅ FILTRO INTELIGENTE DE VAGOS ATIVO (híbridos: 1 vago | tipos fixos: 1 apto + todas enf)');
