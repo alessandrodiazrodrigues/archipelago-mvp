@@ -810,7 +810,7 @@ function createCard(leito, hospitalNome, hospitalId, posicaoOcupacao) {
                 ${isVago ? `
                 <div class="info-item" style="display: flex; flex-direction: column;">
                     <div class="info-label" style="font-size: 8px; color: rgba(255,255,255,0.5); font-weight: 600; text-transform: uppercase; margin-bottom: 1px;">STATUS</div>
-                    <div class="info-value" style="color: #60a5fa; font-weight: 700; font-size: 9px;">Disponível</div>
+                    <div class="info-value" style="color: #60a5fa; font-weight: 700; font-size: 9px;">${statusTexto}</div>
                 </div>
                 ` : ''}
             </div>
@@ -1079,7 +1079,8 @@ function createAdmissaoForm(hospitalNome, leitoNumero, hospitalId) {
     }
     
     const isCruzAzulApartamento = (hospitalId === 'H2' && leitoNumero >= 1 && leitoNumero <= 20);
-    const isApartamentoFixo = isCruzAzulApartamento;
+    const isSantaClaraApartamento = (hospitalId === 'H4' && ((leitoNumero >= 1 && leitoNumero <= 9) || (leitoNumero >= 27 && leitoNumero <= 57)));
+    const isApartamentoFixo = isCruzAzulApartamento || isSantaClaraApartamento;
     
     return `
         <div class="modal-content" style="background: #1a1f2e; border-radius: 12px; padding: 30px; max-width: 700px; width: 95%; max-height: 90vh; overflow-y: auto; color: #ffffff; font-family: 'Poppins', sans-serif;">
@@ -1089,7 +1090,7 @@ function createAdmissaoForm(hospitalNome, leitoNumero, hospitalId) {
             
             <div style="text-align: center; margin-bottom: 30px; padding: 15px; background: rgba(96,165,250,0.1); border-radius: 8px;">
                 <div style="margin-bottom: 8px;">
-                    <strong>Hospital:</strong> ${hospitalNome} | <strong>ID:</strong> ${idSequencial} | <strong>Leito:</strong> ${leitoNumero}${isHibrido ? ' | <strong>LEITO HÍBRIDO</strong>' : ''}
+                    <strong>Hospital:</strong> ${hospitalNome} | <strong>ID:</strong> ${idSequencial}${isHibrido ? ' | <strong>LEITO HÍBRIDO</strong>' : ''}
                 </div>
             </div>
             
@@ -1763,48 +1764,54 @@ function setupModalEventListeners(modal, tipo) {
             }
             
             
-            // ✅ VALIDAR DUPLICATAS
-            const identificacaoField = modal.querySelector(tipo === 'admissao' ? '#admIdentificacaoLeito' : '#updIdentificacaoLeito');
-            const identificacaoNumeroField = modal.querySelector(tipo === 'admissao' ? '#admIdentificacaoNumero' : null);
-            const identificacaoSufixoField = modal.querySelector(tipo === 'admissao' ? '#admIdentificacaoSufixo' : null);
             
-            let identificacaoParaValidar = '';
-            if (identificacaoNumeroField && identificacaoSufixoField) {
-                const numero = identificacaoNumeroField.value.trim();
-                const sufixo = identificacaoSufixoField.value;
-                identificacaoParaValidar = numero && sufixo ? `${numero}-${sufixo}` : numero;
-            } else if (identificacaoField) {
-                identificacaoParaValidar = identificacaoField.value.trim();
-            }
-            
-            if (identificacaoParaValidar) {
-                const validacaoId = validarIdentificacaoDuplicada(
-                    hospitalId, 
-                    identificacaoParaValidar,
-                    tipo === 'atualizacao' ? leitoNumero : null
-                );
-                if (!validacaoId.valido) {
-                    showErrorMessage(validacaoId.mensagem);
-                    return;
+            // ✅ VALIDAR DUPLICATAS COM TRY/CATCH
+            try {
+                const identificacaoNumeroField = modal.querySelector(tipo === 'admissao' ? '#admIdentificacaoNumero' : null);
+                const identificacaoSufixoField = modal.querySelector(tipo === 'admissao' ? '#admIdentificacaoSufixo' : null);
+                
+                let identificacaoParaValidar = '';
+                if (identificacaoNumeroField && identificacaoSufixoField) {
+                    const numero = identificacaoNumeroField.value.trim();
+                    const sufixo = identificacaoSufixoField.value;
+                    identificacaoParaValidar = numero && sufixo ? `${numero}-${sufixo}` : numero;
+                } else {
+                    const identificacaoFieldSimples = modal.querySelector(tipo === 'admissao' ? '#admIdentificacaoLeito' : '#updIdentificacaoLeito');
+                    if (identificacaoFieldSimples) {
+                        identificacaoParaValidar = identificacaoFieldSimples.value.trim();
+                    }
                 }
-            }
-            
-            const matriculaField = modal.querySelector(tipo === 'admissao' ? '#admMatricula' : null);
-            if (matriculaField && tipo === 'admissao') {
-                const matriculaParaValidar = matriculaField.value.trim();
-                if (matriculaParaValidar) {
-                    const validacaoMat = validarMatriculaDuplicada(
+                
+                if (identificacaoParaValidar && window.hospitalData && window.hospitalData[hospitalId]) {
+                    const validacaoId = validarIdentificacaoDuplicada(
                         hospitalId, 
-                        matriculaParaValidar,
-                        null
+                        identificacaoParaValidar,
+                        tipo === 'atualizacao' ? leitoNumero : null
                     );
-                    if (!validacaoMat.valido) {
-                        showErrorMessage(validacaoMat.mensagem);
+                    if (!validacaoId.valido) {
+                        showErrorMessage(validacaoId.mensagem);
                         return;
                     }
                 }
+                
+                const matriculaField = modal.querySelector(tipo === 'admissao' ? '#admMatricula' : null);
+                if (matriculaField && tipo === 'admissao' && window.hospitalData && window.hospitalData[hospitalId]) {
+                    const matriculaParaValidar = matriculaField.value.trim();
+                    if (matriculaParaValidar) {
+                        const validacaoMat = validarMatriculaDuplicada(
+                            hospitalId, 
+                            matriculaParaValidar,
+                            null
+                        );
+                        if (!validacaoMat.valido) {
+                            showErrorMessage(validacaoMat.mensagem);
+                            return;
+                        }
+                    }
+                }
+            } catch (error) {
+                console.warn('[VALIDAÇÃO] Erro ao validar duplicatas:', error);
             }
-            
             const originalText = this.innerHTML;
             showButtonLoading(this, 'SALVANDO...');
             
