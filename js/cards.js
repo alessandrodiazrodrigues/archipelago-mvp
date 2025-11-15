@@ -2119,6 +2119,8 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // =================== EXPORTS ===================
+window.renderCards = renderCards;
+window.selectHospital = selectHospital;
 window.createCard = createCard;
 window.openAdmissaoModal = openAdmissaoModal;
 window.openAtualizacaoModal = openAtualizacaoModal;
