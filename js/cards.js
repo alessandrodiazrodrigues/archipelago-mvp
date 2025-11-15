@@ -1692,17 +1692,19 @@ function setupModalEventListeners(modal, tipo) {
                 }
             } else {
                 const identificacaoField = modal.querySelector(tipo === 'admissao' ? '#admIdentificacaoLeito' : '#updIdentificacaoLeito');
-                if (!identificacaoField.value.trim()) {
+                if (identificacaoField && !identificacaoField.value.trim()) {
                     showErrorMessage('Campo "Identificação do Leito" é obrigatório!');
                     identificacaoField.focus();
                     return;
                 }
                 
-                const identificacao = identificacaoField.value.trim();
-                if (identificacao.length < 1 || identificacao.length > 6) {
-                    showErrorMessage('Identificação deve ter de 1 a 6 caracteres!');
-                    identificacaoField.focus();
-                    return;
+                if (identificacaoField) {
+                    const identificacao = identificacaoField.value.trim();
+                    if (identificacao.length < 1 || identificacao.length > 6) {
+                        showErrorMessage('Identificação deve ter de 1 a 6 caracteres!');
+                        identificacaoField.focus();
+                        return;
+                    }
                 }
             }
             
