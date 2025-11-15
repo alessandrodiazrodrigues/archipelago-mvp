@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Archipelago Dashboard V4.0</title>
+    <title>Archipelago Dashboard V6.0</title>
     
     <!-- Google Fonts - Poppins Bold -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -100,22 +100,27 @@
         <!-- SEÇÃO DE LEITOS -->
         <section id="leitosView" class="section-leitos hidden">
             <div class="leitos-header">
-                <!-- BOX ÚNICO COM TÍTULO E BOTÕES -->
+                <!-- BOX ÚNICO COM TÍTULO E DROPDOWN -->
                 <div class="hospital-selector-container">
                     <h2>Gestão de Leitos Hospitalares</h2>
                     
                     <div class="hospital-selector" id="hospitalSelector">
-                        <button class="hospital-btn active" data-hospital="H5" onclick="selectHospital('H5')">Adventista</button>
-                        <button class="hospital-btn" data-hospital="H2" onclick="selectHospital('H2')">Cruz Azul</button>
-                        <button class="hospital-btn" data-hospital="H1" onclick="selectHospital('H1')">Neomater</button>
-                        <button class="hospital-btn" data-hospital="H4" onclick="selectHospital('H4')">Santa Clara</button>
-                        <button class="hospital-btn" data-hospital="H6" onclick="selectHospital('H6')">Santa Cruz</button>
-                        <button class="hospital-btn" data-hospital="H3" onclick="selectHospital('H3')">Santa Marcelina</button>
-                        <button class="hospital-btn" data-hospital="H7" onclick="selectHospital('H7')">Santa Virgínia</button>
+                        <select id="hospitalDropdown" class="hospital-select" onchange="selectHospital(this.value)">
+                            <option value="ALL" selected>Todos</option>
+                            <option value="H5">Adventista</option>
+                            <option value="H2">Cruz Azul</option>
+                            <option value="H1">Neomater</option>
+                            <option value="H4">Santa Clara</option>
+                            <option value="H6">Santa Cruz</option>
+                            <option value="H3">Santa Marcelina</option>
+                            <option value="H7">Santa Virgínia</option>
+                            <option value="H8">São Camilo Ipiranga</option>
+                            <option value="H9">São Camilo Pompeia</option>
+                        </select>
                     </div>
                 </div>
                 
-                <!-- CAMPO DE BUSCA - NOVO V4.0 -->
+                <!-- CAMPO DE BUSCA - V4.0 -->
                 <div class="search-container">
                     <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="11" cy="11" r="8"></circle>
@@ -135,11 +140,11 @@
         
     </main>
 
-    <!-- =================== FOOTER V4.0 =================== -->
+    <!-- =================== FOOTER V6.0 =================== -->
     <footer id="mainFooter" class="footer hidden">
         <p>Sistema em versão BETA - não pode ser usado como única fonte de referência</p>
         <p>Para decisões críticas, consulte sempre fontes adicionais e profissionais qualificados</p>
-        <p><strong>Archipelago Dashboard V4.0 - Novembro/2025</strong></p>
+        <p><strong>Archipelago Dashboard V6.0 - Novembro/2025</strong></p>
     </footer>
 
     <!-- =================== MODAL DE PACIENTE =================== -->
@@ -162,7 +167,7 @@
         </div>
     </div>
 
-    <!-- =================== SCRIPTS MODULARES V4.0 - ORDEM CORRETA! =================== -->
+    <!-- =================== SCRIPTS MODULARES V6.0 - ORDEM CORRETA! =================== -->
     
     <!-- 1. SCRIPTS CORE (Base do sistema) -->
     <script src="js/app.js"></script>
@@ -184,31 +189,31 @@
     <!-- 6. INICIALIZAÇÃO (Último a carregar) -->
     <script src="js/main.js"></script>
     
-    <!-- =================== FUNÇÕES AUXILIARES MENU V4.0 =================== -->
+    <!-- =================== FUNÇÕES AUXILIARES MENU V6.0 =================== -->
     <script>
-        console.log('🚀 Archipelago Dashboard V4.0 - Inicializando...');
-        console.log('📅 Novembro/2025 - Versão V4.0');
+        console.log('Archipelago Dashboard V6.0 - Inicializando...');
+        console.log('Novembro/2025 - Versao V6.0');
         console.log('');
-        console.log('✅ NOVIDADES V4.0:');
-        console.log('   • ✅ 7 Hospitais (H1-H7) - Total: 93 leitos');
-        console.log('   • ✅ H6: Santa Cruz (7 leitos)');
-        console.log('   • ✅ H7: Santa Virgínia (7 leitos)');
-        console.log('   • ✅ Campo de busca implementado');
-        console.log('   • ✅ Novas cores aplicadas (#60a5fa)');
-        console.log('   • ✅ Fonte Poppins Bold');
-        console.log('   • ✅ Title Case aplicado');
-        console.log('   • ✅ Ordem alfabética dos hospitais');
-        console.log('   • ✅ Simulador Mobile adicionado');
+        console.log('NOVIDADES V6.0:');
+        console.log('   • 11 Hospitais (9 ativos + 2 reservas) - Total: 341 leitos');
+        console.log('   • H8: Sao Camilo Ipiranga (22 leitos)');
+        console.log('   • H9: Sao Camilo Pompeia (22 leitos)');
+        console.log('   • Sistema de leitos extras dinamico');
+        console.log('   • Campo anotacoes (800 caracteres)');
+        console.log('   • Santa Clara expandido (57 leitos)');
+        console.log('   • Cruz Azul expandido (67 leitos)');
+        console.log('   • Santa Marcelina expandido (28 leitos)');
+        console.log('   • Dropdown de selecao de hospitais');
         console.log('');
-        console.log('📦 ORDEM DE CARREGAMENTO DOS SCRIPTS:');
-        console.log('   1. app.js (autenticação)');
-        console.log('   2. api.js (comunicação com backend)');
-        console.log('   3. cards-config.js (configurações globais) ⭐');
+        console.log('ORDEM DE CARREGAMENTO DOS SCRIPTS:');
+        console.log('   1. app.js (autenticacao)');
+        console.log('   2. api.js (comunicacao com backend)');
+        console.log('   3. cards-config.js (configuracoes globais)');
         console.log('   4. cards.js (interface de leitos)');
         console.log('   5. dashboard-hospital.js');
         console.log('   6. dashboard-executive.js');
         console.log('   7. qrcode.js');
-        console.log('   8. main.js (inicialização)');
+        console.log('   8. main.js (inicializacao)');
         console.log('');
         
         /**
@@ -268,7 +273,7 @@
             // Depois abre o simulador em nova aba
             window.open('simulador-qrcode.html', '_blank');
             
-            console.log('🎮 Abrindo Simulador Mobile em nova aba...');
+            console.log('Abrindo Simulador Mobile em nova aba...');
         }
         
         /**
@@ -294,7 +299,7 @@
         }
     </script>
     
-    <!-- =================== ESTILOS INLINE V4.0 =================== -->
+    <!-- =================== ESTILOS INLINE V6.0 =================== -->
     <style>
         /* =================== RESET E BASE =================== */
         * {
@@ -304,45 +309,43 @@
         }
         
         body {
-            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            font-weight: 700;
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            color: #e2e8f0;
-            min-height: 100vh;
+            font-family: 'Poppins', sans-serif;
+            background: #131b2e;
+            color: #e5e7eb;
+            line-height: 1.6;
         }
         
         .hidden {
             display: none !important;
         }
         
-        /* =================== MODAL DE AUTENTICAÇÃO (TRANSPARENTE PARA VER FUNDO) =================== */
+        /* =================== MODAL DE AUTENTICAÇÃO =================== */
         .modal-auth {
+            display: flex;
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.6); /* REDUZIDO DE 0.9 PARA 0.6 */
-            display: flex;
+            background: rgba(0, 0, 0, 0.9);
             justify-content: center;
             align-items: center;
-            z-index: 10000;
-            backdrop-filter: blur(4px); /* BLUR LEVE PARA VER O FUNDO */
+            z-index: 9999;
         }
         
         .auth-container {
             background: #1e293b;
             padding: 40px;
-            border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-            width: 90%;
-            max-width: 400px;
+            border-radius: 12px;
             text-align: center;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+            max-width: 400px;
+            width: 90%;
         }
         
         .auth-container h1 {
             color: #60a5fa;
-            margin-bottom: 10px;
+            margin-bottom: 20px;
             font-size: 28px;
             font-family: 'Poppins', sans-serif;
             font-weight: 700;
@@ -350,21 +353,18 @@
         
         .auth-container p {
             color: #9ca3af;
-            margin-bottom: 25px;
-            font-size: 14px;
-            font-weight: 400;
+            margin-bottom: 20px;
         }
         
         .auth-container input {
             width: 100%;
             padding: 12px;
-            background: #0f172a;
-            border: 2px solid #334155;
+            border: 2px solid #374151;
             border-radius: 8px;
+            background: #131b2e;
             color: white;
             font-size: 16px;
             margin-bottom: 20px;
-            transition: border-color 0.3s;
             font-family: 'Poppins', sans-serif;
         }
         
@@ -392,8 +392,7 @@
         }
         
         .error-msg {
-            color: #f87171;
-            text-align: center;
+            color: #ef4444;
             margin-top: 15px;
             font-size: 14px;
         }
@@ -503,20 +502,15 @@
             background: none;
             border: none;
             color: white;
-            font-size: 28px;
+            font-size: 32px;
             cursor: pointer;
+            line-height: 1;
             padding: 0;
             width: 32px;
             height: 32px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 6px;
-            transition: background 0.3s;
-        }
-        
-        .menu-close:hover {
-            background: rgba(255, 255, 255, 0.1);
         }
         
         .menu-items {
@@ -525,25 +519,24 @@
         
         .side-menu-item {
             display: block;
-            padding: 12px 20px;
-            color: #e2e8f0;
+            padding: 15px 20px;
+            color: #e5e7eb;
             text-decoration: none;
             transition: all 0.3s;
-            border-left: 3px solid transparent;
             font-family: 'Poppins', sans-serif;
-            font-weight: 700;
+            font-weight: 600;
         }
         
         .side-menu-item:hover {
-            background: rgba(255, 255, 255, 0.05);
-            border-left-color: #60a5fa;
+            background: rgba(96, 165, 250, 0.1);
+            color: #60a5fa;
+            padding-left: 30px;
         }
         
         .side-menu-item.active {
-            background: rgba(96, 165, 250, 0.1);
-            border-left-color: #60a5fa;
+            background: rgba(96, 165, 250, 0.2);
             color: #60a5fa;
-            font-weight: 700;
+            border-left: 4px solid #60a5fa;
         }
         
         .menu-footer {
@@ -590,7 +583,7 @@
             margin-bottom: 30px;
         }
         
-        /* BOX AZUL ESCURO COM TÍTULO E BOTÕES */
+        /* BOX AZUL ESCURO COM TÍTULO E DROPDOWN */
         .hospital-selector-container {
             background: #1e293b;
             border-radius: 12px;
@@ -608,17 +601,15 @@
             text-align: center;
         }
         
-        /* =================== SELETOR DE HOSPITAL =================== */
+        /* =================== SELETOR DE HOSPITAL (DROPDOWN) =================== */
         .hospital-selector {
             display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
             justify-content: center;
         }
         
-        .hospital-btn {
+        .hospital-select {
             background-color: #60a5fa;
-            color: #ffffff !important;
+            color: #ffffff;
             border: none;
             padding: 12px 24px;
             border-radius: 8px;
@@ -626,34 +617,39 @@
             font-size: 14px;
             font-weight: 700;
             font-family: 'Poppins', sans-serif;
+            min-width: 300px;
             transition: all 0.3s ease;
-            min-width: 140px;
-            text-transform: none;
+            text-align: center;
         }
         
-        .hospital-btn:hover {
+        .hospital-select:hover {
             background-color: #3b82f6;
-            transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(96, 165, 250, 0.4);
-            color: #ffffff !important;
         }
         
-        .hospital-btn.active {
-            background-color: #3b82f6;
+        .hospital-select:focus {
+            outline: none;
             box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.3);
-            color: #ffffff !important;
         }
         
-        /* =================== CAMPO DE BUSCA V4.0 =================== */
+        .hospital-select option {
+            background-color: #1e293b;
+            color: #ffffff;
+            padding: 12px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+        }
+        
+        /* =================== CAMPO DE BUSCA V6.0 =================== */
         .search-container {
             position: relative;
             max-width: 600px;
-            margin: 0 auto 30px;
+            margin: 0 auto;
         }
         
         .search-icon {
             position: absolute;
-            left: 14px;
+            left: 15px;
             top: 50%;
             transform: translateY(-50%);
             width: 20px;
@@ -664,36 +660,31 @@
         
         #searchLeitosInput {
             width: 100%;
-            padding: 14px 14px 14px 46px;
-            background: #374151;
-            color: #ffffff;
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            border-radius: 10px;
+            padding: 12px 12px 12px 45px;
+            background: #1e293b;
+            border: 2px solid #374151;
+            border-radius: 8px;
+            color: white;
             font-size: 14px;
             font-family: 'Poppins', sans-serif;
-            font-weight: 400;
-            transition: all 0.3s ease;
+            transition: border-color 0.3s;
         }
         
         #searchLeitosInput:focus {
             outline: none;
             border-color: #60a5fa;
-            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
-            background: #475569;
         }
         
         #searchLeitosInput::placeholder {
-            color: rgba(255, 255, 255, 0.5);
+            color: #6b7280;
         }
         
-        /* =================== CARDS GRID - 3 POR LINHA =================== */
+        /* =================== GRID DE CARDS =================== */
         .cards-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 20px;
-            padding: 10px 0;
-            max-width: 1400px;
-            margin: 0 auto;
+            margin-top: 20px;
         }
         
         /* =================== FOOTER =================== */
@@ -702,9 +693,8 @@
             padding: 20px;
             text-align: center;
             color: #9ca3af;
-            font-size: 13px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            font-weight: 400;
+            font-size: 12px;
+            margin-top: 50px;
         }
         
         .footer p {
@@ -712,42 +702,30 @@
         }
         
         .footer strong {
-            color: #e2e8f0;
+            color: #60a5fa;
             font-weight: 700;
         }
         
         /* =================== RESPONSIVIDADE =================== */
-        @media (max-width: 1200px) {
-            .cards-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-        
         @media (max-width: 768px) {
-            .cards-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .hospital-selector {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            
-            .hospital-btn {
-                width: 100%;
-                min-width: unset;
+            .header {
+                padding: 15px 20px;
             }
             
             .header-left h1 {
                 font-size: 18px;
             }
             
-            .hospital-selector-container h2 {
-                font-size: 20px;
+            .main-content {
+                padding: 20px;
             }
             
-            .search-container {
-                max-width: 100%;
+            .hospital-select {
+                min-width: 100%;
+            }
+            
+            .cards-grid {
+                grid-template-columns: 1fr;
             }
         }
     </style>
