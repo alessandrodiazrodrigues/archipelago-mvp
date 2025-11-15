@@ -419,12 +419,16 @@ function getTipoLeito(leito, hospitalId) {
     
     const numeroLeito = parseInt(leito.leito);
     
-    // SANTA CLARA: TODOS híbridos
+    // SANTA CLARA (H4): TIPOS FIXOS baseado na planilha
+    // Leitos 1-27: ENFERMARIA | Leitos 28-57: APTO
+    // NÃO é híbrido - tipo está hardcoded na planilha (coluna C)
     if (hospitalId === 'H4') {
-        const isVago = leito.status === 'Vago' || leito.status === 'vago';
-        if (isVago) return 'Híbrido';
-        if (categoriaValue && categoriaValue.trim() !== '') return categoriaValue;
-        return 'Apartamento';
+        // Sempre usar tipo da planilha para Santa Clara
+        if (leito.tipo && leito.tipo !== 'Hibrido' && leito.tipo !== 'Híbrido') {
+            return leito.tipo;
+        }
+        // Fallback baseado no número do leito
+        return numeroLeito <= 27 ? 'ENFERMARIA' : 'APTO';
     }
     
     // VAGOS de híbridos: "Híbrido"
@@ -506,32 +510,6 @@ function validarAdmissaoCruzAzul(leitoNumero, generoNovo) {
             permitido: false,
             motivo: `Leito bloqueado! O leito ${leitoIrmao} está ocupado por paciente do gênero ${generoIrmao}`,
             tipo: 'genero'
-        };
-    }
-    
-    return { permitido: true };
-}
-
-// VALIDAÇÃO LIMITE SANTA CLARA
-function validarLimiteSantaClara(tipoQuarto) {
-    if (window.currentHospital !== 'H4' || tipoQuarto !== 'Enfermaria') {
-        return { permitido: true };
-    }
-    
-    const leitosHospital = window.hospitalData['H4']?.leitos || [];
-    let enfermariaCount = 0;
-    
-    leitosHospital.forEach(leito => {
-        if ((leito.status === 'Em uso' || leito.status === 'ocupado' || leito.status === 'Ocupado') &&
-            leito.categoriaEscolhida === 'Enfermaria') {
-            enfermariaCount++;
-        }
-    });
-    
-    if (enfermariaCount >= 4) {
-        return {
-            permitido: false,
-            motivo: 'Limite de enfermarias atingido! Santa Clara permite no máximo 4 enfermarias ocupadas simultaneamente.'
         };
     }
     
@@ -1753,37 +1731,12 @@ function setupModalEventListeners(modal, tipo) {
                 }
             }
             
-            if (tipo === 'admissao' && hospitalId === 'H4') {
-                const tipoQuartoField = modal.querySelector('#admTipoQuarto');
-                const tipoEscolhido = tipoQuartoField?.value;
-                const validacaoSanta = validarLimiteSantaClara(tipoEscolhido);
-                
-                if (!validacaoSanta.permitido) {
-                    showErrorMessage(validacaoSanta.motivo);
-                    return;
-                }
-            }
             
             const originalText = this.innerHTML;
             showButtonLoading(this, 'SALVANDO...');
             
             try {
                 const dadosFormulario = coletarDadosFormulario(modal, tipo);
-                
-                if ((tipo === 'atualizacao' || tipo === 'atualizar') && hospitalId === 'H4') {
-                    const tipoQuartoField = modal.querySelector('#updTipoQuarto');
-                    const tipoAtual = dadosFormulario.categoriaEscolhida || tipoQuartoField?.value;
-                    const tipoAnterior = window.selectedLeito?.categoriaEscolhida || window.selectedLeito?.categoria;
-                    
-                    if (tipoAtual === 'Enfermaria' && tipoAnterior !== 'Enfermaria') {
-                        const validacaoSanta = validarLimiteSantaClara(tipoAtual);
-                        if (!validacaoSanta.permitido) {
-                            showErrorMessage(validacaoSanta.motivo);
-                            hideButtonLoading(this, originalText);
-                            return;
-                        }
-                    }
-                }
                 
                 if (tipo === 'admissao') {
                     await window.admitirPaciente(dadosFormulario.hospital, dadosFormulario.leito, dadosFormulario);
