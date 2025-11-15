@@ -996,8 +996,10 @@ function setupSearchFilter(modal, containerId, searchId) {
 function createAdmissaoForm(hospitalNome, leitoNumero, hospitalId) {
     const idSequencial = String(leitoNumero).padStart(2, '0');
     const isHibrido = window.HOSPITAIS_HIBRIDOS.includes(hospitalId);
-    const isSantaClara = hospitalId === 'H4';
-    const mostrarTipoQuarto = isHibrido || isSantaClara;
+    
+    // APENAS hospitais híbridos puros mostram campo "Tipo de Quarto"
+    // Santa Clara (H4) e Cruz Azul (H2) são tipos fixos - tipos hardcoded na planilha
+    const mostrarTipoQuarto = isHibrido;
 
     // CRUZ AZUL: TODAS as enfermarias com irmão (contratuais + extras)
     const isCruzAzulEnfermaria = window.isEnfermariaComIrmao('H2', leitoNumero);
@@ -1730,9 +1732,9 @@ function setupModalEventListeners(modal, tipo) {
                 return;
             }
             
-            const isSantaClara = hospitalId === 'H4';
-            
-            if (isHibrido || isSantaClara) {
+            // Validação específica para hospitais HÍBRIDOS PUROS (H1, H3, H5, H6, H7, H8, H9)
+            const hospitaisHibridos = ['H1', 'H3', 'H5', 'H6', 'H7', 'H8', 'H9'];
+            if (hospitaisHibridos.includes(hospitalId)) {
                 const tipoQuartoField = modal.querySelector(tipo === 'admissao' ? '#admTipoQuarto' : '#updTipoQuarto');
                 if (tipoQuartoField && !tipoQuartoField.disabled && !tipoQuartoField.value) {
                     showErrorMessage('Campo "Tipo de Quarto" é obrigatório para hospitais híbridos!');
