@@ -95,7 +95,11 @@ window.searchLeitos = function() {
 
 // =================== FUNÇÃO PRINCIPAL DE RENDERIZAÇÃO ===================
 window.renderCards = function() {
-    logInfo('Renderizando cards - Gestão de Leitos Hospitalares');
+    logInfo('🎯 [CARDS V6.1] Renderizando com filtro inteligente de vagos...');
+    console.log('[CARDS V6.1] Lógica:');
+    console.log('  - Híbridos: TODOS ocupados + 1 vago (menor ID)');
+    console.log('  - Apartamentos: TODOS ocupados + 1 vago (menor ID)');
+    console.log('  - Enfermarias: TODOS ocupados + TODOS vagos (exceto bloqueados por isolamento)');
     
     const container = document.getElementById('cardsContainer');
     if (!container) {
@@ -149,18 +153,85 @@ window.renderCards = function() {
     // Ordenar VAGOS por número do leito
     leitosVagos.sort((a, b) => (a.leito || 0) - (b.leito || 0));
     
-    // Juntar: OCUPADOS primeiro, depois VAGOS
-    const leitosOrdenados = [...leitosOcupados, ...leitosVagos];
+    // =================== 🎯 FILTRO INTELIGENTE DE VAGOS V6.1 ===================
+    // hospitalId já declarado na linha 111
+    const isHibrido = window.HOSPITAIS_HIBRIDOS.includes(hospitalId);
+    const isTiposFixos = window.HOSPITAIS_TIPOS_FIXOS.includes(hospitalId);
     
-    console.log('[CARDS] Total de leitos:', leitosOrdenados.length);
-    console.log('[CARDS] Ocupados:', leitosOcupados.length, '| Vagos:', leitosVagos.length);
+    let vagosParaMostrar = [];
+    
+    if (isHibrido) {
+        // ✅ HÍBRIDOS: Mostrar apenas 1 vago (menor ID)
+        vagosParaMostrar = leitosVagos.length > 0 ? [leitosVagos[0]] : [];
+        console.log('[CARDS V6.1] Híbrido: 1 vago (menor ID)');
+        
+    } else if (isTiposFixos) {
+        // ✅ TIPOS FIXOS: Separar apartamentos e enfermarias
+        const vagosApartamentos = leitosVagos.filter(l => {
+            const tipo = l.tipo || '';
+            return tipo.toUpperCase().includes('APTO') || tipo === 'APTO' || tipo === 'Apartamento';
+        });
+        
+        const vagosEnfermarias = leitosVagos.filter(l => {
+            const tipo = l.tipo || '';
+            return tipo.toUpperCase().includes('ENF') || tipo === 'ENFERMARIA' || tipo === 'Enfermaria';
+        });
+        
+        // 1️⃣ APARTAMENTOS: Apenas 1 vago (menor ID)
+        const apartamentoParaMostrar = vagosApartamentos.length > 0 ? [vagosApartamentos[0]] : [];
+        
+        // 2️⃣ ENFERMARIAS: TODAS vagas, EXCETO bloqueadas por isolamento
+        const enfermariasParaMostrar = [];
+        
+        vagosEnfermarias.forEach(leitoVago => {
+            const numeroLeito = parseInt(leitoVago.leito);
+            const leitoIrmao = window.getLeitoIrmao(hospitalId, numeroLeito);
+            
+            if (!leitoIrmao) {
+                // Não tem irmão, pode mostrar
+                enfermariasParaMostrar.push(leitoVago);
+            } else {
+                // Tem irmão, verificar se está ocupado e isolado
+                const dadosIrmao = hospital.leitos.find(l => parseInt(l.leito) === leitoIrmao);
+                
+                if (!dadosIrmao || dadosIrmao.status === 'Vago' || dadosIrmao.status === 'vago') {
+                    // Irmão vago, pode mostrar
+                    enfermariasParaMostrar.push(leitoVago);
+                } else {
+                    // Irmão ocupado, verificar isolamento
+                    const isolamentoIrmao = dadosIrmao.isolamento || '';
+                    
+                    if (isolamentoIrmao === 'Isolamento de Contato' || isolamentoIrmao.includes('Isolamento')) {
+                        // Irmão com isolamento, BLOQUEIA este vago
+                        console.log(`[CARDS V6.1] Leito ${numeroLeito} BLOQUEADO - Irmão ${leitoIrmao} com isolamento`);
+                    } else {
+                        // Irmão sem isolamento, pode mostrar (com restrição de gênero)
+                        enfermariasParaMostrar.push(leitoVago);
+                    }
+                }
+            }
+        });
+        
+        vagosParaMostrar = [...apartamentoParaMostrar, ...enfermariasParaMostrar];
+        console.log('[CARDS V6.1] Tipos Fixos: ' + apartamentoParaMostrar.length + ' apto + ' + enfermariasParaMostrar.length + ' enf');
+        
+    } else {
+        // Fallback: mostrar 1 vago
+        vagosParaMostrar = leitosVagos.length > 0 ? [leitosVagos[0]] : [];
+    }
+    
+    // Juntar: OCUPADOS primeiro, depois VAGOS FILTRADOS
+    const leitosOrdenados = [...leitosOcupados, ...vagosParaMostrar];
+    
+    console.log('[CARDS V6.1] Total de leitos a exibir:', leitosOrdenados.length);
+    console.log('[CARDS V6.1] Ocupados:', leitosOcupados.length, '| Vagos filtrados:', vagosParaMostrar.length);
     
     leitosOrdenados.forEach(leito => {
         const card = createCard(leito, hospitalNome);
         container.appendChild(card);
     });
     
-    logInfo(`${hospital.leitos.length} cards renderizados para ${hospitalNome}`);
+    logInfo(`${leitosOrdenados.length} cards renderizados para ${hospitalNome} (${leitosOcupados.length} ocupados + ${vagosParaMostrar.length} vagos filtrados)`);
 };
 
 // =================== FUNÇÃO: BADGE DE ISOLAMENTO ===================
@@ -693,7 +764,7 @@ function openAtualizacaoFlow(leitoNumero, dadosLeito) {
 // =================== MODAIS ===================
 function openAdmissaoModal(leitoNumero) {
     const hospitalId = window.currentHospital;
-    const hospitalNome = window.HOSPITAL_MAPPING[hospitalId] || 'Hospital';
+    const hospitalNome = window.HOSPITAL_MAPPING[hospitalId]?.nome || 'Hospital';
     
     window.selectedLeito = leitoNumero;
     
@@ -708,7 +779,7 @@ function openAdmissaoModal(leitoNumero) {
 
 function openAtualizacaoModal(leitoNumero, dadosLeito) {
     const hospitalId = window.currentHospital;
-    const hospitalNome = window.HOSPITAL_MAPPING[hospitalId] || 'Hospital';
+    const hospitalNome = window.HOSPITAL_MAPPING[hospitalId]?.nome || 'Hospital';
     
     window.selectedLeito = leitoNumero;
     
@@ -2131,4 +2202,4 @@ window.formatarMatriculaExibicao = formatarMatriculaExibicao;
 window.setupSearchFilter = setupSearchFilter;
 window.searchLeitos = searchLeitos;
 
-console.log('✅ CARDS.JS V4.3 COMPLETO E CORRIGIDO - PRONTO!');
+console.log('✅ CARDS.JS V6.1 COMPLETO - FILTRO INTELIGENTE DE VAGOS ATIVO!');
