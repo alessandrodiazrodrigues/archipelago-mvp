@@ -1139,11 +1139,11 @@ function createAdmissaoForm(hospitalNome, leitoNumero, hospitalId) {
         // Fallback: lógica antiga para contratuais
         if (!isApartamentoFixo && !isEnfermariaFixa) {
             if (hospitalId === 'H2') {
-                isApartamentoFixo = (leitoNumero >= 1 && leitoNumero <= 20);
-                isEnfermariaFixa = (leitoNumero >= 21 && leitoNumero <= 36);
+                isApartamentoFixo = (leitoNumero >= 1 && leitoNumero <= 20) || (leitoNumero >= 47 && leitoNumero <= 67);
+                isEnfermariaFixa = (leitoNumero >= 21 && leitoNumero <= 46);
             } else if (hospitalId === 'H4') {
-                isApartamentoFixo = ((leitoNumero >= 1 && leitoNumero <= 9) || (leitoNumero >= 27 && leitoNumero <= 57));
-                isEnfermariaFixa = (leitoNumero >= 10 && leitoNumero <= 26);
+                isApartamentoFixo = ((leitoNumero >= 1 && leitoNumero <= 9) || (leitoNumero >= 28 && leitoNumero <= 57));
+                isEnfermariaFixa = (leitoNumero >= 10 && leitoNumero <= 27);
             }
         }
     }
@@ -1747,8 +1747,8 @@ function setupModalEventListeners(modal, tipo) {
             
             const hospitalId = window.currentHospital;
             const leitoNumero = window.selectedLeito;
-            const isCruzAzulEnfermaria = (hospitalId === 'H2' && leitoNumero >= 21 && leitoNumero <= 36);
-            const isSantaClaraEnfermaria = (hospitalId === 'H4' && leitoNumero >= 10 && leitoNumero <= 17);
+            const isCruzAzulEnfermaria = (hospitalId === 'H2' && leitoNumero >= 21 && leitoNumero <= 46);
+            const isSantaClaraEnfermaria = (hospitalId === 'H4' && leitoNumero >= 10 && leitoNumero <= 27);
             
             // VALIDAR IDENTIFICAÇÃO DO LEITO
             if (isCruzAzulEnfermaria || isSantaClaraEnfermaria) {
