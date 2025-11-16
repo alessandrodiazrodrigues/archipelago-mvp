@@ -539,8 +539,8 @@ function createCard(leito, hospitalNome, hospitalId, posicaoOcupacao) {
     let motivoBloqueio = '';
 
     const numeroLeito = parseInt(leito.leito);
-    const isCruzAzulEnfermaria = window.isEnfermariaComIrmao('H2', numeroLeito);
-    const isSantaClaraEnfermaria = window.isEnfermariaComIrmao('H4', numeroLeito);
+    const isCruzAzulEnfermaria = (hospitalId === 'H2') && window.isEnfermariaComIrmao('H2', numeroLeito);
+    const isSantaClaraEnfermaria = (hospitalId === 'H4') && window.isEnfermariaComIrmao('H4', numeroLeito);
 
     if ((isCruzAzulEnfermaria || isSantaClaraEnfermaria) && (leito.status === 'Vago' || leito.status === 'vago')) {
         const leitoIrmao = window.CRUZ_AZUL_IRMAOS[numeroLeito];
@@ -1008,10 +1008,10 @@ function createAdmissaoForm(hospitalNome, leitoNumero, hospitalId) {
     const mostrarTipoQuarto = isHibrido;
 
     // CRUZ AZUL: TODAS as enfermarias com irmão (contratuais + extras)
-    const isCruzAzulEnfermaria = window.isEnfermariaComIrmao('H2', leitoNumero);
+    const isCruzAzulEnfermaria = (hospitalId === 'H2') && window.isEnfermariaComIrmao('H2', leitoNumero);
 
     // SANTA CLARA: TODAS as enfermarias com irmão (contratuais + extras)
-    const isSantaClaraEnfermaria = window.isEnfermariaComIrmao('H4', leitoNumero);
+    const isSantaClaraEnfermaria = (hospitalId === 'H4') && window.isEnfermariaComIrmao('H4', leitoNumero);
 
     let generoPreDefinido = null;
     let generoDisabled = false;
@@ -1341,8 +1341,8 @@ function createAtualizacaoForm(hospitalNome, leitoNumero, dadosLeito) {
     }
     
     const hospitalId = window.currentHospital;
-    const isCruzAzulEnfermaria = window.isEnfermariaComIrmao('H2', leitoNumero);
-    const isSantaClaraEnfermaria = window.isEnfermariaComIrmao('H4', leitoNumero);
+    const isCruzAzulEnfermaria = (hospitalId === 'H2') && window.isEnfermariaComIrmao('H2', leitoNumero);
+    const isSantaClaraEnfermaria = (hospitalId === 'H4') && window.isEnfermariaComIrmao('H4', leitoNumero);
     const isCruzAzulApartamento = (hospitalId === 'H2' && leitoNumero >= 1 && leitoNumero <= 20);
     const isApartamentoFixo = isCruzAzulApartamento;
     
