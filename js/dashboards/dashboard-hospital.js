@@ -1,12 +1,12 @@
 // js/dashboards/dashboard-hospital.js
-// Dashboard Hospitalar - Archipelago V4.0
+// Dashboard Hospitalar - Archipelago V6.0
 
 
-// =================== DASHBOARD HOSPITALAR V4.0 ===================
-// Versão: 4.2
+// =================== DASHBOARD HOSPITALAR V6.0 ===================
+// Versão: 6.0
 // Depende de: cards-config.js (carregar ANTES)
 
-console.log('Dashboard Hospitalar v4.2 - Carregando...');
+console.log('Dashboard Hospitalar V6.0 - Carregando...');
 
 // =================== VALIDAR DEPENDÊNCIAS ===================
 if (typeof window.desnormalizarTexto === 'undefined') {
@@ -18,7 +18,7 @@ console.log('Dependencias validadas - cards-config.js OK');
 
 // =================== CONTINUACAO DO DASHBOARD HOSPITALAR ===================
 
-console.log('Dashboard Hospitalar V4.0 - Inicializando...');
+console.log('Dashboard Hospitalar V6.0 - Inicializando...');
 
 // Variável global para controlar o filtro atual
 window.hospitalFiltroAtual = 'todos';
@@ -994,7 +994,7 @@ function renderMiniGaugeTPH_Hosp(dias) {
 }
 
 window.renderDashboardHospitalar = function() {
-    console.log('Renderizando Dashboard Hospitalar V4.0');
+    console.log('Renderizando Dashboard Hospitalar V6.0');
     
     let container = document.getElementById('dashHospitalarContent');
     if (!container) {
@@ -2516,4 +2516,4 @@ window.forceDataRefresh = function() {
     window.location.reload();
 };
 
-console.log('Dashboard Hospitalar V4.0 - Carregado com Sucesso!');
+console.log('Dashboard Hospitalar V6.0 - Carregado com Sucesso!');
