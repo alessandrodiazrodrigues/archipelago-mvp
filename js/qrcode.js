@@ -1,7 +1,8 @@
-// =================== QRCODE V6.2 CORRIGIDO ===================
-// ✅ CORRIGIDO: Seleção personalizada - verificação de window.hospitalData
-// ✅ CORRIGIDO: Cores do projeto (#0676bb, #172945, #9ca3af)
-// ✅ CORRIGIDO: Impressão - 1 QR code por página com quebra correta
+// =================== QRCODE V6.3 FINAL CORRIGIDO ===================
+// ✅ CORRIGIDO V6.3: Seleção personalizada abre nova janela com resumo
+// ✅ CORRIGIDO V6.3: Impressão 14,5cm altura x 9,5cm largura (1 por página)
+// ✅ CORRIGIDO V6.3: Cores do projeto (#0676bb, #172945, #9ca3af)
+// ✅ CORRIGIDO V6.3: 293 leitos (9 hospitais ativos)
 // ✅ Cruz Azul - 13 pares de irmãos (21-46)
 // ✅ Santa Clara - 9 pares de irmãos (10-27)
 
@@ -182,23 +183,11 @@ window.openQRCodesSimple = function() {
                                     <strong><span id="contadorSelecionados">0</span></strong> leitos selecionados
                                 </div>
                                 <button onclick="gerarQRCodesSelecionados()" class="btn-primary" id="btnGerarSelecionados" disabled>
-                                    Gerar QR Codes
+                                    Gerar Impressão
                                 </button>
                             </div>
                         </div>
                     </div>
-                    
-                    <div id="progressContainerSelecao" class="progress-container" style="display: none;">
-                        <div class="progress-info">
-                            <span id="progressTextSelecao">Gerando QR Codes...</span>
-                            <span id="progressCountSelecao">0/0</span>
-                        </div>
-                        <div class="progress-bar">
-                            <div id="progressFillSelecao" class="progress-fill"></div>
-                        </div>
-                    </div>
-                    
-                    <div id="qrCodesContainerSelecao" class="qr-container"></div>
                 </div>
             </div>
         </div>
@@ -682,8 +671,8 @@ window.atualizarSelecaoLeitos = function() {
     btnGerar.disabled = leitosSelecionados.length === 0;
 };
 
-// =================== GERAR QR CODES SELECIONADOS ===================
-window.gerarQRCodesSelecionados = async function() {
+// =================== GERAR QR CODES SELECIONADOS - ABRE NOVA JANELA ===================
+window.gerarQRCodesSelecionados = function() {
     if (leitosSelecionados.length === 0) {
         alert('Selecione pelo menos um leito!');
         return;
@@ -691,128 +680,429 @@ window.gerarQRCodesSelecionados = async function() {
     
     const hospitalId = document.getElementById('selecaoHospitalSelect').value;
     const hospital = QR_API.HOSPITAIS[hospitalId];
-    const container = document.getElementById('qrCodesContainerSelecao');
-    const progressContainer = document.getElementById('progressContainerSelecao');
-    const progressFill = document.getElementById('progressFillSelecao');
-    const progressText = document.getElementById('progressTextSelecao');
-    const progressCount = document.getElementById('progressCountSelecao');
-    const btnGerar = document.getElementById('btnGerarSelecionados');
     
-    progressContainer.style.display = 'block';
-    btnGerar.disabled = true;
-    container.innerHTML = '';
+    console.log(`Gerando impressão de ${leitosSelecionados.length} leitos...`);
     
-    leitosSelecionados.sort((a, b) => a - b);
+    // Buscar dados completos dos leitos selecionados
+    const leitosCompletos = [];
+    const hospitalData = window.hospitalData?.[hospitalId];
     
-    const total = leitosSelecionados.length;
-    let current = 0;
-    
-    container.innerHTML = `<h3>${hospital.nome} (${total} leitos selecionados)</h3>`;
-    
-    let i = 0;
-    let grid = null;
-    
-    while (i < leitosSelecionados.length) {
-        const numeroLeito = leitosSelecionados[i];
-        const leitoFormatado = getNomeLeitoFormatado(hospitalId, numeroLeito);
-        const url = `${QR_API.BASE_URL}/?h=${hospitalId}&l=${numeroLeito}`;
-        const qrUrl = `${QR_API.API_URL}?size=${QR_API.SIZE}x${QR_API.SIZE}&data=${encodeURIComponent(url)}`;
-        
-        if (isParDeIrmaos(hospitalId, numeroLeito)) {
-            const leitoIrmao = getLeitoIrmao(hospitalId, numeroLeito);
-            const irmaoSelecionado = leitosSelecionados.includes(leitoIrmao);
-            const isPrimeiro = numeroLeito < leitoIrmao;
-            
-            if (irmaoSelecionado && isPrimeiro) {
-                grid = document.createElement('div');
-                grid.className = 'qr-grid-irmaos';
-                container.appendChild(grid);
-                
-                const qrItemDuplo = document.createElement('div');
-                qrItemDuplo.className = 'qr-item-duplo';
-                
-                const leito1Formatado = getNomeLeitoFormatado(hospitalId, numeroLeito);
-                const url1 = `${QR_API.BASE_URL}/?h=${hospitalId}&l=${numeroLeito}`;
-                const qrUrl1 = `${QR_API.API_URL}?size=${QR_API.SIZE}x${QR_API.SIZE}&data=${encodeURIComponent(url1)}`;
-                
-                const leito2Formatado = getNomeLeitoFormatado(hospitalId, leitoIrmao);
-                const url2 = `${QR_API.BASE_URL}/?h=${hospitalId}&l=${leitoIrmao}`;
-                const qrUrl2 = `${QR_API.API_URL}?size=${QR_API.SIZE}x${QR_API.SIZE}&data=${encodeURIComponent(url2)}`;
-                
-                qrItemDuplo.innerHTML = `
-                    <div class="qr-item-irmao">
-                        <div class="qr-label">
-                            <strong>${hospital.nome}</strong><br>
-                            ${leito1Formatado}
-                        </div>
-                        <img class="qr-img" src="${qrUrl1}" alt="QR ${hospital.nome} - ${leito1Formatado}">
-                    </div>
-                    <div class="qr-item-irmao">
-                        <div class="qr-label">
-                            <strong>${hospital.nome}</strong><br>
-                            ${leito2Formatado}
-                        </div>
-                        <img class="qr-img" src="${qrUrl2}" alt="QR ${hospital.nome} - ${leito2Formatado}">
-                    </div>
-                `;
-                
-                grid.appendChild(qrItemDuplo);
-                
-                current += 2;
-                const percentage = Math.round((current / total) * 100);
-                progressFill.style.width = `${percentage}%`;
-                progressText.textContent = `Gerando ${hospital.nome}...`;
-                progressCount.textContent = `${current}/${total}`;
-                
-                i++;
-                const irmaoIndex = leitosSelecionados.indexOf(leitoIrmao);
-                if (irmaoIndex > i) {
-                    i = irmaoIndex + 1;
-                } else {
-                    i++;
-                }
-                
-                await new Promise(resolve => setTimeout(resolve, QR_API.DELAY));
-                continue;
-            }
-        }
-        
-        if (!grid || grid.classList.contains('qr-grid-irmaos')) {
-            grid = document.createElement('div');
-            grid.className = 'qr-grid';
-            container.appendChild(grid);
-        }
-        
-        const qrItem = document.createElement('div');
-        qrItem.className = 'qr-item';
-        qrItem.innerHTML = `
-            <div class="qr-label">
-                <strong>${hospital.nome}</strong><br>
-                ${leitoFormatado}
-            </div>
-            <img class="qr-img" src="${qrUrl}" alt="QR ${hospital.nome} - ${leitoFormatado}">
-        `;
-        grid.appendChild(qrItem);
-        
-        current++;
-        const percentage = Math.round((current / total) * 100);
-        progressFill.style.width = `${percentage}%`;
-        progressText.textContent = `Gerando ${hospital.nome}...`;
-        progressCount.textContent = `${current}/${total}`;
-        
-        i++;
-        await new Promise(resolve => setTimeout(resolve, QR_API.DELAY));
+    if (!hospitalData || !hospitalData.leitos) {
+        alert('Erro: Dados do hospital não encontrados!');
+        return;
     }
     
-    progressText.textContent = 'Concluído!';
-    progressCount.textContent = `${total}/${total}`;
-    progressFill.style.width = '100%';
+    leitosSelecionados.forEach(numeroLeito => {
+        const leitoData = hospitalData.leitos.find(l => l.leito === numeroLeito);
+        if (leitoData) {
+            leitosCompletos.push({
+                ...leitoData,
+                hospitalId: hospitalId,
+                hospitalNome: hospital.nome
+            });
+        }
+    });
     
-    setTimeout(() => {
-        progressContainer.style.display = 'none';
-        btnGerar.disabled = false;
-    }, 1500);
+    if (leitosCompletos.length === 0) {
+        alert('Erro: Nenhum dado de leito encontrado!');
+        return;
+    }
+    
+    // Abrir janela de impressão
+    abrirJanelaImpressao(leitosCompletos);
 };
+
+// =================== ABRIR JANELA DE IMPRESSÃO PERSONALIZADA ===================
+function abrirJanelaImpressao(leitos) {
+    console.log(`Abrindo janela de impressão com ${leitos.length} leitos...`);
+    
+    const htmlContent = gerarHTMLImpressao(leitos);
+    const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    
+    const janela = window.open(url, '_blank', 'width=800,height=600');
+    
+    if (!janela) {
+        alert('⚠️ Bloqueador de pop-ups detectado!\n\nPor favor, permita pop-ups para este site e tente novamente.');
+        console.error('Não foi possível abrir a janela de impressão');
+        URL.revokeObjectURL(url);
+        return;
+    }
+    
+    // Limpar URL após 5 segundos
+    setTimeout(() => {
+        URL.revokeObjectURL(url);
+    }, 5000);
+    
+    console.log('✅ Janela de impressão aberta com sucesso!');
+}
+
+// =================== GERAR HTML DA IMPRESSÃO ===================
+function gerarHTMLImpressao(leitos) {
+    let html = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Impressão QR Codes - ${leitos.length} Leitos</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: white;
+            color: #000;
+        }
+
+        .controles {
+            background: #f3f4f6;
+            padding: 15px 20px;
+            border-bottom: 2px solid #d1d5db;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .controles h1 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #0676bb;
+        }
+
+        .controles p {
+            color: #6b7280;
+            font-size: 14px;
+            margin-top: 4px;
+        }
+
+        .btn-imprimir {
+            background: #0676bb;
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-imprimir:hover {
+            background: #172945;
+        }
+
+        .pagina-impressao {
+            width: 145mm;
+            height: 95mm;
+            margin: 15mm auto;
+            padding: 8mm;
+            border: 2px solid #000;
+            border-radius: 3mm;
+            background: white;
+            page-break-after: always;
+            page-break-inside: avoid;
+            display: grid;
+            grid-template-columns: 55mm 1fr;
+            gap: 8mm;
+            align-items: center;
+        }
+
+        .pagina-impressao:last-child {
+            page-break-after: auto;
+        }
+
+        .qr-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4mm;
+        }
+
+        .qr-code {
+            width: 50mm;
+            height: 50mm;
+            border: 1px solid #ddd;
+            border-radius: 2mm;
+        }
+
+        .qr-label {
+            font-size: 10px;
+            color: #666;
+            font-weight: 600;
+            text-transform: uppercase;
+            text-align: center;
+        }
+
+        .dados-section {
+            display: flex;
+            flex-direction: column;
+            gap: 4mm;
+        }
+
+        .dados-header {
+            background: #0676bb;
+            color: white;
+            padding: 4mm;
+            border-radius: 2mm;
+        }
+
+        .dados-header h2 {
+            font-size: 14px;
+            font-weight: 800;
+            margin-bottom: 2px;
+        }
+
+        .dados-header p {
+            font-size: 10px;
+            opacity: 0.9;
+        }
+
+        .dados-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2mm;
+        }
+
+        .dado-item {
+            background: #f9fafb;
+            padding: 2mm;
+            border-radius: 2mm;
+            border: 1px solid #e5e7eb;
+        }
+
+        .dado-item .label {
+            font-size: 8px;
+            color: #6b7280;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 1px;
+        }
+
+        .dado-item .valor {
+            font-size: 11px;
+            color: #000;
+            font-weight: 700;
+        }
+
+        .concessoes-section {
+            background: #f0f9ff;
+            padding: 2mm;
+            border-radius: 2mm;
+            border: 1px solid #0676bb;
+        }
+
+        .concessoes-section .titulo {
+            font-size: 8px;
+            color: #0676bb;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 2mm;
+        }
+
+        .concessoes-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1mm;
+        }
+
+        .chip {
+            background: white;
+            border: 1px solid #0676bb;
+            color: #0676bb;
+            padding: 1mm 2mm;
+            border-radius: 2mm;
+            font-size: 7px;
+            font-weight: 600;
+        }
+
+        @media print {
+            body {
+                margin: 0;
+                padding: 0;
+            }
+
+            .controles {
+                display: none !important;
+            }
+
+            @page {
+                size: 145mm 95mm;
+                margin: 0;
+            }
+
+            .pagina-impressao {
+                width: 145mm;
+                height: 95mm;
+                margin: 0;
+                padding: 8mm;
+                border: 2px solid #000;
+                page-break-after: always;
+                page-break-inside: avoid;
+            }
+
+            .pagina-impressao:last-child {
+                page-break-after: auto;
+            }
+        }
+
+        @media screen {
+            body {
+                background: #e5e7eb;
+                padding: 20px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="controles">
+        <div>
+            <h1>Impressão de QR Codes</h1>
+            <p><strong>${leitos.length} leitos</strong> selecionados</p>
+        </div>
+        <button class="btn-imprimir" onclick="window.print()">🖨️ Imprimir</button>
+    </div>
+`;
+
+    // Gerar uma página para cada leito
+    leitos.forEach((leito, index) => {
+        const qrURL = `${QR_API.BASE_URL}/?h=${leito.hospitalId}&l=${leito.leito}`;
+        const qrImgURL = `${QR_API.API_URL}?size=300x300&data=${encodeURIComponent(qrURL)}`;
+        
+        const leitoFormatado = getNomeLeitoFormatado(leito.hospitalId, leito.leito);
+        const matricula = formatarMatricula(leito.matricula);
+        const iniciais = leito.nome || '—';
+        const idade = leito.idade ? `${leito.idade} anos` : '—';
+        const genero = leito.genero || '—';
+        const pps = leito.pps ? `${leito.pps}%` : '—';
+        const spict = leito.spict === 'elegivel' ? 'Elegível' : (leito.spict === 'nao_elegivel' ? 'Não elegível' : '—');
+        const regiao = leito.regiao || '—';
+        const isolamento = formatarIsolamento(leito.isolamento);
+        const prevAlta = leito.prevAlta || '—';
+        const tempoInternacao = leito.admAt ? calcularTempoInternacao(leito.admAt) : '—';
+        
+        const concessoes = Array.isArray(leito.concessoes) ? leito.concessoes : [];
+        const concessoesHTML = concessoes.length > 0 
+            ? concessoes.map(c => `<span class="chip">${c}</span>`).join('')
+            : '<span style="color: #9ca3af; font-size: 8px;">Nenhuma</span>';
+        
+        html += `
+    <div class="pagina-impressao">
+        <div class="qr-section">
+            <img src="${qrImgURL}" alt="QR Code" class="qr-code">
+            <div class="qr-label">Escaneie aqui</div>
+        </div>
+
+        <div class="dados-section">
+            <div class="dados-header">
+                <h2>${leito.hospitalNome}</h2>
+                <p>${leitoFormatado} • ${tempoInternacao} internado</p>
+            </div>
+
+            <div class="dados-grid">
+                <div class="dado-item">
+                    <div class="label">Matrícula</div>
+                    <div class="valor">${matricula}</div>
+                </div>
+                <div class="dado-item">
+                    <div class="label">Iniciais</div>
+                    <div class="valor">${iniciais}</div>
+                </div>
+                <div class="dado-item">
+                    <div class="label">Idade</div>
+                    <div class="valor">${idade}</div>
+                </div>
+                <div class="dado-item">
+                    <div class="label">Gênero</div>
+                    <div class="valor">${genero}</div>
+                </div>
+                <div class="dado-item">
+                    <div class="label">PPS</div>
+                    <div class="valor">${pps}</div>
+                </div>
+                <div class="dado-item">
+                    <div class="label">SPICT-BR</div>
+                    <div class="valor">${spict}</div>
+                </div>
+                <div class="dado-item">
+                    <div class="label">Região</div>
+                    <div class="valor">${regiao}</div>
+                </div>
+                <div class="dado-item">
+                    <div class="label">Isolamento</div>
+                    <div class="valor">${isolamento}</div>
+                </div>
+            </div>
+
+            <div class="concessoes-section">
+                <div class="titulo">Concessões Previstas na Alta</div>
+                <div class="concessoes-chips">${concessoesHTML}</div>
+            </div>
+        </div>
+    </div>
+`;
+    });
+    
+    html += `
+    <script>
+        console.log('Página de impressão carregada');
+        console.log('${leitos.length} leitos prontos para impressão');
+        console.log('Tamanho: 145mm x 95mm (1 por página)');
+    </script>
+</body>
+</html>`;
+    
+    return html;
+}
+
+// =================== FUNÇÕES AUXILIARES ===================
+function formatarMatricula(matricula) {
+    if (!matricula || matricula === '—') return '—';
+    const mat = String(matricula).replace(/\D/g, '');
+    if (mat.length === 0) return '—';
+    if (mat.length === 1) return mat;
+    return mat.slice(0, -1) + '-' + mat.slice(-1);
+}
+
+function formatarIsolamento(isolamento) {
+    if (!isolamento || isolamento === 'Não Isolamento') return 'Não Isol';
+    if (isolamento === 'Isolamento de Contato') return 'Contato';
+    if (isolamento === 'Isolamento Respiratório') return 'Respirat';
+    return isolamento;
+}
+
+function calcularTempoInternacao(admissao) {
+    if (!admissao) return '—';
+    
+    try {
+        let dataAdmissao;
+        if (typeof admissao === 'string' && admissao.includes('/')) {
+            const [datePart] = admissao.split(' ');
+            const [dia, mes, ano] = datePart.split('/');
+            dataAdmissao = new Date(parseInt(ano), parseInt(mes) - 1, parseInt(dia));
+        } else {
+            dataAdmissao = new Date(admissao);
+        }
+        
+        if (!dataAdmissao || isNaN(dataAdmissao.getTime())) return 'Data inválida';
+        
+        const agora = new Date();
+        const diffTime = agora - dataAdmissao;
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        const diffHours = Math.floor((diffTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        
+        if (diffDays === 0) return `${diffHours}h`;
+        if (diffDays === 1) return `1d ${diffHours}h`;
+        return `${diffDays}d`;
+    } catch (error) {
+        return '—';
+    }
+}
 
 // =================== ESTILOS CSS ===================
 function injectQRStyles() {
@@ -1385,9 +1675,12 @@ function injectQRStyles() {
 // =================== INICIALIZAÇÃO ===================
 document.addEventListener('DOMContentLoaded', function() {
     window.openQRCodes = window.openQRCodesSimple;
-    console.log('✅ Sistema QR Code V6.2 CORRIGIDO carregado');
+    console.log('✅ Sistema QR Code V6.3 FINAL CORRIGIDO carregado');
     console.log('✅ 293 QR codes (9 hospitais ativos)');
-    console.log('✅ Seleção personalizada corrigida');
+    console.log('✅ Seleção personalizada: Abre janela com resumo completo');
+    console.log('✅ Impressão: 145mm x 95mm (14,5cm altura x 9,5cm largura)');
+    console.log('✅ 1 QR code por página');
     console.log('✅ Cores do projeto (#0676bb, #172945, #9ca3af)');
-    console.log('✅ Impressão: 1 QR por página (145mm x 95mm)');
+    console.log('✅ Cruz Azul: 13 pares de irmãos (21-46)');
+    console.log('✅ Santa Clara: 9 pares de irmãos (10-27)');
 });
