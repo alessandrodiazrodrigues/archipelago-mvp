@@ -119,22 +119,14 @@ window.renderFlagOcupacao = function(hospitalId, status, posicaoOcupacao, tipoLe
     const isApartamento = tipoUpper.includes('APTO') || tipoUpper === 'APARTAMENTO';
     const isEnfermaria = tipoUpper.includes('ENF') || tipoUpper === 'ENFERMARIA';
 
-    // Obter estrutura de enfermarias (se disponível)
-    let enfermariasInfo = null;
-    if (hospitalId === 'H2' && window.CRUZ_AZUL_ENFERMARIAS) {
-        enfermariasInfo = window.CRUZ_AZUL_ENFERMARIAS;
-    } else if (hospitalId === 'H4' && window.SANTA_CLARA_ENFERMARIAS) {
-        enfermariasInfo = window.SANTA_CLARA_ENFERMARIAS;
-    }
-
-    // Calcular ocupação por tipo (se tiposFixos e temos info de enfermarias)
+    // Calcular ocupação por tipo
     let textoTipo = '';
     let ocupadosPorTipo = 0;
     let totalContratuaisPorTipo = 0;
     let extrasEmUsoPorTipo = 0;
 
-    if (enfermariasInfo && (hospitalId === 'H2' || hospitalId === 'H4')) {
-        // TIPOS FIXOS (Cruz Azul ou Santa Clara)
+    if (hospitalId === 'H2' || hospitalId === 'H4') {
+        // ✅ TIPOS FIXOS (Cruz Azul ou Santa Clara) - USA CARDS-CONFIG.JS
         const leitosHospital = window.hospitalData[hospitalId]?.leitos || [];
         const ocupados = leitosHospital.filter(l => l.status === 'Ocupado' || l.status === 'Em uso' || l.status === 'ocupado');
 
@@ -146,10 +138,21 @@ window.renderFlagOcupacao = function(hospitalId, status, posicaoOcupacao, tipoLe
             });
             ocupadosPorTipo = ocupadosApto.length;
             
-            // Total de apartamentos CONTRATUAIS
-            // Cruz Azul: 20 aptos contratuais
-            // Santa Clara: 18 aptos contratuais
-            totalContratuaisPorTipo = (hospitalId === 'H2') ? 20 : 18;
+            // ✅ USAR CARDS-CONFIG.JS
+            // Cruz Azul: window.CRUZ_AZUL_ENFERMARIAS.apartamentos = 35 (20 contratuais + 15 extras)
+            // Santa Clara: window.SANTA_CLARA_ENFERMARIAS.apartamentos = 33 (18 contratuais + 15 extras)
+            // Capacidade total - enfermarias contratuais = apartamentos contratuais
+            const capacidade = window.getCapacidade(hospitalId);
+            const enfInfo = (hospitalId === 'H2') ? window.CRUZ_AZUL_ENFERMARIAS : window.SANTA_CLARA_ENFERMARIAS;
+            
+            if (enfInfo && enfInfo.contratuais) {
+                // Apartamentos contratuais = Total contratuais - Enfermarias contratuais
+                totalContratuaisPorTipo = capacidade.contratuais - enfInfo.contratuais.length;
+            } else {
+                // Fallback: Cruz Azul = 20, Santa Clara = 18
+                totalContratuaisPorTipo = (hospitalId === 'H2') ? 20 : 18;
+            }
+            
             textoTipo = 'APARTAMENTO';
             
             // Calcular extras EM USO (contagem incremental)
@@ -164,8 +167,18 @@ window.renderFlagOcupacao = function(hospitalId, status, posicaoOcupacao, tipoLe
             });
             ocupadosPorTipo = ocupadosEnf.length;
 
-            // Total de enfermarias CONTRATUAIS
-            totalContratuaisPorTipo = enfermariasInfo.contratuais.length;
+            // ✅ USAR CARDS-CONFIG.JS
+            // window.CRUZ_AZUL_ENFERMARIAS.contratuais.length = 16
+            // window.SANTA_CLARA_ENFERMARIAS.contratuais.length = 8
+            const enfInfo = (hospitalId === 'H2') ? window.CRUZ_AZUL_ENFERMARIAS : window.SANTA_CLARA_ENFERMARIAS;
+            
+            if (enfInfo && enfInfo.contratuais) {
+                totalContratuaisPorTipo = enfInfo.contratuais.length;
+            } else {
+                // Fallback: Cruz Azul = 16, Santa Clara = 8
+                totalContratuaisPorTipo = (hospitalId === 'H2') ? 16 : 8;
+            }
+            
             textoTipo = 'ENFERMARIA';
             
             // Calcular extras EM USO (contagem incremental)
