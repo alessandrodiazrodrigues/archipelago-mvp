@@ -1,9 +1,9 @@
 // =================== DASHBOARD EXECUTIVO V6.0 - CORRIGIDO COMPLETO ===================
-// =================== 9 HOSPITAIS | 294 LEITOS (126 CONTRATUAIS) ===================
+// =================== 9 HOSPITAIS | 293 LEITOS (126 CONTRATUAIS) ===================
 
 // =================== CONSTANTES GLOBAIS V6.0 ===================
 const TOTAL_CONTRATUAIS = 126; // 9 hospitais ativos (H1-H9)
-const TOTAL_LEITOS = 294; // 126 contratuais + 168 extras
+const TOTAL_LEITOS = 293; // 126 contratuais + 167 extras
 
 // Estado global para fundo branco (compartilhado com dashboard hospitalar)
 if (typeof window.fundoBranco === 'undefined') {
@@ -664,7 +664,7 @@ function copiarParaWhatsAppExecutivo() {
 
 // =================== FUNÇÃO PRINCIPAL: RENDER DASHBOARD ===================
 window.renderDashboardExecutivo = function() {
-    logInfo('Renderizando Dashboard Executivo: REDE HOSPITALAR EXTERNA (9 HOSPITAIS - 294 LEITOS (126 CONTRATUAIS))');
+    logInfo('Renderizando Dashboard Executivo: REDE HOSPITALAR EXTERNA (9 HOSPITAIS - 293 LEITOS (126 CONTRATUAIS))');
     
     let container = document.getElementById('dashExecutivoContent');
     if (!container) {
@@ -2446,7 +2446,7 @@ function logError(message) {
 }
 
 console.log('Dashboard Executivo V6.0 - CORRIGIDO COMPLETO + ACENTOS UTF-8');
-console.log('✅ 9 Hospitais (H1-H9) | 294 Leitos (126 Contratuais + 168 Extras)');
+console.log('✅ 9 Hospitais (H1-H9) | 293 Leitos (126 Contratuais + 167 Extras)');
 console.log('✅ Diretivas: SPICT elegível + Diretivas = "Não"');
 console.log('✅ text-transform: none !important em TUDO');
 console.log('✅ Bordas brancas sempre visíveis');
