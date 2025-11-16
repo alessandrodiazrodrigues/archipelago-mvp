@@ -1,7 +1,8 @@
-// =================== QRCODE V6.0 FINAL - 293 LEITOS ===================
-// ✅ CORRIGIDO: Pares de irmãos agrupados (H2 e H4)
-// ✅ CORRIGIDO: Cores oficiais do sistema
-// ✅ CORRIGIDO: Seleção personalizada com dados reais
+// =================== QRCODE V6.1 FINAL - 293 LEITOS ===================
+// ✅ CORRIGIDO V6.1: Cruz Azul - 13 pares de irmãos (21-46)
+// ✅ CORRIGIDO V6.1: Santa Clara - 9 pares de irmãos (10-27)
+// ✅ CORRIGIDO: Cores oficiais do sistema (#0676bb, #172945, #60a5fa, #9ca3af)
+// ✅ CORRIGIDO: Seleção personalizada com window.hospitalData
 // ✅ CORRIGIDO: 1 QR code por página na impressão
 // ✅ CORRIGIDO: H10 e H11 removidos (apenas 9 hospitais ativos)
 
@@ -22,22 +23,37 @@ const QR_API = {
         H9: { nome: 'São Camilo Pompeia', leitos: 22, tipo: 'hibrido' }
         // H10 e H11 REMOVIDOS (reservas desabilitadas)
     },
-    // PARES DE IRMÃOS
+    // PARES DE IRMÃOS - CRUZ AZUL (13 PARES: 8 contratuais + 5 extras)
     CRUZ_AZUL_IRMAOS: {
-        21: 22, 22: 21,
-        23: 24, 24: 23,
-        25: 26, 26: 25,
-        27: 28, 28: 27,
-        29: 30, 30: 29,
-        31: 32, 32: 31,
-        33: 34, 34: 33,
-        35: 36, 36: 35
+        // CONTRATUAIS (leitos 21-36)
+        21: 22, 22: 21, // Par 1
+        23: 24, 24: 23, // Par 2
+        25: 26, 26: 25, // Par 3
+        27: 28, 28: 27, // Par 4
+        29: 30, 30: 29, // Par 5
+        31: 32, 32: 31, // Par 6
+        33: 34, 34: 33, // Par 7
+        35: 36, 36: 35, // Par 8
+        // EXTRAS (leitos 37-46) - NOVO V6.1
+        37: 38, 38: 37, // Par 9
+        39: 40, 40: 39, // Par 10
+        41: 42, 42: 41, // Par 11
+        43: 44, 44: 43, // Par 12
+        45: 46, 46: 45  // Par 13
     },
+    // PARES DE IRMÃOS - SANTA CLARA (9 PARES: 4 contratuais + 5 extras)
     SANTA_CLARA_IRMAOS: {
-        10: 11, 11: 10,
-        12: 13, 13: 12,
-        14: 15, 15: 14,
-        16: 17, 17: 16
+        // CONTRATUAIS (leitos 10-17)
+        10: 11, 11: 10, // Par 1
+        12: 13, 13: 12, // Par 2
+        14: 15, 15: 14, // Par 3
+        16: 17, 17: 16, // Par 4
+        // EXTRAS (leitos 18-27) - NOVO V6.1
+        18: 19, 19: 18, // Par 5
+        20: 21, 21: 20, // Par 6
+        22: 23, 23: 22, // Par 7
+        24: 25, 25: 24, // Par 8
+        26: 27, 27: 26  // Par 9
     }
 };
 
@@ -47,7 +63,7 @@ let generationProgress = 0;
 let totalQRCodes = 0;
 let leitosSelecionados = [];
 
-// =================== FUNÇÃO PARA OBTER NOME DO LEITO V6.0 ===================
+// =================== FUNÇÃO PARA OBTER NOME DO LEITO V6.1 ===================
 function getNomeLeitoFormatado(hospitalId, numeroLeito) {
     const hospital = QR_API.HOSPITAIS[hospitalId];
     
@@ -57,6 +73,7 @@ function getNomeLeitoFormatado(hospitalId, numeroLeito) {
     }
     
     // CRUZ AZUL (H2) - 67 LEITOS
+    // 20 apartamentos contratuais + 16 enfermarias contratuais + 21 apartamentos extras + 10 enfermarias extras
     if (hospitalId === 'H2') {
         // Apartamentos contratuais: leitos 1-20
         if (numeroLeito >= 1 && numeroLeito <= 20) {
@@ -66,15 +83,20 @@ function getNomeLeitoFormatado(hospitalId, numeroLeito) {
         if (numeroLeito >= 21 && numeroLeito <= 36) {
             return `Enfermaria ${numeroLeito}`;
         }
-        // Apartamentos extras: leitos 37-57
-        if (numeroLeito >= 37 && numeroLeito <= 57) {
+        // Apartamentos extras: leitos 37-57 (mas 37-46 são enfermarias extras)
+        if (numeroLeito >= 37 && numeroLeito <= 46) {
+            return `Enfermaria ${numeroLeito}`;
+        }
+        // Enfermarias extras: leitos 47-57
+        if (numeroLeito >= 47 && numeroLeito <= 57) {
             return `Apartamento ${String(numeroLeito).padStart(2, '0')}`;
         }
-        // Enfermarias extras: leitos 58-67
-        return `Enfermaria ${numeroLeito}`;
+        // Apartamentos extras: leitos 58-67
+        return `Apartamento ${String(numeroLeito).padStart(2, '0')}`;
     }
     
     // SANTA CLARA (H4) - 57 LEITOS
+    // 18 apartamentos contratuais + 8 enfermarias contratuais + 21 apartamentos extras + 10 enfermarias extras
     if (hospitalId === 'H4') {
         // Apartamentos contratuais: leitos 1-9
         if (numeroLeito >= 1 && numeroLeito <= 9) {
@@ -84,12 +106,12 @@ function getNomeLeitoFormatado(hospitalId, numeroLeito) {
         if (numeroLeito >= 10 && numeroLeito <= 17) {
             return `Enfermaria ${numeroLeito}`;
         }
-        // Enfermarias extras: leitos 18-26
-        if (numeroLeito >= 18 && numeroLeito <= 26) {
+        // Enfermarias extras: leitos 18-27 (5 pares de irmãos)
+        if (numeroLeito >= 18 && numeroLeito <= 27) {
             return `Enfermaria ${numeroLeito}`;
         }
-        // Apartamentos contratuais: leitos 27-35
-        if (numeroLeito >= 27 && numeroLeito <= 35) {
+        // Apartamentos contratuais: leitos 28-35
+        if (numeroLeito >= 28 && numeroLeito <= 35) {
             return `Apartamento ${String(numeroLeito).padStart(2, '0')}`;
         }
         // Apartamentos extras: leitos 36-57
@@ -99,13 +121,15 @@ function getNomeLeitoFormatado(hospitalId, numeroLeito) {
     return `Leito ${String(numeroLeito).padStart(2, '0')}`;
 }
 
-// =================== VERIFICAR SE É PAR DE IRMÃOS ===================
+// =================== VERIFICAR SE É PAR DE IRMÃOS V6.1 ===================
 function isParDeIrmaos(hospitalId, numeroLeito) {
     if (hospitalId === 'H2') {
-        return numeroLeito >= 21 && numeroLeito <= 36;
+        // Cruz Azul: 13 pares (21-36 contratuais + 37-46 extras)
+        return (numeroLeito >= 21 && numeroLeito <= 36) || (numeroLeito >= 37 && numeroLeito <= 46);
     }
     if (hospitalId === 'H4') {
-        return numeroLeito >= 10 && numeroLeito <= 17;
+        // Santa Clara: 9 pares (10-17 contratuais + 18-27 extras)
+        return (numeroLeito >= 10 && numeroLeito <= 17) || (numeroLeito >= 18 && numeroLeito <= 27);
     }
     return false;
 }
@@ -123,7 +147,7 @@ function getLeitoIrmao(hospitalId, numeroLeito) {
 
 // =================== FUNÇÃO PRINCIPAL - MODAL COM OPÇÕES ===================
 window.openQRCodesSimple = function() {
-    console.log('Abrindo gerador de QR Codes V6.0 FINAL...');
+    console.log('Abrindo gerador de QR Codes V6.1 FINAL...');
     
     if (document.querySelector('.qr-modal-simple')) {
         console.log('Modal já está aberto');
@@ -135,7 +159,7 @@ window.openQRCodesSimple = function() {
     modal.innerHTML = `
         <div class="qr-modal-content">
             <div class="qr-modal-header">
-                <h2>QR Codes - V6.0 (293 Leitos)</h2>
+                <h2>QR Codes - V6.1 (293 Leitos)</h2>
                 <button onclick="closeQRModalSimple()" class="close-btn">✕</button>
             </div>
             <div class="qr-modal-body">
@@ -325,7 +349,7 @@ function gerarQRCodesSimples(hospitalId, hospital, container) {
     container.appendChild(grid);
 }
 
-// =================== GERAR QR CODES COM IRMÃOS (H2/H4) ===================
+// =================== GERAR QR CODES COM IRMÃOS (H2/H4) V6.1 ===================
 function gerarQRCodesComIrmaos(hospitalId, hospital, container) {
     let grid = null;
     let i = 1;
@@ -337,9 +361,8 @@ function gerarQRCodesComIrmaos(hospitalId, hospital, container) {
         
         // VERIFICAR SE É PAR DE IRMÃOS
         if (isParDeIrmaos(hospitalId, i)) {
-            // Verificar se é o primeiro do par (ímpar para H2, par para H4)
-            const isPrimeiroDoPar = (hospitalId === 'H2' && i % 2 === 1) || 
-                                   (hospitalId === 'H4' && i % 2 === 0);
+            // Verificar se é o primeiro do par (ímpar)
+            const isPrimeiroDoPar = i % 2 === 1;
             
             if (isPrimeiroDoPar) {
                 // Criar novo grid de irmãos
@@ -501,7 +524,7 @@ async function gerarQRCodesSimplesAsync(hospitalId, hospital, container, progres
     container.appendChild(grid);
 }
 
-// =================== GERAR QR CODES ASYNC (COM IRMÃOS) ===================
+// =================== GERAR QR CODES ASYNC (COM IRMÃOS) V6.1 ===================
 async function gerarQRCodesComIrmaosAsync(hospitalId, hospital, container, progressFill, progressText, progressCount) {
     let grid = null;
     let i = 1;
@@ -513,9 +536,8 @@ async function gerarQRCodesComIrmaosAsync(hospitalId, hospital, container, progr
         
         // VERIFICAR SE É PAR DE IRMÃOS
         if (isParDeIrmaos(hospitalId, i)) {
-            // Verificar se é o primeiro do par
-            const isPrimeiroDoPar = (hospitalId === 'H2' && i % 2 === 1) || 
-                                   (hospitalId === 'H4' && i % 2 === 0);
+            // Verificar se é o primeiro do par (ímpar)
+            const isPrimeiroDoPar = i % 2 === 1;
             
             if (isPrimeiroDoPar) {
                 // Criar novo grid de irmãos
@@ -608,7 +630,7 @@ async function gerarQRCodesComIrmaosAsync(hospitalId, hospital, container, progr
     }
 }
 
-// =================== SELEÇÃO PERSONALIZADA - CARREGAR LEITOS ===================
+// =================== SELEÇÃO PERSONALIZADA - CARREGAR LEITOS V6.1 ===================
 window.carregarLeitosParaSelecao = function() {
     const hospitalId = document.getElementById('selecaoHospitalSelect').value;
     const container = document.getElementById('leitosSelecaoContainer');
@@ -624,13 +646,15 @@ window.carregarLeitosParaSelecao = function() {
     
     const hospital = QR_API.HOSPITAIS[hospitalId];
     
-    // Buscar dados reais do hospital (se disponíveis)
+    // Buscar dados reais do hospital usando window.hospitalData
     let leitosOcupados = [];
     if (window.hospitalData && window.hospitalData[hospitalId]) {
         leitosOcupados = window.hospitalData[hospitalId].leitos
             .filter(l => l.status === 'Ocupado')
-            .map(l => l.leito);
+            .map(l => parseInt(l.leito));
     }
+    
+    console.log(`Leitos ocupados em ${hospitalId}:`, leitosOcupados);
     
     // Criar tabela
     let html = `
@@ -685,7 +709,7 @@ window.selecionarTodosLeitos = function() {
     atualizarSelecaoLeitos();
 };
 
-// =================== SELECIONAR APENAS OCUPADOS ===================
+// =================== SELECIONAR APENAS OCUPADOS V6.1 ===================
 window.selecionarOcupados = function() {
     const checkboxes = document.querySelectorAll('#tabelaLeitosSelecao input[type="checkbox"]');
     checkboxes.forEach(cb => {
@@ -716,7 +740,7 @@ window.atualizarSelecaoLeitos = function() {
     btnGerar.disabled = leitosSelecionados.length === 0;
 };
 
-// =================== GERAR QR CODES SELECIONADOS ===================
+// =================== GERAR QR CODES SELECIONADOS V6.1 ===================
 window.gerarQRCodesSelecionados = async function() {
     if (leitosSelecionados.length === 0) {
         alert('Selecione pelo menos um leito!');
@@ -745,13 +769,89 @@ window.gerarQRCodesSelecionados = async function() {
     
     container.innerHTML = `<h3>${hospital.nome} (${total} leitos selecionados)</h3>`;
     
-    const grid = document.createElement('div');
-    grid.className = 'qr-grid';
+    // Verificar se há pares de irmãos selecionados
+    let i = 0;
+    let grid = null;
     
-    for (const numeroLeito of leitosSelecionados) {
+    while (i < leitosSelecionados.length) {
+        const numeroLeito = leitosSelecionados[i];
         const leitoFormatado = getNomeLeitoFormatado(hospitalId, numeroLeito);
         const url = `${QR_API.BASE_URL}/?h=${hospitalId}&l=${numeroLeito}`;
         const qrUrl = `${QR_API.API_URL}?size=${QR_API.SIZE}x${QR_API.SIZE}&data=${encodeURIComponent(url)}`;
+        
+        // Verificar se é par de irmãos E se o irmão também está selecionado
+        if (isParDeIrmaos(hospitalId, numeroLeito)) {
+            const leitoIrmao = getLeitoIrmao(hospitalId, numeroLeito);
+            const irmaoSelecionado = leitosSelecionados.includes(leitoIrmao);
+            const isPrimeiro = numeroLeito < leitoIrmao;
+            
+            if (irmaoSelecionado && isPrimeiro) {
+                // Criar grid de irmãos
+                grid = document.createElement('div');
+                grid.className = 'qr-grid-irmaos';
+                container.appendChild(grid);
+                
+                // Criar item duplo
+                const qrItemDuplo = document.createElement('div');
+                qrItemDuplo.className = 'qr-item-duplo';
+                
+                // Leito atual
+                const leito1Formatado = getNomeLeitoFormatado(hospitalId, numeroLeito);
+                const url1 = `${QR_API.BASE_URL}/?h=${hospitalId}&l=${numeroLeito}`;
+                const qrUrl1 = `${QR_API.API_URL}?size=${QR_API.SIZE}x${QR_API.SIZE}&data=${encodeURIComponent(url1)}`;
+                
+                // Leito irmão
+                const leito2Formatado = getNomeLeitoFormatado(hospitalId, leitoIrmao);
+                const url2 = `${QR_API.BASE_URL}/?h=${hospitalId}&l=${leitoIrmao}`;
+                const qrUrl2 = `${QR_API.API_URL}?size=${QR_API.SIZE}x${QR_API.SIZE}&data=${encodeURIComponent(url2)}`;
+                
+                qrItemDuplo.innerHTML = `
+                    <div class="qr-item-irmao">
+                        <div class="qr-label">
+                            <strong>${hospital.nome}</strong><br>
+                            ${leito1Formatado}
+                        </div>
+                        <img class="qr-img" src="${qrUrl1}" alt="QR ${hospital.nome} - ${leito1Formatado}">
+                    </div>
+                    <div class="qr-item-irmao">
+                        <div class="qr-label">
+                            <strong>${hospital.nome}</strong><br>
+                            ${leito2Formatado}
+                        </div>
+                        <img class="qr-img" src="${qrUrl2}" alt="QR ${hospital.nome} - ${leito2Formatado}">
+                    </div>
+                `;
+                
+                grid.appendChild(qrItemDuplo);
+                
+                // Atualizar progresso (2 leitos)
+                current += 2;
+                const percentage = Math.round((current / total) * 100);
+                progressFill.style.width = `${percentage}%`;
+                progressText.textContent = `Gerando ${hospital.nome}...`;
+                progressCount.textContent = `${current}/${total}`;
+                
+                // Pular o irmão (já foi processado)
+                i++;
+                // Buscar índice do irmão e pular
+                const irmaoIndex = leitosSelecionados.indexOf(leitoIrmao);
+                if (irmaoIndex > i) {
+                    i = irmaoIndex + 1;
+                } else {
+                    i++;
+                }
+                
+                await new Promise(resolve => setTimeout(resolve, QR_API.DELAY));
+                continue;
+            }
+        }
+        
+        // QR Code normal (não é irmão ou irmão não está selecionado)
+        if (!grid || grid.classList.contains('qr-grid-irmaos')) {
+            grid = document.createElement('div');
+            grid.className = 'qr-grid';
+            container.appendChild(grid);
+        }
         
         const qrItem = document.createElement('div');
         qrItem.className = 'qr-item';
@@ -775,9 +875,9 @@ window.gerarQRCodesSelecionados = async function() {
         if (current % 10 === 0) {
             await new Promise(resolve => setTimeout(resolve, QR_API.DELAY));
         }
+        
+        i++;
     }
-    
-    container.appendChild(grid);
     
     // Finalizar
     progressText.textContent = 'Concluído!';
@@ -1402,10 +1502,11 @@ function injectQRStyles() {
 // =================== INICIALIZAÇÃO ===================
 document.addEventListener('DOMContentLoaded', function() {
     window.openQRCodes = window.openQRCodesSimple;
-    console.log('✅ Sistema QR Code V6.0 FINAL carregado');
+    console.log('✅ Sistema QR Code V6.1 FINAL carregado');
     console.log('✅ 293 QR codes (9 hospitais ativos)');
-    console.log('✅ Cores oficiais aplicadas (#0676bb, #131b2e, #172945, #60a5fa, #9ca3af)');
-    console.log('✅ Pares de irmãos agrupados (H2: 8 pares, H4: 4 pares)');
-    console.log('✅ Seleção personalizada com dados reais');
+    console.log('✅ Cores oficiais aplicadas (#0676bb, #172945, #60a5fa, #9ca3af)');
+    console.log('✅ Cruz Azul: 13 pares de irmãos (21-46)');
+    console.log('✅ Santa Clara: 9 pares de irmãos (10-27)');
+    console.log('✅ Seleção personalizada com window.hospitalData');
     console.log('✅ Impressão: 1 QR por página');
 });
