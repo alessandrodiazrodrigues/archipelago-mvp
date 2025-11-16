@@ -1033,10 +1033,10 @@ function createAdmissaoForm(hospitalNome, leitoNumero, hospitalId) {
     const mostrarTipoQuarto = isHibrido;
 
     // CRUZ AZUL: TODAS as enfermarias com irmão (contratuais + extras)
-    const isCruzAzulEnfermaria = (hospitalId === 'H2') && window.isEnfermariaComIrmao('H2', leitoNumero);
+    const isCruzAzulEnfermaria = (hospitalId === 'H2') && (window.CRUZ_AZUL_IRMAOS[leitoNumero] !== undefined);
 
     // SANTA CLARA: TODAS as enfermarias com irmão (contratuais + extras)
-    const isSantaClaraEnfermaria = (hospitalId === 'H4') && window.isEnfermariaComIrmao('H4', leitoNumero);
+    const isSantaClaraEnfermaria = (hospitalId === 'H4') && (window.SANTA_CLARA_IRMAOS[leitoNumero] !== undefined);
 
     let generoPreDefinido = null;
     let generoDisabled = false;
@@ -1120,9 +1120,33 @@ function createAdmissaoForm(hospitalNome, leitoNumero, hospitalId) {
         sufixoPreDefinido = (leitoNumero % 2 === 0) ? 'C' : 'A';
     }
     
-    const isCruzAzulApartamento = (hospitalId === 'H2' && leitoNumero >= 1 && leitoNumero <= 20);
-    const isSantaClaraApartamento = (hospitalId === 'H4' && ((leitoNumero >= 1 && leitoNumero <= 9) || (leitoNumero >= 27 && leitoNumero <= 57)));
-    const isApartamentoFixo = isCruzAzulApartamento || isSantaClaraApartamento;
+    // Buscar tipo estrutural do leito
+    let isApartamentoFixo = false;
+    let isEnfermariaFixa = false;
+    
+    // Para hospitais com tipos fixos (H2, H4), buscar tipo da estrutura
+    if (hospitalId === 'H2' || hospitalId === 'H4') {
+        const hospital = window.hospitalData && window.hospitalData[hospitalId];
+        if (hospital && hospital.leitos) {
+            const dadosLeito = hospital.leitos.find(l => parseInt(l.leito) === parseInt(leitoNumero));
+            if (dadosLeito && dadosLeito.tipo) {
+                const tipoUpper = dadosLeito.tipo.toUpperCase();
+                isApartamentoFixo = tipoUpper.includes('APTO') || tipoUpper === 'APARTAMENTO';
+                isEnfermariaFixa = tipoUpper.includes('ENF') || tipoUpper === 'ENFERMARIA';
+            }
+        }
+        
+        // Fallback: lógica antiga para contratuais
+        if (!isApartamentoFixo && !isEnfermariaFixa) {
+            if (hospitalId === 'H2') {
+                isApartamentoFixo = (leitoNumero >= 1 && leitoNumero <= 20);
+                isEnfermariaFixa = (leitoNumero >= 21 && leitoNumero <= 36);
+            } else if (hospitalId === 'H4') {
+                isApartamentoFixo = ((leitoNumero >= 1 && leitoNumero <= 9) || (leitoNumero >= 27 && leitoNumero <= 57));
+                isEnfermariaFixa = (leitoNumero >= 10 && leitoNumero <= 26);
+            }
+        }
+    }
     
     return `
         <div class="modal-content" style="background: #1a1f2e; border-radius: 12px; padding: 30px; max-width: 700px; width: 95%; max-height: 90vh; overflow-y: auto; color: #ffffff; font-family: 'Poppins', sans-serif;">
@@ -2007,8 +2031,8 @@ function coletarDadosFormulario(modal, tipo) {
     
     const hospitalId = window.currentHospital;
     const leitoNumero = window.selectedLeito;
-    const isCruzAzulEnfermaria = (hospitalId === 'H2' && leitoNumero >= 21 && leitoNumero <= 36);
-    const isSantaClaraEnfermaria = (hospitalId === 'H4' && leitoNumero >= 10 && leitoNumero <= 17);
+    const isCruzAzulEnfermaria = (hospitalId === 'H2') && (window.CRUZ_AZUL_IRMAOS[leitoNumero] !== undefined);
+    const isSantaClaraEnfermaria = (hospitalId === 'H4') && (window.SANTA_CLARA_IRMAOS[leitoNumero] !== undefined);
     
     if (tipo === 'admissao') {
         dados.nome = modal.querySelector('#admNome')?.value?.trim() || '';
