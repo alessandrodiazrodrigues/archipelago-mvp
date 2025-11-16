@@ -412,27 +412,11 @@ function calcularModalidadesVagos(leitos, hospitalId) {
     const vagos = leitos.filter(l => isVago(l));
 
     if (hospitalId === 'H1' || hospitalId === 'H3' || hospitalId === 'H5' || hospitalId === 'H6' || hospitalId === 'H7' || hospitalId === 'H8' || hospitalId === 'H9') {
-        modalidade.flexiveis = vagos.length;
-        return modalidade;
-    }
-
-    if (hospitalId === 'H4') {
-        const ocupados = leitos.filter(l => isOcupado(l));
-        
-        const aptosOcupados = ocupados.filter(l => 
-            l.categoriaEscolhida === 'Apartamento'
-        ).length;
-        
-        const enfOcupadas = ocupados.filter(l => 
-            l.categoriaEscolhida === 'Enfermaria'
-        ).length;
-        
-        modalidade.flexiveis = 0;
-        modalidade.exclusivo_apto = Math.max(0, 9 - aptosOcupados);
-        modalidade.exclusivo_enf_sem_restricao = Math.max(0, 4 - enfOcupadas);
-        modalidade.exclusivo_enf_fem = 0;
-        modalidade.exclusivo_enf_masc = 0;
-        
+        // V6.0: Usar contratuais (não conta extras)
+        const capacidadeInfo = window.HOSPITAL_CAPACIDADE ? window.HOSPITAL_CAPACIDADE[hospitalId] : null;
+        const contratuais = capacidadeInfo ? capacidadeInfo.contratuais : leitos.length;
+        const ocupados = leitos.filter(l => isOcupado(l)).length;
+        modalidade.flexiveis = Math.max(0, contratuais - ocupados);
         return modalidade;
     }
 
@@ -550,13 +534,32 @@ function calcularModalidadePorTipo(leitos, hospitalId) {
     }
 
     leitos.forEach(leito => {
-        const catEscolhida = leito.categoriaEscolhida || leito.categoria || '';
         const genero = leito.genero || '';
+        
+        // Para H2 e H4: usar TIPO estrutural
+        if (hospitalId === 'H2' || hospitalId === 'H4') {
+            const tipo = leito.tipo || '';
+            if (tipo === 'APTO' || tipo === 'Apartamento') {
+                modalidade.exclusivo_apto++;
+            } else if (tipo === 'ENFERMARIA' || tipo === 'Enfermaria') {
+                if (genero === 'Feminino') {
+                    modalidade.exclusivo_enf_fem++;
+                } else if (genero === 'Masculino') {
+                    modalidade.exclusivo_enf_masc++;
+                } else {
+                    modalidade.exclusivo_enf_sem_restricao++;
+                }
+            }
+            return;
+        }
+        
+        // Para híbridos: usar categoriaEscolhida
+        const catEscolhida = leito.categoriaEscolhida || leito.categoria || '';
         
         if (catEscolhida === 'Apartamento') {
             modalidade.exclusivo_apto++;
         } else if (catEscolhida === 'Enfermaria') {
-            if (hospitalId === 'H2') {
+            if (hospitalId === 'H2' || hospitalId === 'H4') {
                 if (genero === 'Feminino') {
                     modalidade.exclusivo_enf_fem++;
                 } else if (genero === 'Masculino') {
@@ -587,7 +590,7 @@ window.processarDadosHospital = function(hospitalId) {
     
     let ocupadosApto, ocupadosEnfFem, ocupadosEnfMasc;
     
-    if (hospitalId === 'H1' || hospitalId === 'H3' || hospitalId === 'H4' || hospitalId === 'H5' || hospitalId === 'H6' || hospitalId === 'H7') {
+    if (hospitalId === 'H1' || hospitalId === 'H3' || hospitalId === 'H5' || hospitalId === 'H6' || hospitalId === 'H7' || hospitalId === 'H8' || hospitalId === 'H9') {
         ocupadosApto = ocupados.filter(l => 
             l.categoriaEscolhida === 'Apartamento'
         ).length;
@@ -617,7 +620,7 @@ window.processarDadosHospital = function(hospitalId) {
     
     let previsaoApto, previsaoEnfFem, previsaoEnfMasc;
     
-    if (hospitalId === 'H1' || hospitalId === 'H3' || hospitalId === 'H4' || hospitalId === 'H5' || hospitalId === 'H6' || hospitalId === 'H7') {
+    if (hospitalId === 'H1' || hospitalId === 'H3' || hospitalId === 'H5' || hospitalId === 'H6' || hospitalId === 'H7' || hospitalId === 'H8' || hospitalId === 'H9') {
         previsaoApto = previsaoAlta.filter(l => 
             l.categoriaEscolhida === 'Apartamento'
         ).length;
@@ -643,17 +646,25 @@ window.processarDadosHospital = function(hospitalId) {
     
     let vagosApto, vagosEnfFem, vagosEnfMasc;
     
-    if (hospitalId === 'H2') {
+    if (hospitalId === 'H2' || hospitalId === 'H4') {
         // APARTAMENTOS: simples
         vagosApto = vagos.filter(l => 
             l.tipo === 'Apartamento' || l.tipo === 'APTO'
         ).length;
         
         // ENFERMARIAS: calcular por PARES (capacidade total)
-        const paresEnfermarias = [
-            [21, 22], [23, 24], [25, 26], [27, 28],
-            [29, 30], [31, 32], [33, 34], [35, 36]
-        ];
+        let paresEnfermarias;
+        if (hospitalId === 'H2') {
+            paresEnfermarias = [
+                [21, 22], [23, 24], [25, 26], [27, 28],
+                [29, 30], [31, 32], [33, 34], [35, 36]
+            ];
+        } else {
+            // H4 - Santa Clara
+            paresEnfermarias = [
+                [10, 11], [12, 13], [14, 15], [16, 17]
+            ];
+        }
         
         let capacidadeFem = 0;
         let capacidadeMasc = 0;
@@ -710,9 +721,17 @@ window.processarDadosHospital = function(hospitalId) {
     let vagosEnfMascFinal = vagosEnfMasc;
     
     if (hospitalId === 'H1' || hospitalId === 'H3' || hospitalId === 'H5' || hospitalId === 'H6' || hospitalId === 'H7' || hospitalId === 'H8' || hospitalId === 'H9') {
-        vagosAptoFinal = vagos.length;
-        vagosEnfFemFinal = vagos.length;
-        vagosEnfMascFinal = vagos.length;
+        // V6.0: Usar contratuais - ocupados (não conta extras)
+        const capacidadeInfo = window.HOSPITAL_CAPACIDADE ? window.HOSPITAL_CAPACIDADE[hospitalId] : null;
+        const contratuais = capacidadeInfo ? capacidadeInfo.contratuais : leitos.length;
+        
+        const dispApto = Math.max(0, contratuais - ocupadosApto);
+        const dispEnfFem = Math.max(0, contratuais - ocupadosEnfFem);
+        const dispEnfMasc = Math.max(0, contratuais - ocupadosEnfMasc);
+        
+        vagosAptoFinal = dispApto;
+        vagosEnfFemFinal = dispEnfFem;
+        vagosEnfMascFinal = dispEnfMasc;
     }
     
     const tphValues = ocupados
