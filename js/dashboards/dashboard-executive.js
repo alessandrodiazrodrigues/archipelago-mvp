@@ -1,5 +1,9 @@
-// =================== DASHBOARD EXECUTIVO V4.0 - CORRIGIDO COMPLETO ===================
-// =================== 7 HOSPITAIS | 93 LEITOS | DIRETIVAS CORRIGIDAS ===================
+// =================== DASHBOARD EXECUTIVO V6.0 - CORRIGIDO COMPLETO ===================
+// =================== 9 HOSPITAIS | 294 LEITOS (126 CONTRATUAIS) ===================
+
+// =================== CONSTANTES GLOBAIS V6.0 ===================
+const TOTAL_CONTRATUAIS = 126; // 9 hospitais ativos (H1-H9)
+const TOTAL_LEITOS = 294; // 126 contratuais + 168 extras
 
 // Estado global para fundo branco (compartilhado com dashboard hospitalar)
 if (typeof window.fundoBranco === 'undefined') {
@@ -17,8 +21,8 @@ function parseAdmDate(admAt) {
     return null;
 }
 
-// =================== ORDEM ALFABÉTICA DOS HOSPITAIS (7 HOSPITAIS) ===================
-const ORDEM_ALFABETICA_HOSPITAIS = ['H5', 'H2', 'H1', 'H4', 'H3', 'H6', 'H7'];
+// =================== ORDEM ALFABÉTICA DOS HOSPITAIS (9 HOSPITAIS) ===================
+const ORDEM_ALFABETICA_HOSPITAIS = ['H5', 'H2', 'H1', 'H4', 'H6', 'H3', 'H7', 'H8', 'H9'];
 
 // =================== FUNÇÃO PARA OBTER CORES DO API.JS ===================
 function getCorExataExec(itemName, tipo = 'concessao') {
@@ -145,7 +149,7 @@ function renderGaugeLargo(porcentagem, numeroTotal) {
                     <div class="gauge-largo-number">${numeroTotal}</div>
                     <div class="gauge-largo-label">Leitos Ocupados</div>
                     <div class="gauge-largo-percentage">${porcentagem.toFixed(0)}%</div>
-                    <div class="gauge-largo-subtitle">Total da Rede Externa (7 Hospitais)</div>
+                    <div class="gauge-largo-subtitle">Total da Rede Externa (9 Hospitais)</div>
                 </div>
             </div>
         </div>
@@ -382,7 +386,7 @@ function processarDadosHospitalExecutivo(hospitalId) {
     let ocupadosApto, ocupadosEnfFem, ocupadosEnfMasc;
     
     // Híbridos (H1, H3, H4, H5, H6, H7) usam categoriaEscolhida
-    if (hospitalId === 'H1' || hospitalId === 'H3' || hospitalId === 'H4' || hospitalId === 'H5' || hospitalId === 'H6' || hospitalId === 'H7') {
+    if (hospitalId === 'H1' || hospitalId === 'H3' || hospitalId === 'H5' || hospitalId === 'H6' || hospitalId === 'H7' || hospitalId === 'H8' || hospitalId === 'H9') {
         ocupadosApto = ocupados.filter(l => 
             l.categoriaEscolhida === 'Apartamento'
         ).length;
@@ -413,7 +417,7 @@ function processarDadosHospitalExecutivo(hospitalId) {
     
     let previsaoApto, previsaoEnfFem, previsaoEnfMasc;
     
-    if (hospitalId === 'H1' || hospitalId === 'H3' || hospitalId === 'H4' || hospitalId === 'H5' || hospitalId === 'H6' || hospitalId === 'H7') {
+    if (hospitalId === 'H1' || hospitalId === 'H3' || hospitalId === 'H5' || hospitalId === 'H6' || hospitalId === 'H7' || hospitalId === 'H8' || hospitalId === 'H9') {
         previsaoApto = previsaoAlta.filter(l => 
             l.categoriaEscolhida === 'Apartamento'
         ).length;
@@ -546,13 +550,15 @@ function processarDadosHospitalExecutivo(hospitalId) {
     );
     
     const totalLeitos = leitos.length;
-    const taxaOcupacao = totalLeitos > 0 ? (ocupados.length / totalLeitos * 100) : 0;
+    const capacidade = window.HOSPITAL_CAPACIDADE[hospitalId];
+    const base = Math.max(capacidade.contratuais, ocupados.length);
+    const taxaOcupacao = Math.min((ocupados.length / base) * 100, 100);
     
     const modalidadeOcupados = calcularModalidadePorTipoExecutivo(ocupados, hospitalId);
     const modalidadePrevisao = calcularModalidadePorTipoExecutivo(previsaoAlta, hospitalId);
     const modalidadeDisponiveis = calcularModalidadesVagosExecutivo(leitos, hospitalId);
     
-    const nomeHospital = window.HOSPITAL_MAPPING?.[hospitalId] || 
+    const nomeHospital = window.HOSPITAL_MAPPING?.[hospitalId]?.nome || 
                         (hospitalId === 'H1' ? 'Neomater' :
                          hospitalId === 'H2' ? 'Cruz Azul' :
                          hospitalId === 'H3' ? 'Santa Marcelina' :
@@ -562,6 +568,8 @@ function processarDadosHospitalExecutivo(hospitalId) {
                          'Santa Virgínia');
     
     return {
+        id: hospitalId,
+        contratuais: capacidade.contratuais,
         nome: nomeHospital,
         totalLeitos,
         taxaOcupacao,
@@ -580,7 +588,7 @@ function processarDadosHospitalExecutivo(hospitalId) {
             modalidade: modalidadePrevisao
         },
         disponiveis: {
-            total: vagos.length,
+            total: Math.max(capacidade.contratuais - ocupados.length, 0),
             apartamento: vagosAptoFinal,
             enf_feminina: vagosEnfFemFinal,
             enf_masculina: vagosEnfMascFinal,
@@ -606,7 +614,8 @@ function copiarParaWhatsAppExecutivo() {
     
     const totalLeitos = hospitais.reduce((sum, h) => sum + h.totalLeitos, 0);
     const totalOcupados = hospitais.reduce((sum, h) => sum + h.ocupados.total, 0);
-    const taxaOcupacao = ((totalOcupados / totalLeitos) * 100).toFixed(1);
+    const baseGeral = Math.max(TOTAL_CONTRATUAIS, totalOcupados);
+    const taxaOcupacao = Math.min((totalOcupados / baseGeral) * 100, 100);
     
     const agora = new Date();
     const dataFormatada = agora.toLocaleDateString('pt-BR', {
@@ -620,7 +629,7 @@ function copiarParaWhatsAppExecutivo() {
     let texto = `*KPIs ARCHIPELAGO*\n`;
     texto += `${dataFormatada}\n`;
     texto += `━━━━━━━━━━━━━━━━━\n`;
-    texto += `*REDE EXTERNA (7 HOSPITAIS)*\n`;
+    texto += `*REDE EXTERNA (9 HOSPITAIS)*\n`;
     texto += `━━━━━━━━━━━━━━━━━\n`;
     texto += `Taxa de Ocupação: *${taxaOcupacao}%*\n`;
     texto += `Leitos Ocupados: *${totalOcupados}/${totalLeitos}*\n\n`;
@@ -657,7 +666,7 @@ function copiarParaWhatsAppExecutivo() {
 
 // =================== FUNÇÃO PRINCIPAL: RENDER DASHBOARD ===================
 window.renderDashboardExecutivo = function() {
-    logInfo('Renderizando Dashboard Executivo: REDE HOSPITALAR EXTERNA (7 HOSPITAIS - 93 LEITOS)');
+    logInfo('Renderizando Dashboard Executivo: REDE HOSPITALAR EXTERNA (9 HOSPITAIS - 294 LEITOS (126 CONTRATUAIS))');
     
     let container = document.getElementById('dashExecutivoContent');
     if (!container) {
@@ -843,7 +852,7 @@ window.renderDashboardExecutivo = function() {
                                 ${hospitais.map(h => `
                                     <tr>
                                         <td><strong>${h.nome}</strong></td>
-                                        <td>${h.totalLeitos}</td>
+                                        <td>${window.HOSPITAL_CAPACIDADE[h.id]?.contratuais || h.totalLeitos}</td>
                                         <td>${h.ocupados.total}</td>
                                         <td>${h.taxaOcupacao.toFixed(1)}%</td>
                                     </tr>
@@ -2426,25 +2435,27 @@ function getExecutiveCSS() {
 }
 
 function logInfo(message) {
-    console.log('[DASHBOARD EXECUTIVO V4.0] ' + message);
+    console.log('[DASHBOARD EXECUTIVO V6.0] ' + message);
 }
 
 function logSuccess(message) {
-    console.log('[DASHBOARD EXECUTIVO V4.0] ✅ ' + message);
+    console.log('[DASHBOARD EXECUTIVO V6.0] ✅ ' + message);
 }
 
 function logError(message) {
-    console.error('[DASHBOARD EXECUTIVO V4.0] ❌ ' + message);
+    console.error('[DASHBOARD EXECUTIVO V6.0] ❌ ' + message);
 }
 
-console.log('Dashboard Executivo V4.0 - CORRIGIDO COMPLETO + ACENTOS UTF-8');
-console.log('✅ 7 Hospitais (H1-H7) | 93 Leitos');
+console.log('Dashboard Executivo V6.0 - CORRIGIDO COMPLETO + ACENTOS UTF-8');
+console.log('✅ 9 Hospitais (H1-H9) | 294 Leitos (126 Contratuais + 168 Extras)');
 console.log('✅ Diretivas: SPICT elegível + Diretivas = "Não"');
 console.log('✅ text-transform: none !important em TUDO');
 console.log('✅ Bordas brancas sempre visíveis');
-console.log('✅ Ordem alfabética: Adventista → Santa Virgínia');
+console.log('✅ Ordem alfabética: Adventista → Sao Camilo Pompeia');
 console.log('✅ Gauge Leitos Disponíveis fixo em azul (#3b82f6)');
 console.log('✅ Tabelas TPH, PPS e SPICT com títulos centralizados');
 console.log('✅ Linhas de Cuidado reativadas com borda branca');
 console.log('✅ Títulos e subtítulos centralizados nos heatmaps');
 console.log('✅ CORREÇÃO UTF-8: Acentos (ç, ~, ^, ´) aplicados nos heatmaps');
+console.log('✅ Taxa de ocupação máxima: 100% (base dinâmica)');
+console.log('✅ Disponíveis baseados em contratuais (não total)');
