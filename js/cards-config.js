@@ -116,7 +116,7 @@ window.HOSPITAL_MAPPING = {
 window.HOSPITAL_CAPACIDADE = {
     H1: { contratuais: 10, extras: 15, total: 25 },
     H2: { contratuais: 36, extras: 31, total: 67 },
-    H3: { contratuais: 7, extras: 21, total: 28 },
+    H3: { contratuais: 13, extras: 15, total: 28 },
     H4: { contratuais: 26, extras: 31, total: 57 },
     H5: { contratuais: 13, extras: 15, total: 28 },
     H6: { contratuais: 7, extras: 15, total: 22 },

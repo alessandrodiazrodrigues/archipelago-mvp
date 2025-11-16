@@ -187,7 +187,22 @@ window.renderFlagOcupacao = function(hospitalId, status, posicaoOcupacao, tipoLe
         }
     }
 
-    if (isExtra) {
+    // ✅ VERIFICAR SE É EXTRA - POR TIPO (H2/H4) ou GERAL (híbridos)
+    let isLeitoExtraFinal = false;
+    
+    if (hospitalId === 'H2' || hospitalId === 'H4') {
+        // TIPOS FIXOS: verificar se é extra POR TIPO
+        if (isApartamento && ocupadosPorTipo > totalContratuaisPorTipo) {
+            isLeitoExtraFinal = true;  // É apartamento EXTRA
+        } else if (isEnfermaria && ocupadosPorTipo > totalContratuaisPorTipo) {
+            isLeitoExtraFinal = true;  // É enfermaria EXTRA
+        }
+    } else {
+        // HÍBRIDOS: verificar pela posição geral
+        isLeitoExtraFinal = isExtra;
+    }
+
+    if (isLeitoExtraFinal) {
         // ✅ LEITO EXTRA - CONTAGEM INCREMENTAL (X/X)
         // Mostra: "EXTRA 1/1", "EXTRA 2/2", "EXTRA 3/3", etc
         // NÃO mostra o total disponível (15), mas sim quantos extras estão EM USO
