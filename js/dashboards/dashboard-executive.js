@@ -835,9 +835,38 @@ window.renderDashboardExecutivo = function() {
     const previsaoEnfFem = hospitais.reduce((sum, h) => sum + h.previsao.enf_feminina, 0);
     const previsaoEnfMasc = hospitais.reduce((sum, h) => sum + h.previsao.enf_masculina, 0);
     
-    const disponiveisApto = hospitais.reduce((sum, h) => sum + h.disponiveis.apartamento, 0);
-    const disponiveisEnfFem = hospitais.reduce((sum, h) => sum + h.disponiveis.enf_feminina, 0);
-    const disponiveisEnfMasc = hospitais.reduce((sum, h) => sum + h.disponiveis.enf_masculina, 0);
+    // Calcular capacidade de apartamentos corretamente
+    let disponiveisApto = 0;
+    hospitais.forEach(h => {
+        const hospitalId = h.id;
+        if (hospitalId === 'H1' || hospitalId === 'H3' || hospitalId === 'H5' || hospitalId === 'H6' || hospitalId === 'H7' || hospitalId === 'H8' || hospitalId === 'H9') {
+            // Híbridos: cada vago PODE ser apartamento
+            disponiveisApto += Math.max(0, h.contratuais - h.ocupados.total);
+        } else if (hospitalId === 'H2') {
+            // Cruz Azul: apartamentos contratuais - ocupados
+            disponiveisApto += Math.max(0, 20 - h.ocupados.apartamento);
+        } else if (hospitalId === 'H4') {
+            // Santa Clara: apartamentos contratuais - ocupados
+            disponiveisApto += Math.max(0, 18 - h.ocupados.apartamento);
+        }
+    });
+    // Calcular capacidade de enfermarias corretamente
+    let disponiveisEnfFem = 0;
+    let disponiveisEnfMasc = 0;
+    
+    hospitais.forEach(h => {
+        const hospitalId = h.id;
+        if (hospitalId === 'H1' || hospitalId === 'H3' || hospitalId === 'H5' || hospitalId === 'H6' || hospitalId === 'H7' || hospitalId === 'H8' || hospitalId === 'H9') {
+            // Híbridos: cada vago PODE ser enfermaria (qualquer gênero)
+            const vagosContratuais = Math.max(0, h.contratuais - h.ocupados.total);
+            disponiveisEnfFem += vagosContratuais;
+            disponiveisEnfMasc += vagosContratuais;
+        } else {
+            // H2 e H4: somar todas as possibilidades
+            disponiveisEnfFem += h.disponiveis.enf_feminina;
+            disponiveisEnfMasc += h.disponiveis.enf_masculina;
+        }
+    });
     
     const modalidadePrevisao = {
         flexiveis: hospitais.reduce((sum, h) => sum + h.previsao.modalidade.flexiveis, 0),
@@ -847,13 +876,29 @@ window.renderDashboardExecutivo = function() {
         exclusivo_enf_masc: hospitais.reduce((sum, h) => sum + h.previsao.modalidade.exclusivo_enf_masc, 0)
     };
     
+    // Calcular modalidade contratual corretamente
     const modalidadeDisponiveis = {
-        flexiveis: hospitais.reduce((sum, h) => sum + h.disponiveis.modalidade.flexiveis, 0),
-        exclusivo_apto: hospitais.reduce((sum, h) => sum + h.disponiveis.modalidade.exclusivo_apto, 0),
-        exclusivo_enf_sem_restricao: hospitais.reduce((sum, h) => sum + h.disponiveis.modalidade.exclusivo_enf_sem_restricao, 0),
-        exclusivo_enf_fem: hospitais.reduce((sum, h) => sum + h.disponiveis.modalidade.exclusivo_enf_fem, 0),
-        exclusivo_enf_masc: hospitais.reduce((sum, h) => sum + h.disponiveis.modalidade.exclusivo_enf_masc, 0)
+        flexiveis: 0,
+        exclusivo_apto: 0,
+        exclusivo_enf_sem_restricao: 0,
+        exclusivo_enf_fem: 0,
+        exclusivo_enf_masc: 0
     };
+    
+    hospitais.forEach(h => {
+        const hospitalId = h.id;
+        
+        if (hospitalId === 'H1' || hospitalId === 'H3' || hospitalId === 'H5' || hospitalId === 'H6' || hospitalId === 'H7' || hospitalId === 'H8' || hospitalId === 'H9') {
+            // Híbridos: apenas flexíveis (contratuais - ocupados)
+            modalidadeDisponiveis.flexiveis += Math.max(0, h.contratuais - h.ocupados.total);
+        } else if (hospitalId === 'H2' || hospitalId === 'H4') {
+            // H2 e H4: somar cada categoria
+            modalidadeDisponiveis.exclusivo_apto += h.disponiveis.modalidade.exclusivo_apto || 0;
+            modalidadeDisponiveis.exclusivo_enf_sem_restricao += h.disponiveis.modalidade.exclusivo_enf_sem_restricao || 0;
+            modalidadeDisponiveis.exclusivo_enf_fem += h.disponiveis.modalidade.exclusivo_enf_fem || 0;
+            modalidadeDisponiveis.exclusivo_enf_masc += h.disponiveis.modalidade.exclusivo_enf_masc || 0;
+        }
+    });
     
     // =================== TPH MÉDIO GERAL CORRIGIDO (MÉDIA PONDERADA) ===================
     let totalDiasPonderado = 0;
