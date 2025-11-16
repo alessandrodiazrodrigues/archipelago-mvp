@@ -1143,7 +1143,9 @@ function renderHeatmapConcessoes() {
             H4: { nome: 'Santa Clara', cor: '#2d3748' },
             H5: { nome: 'Adventista', cor: '#2d3748' },
             H6: { nome: 'Santa Cruz', cor: '#2d3748' },
-            H7: { nome: 'Santa Virgínia', cor: '#2d3748' }
+            H7: { nome: 'Santa Virgínia', cor: '#2d3748' },
+            H8: { nome: 'São Camilo Ipiranga', cor: '#2d3748' },
+            H9: { nome: 'São Camilo Pompeia', cor: '#2d3748' }
         }
     };
     
@@ -1239,7 +1241,9 @@ function renderHeatmapLinhas() {
             H4: { nome: 'Santa Clara', cor: '#2d3748' },
             H5: { nome: 'Adventista', cor: '#2d3748' },
             H6: { nome: 'Santa Cruz', cor: '#2d3748' },
-            H7: { nome: 'Santa Virgínia', cor: '#2d3748' }
+            H7: { nome: 'Santa Virgínia', cor: '#2d3748' },
+            H8: { nome: 'São Camilo Ipiranga', cor: '#2d3748' },
+            H9: { nome: 'São Camilo Pompeia', cor: '#2d3748' }
         }
     };
     
