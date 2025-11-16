@@ -507,17 +507,25 @@ function formatarMatriculaExibicao(matricula) {
     return mat.slice(0, -1) + '-' + mat.slice(-1);
 }
 
-// VALIDAÇÃO DE BLOQUEIO CRUZ AZUL
+// VALIDAÇÃO DE BLOQUEIO CRUZ AZUL E SANTA CLARA (LEITOS IRMÃOS)
 function validarAdmissaoCruzAzul(leitoNumero, generoNovo) {
-    // Validar TODAS enfermarias (contratuais 21-36 + extras 37-46)
-    if (window.currentHospital !== 'H2' || !window.isEnfermariaComIrmao('H2', leitoNumero)) {
+    const hospitalId = window.currentHospital;
+    
+    // ✅ Verificar se é H2 ou H4 e se o leito tem irmão
+    const isCruzAzul = (hospitalId === 'H2') && (leitoNumero in window.CRUZ_AZUL_IRMAOS);
+    const isSantaClara = (hospitalId === 'H4') && (leitoNumero in window.SANTA_CLARA_IRMAOS);
+    
+    if (!isCruzAzul && !isSantaClara) {
         return { permitido: true };
     }
     
-    const leitoIrmao = window.CRUZ_AZUL_IRMAOS[leitoNumero];
+    // ✅ Usar mapa correto
+    const mapaIrmaos = isCruzAzul ? window.CRUZ_AZUL_IRMAOS : window.SANTA_CLARA_IRMAOS;
+    const leitoIrmao = mapaIrmaos[leitoNumero];
     if (!leitoIrmao) return { permitido: true };
     
-    const leitosHospital = window.hospitalData['H2']?.leitos || [];
+    // ✅ Buscar no hospital correto
+    const leitosHospital = window.hospitalData[hospitalId]?.leitos || [];
     const dadosLeitoIrmao = leitosHospital.find(l => l.leito == leitoIrmao);
     
     if (!dadosLeitoIrmao || dadosLeitoIrmao.status === 'Vago' || dadosLeitoIrmao.status === 'vago') {
@@ -564,8 +572,9 @@ function createCard(leito, hospitalNome, hospitalId, posicaoOcupacao) {
     let motivoBloqueio = '';
 
     const numeroLeito = parseInt(leito.leito);
-    const isCruzAzulEnfermaria = (hospitalId === 'H2') && window.isEnfermariaComIrmao('H2', numeroLeito);
-    const isSantaClaraEnfermaria = (hospitalId === 'H4') && window.isEnfermariaComIrmao('H4', numeroLeito);
+    // ✅ Verificar diretamente nos mapas de irmãos (sem depender de função externa)
+    const isCruzAzulEnfermaria = (hospitalId === 'H2') && (numeroLeito in window.CRUZ_AZUL_IRMAOS);
+    const isSantaClaraEnfermaria = (hospitalId === 'H4') && (numeroLeito in window.SANTA_CLARA_IRMAOS);
 
     if ((isCruzAzulEnfermaria || isSantaClaraEnfermaria) && (leito.status === 'Vago' || leito.status === 'vago')) {
         // ✅ Usar mapa correto baseado no hospital
@@ -577,7 +586,7 @@ function createCard(leito, hospitalNome, hospitalId, posicaoOcupacao) {
             const leitosHospital = window.hospitalData[hospitalId]?.leitos || [];
             const dadosLeitoIrmao = leitosHospital.find(l => l.leito == leitoIrmao);
             
-            if (dadosLeitoIrmao && (dadosLeitoIrmao.status === 'Em uso' || dadosLeitoIrmao.status === 'ocupado')) {
+            if (dadosLeitoIrmao && (dadosLeitoIrmao.status === 'Em uso' || dadosLeitoIrmao.status === 'ocupado' || dadosLeitoIrmao.status === 'Ocupado')) {
                 const isolamentoIrmao = dadosLeitoIrmao.isolamento || '';
                 if (isolamentoIrmao && isolamentoIrmao !== 'Não Isolamento') {
                     bloqueadoPorIsolamento = true;
@@ -1057,7 +1066,7 @@ function createAdmissaoForm(hospitalNome, leitoNumero, hospitalId) {
             const leitosHospital = window.hospitalData['H2']?.leitos || [];
             const dadosLeitoIrmao = leitosHospital.find(l => l.leito == leitoIrmao);
             
-            if (dadosLeitoIrmao && (dadosLeitoIrmao.status === 'Em uso' || dadosLeitoIrmao.status === 'ocupado')) {
+            if (dadosLeitoIrmao && (dadosLeitoIrmao.status === 'Em uso' || dadosLeitoIrmao.status === 'ocupado' || dadosLeitoIrmao.status === 'Ocupado')) {
                 const isolamentoIrmao = dadosLeitoIrmao.isolamento || '';
                 
                 // Se irmão NÃO tem isolamento → forçar "Não Isolamento" no leito atual
@@ -1094,7 +1103,7 @@ function createAdmissaoForm(hospitalNome, leitoNumero, hospitalId) {
             const leitosHospital = window.hospitalData['H4']?.leitos || [];
             const dadosLeitoIrmao = leitosHospital.find(l => l.leito == leitoIrmao);
             
-            if (dadosLeitoIrmao && (dadosLeitoIrmao.status === 'Em uso' || dadosLeitoIrmao.status === 'ocupado')) {
+            if (dadosLeitoIrmao && (dadosLeitoIrmao.status === 'Em uso' || dadosLeitoIrmao.status === 'ocupado' || dadosLeitoIrmao.status === 'Ocupado')) {
                 const isolamentoIrmao = dadosLeitoIrmao.isolamento || '';
                 
                 // Se irmão NÃO tem isolamento → forçar "Não Isolamento" no leito atual
@@ -1392,8 +1401,9 @@ function createAtualizacaoForm(hospitalNome, leitoNumero, dadosLeito) {
     }
     
     const hospitalId = window.currentHospital;
-    const isCruzAzulEnfermaria = (hospitalId === 'H2') && window.isEnfermariaComIrmao('H2', leitoNumero);
-    const isSantaClaraEnfermaria = (hospitalId === 'H4') && window.isEnfermariaComIrmao('H4', leitoNumero);
+    // ✅ Verificar diretamente nos mapas de irmãos (sem depender de função externa)
+    const isCruzAzulEnfermaria = (hospitalId === 'H2') && (leitoNumero in window.CRUZ_AZUL_IRMAOS);
+    const isSantaClaraEnfermaria = (hospitalId === 'H4') && (leitoNumero in window.SANTA_CLARA_IRMAOS);
     const isCruzAzulApartamento = (hospitalId === 'H2' && leitoNumero >= 1 && leitoNumero <= 20);
     const isApartamentoFixo = isCruzAzulApartamento;
     
