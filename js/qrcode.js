@@ -1524,7 +1524,7 @@ function addOptimizedStyles() {
                 height: 145mm !important;
                 border: 2px solid #000 !important;
                 border-radius: 2mm !important;
-                padding: 5mm !important;
+                padding: 3mm !important;
                 background: white !important;
                 page-break-inside: avoid !important;
                 page-break-after: always !important;
@@ -1543,7 +1543,7 @@ function addOptimizedStyles() {
                 width: 100% !important;
                 border: 1px solid #333 !important;
                 border-radius: 2mm !important;
-                padding: 3mm !important;
+                padding: 2mm !important;
                 background: white !important;
                 display: flex !important;
                 flex-direction: column !important;
@@ -1594,17 +1594,17 @@ function addOptimizedStyles() {
             }
             
             .qr-item-irmao .qr-img {
-                width: 60mm !important;
-                height: 60mm !important;
+                width: 50mm !important;
+                height: 50mm !important;
             }
             
             .qr-item-irmao .qr-label {
-                font-size: 12px !important;
-                margin-bottom: 3mm !important;
+                font-size: 11px !important;
+                margin-bottom: 2mm !important;
             }
             
             .qr-item-irmao .qr-label strong {
-                font-size: 14px !important;
+                font-size: 13px !important;
             }
         }
         
