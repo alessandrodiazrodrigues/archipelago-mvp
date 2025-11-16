@@ -264,29 +264,10 @@ function calcularModalidadesVagosExecutivo(leitos, hospitalId) {
         return modalidade;
     }
 
-    // H4 - Santa Clara (Híbrido com limites)
-    if (hospitalId === 'H4') {
-        const ocupados = leitos.filter(l => isOcupadoExecutivo(l));
-        
-        const aptosOcupados = ocupados.filter(l => 
-            l.categoriaEscolhida === 'Apartamento'
-        ).length;
-        
-        const enfOcupadas = ocupados.filter(l => 
-            l.categoriaEscolhida === 'Enfermaria'
-        ).length;
-        
-        modalidade.flexiveis = 0;
-        modalidade.exclusivo_apto = 9 - aptosOcupados;
-        modalidade.exclusivo_enf_sem_restricao = 4 - enfOcupadas;
-        modalidade.exclusivo_enf_fem = 0;
-        modalidade.exclusivo_enf_masc = 0;
-        
-        return modalidade;
-    }
 
-    // H2 - Cruz Azul (Tipos fixos + Leito irmão)
-    if (hospitalId === 'H2') {
+
+    // H2 - Cruz Azul, H4 - Santa Clara (Tipos fixos + Leito irmão)
+    if (hospitalId === 'H2' || hospitalId === 'H4') {
         vagos.forEach(leitoVago => {
             const tipo = leitoVago.tipo || '';
             
@@ -340,8 +321,8 @@ function calcularModalidadePorTipoExecutivo(leitos, hospitalId) {
         exclusivo_enf_masc: 0
     };
 
-    // Híbridos Puros: H1, H3, H5, H6, H7
-    if (hospitalId === 'H1' || hospitalId === 'H3' || hospitalId === 'H5' || hospitalId === 'H6' || hospitalId === 'H7') {
+    // Híbridos Puros: H1, H3, H5, H6, H7, H8, H9
+    if (hospitalId === 'H1' || hospitalId === 'H3' || hospitalId === 'H5' || hospitalId === 'H6' || hospitalId === 'H7' || hospitalId === 'H8' || hospitalId === 'H9') {
         modalidade.flexiveis = leitos.length;
         return modalidade;
     }
@@ -353,7 +334,7 @@ function calcularModalidadePorTipoExecutivo(leitos, hospitalId) {
         if (catEscolhida === 'Apartamento') {
             modalidade.exclusivo_apto++;
         } else if (catEscolhida === 'Enfermaria') {
-            if (hospitalId === 'H2') {
+            if (hospitalId === 'H2' || hospitalId === 'H4') {
                 if (genero === 'Feminino') {
                     modalidade.exclusivo_enf_fem++;
                 } else if (genero === 'Masculino') {
@@ -385,7 +366,7 @@ function processarDadosHospitalExecutivo(hospitalId) {
     
     let ocupadosApto, ocupadosEnfFem, ocupadosEnfMasc;
     
-    // Híbridos (H1, H3, H4, H5, H6, H7) usam categoriaEscolhida
+    // Híbridos (H1, H3, H5, H6, H7, H8, H9) usam categoriaEscolhida
     if (hospitalId === 'H1' || hospitalId === 'H3' || hospitalId === 'H5' || hospitalId === 'H6' || hospitalId === 'H7' || hospitalId === 'H8' || hospitalId === 'H9') {
         ocupadosApto = ocupados.filter(l => 
             l.categoriaEscolhida === 'Apartamento'
@@ -397,7 +378,7 @@ function processarDadosHospitalExecutivo(hospitalId) {
             l.categoriaEscolhida === 'Enfermaria' && l.genero === 'Masculino'
         ).length;
     } else {
-        // H2 usa tipo estrutural
+        // H2 e H4 usam tipo estrutural (tipos fixos)
         ocupadosApto = ocupados.filter(l => 
             l.tipo === 'Apartamento' || l.tipo === 'APTO'
         ).length;
@@ -443,17 +424,27 @@ function processarDadosHospitalExecutivo(hospitalId) {
     
     let vagosApto, vagosEnfFem, vagosEnfMasc;
     
-    if (hospitalId === 'H2') {
+    if (hospitalId === 'H2' || hospitalId === 'H4') {
         // APARTAMENTOS: simples
         vagosApto = vagos.filter(l => 
             l.tipo === 'Apartamento' || l.tipo === 'APTO'
         ).length;
         
         // ENFERMARIAS: calcular por PARES (capacidade total)
-        const paresEnfermarias = [
-            [21, 22], [23, 24], [25, 26], [27, 28],
-            [29, 30], [31, 32], [33, 34], [35, 36]
-        ];
+        let paresEnfermarias;
+        
+        if (hospitalId === 'H2') {
+            // Cruz Azul: 8 pares (21-22, 23-24, ..., 35-36)
+            paresEnfermarias = [
+                [21, 22], [23, 24], [25, 26], [27, 28],
+                [29, 30], [31, 32], [33, 34], [35, 36]
+            ];
+        } else {
+            // Santa Clara: 4 pares (10-11, 12-13, 14-15, 16-17)
+            paresEnfermarias = [
+                [10, 11], [12, 13], [14, 15], [16, 17]
+            ];
+        }
         
         let capacidadeFem = 0;
         let capacidadeMasc = 0;
@@ -509,11 +500,12 @@ function processarDadosHospitalExecutivo(hospitalId) {
     let vagosEnfFemFinal = vagosEnfFem;
     let vagosEnfMascFinal = vagosEnfMasc;
     
-    // Híbridos Puros: todos os vagos podem ser qualquer tipo
-    if (hospitalId === 'H1' || hospitalId === 'H3' || hospitalId === 'H5' || hospitalId === 'H6' || hospitalId === 'H7') {
-        vagosAptoFinal = vagos.length;
-        vagosEnfFemFinal = vagos.length;
-        vagosEnfMascFinal = vagos.length;
+    // Híbridos Puros: usar vagos CONTRATUAIS (não incluir extras)
+    if (hospitalId === 'H1' || hospitalId === 'H3' || hospitalId === 'H5' || hospitalId === 'H6' || hospitalId === 'H7' || hospitalId === 'H8' || hospitalId === 'H9') {
+        const vagosContratuais = Math.max(capacidade.contratuais - ocupados.length, 0);
+        vagosAptoFinal = vagosContratuais;
+        vagosEnfFemFinal = vagosContratuais;
+        vagosEnfMascFinal = vagosContratuais;
     }
     
     // =================== TPH CORRIGIDO ===================
@@ -735,7 +727,8 @@ window.renderDashboardExecutivo = function() {
     const totalOcupados = hospitais.reduce((sum, h) => sum + h.ocupados.total, 0);
     const totalPrevisao = hospitais.reduce((sum, h) => sum + h.previsao.total, 0);
     const totalDisponiveis = hospitais.reduce((sum, h) => sum + h.disponiveis.total, 0);
-    const taxaOcupacao = (totalOcupados / totalLeitos * 100);
+    const baseGeral = Math.max(TOTAL_CONTRATUAIS, totalOcupados);
+    const taxaOcupacao = Math.min((totalOcupados / baseGeral) * 100, 100);
     
     const previsaoApto = hospitais.reduce((sum, h) => sum + h.previsao.apartamento, 0);
     const previsaoEnfFem = hospitais.reduce((sum, h) => sum + h.previsao.enf_feminina, 0);
@@ -900,7 +893,7 @@ window.renderDashboardExecutivo = function() {
                     <div class="kpi-title">Leitos Disponíveis</div>
                     
                     <div class="kpi-content">
-                        ${renderGaugeV5((totalDisponiveis / totalLeitos * 100), '#3b82f6', totalDisponiveis)}
+                        ${renderGaugeV5((totalDisponiveis / TOTAL_CONTRATUAIS * 100), '#3b82f6', totalDisponiveis)}
                         
                         <div class="kpi-items-lista">
                             <div class="kpi-subtitle">Capacidade por Tipo de Leito (não Simultâneo)</div>
