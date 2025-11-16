@@ -1,103 +1,88 @@
-// =================== QRCODE V6.3 FINAL CORRIGIDO ===================
-// ✅ CORRIGIDO V6.3: Seleção personalizada abre nova janela com resumo
-// ✅ CORRIGIDO V6.3: Impressão 14,5cm altura x 9,5cm largura (1 por página)
-// ✅ CORRIGIDO V6.3: Cores do projeto (#0676bb, #172945, #9ca3af)
-// ✅ CORRIGIDO V6.3: 293 leitos (9 hospitais ativos)
-// ✅ Cruz Azul - 13 pares de irmãos (21-46)
-// ✅ Santa Clara - 9 pares de irmãos (10-27)
+// =================== QRCODE-OPTIMIZED.JS - V6.0 IMPRESSÃO OTIMIZADA ===================
+// ✅ Molduras de 14,5cm x 9,5cm
+// ✅ 4 QR Codes por página (2x2)
+// ✅ Leitos irmãos empilhados verticalmente
+// ✅ 9 hospitais ativos - 293 leitos total
+// ✅ H2: 13 pares de irmãos | H4: 9 pares de irmãos
+
+// OBSERVAÇÃO: URL antiga (comentada para futura reversão se necessário)
+// const QR_BASE_URL_OLD = 'https://qrcode-seven-gamma.vercel.app';
 
 const QR_API = {
     BASE_URL: 'https://qr-code-systelos.vercel.app',
     API_URL: 'https://api.qrserver.com/v1/create-qr-code/',
     SIZE: 300,
-    DELAY: 100,
+    DELAY: 150,
     HOSPITAIS: {
-        H1: { nome: 'Neomater', leitos: 25, tipo: 'hibrido' },
-        H2: { nome: 'Cruz Azul', leitos: 67, tipo: 'tipos_fixos' },
-        H3: { nome: 'Santa Marcelina', leitos: 28, tipo: 'hibrido' },
-        H4: { nome: 'Santa Clara', leitos: 57, tipo: 'tipos_fixos' },
-        H5: { nome: 'Adventista', leitos: 28, tipo: 'hibrido' },
-        H6: { nome: 'Santa Cruz', leitos: 22, tipo: 'hibrido' },
-        H7: { nome: 'Santa Virgínia', leitos: 22, tipo: 'hibrido' },
-        H8: { nome: 'São Camilo Ipiranga', leitos: 22, tipo: 'hibrido' },
-        H9: { nome: 'São Camilo Pompeia', leitos: 22, tipo: 'hibrido' }
-    },
-    CRUZ_AZUL_IRMAOS: {
-        21: 22, 22: 21, 23: 24, 24: 23, 25: 26, 26: 25, 27: 28, 28: 27,
-        29: 30, 30: 29, 31: 32, 32: 31, 33: 34, 34: 33, 35: 36, 36: 35,
-        37: 38, 38: 37, 39: 40, 40: 39, 41: 42, 42: 41, 43: 44, 44: 43,
+        H1: { nome: 'Neomater', leitos: 25 },
+        H2: { nome: 'Cruz Azul', leitos: 67 },
+        H3: { nome: 'Santa Marcelina', leitos: 28 },
+        H4: { nome: 'Santa Clara', leitos: 57 },
+        H5: { nome: 'Adventista', leitos: 28 },
+        H6: { nome: 'Santa Cruz', leitos: 22 },
+        H7: { nome: 'Santa Virgínia', leitos: 22 },
+        H8: { nome: 'São Camilo Ipiranga', leitos: 22 },
+        H9: { nome: 'São Camilo Pompéia', leitos: 22 }
+    }
+};
+
+// Pares de leitos irmãos atualizados
+const LEITOS_IRMAOS = {
+    H2: {
+        21: 22, 22: 21,
+        23: 24, 24: 23,
+        25: 26, 26: 25,
+        27: 28, 28: 27,
+        29: 30, 30: 29,
+        31: 32, 32: 31,
+        33: 34, 34: 33,
+        35: 36, 36: 35,
+        37: 38, 38: 37,
+        39: 40, 40: 39,
+        41: 42, 42: 41,
+        43: 44, 44: 43,
         45: 46, 46: 45
     },
-    SANTA_CLARA_IRMAOS: {
-        10: 11, 11: 10, 12: 13, 13: 12, 14: 15, 15: 14, 16: 17, 17: 16,
-        18: 19, 19: 18, 20: 21, 21: 20, 22: 23, 23: 22, 24: 25, 25: 24,
+    H4: {
+        10: 11, 11: 10,
+        12: 13, 13: 12,
+        14: 15, 15: 14,
+        16: 17, 17: 16,
+        18: 19, 19: 18,
+        20: 21, 21: 20,
+        22: 23, 23: 22,
+        24: 25, 25: 24,
         26: 27, 27: 26
     }
 };
 
+// Variáveis de controle
 let isGenerating = false;
 let generationProgress = 0;
 let totalQRCodes = 0;
 let leitosSelecionados = [];
 
 // =================== FUNÇÃO PARA OBTER NOME DO LEITO ===================
+// ✅ Agora usa apenas o ID do leito (número lógico da coluna B)
 function getNomeLeitoFormatado(hospitalId, numeroLeito) {
-    const hospital = QR_API.HOSPITAIS[hospitalId];
-    
-    if (hospital.tipo === 'hibrido') {
-        return `Híbrido ${String(numeroLeito).padStart(2, '0')}`;
-    }
-    
-    if (hospitalId === 'H2') {
-        if (numeroLeito >= 1 && numeroLeito <= 20) return `Apartamento ${String(numeroLeito).padStart(2, '0')}`;
-        if (numeroLeito >= 21 && numeroLeito <= 46) return `Enfermaria ${numeroLeito}`;
-        if (numeroLeito >= 47 && numeroLeito <= 57) return `Apartamento ${String(numeroLeito).padStart(2, '0')}`;
-        return `Apartamento ${String(numeroLeito).padStart(2, '0')}`;
-    }
-    
-    if (hospitalId === 'H4') {
-        if (numeroLeito >= 1 && numeroLeito <= 9) return `Apartamento ${String(numeroLeito).padStart(2, '0')}`;
-        if (numeroLeito >= 10 && numeroLeito <= 27) return `Enfermaria ${numeroLeito}`;
-        if (numeroLeito >= 28 && numeroLeito <= 35) return `Apartamento ${String(numeroLeito).padStart(2, '0')}`;
-        return `Apartamento ${String(numeroLeito).padStart(2, '0')}`;
-    }
-    
     return `Leito ${String(numeroLeito).padStart(2, '0')}`;
 }
 
-function isParDeIrmaos(hospitalId, numeroLeito) {
-    if (hospitalId === 'H2') {
-        return (numeroLeito >= 21 && numeroLeito <= 36) || (numeroLeito >= 37 && numeroLeito <= 46);
-    }
-    if (hospitalId === 'H4') {
-        return (numeroLeito >= 10 && numeroLeito <= 17) || (numeroLeito >= 18 && numeroLeito <= 27);
-    }
-    return false;
-}
-
-function getLeitoIrmao(hospitalId, numeroLeito) {
-    if (hospitalId === 'H2') return QR_API.CRUZ_AZUL_IRMAOS[numeroLeito];
-    if (hospitalId === 'H4') return QR_API.SANTA_CLARA_IRMAOS[numeroLeito];
-    return null;
-}
-
-// =================== MODAL PRINCIPAL ===================
+// =================== FUNÇÃO PRINCIPAL - MODAL COM OPÇÕES ===================
 window.openQRCodesSimple = function() {
-    console.log('Abrindo gerador de QR Codes V6.2...');
+    console.log('Abrindo gerador de QR Codes V6.0...');
     
     if (document.querySelector('.qr-modal-simple')) {
         console.log('Modal já está aberto');
         return;
     }
     
-    document.body.classList.add('qr-modal-open');
-    
     const modal = document.createElement('div');
     modal.className = 'qr-modal-simple';
     modal.innerHTML = `
         <div class="qr-modal-content">
             <div class="qr-modal-header">
-                <h2>QR Codes - V6.2 (293 Leitos)</h2>
+                <h2>QR Codes dos Leitos - Sistema V6.0</h2>
                 <button onclick="closeQRModalSimple()" class="close-btn">✕</button>
             </div>
             <div class="qr-modal-body">
@@ -110,6 +95,7 @@ window.openQRCodesSimple = function() {
                     </button>
                 </div>
                 
+                <!-- TAB 1: TODOS OS LEITOS -->
                 <div id="tabTodos" class="qr-tab-content active">
                     <div class="qr-controls">
                         <select id="qrHospitalSelect" onchange="generateQRCodesSimple()">
@@ -121,7 +107,7 @@ window.openQRCodesSimple = function() {
                             <option value="H3">Santa Marcelina (28 leitos)</option>
                             <option value="H7">Santa Virgínia (22 leitos)</option>
                             <option value="H8">São Camilo Ipiranga (22 leitos)</option>
-                            <option value="H9">São Camilo Pompeia (22 leitos)</option>
+                            <option value="H9">São Camilo Pompéia (22 leitos)</option>
                         </select>
                         <button onclick="generateAllQRCodesOptimized()" class="btn-all" id="btnGenerateAll">
                             Gerar Todos (293 QR Codes)
@@ -142,6 +128,7 @@ window.openQRCodesSimple = function() {
                     <div id="qrCodesContainer" class="qr-container"></div>
                 </div>
                 
+                <!-- TAB 2: SELEÇÃO PERSONALIZADA -->
                 <div id="tabSelecao" class="qr-tab-content" style="display: none;">
                     <div class="selecao-controls">
                         <div class="selecao-header">
@@ -156,19 +143,16 @@ window.openQRCodesSimple = function() {
                                 <option value="H3">Santa Marcelina</option>
                                 <option value="H7">Santa Virgínia</option>
                                 <option value="H8">São Camilo Ipiranga</option>
-                                <option value="H9">São Camilo Pompeia</option>
+                                <option value="H9">São Camilo Pompéia</option>
                             </select>
                         </div>
                         
                         <div id="leitosSelecaoContainer" style="display: none;">
                             <div class="selecao-header">
-                                <h3>2. Selecione os Leitos</h3>
+                                <h3>2. Selecione os Leitos Ocupados</h3>
                                 <div class="selecao-actions">
                                     <button onclick="selecionarTodosLeitos()" class="btn-secondary">
                                         Selecionar Todos
-                                    </button>
-                                    <button onclick="selecionarOcupados()" class="btn-secondary">
-                                        Apenas Ocupados
                                     </button>
                                     <button onclick="limparSelecaoLeitos()" class="btn-secondary">
                                         Limpar Seleção
@@ -182,7 +166,7 @@ window.openQRCodesSimple = function() {
                                 <div class="contador-selecao">
                                     <strong><span id="contadorSelecionados">0</span></strong> leitos selecionados
                                 </div>
-                                <button onclick="gerarQRCodesSelecionados()" class="btn-primary" id="btnGerarSelecionados" disabled>
+                                <button onclick="gerarQRCodesSelecionados()" class="btn-gerar-selecao" id="btnGerarSelecao" disabled>
                                     Gerar Impressão
                                 </button>
                             </div>
@@ -194,330 +178,28 @@ window.openQRCodesSimple = function() {
     `;
     document.body.appendChild(modal);
     
-    generateQRCodesSimple();
-    injectQRStyles();
-};
-
-window.closeQRModalSimple = function() {
-    const modal = document.querySelector('.qr-modal-simple');
-    if (modal) {
-        modal.remove();
-        document.body.classList.remove('qr-modal-open');
-        isGenerating = false;
-        generationProgress = 0;
-        totalQRCodes = 0;
-        leitosSelecionados = [];
+    if (!document.getElementById('qrOptimizedStyles')) {
+        addOptimizedStyles();
     }
+    
+    generateQRCodesSimple();
 };
 
-window.switchQRTab = function(tabName) {
-    const tabs = document.querySelectorAll('.qr-tab');
-    const contents = document.querySelectorAll('.qr-tab-content');
+// =================== TROCAR ABA ===================
+window.switchQRTab = function(tab) {
+    document.querySelectorAll('.qr-tab').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.qr-tab-content').forEach(content => content.style.display = 'none');
     
-    tabs.forEach(tab => tab.classList.remove('active'));
-    contents.forEach(content => content.style.display = 'none');
-    
-    if (tabName === 'todos') {
-        document.querySelector('.qr-tab:first-child').classList.add('active');
+    if (tab === 'todos') {
+        document.querySelector('.qr-tab:nth-child(1)').classList.add('active');
         document.getElementById('tabTodos').style.display = 'block';
     } else {
-        document.querySelector('.qr-tab:last-child').classList.add('active');
+        document.querySelector('.qr-tab:nth-child(2)').classList.add('active');
         document.getElementById('tabSelecao').style.display = 'block';
     }
 };
 
-// =================== GERAR QR CODES (HOSPITAL INDIVIDUAL) ===================
-window.generateQRCodesSimple = function() {
-    const hospitalId = document.getElementById('qrHospitalSelect').value;
-    const hospital = QR_API.HOSPITAIS[hospitalId];
-    const container = document.getElementById('qrCodesContainer');
-    
-    if (!hospital) return;
-    
-    container.innerHTML = `<h3>${hospital.nome} (${hospital.leitos} leitos)</h3>`;
-    
-    if ((hospitalId === 'H2' || hospitalId === 'H4') && hospital.tipo === 'tipos_fixos') {
-        gerarQRCodesComIrmaos(hospitalId, hospital, container);
-    } else {
-        gerarQRCodesSimples(hospitalId, hospital, container);
-    }
-};
-
-function gerarQRCodesSimples(hospitalId, hospital, container) {
-    const grid = document.createElement('div');
-    grid.className = 'qr-grid';
-    
-    for (let i = 1; i <= hospital.leitos; i++) {
-        const leitoFormatado = getNomeLeitoFormatado(hospitalId, i);
-        const url = `${QR_API.BASE_URL}/?h=${hospitalId}&l=${i}`;
-        const qrUrl = `${QR_API.API_URL}?size=${QR_API.SIZE}x${QR_API.SIZE}&data=${encodeURIComponent(url)}`;
-        
-        const qrItem = document.createElement('div');
-        qrItem.className = 'qr-item';
-        qrItem.innerHTML = `
-            <div class="qr-label">
-                <strong>${hospital.nome}</strong><br>
-                ${leitoFormatado}
-            </div>
-            <img class="qr-img" src="${qrUrl}" alt="QR ${hospital.nome} - ${leitoFormatado}">
-        `;
-        grid.appendChild(qrItem);
-    }
-    
-    container.appendChild(grid);
-}
-
-function gerarQRCodesComIrmaos(hospitalId, hospital, container) {
-    let grid = null;
-    let i = 1;
-    
-    while (i <= hospital.leitos) {
-        const leitoFormatado = getNomeLeitoFormatado(hospitalId, i);
-        const url = `${QR_API.BASE_URL}/?h=${hospitalId}&l=${i}`;
-        const qrUrl = `${QR_API.API_URL}?size=${QR_API.SIZE}x${QR_API.SIZE}&data=${encodeURIComponent(url)}`;
-        
-        if (isParDeIrmaos(hospitalId, i)) {
-            const isPrimeiroDoPar = i % 2 === 1;
-            
-            if (isPrimeiroDoPar) {
-                grid = document.createElement('div');
-                grid.className = 'qr-grid-irmaos';
-                container.appendChild(grid);
-                
-                const qrItemDuplo = document.createElement('div');
-                qrItemDuplo.className = 'qr-item-duplo';
-                
-                const leito1Formatado = getNomeLeitoFormatado(hospitalId, i);
-                const url1 = `${QR_API.BASE_URL}/?h=${hospitalId}&l=${i}`;
-                const qrUrl1 = `${QR_API.API_URL}?size=${QR_API.SIZE}x${QR_API.SIZE}&data=${encodeURIComponent(url1)}`;
-                
-                const leito2 = i + 1;
-                const leito2Formatado = getNomeLeitoFormatado(hospitalId, leito2);
-                const url2 = `${QR_API.BASE_URL}/?h=${hospitalId}&l=${leito2}`;
-                const qrUrl2 = `${QR_API.API_URL}?size=${QR_API.SIZE}x${QR_API.SIZE}&data=${encodeURIComponent(url2)}`;
-                
-                qrItemDuplo.innerHTML = `
-                    <div class="qr-item-irmao">
-                        <div class="qr-label">
-                            <strong>${hospital.nome}</strong><br>
-                            ${leito1Formatado}
-                        </div>
-                        <img class="qr-img" src="${qrUrl1}" alt="QR ${hospital.nome} - ${leito1Formatado}">
-                    </div>
-                    <div class="qr-item-irmao">
-                        <div class="qr-label">
-                            <strong>${hospital.nome}</strong><br>
-                            ${leito2Formatado}
-                        </div>
-                        <img class="qr-img" src="${qrUrl2}" alt="QR ${hospital.nome} - ${leito2Formatado}">
-                    </div>
-                `;
-                
-                grid.appendChild(qrItemDuplo);
-                i += 2;
-                continue;
-            }
-        }
-        
-        if (!grid || grid.classList.contains('qr-grid-irmaos')) {
-            grid = document.createElement('div');
-            grid.className = 'qr-grid';
-            container.appendChild(grid);
-        }
-        
-        const qrItem = document.createElement('div');
-        qrItem.className = 'qr-item';
-        qrItem.innerHTML = `
-            <div class="qr-label">
-                <strong>${hospital.nome}</strong><br>
-                ${leitoFormatado}
-            </div>
-            <img class="qr-img" src="${qrUrl}" alt="QR ${hospital.nome} - ${leitoFormatado}">
-        `;
-        grid.appendChild(qrItem);
-        
-        i++;
-    }
-}
-
-// =================== GERAR TODOS OS QR CODES ===================
-window.generateAllQRCodesOptimized = async function() {
-    if (isGenerating) {
-        console.log('Já está gerando QR Codes...');
-        return;
-    }
-    
-    isGenerating = true;
-    generationProgress = 0;
-    totalQRCodes = 293;
-    
-    const container = document.getElementById('qrCodesContainer');
-    const progressContainer = document.getElementById('progressContainer');
-    const progressFill = document.getElementById('progressFill');
-    const progressText = document.getElementById('progressText');
-    const progressCount = document.getElementById('progressCount');
-    const btnGenerateAll = document.getElementById('btnGenerateAll');
-    
-    container.innerHTML = '';
-    progressContainer.style.display = 'block';
-    btnGenerateAll.disabled = true;
-    btnGenerateAll.textContent = 'Gerando...';
-    
-    const hospitaisOrdenados = ['H5', 'H2', 'H1', 'H4', 'H6', 'H3', 'H7', 'H8', 'H9'];
-    
-    for (const hospitalId of hospitaisOrdenados) {
-        const hospital = QR_API.HOSPITAIS[hospitalId];
-        
-        const hospitalHeader = document.createElement('h3');
-        hospitalHeader.textContent = `${hospital.nome} (${hospital.leitos} leitos)`;
-        container.appendChild(hospitalHeader);
-        
-        if ((hospitalId === 'H2' || hospitalId === 'H4') && hospital.tipo === 'tipos_fixos') {
-            await gerarQRCodesComIrmaosAsync(hospitalId, hospital, container, progressFill, progressText, progressCount);
-        } else {
-            await gerarQRCodesSimplesAsync(hospitalId, hospital, container, progressFill, progressText, progressCount);
-        }
-    }
-    
-    progressText.textContent = 'Concluído!';
-    progressCount.textContent = `${totalQRCodes}/${totalQRCodes}`;
-    progressFill.style.width = '100%';
-    
-    setTimeout(() => {
-        progressContainer.style.display = 'none';
-        btnGenerateAll.disabled = false;
-        btnGenerateAll.textContent = 'Gerar Todos (293 QR Codes)';
-        isGenerating = false;
-    }, 1500);
-};
-
-async function gerarQRCodesSimplesAsync(hospitalId, hospital, container, progressFill, progressText, progressCount) {
-    const grid = document.createElement('div');
-    grid.className = 'qr-grid';
-    
-    for (let i = 1; i <= hospital.leitos; i++) {
-        const leitoFormatado = getNomeLeitoFormatado(hospitalId, i);
-        const url = `${QR_API.BASE_URL}/?h=${hospitalId}&l=${i}`;
-        const qrUrl = `${QR_API.API_URL}?size=${QR_API.SIZE}x${QR_API.SIZE}&data=${encodeURIComponent(url)}`;
-        
-        const qrItem = document.createElement('div');
-        qrItem.className = 'qr-item';
-        qrItem.innerHTML = `
-            <div class="qr-label">
-                <strong>${hospital.nome}</strong><br>
-                ${leitoFormatado}
-            </div>
-            <img class="qr-img" src="${qrUrl}" alt="QR ${hospital.nome} - ${leitoFormatado}">
-        `;
-        grid.appendChild(qrItem);
-        
-        generationProgress++;
-        const percentage = Math.round((generationProgress / totalQRCodes) * 100);
-        progressFill.style.width = `${percentage}%`;
-        progressText.textContent = `Gerando ${hospital.nome}...`;
-        progressCount.textContent = `${generationProgress}/${totalQRCodes}`;
-        
-        if (i % 10 === 0) {
-            await new Promise(resolve => setTimeout(resolve, QR_API.DELAY));
-        }
-    }
-    
-    container.appendChild(grid);
-}
-
-async function gerarQRCodesComIrmaosAsync(hospitalId, hospital, container, progressFill, progressText, progressCount) {
-    let grid = null;
-    let i = 1;
-    
-    while (i <= hospital.leitos) {
-        const leitoFormatado = getNomeLeitoFormatado(hospitalId, i);
-        const url = `${QR_API.BASE_URL}/?h=${hospitalId}&l=${i}`;
-        const qrUrl = `${QR_API.API_URL}?size=${QR_API.SIZE}x${QR_API.SIZE}&data=${encodeURIComponent(url)}`;
-        
-        if (isParDeIrmaos(hospitalId, i)) {
-            const isPrimeiroDoPar = i % 2 === 1;
-            
-            if (isPrimeiroDoPar) {
-                grid = document.createElement('div');
-                grid.className = 'qr-grid-irmaos';
-                container.appendChild(grid);
-                
-                const qrItemDuplo = document.createElement('div');
-                qrItemDuplo.className = 'qr-item-duplo';
-                
-                const leito1Formatado = getNomeLeitoFormatado(hospitalId, i);
-                const url1 = `${QR_API.BASE_URL}/?h=${hospitalId}&l=${i}`;
-                const qrUrl1 = `${QR_API.API_URL}?size=${QR_API.SIZE}x${QR_API.SIZE}&data=${encodeURIComponent(url1)}`;
-                
-                const leito2 = i + 1;
-                const leito2Formatado = getNomeLeitoFormatado(hospitalId, leito2);
-                const url2 = `${QR_API.BASE_URL}/?h=${hospitalId}&l=${leito2}`;
-                const qrUrl2 = `${QR_API.API_URL}?size=${QR_API.SIZE}x${QR_API.SIZE}&data=${encodeURIComponent(url2)}`;
-                
-                qrItemDuplo.innerHTML = `
-                    <div class="qr-item-irmao">
-                        <div class="qr-label">
-                            <strong>${hospital.nome}</strong><br>
-                            ${leito1Formatado}
-                        </div>
-                        <img class="qr-img" src="${qrUrl1}" alt="QR ${hospital.nome} - ${leito1Formatado}">
-                    </div>
-                    <div class="qr-item-irmao">
-                        <div class="qr-label">
-                            <strong>${hospital.nome}</strong><br>
-                            ${leito2Formatado}
-                        </div>
-                        <img class="qr-img" src="${qrUrl2}" alt="QR ${hospital.nome} - ${leito2Formatado}">
-                    </div>
-                `;
-                
-                grid.appendChild(qrItemDuplo);
-                
-                generationProgress += 2;
-                i += 2;
-                
-                const percentage = Math.round((generationProgress / totalQRCodes) * 100);
-                progressFill.style.width = `${percentage}%`;
-                progressText.textContent = `Gerando ${hospital.nome}...`;
-                progressCount.textContent = `${generationProgress}/${totalQRCodes}`;
-                
-                continue;
-            }
-        }
-        
-        if (!grid || grid.classList.contains('qr-grid-irmaos')) {
-            grid = document.createElement('div');
-            grid.className = 'qr-grid';
-            container.appendChild(grid);
-        }
-        
-        const qrItem = document.createElement('div');
-        qrItem.className = 'qr-item';
-        qrItem.innerHTML = `
-            <div class="qr-label">
-                <strong>${hospital.nome}</strong><br>
-                ${leitoFormatado}
-            </div>
-            <img class="qr-img" src="${qrUrl}" alt="QR ${hospital.nome} - ${leitoFormatado}">
-        `;
-        grid.appendChild(qrItem);
-        
-        generationProgress++;
-        
-        const percentage = Math.round((generationProgress / totalQRCodes) * 100);
-        progressFill.style.width = `${percentage}%`;
-        progressText.textContent = `Gerando ${hospital.nome}...`;
-        progressCount.textContent = `${generationProgress}/${totalQRCodes}`;
-        
-        if (i % 10 === 0) {
-            await new Promise(resolve => setTimeout(resolve, QR_API.DELAY));
-        }
-        
-        i++;
-    }
-}
-
-// =================== SELEÇÃO PERSONALIZADA - CORRIGIDA V6.2 ===================
+// =================== CARREGAR LEITOS PARA SELEÇÃO ===================
 window.carregarLeitosParaSelecao = function() {
     const hospitalId = document.getElementById('selecaoHospitalSelect').value;
     const container = document.getElementById('leitosSelecaoContainer');
@@ -530,211 +212,173 @@ window.carregarLeitosParaSelecao = function() {
     
     container.style.display = 'block';
     leitosSelecionados = [];
+    atualizarContadorSelecao();
     
-    const hospital = QR_API.HOSPITAIS[hospitalId];
-    
-    console.log('=== DEBUG SELEÇÃO V6.2 ===');
-    console.log('Hospital:', hospitalId, hospital.nome);
-    console.log('window.hospitalData:', !!window.hospitalData);
-    
-    // VERIFICAÇÃO CORRIGIDA
-    if (!window.hospitalData || typeof window.hospitalData !== 'object') {
-        console.error('❌ window.hospitalData não existe ou não é objeto');
-        tabela.innerHTML = `
-            <div style="padding: 40px; text-align: center; color: #9ca3af;">
-                <p style="font-size: 16px; margin-bottom: 10px;">⚠️ Dados ainda não carregados</p>
-                <p style="font-size: 14px;">Por favor, aguarde o carregamento completo da página.</p>
-                <p style="font-size: 14px; margin-top: 10px;">Recarregue a página (F5) se o problema persistir.</p>
-            </div>
-        `;
+    const hospitalData = window.hospitalData?.[hospitalId];
+    if (!hospitalData || !hospitalData.leitos) {
+        tabela.innerHTML = '<p style="text-align: center; padding: 20px; color: #6b7280;">Carregando dados...</p>';
         return;
     }
     
-    const dadosHospital = window.hospitalData[hospitalId];
+    const leitosOcupados = hospitalData.leitos.filter(l => 
+        l.status === 'Ocupado' || l.status === 'Em uso' || l.status === 'ocupado'
+    );
     
-    if (!dadosHospital) {
-        console.error(`❌ Dados do hospital ${hospitalId} não encontrados`);
-        tabela.innerHTML = `
-            <div style="padding: 40px; text-align: center; color: #9ca3af;">
-                <p style="font-size: 16px; margin-bottom: 10px;">⚠️ Dados do hospital não encontrados</p>
-                <p style="font-size: 14px;">Hospital: ${hospital.nome}</p>
-            </div>
-        `;
+    if (leitosOcupados.length === 0) {
+        tabela.innerHTML = '<p style="text-align: center; padding: 20px; color: #6b7280;">Nenhum leito ocupado neste hospital.</p>';
         return;
     }
     
-    if (!dadosHospital.leitos || !Array.isArray(dadosHospital.leitos)) {
-        console.error('❌ dadosHospital.leitos não é array');
-        tabela.innerHTML = `
-            <div style="padding: 40px; text-align: center; color: #9ca3af;">
-                <p style="font-size: 16px; margin-bottom: 10px;">⚠️ Estrutura de dados inválida</p>
-            </div>
-        `;
-        return;
-    }
-    
-    console.log(`✅ ${dadosHospital.leitos.length} leitos encontrados`);
-    
-    // Filtrar leitos ocupados
-    const leitosOcupados = [];
-    dadosHospital.leitos.forEach((leito) => {
-        const statusNormalizado = (leito.status || '').toLowerCase().trim();
-        if (statusNormalizado === 'ocupado') {
-            const numeroLeito = parseInt(leito.leito);
-            leitosOcupados.push(numeroLeito);
-            console.log(`✅ Leito ${numeroLeito} ocupado`);
-        }
-    });
-    
-    console.log(`Total ocupados: ${leitosOcupados.length}`);
-    console.log('==========================');
-    
-    // Criar tabela
-    criarTabelaComDados(hospitalId, hospital, leitosOcupados, tabela);
-};
-
-function criarTabelaComDados(hospitalId, hospital, leitosOcupados, tabela) {
     let html = `
         <table class="tabela-selecao">
             <thead>
                 <tr>
-                    <th style="width: 80px;">Selecionar</th>
-                    <th style="width: 80px;">Nº Leito</th>
-                    <th>Nome/Tipo</th>
-                    <th style="width: 100px;">Status</th>
+                    <th style="width: 50px;">
+                        <input type="checkbox" id="checkTodos" onchange="toggleTodosLeitos(this.checked)">
+                    </th>
+                    <th>Leito</th>
+                    <th>Matrícula</th>
+                    <th>Iniciais</th>
+                    <th>Tipo</th>
+                    <th>Internado</th>
                 </tr>
             </thead>
             <tbody>
     `;
     
-    for (let i = 1; i <= hospital.leitos; i++) {
-        const leitoFormatado = getNomeLeitoFormatado(hospitalId, i);
-        const isOcupado = leitosOcupados.includes(i);
-        const statusClass = isOcupado ? 'status-ocupado' : 'status-vago';
-        const statusText = isOcupado ? 'Ocupado' : 'Vago';
+    leitosOcupados.forEach(leito => {
+        const identificacao = getNomeLeitoFormatado(hospitalId, leito.leito);
+        const matricula = formatarMatricula(leito.matricula);
+        const iniciais = leito.nome || '—';
+        const tipo = leito.categoriaEscolhida || leito.tipo || '—';
+        const tempoInternacao = leito.admAt ? calcularTempoInternacao(leito.admAt) : '—';
         
         html += `
-            <tr class="${statusClass}">
-                <td style="text-align: center;">
-                    <input type="checkbox" 
-                           id="leito_${i}" 
-                           data-leito="${i}"
-                           onchange="atualizarSelecaoLeitos()">
+            <tr class="linha-leito" data-leito-id="${leito.leito}">
+                <td>
+                    <input type="checkbox" class="checkbox-leito" 
+                           data-hospital="${hospitalId}"
+                           data-leito="${leito.leito}"
+                           data-identificacao="${identificacao}"
+                           data-matricula="${leito.matricula || ''}"
+                           data-iniciais="${iniciais}"
+                           data-tipo="${tipo}"
+                           data-admissao="${leito.admAt || ''}"
+                           onchange="toggleLeitoSelecao(this)">
                 </td>
-                <td style="text-align: center;"><strong>${i}</strong></td>
-                <td>${leitoFormatado}</td>
-                <td style="text-align: center;">
-                    <span class="badge-status ${statusClass}">${statusText}</span>
-                </td>
+                <td><strong>${identificacao}</strong></td>
+                <td>${matricula}</td>
+                <td>${iniciais}</td>
+                <td>${tipo}</td>
+                <td>${tempoInternacao}</td>
             </tr>
         `;
-    }
+    });
     
-    html += `
-            </tbody>
-        </table>
-    `;
-    
+    html += '</tbody></table>';
     tabela.innerHTML = html;
-    atualizarSelecaoLeitos();
-}
-
-window.selecionarTodosLeitos = function() {
-    const checkboxes = document.querySelectorAll('#tabelaLeitosSelecao input[type="checkbox"]');
-    checkboxes.forEach(cb => cb.checked = true);
-    atualizarSelecaoLeitos();
 };
 
-window.selecionarOcupados = function() {
-    const checkboxes = document.querySelectorAll('#tabelaLeitosSelecao input[type="checkbox"]');
-    checkboxes.forEach(cb => {
-        const row = cb.closest('tr');
-        cb.checked = row.classList.contains('status-ocupado');
+// =================== TOGGLE SELEÇÃO DE LEITO ===================
+window.toggleLeitoSelecao = function(checkbox) {
+    const leitoData = {
+        hospital: checkbox.dataset.hospital,
+        leito: parseInt(checkbox.dataset.leito),
+        identificacao: checkbox.dataset.identificacao,
+        matricula: checkbox.dataset.matricula,
+        iniciais: checkbox.dataset.iniciais,
+        tipo: checkbox.dataset.tipo,
+        admissao: checkbox.dataset.admissao
+    };
+    
+    if (checkbox.checked) {
+        leitosSelecionados.push(leitoData);
+    } else {
+        leitosSelecionados = leitosSelecionados.filter(l => 
+            !(l.hospital === leitoData.hospital && l.leito === leitoData.leito)
+        );
+    }
+    
+    atualizarContadorSelecao();
+};
+
+// =================== TOGGLE TODOS OS LEITOS ===================
+window.toggleTodosLeitos = function(checked) {
+    document.querySelectorAll('.checkbox-leito').forEach(cb => {
+        cb.checked = checked;
+        toggleLeitoSelecao(cb);
     });
-    atualizarSelecaoLeitos();
+};
+
+window.selecionarTodosLeitos = function() {
+    document.getElementById('checkTodos').checked = true;
+    toggleTodosLeitos(true);
 };
 
 window.limparSelecaoLeitos = function() {
-    const checkboxes = document.querySelectorAll('#tabelaLeitosSelecao input[type="checkbox"]');
-    checkboxes.forEach(cb => cb.checked = false);
-    atualizarSelecaoLeitos();
+    document.getElementById('checkTodos').checked = false;
+    toggleTodosLeitos(false);
 };
 
-window.atualizarSelecaoLeitos = function() {
-    const checkboxes = document.querySelectorAll('#tabelaLeitosSelecao input[type="checkbox"]:checked');
-    leitosSelecionados = Array.from(checkboxes).map(cb => parseInt(cb.dataset.leito));
-    
+// =================== ATUALIZAR CONTADOR ===================
+function atualizarContadorSelecao() {
     const contador = document.getElementById('contadorSelecionados');
-    const btnGerar = document.getElementById('btnGerarSelecionados');
+    const btnGerar = document.getElementById('btnGerarSelecao');
     
-    contador.textContent = leitosSelecionados.length;
-    btnGerar.disabled = leitosSelecionados.length === 0;
-};
+    if (contador) contador.textContent = leitosSelecionados.length;
+    if (btnGerar) btnGerar.disabled = leitosSelecionados.length === 0;
+}
 
-// =================== GERAR QR CODES SELECIONADOS - ABRE NOVA JANELA ===================
-window.gerarQRCodesSelecionados = function() {
+// =================== GERAR QR CODES SELECIONADOS ===================
+window.gerarQRCodesSelecionados = async function() {
     if (leitosSelecionados.length === 0) {
         alert('Selecione pelo menos um leito!');
         return;
     }
     
-    const hospitalId = document.getElementById('selecaoHospitalSelect').value;
-    const hospital = QR_API.HOSPITAIS[hospitalId];
+    console.log('Gerando impressão de', leitosSelecionados.length, 'leitos selecionados...');
     
-    console.log(`Gerando impressão de ${leitosSelecionados.length} leitos...`);
-    
-    // Buscar dados completos dos leitos selecionados
     const leitosCompletos = [];
-    const hospitalData = window.hospitalData?.[hospitalId];
     
-    if (!hospitalData || !hospitalData.leitos) {
-        alert('Erro: Dados do hospital não encontrados!');
-        return;
-    }
-    
-    leitosSelecionados.forEach(numeroLeito => {
-        const leitoData = hospitalData.leitos.find(l => l.leito === numeroLeito);
-        if (leitoData) {
-            leitosCompletos.push({
-                ...leitoData,
-                hospitalId: hospitalId,
-                hospitalNome: hospital.nome
-            });
+    for (const leitoInfo of leitosSelecionados) {
+        const hospitalData = window.hospitalData?.[leitoInfo.hospital];
+        if (hospitalData) {
+            const leitoCompleto = hospitalData.leitos.find(l => l.leito === leitoInfo.leito);
+            if (leitoCompleto) {
+                leitosCompletos.push({
+                    ...leitoCompleto,
+                    hospitalId: leitoInfo.hospital,
+                    hospitalNome: QR_API.HOSPITAIS[leitoInfo.hospital].nome,
+                    identificacao: leitoInfo.identificacao
+                });
+            }
         }
-    });
-    
-    if (leitosCompletos.length === 0) {
-        alert('Erro: Nenhum dado de leito encontrado!');
-        return;
     }
     
-    // Abrir janela de impressão
-    abrirJanelaImpressao(leitosCompletos);
+    abrirPaginaImpressao(leitosCompletos);
 };
 
-// =================== ABRIR JANELA DE IMPRESSÃO PERSONALIZADA ===================
-function abrirJanelaImpressao(leitos) {
-    console.log(`Abrindo janela de impressão com ${leitos.length} leitos...`);
+// =================== ABRIR PÁGINA DE IMPRESSÃO PERSONALIZADA ===================
+function abrirPaginaImpressao(leitos) {
+    console.log('Abrindo página de impressão com', leitos.length, 'leitos...');
     
     const htmlContent = gerarHTMLImpressao(leitos);
-    const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+    const blob = new Blob([htmlContent], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
     
-    const janela = window.open(url, '_blank', 'width=800,height=600');
+    const janelaImpressao = window.open(url, '_blank');
     
-    if (!janela) {
-        alert('⚠️ Bloqueador de pop-ups detectado!\n\nPor favor, permita pop-ups para este site e tente novamente.');
+    if (!janelaImpressao) {
+        alert('Bloqueador de pop-ups detectado! Por favor, permita pop-ups para este site.');
         console.error('Não foi possível abrir a janela de impressão');
-        URL.revokeObjectURL(url);
         return;
     }
     
-    // Limpar URL após 5 segundos
     setTimeout(() => {
         URL.revokeObjectURL(url);
     }, 5000);
     
-    console.log('✅ Janela de impressão aberta com sucesso!');
+    console.log('Página de impressão aberta com sucesso!');
 }
 
 // =================== GERAR HTML DA IMPRESSÃO ===================
@@ -744,75 +388,70 @@ function gerarHTMLImpressao(leitos) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Impressão QR Codes - ${leitos.length} Leitos</title>
+    <title>Impressão QR Code - ${leitos.length} Leitos</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
         }
 
         body {
-            font-family: 'Poppins', sans-serif;
             background: white;
+            padding: 15mm;
             color: #000;
         }
 
         .controles {
             background: #f3f4f6;
-            padding: 15px 20px;
-            border-bottom: 2px solid #d1d5db;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-        }
-
-        .controles h1 {
-            font-size: 18px;
-            font-weight: 700;
-            color: #0676bb;
-        }
-
-        .controles p {
-            color: #6b7280;
-            font-size: 14px;
-            margin-top: 4px;
+            border: 1px solid #d1d5db;
         }
 
         .btn-imprimir {
-            background: #0676bb;
+            background: #000;
             color: white;
             border: none;
-            padding: 10px 24px;
+            padding: 10px 25px;
             border-radius: 6px;
             font-weight: 700;
             font-size: 14px;
             cursor: pointer;
-            transition: all 0.2s;
         }
 
         .btn-imprimir:hover {
-            background: #172945;
+            background: #333;
         }
 
-        .pagina-impressao {
-            width: 145mm;
-            height: 95mm;
-            margin: 15mm auto;
-            padding: 8mm;
-            border: 2px solid #000;
-            border-radius: 3mm;
+        .impressao-container {
             background: white;
-            page-break-after: always;
-            page-break-inside: avoid;
+        }
+
+        .leito-item {
             display: grid;
-            grid-template-columns: 55mm 1fr;
-            gap: 8mm;
+            grid-template-columns: 160px 1fr;
+            gap: 15px;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 2px solid #000;
+            border-radius: 6px;
+            page-break-inside: avoid;
+            min-height: 160px;
             align-items: center;
         }
 
-        .pagina-impressao:last-child {
+        .leito-item:nth-child(4n) {
+            page-break-after: always;
+        }
+
+        .leito-item:last-child {
             page-break-after: auto;
         }
 
@@ -821,20 +460,22 @@ function gerarHTMLImpressao(leitos) {
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 4mm;
+            padding: 8px;
+            border: 2px solid #000;
+            border-radius: 4px;
+            background: white;
         }
 
         .qr-code {
-            width: 50mm;
-            height: 50mm;
-            border: 1px solid #ddd;
-            border-radius: 2mm;
+            width: 140px;
+            height: 140px;
+            margin-bottom: 5px;
         }
 
         .qr-label {
-            font-size: 10px;
-            color: #666;
-            font-weight: 600;
+            font-size: 9px;
+            color: #000;
+            font-weight: 700;
             text-transform: uppercase;
             text-align: center;
         }
@@ -842,14 +483,15 @@ function gerarHTMLImpressao(leitos) {
         .dados-section {
             display: flex;
             flex-direction: column;
-            gap: 4mm;
+            gap: 8px;
         }
 
         .dados-header {
-            background: #0676bb;
+            background: #000;
             color: white;
-            padding: 4mm;
-            border-radius: 2mm;
+            padding: 8px 10px;
+            border-radius: 4px;
+            margin-bottom: 4px;
         }
 
         .dados-header h2 {
@@ -860,24 +502,51 @@ function gerarHTMLImpressao(leitos) {
 
         .dados-header p {
             font-size: 10px;
-            opacity: 0.9;
         }
 
-        .dados-grid {
+        .dados-principais {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 2mm;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+            margin-bottom: 6px;
+        }
+
+        .dado-destaque {
+            background: white;
+            padding: 6px;
+            border-radius: 4px;
+            border: 2px solid #000;
+        }
+
+        .dado-destaque .label {
+            font-size: 8px;
+            color: #000;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+        }
+
+        .dado-destaque .valor {
+            font-size: 13px;
+            color: #000;
+            font-weight: 800;
+        }
+
+        .dados-secundarios {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 4px;
         }
 
         .dado-item {
             background: #f9fafb;
-            padding: 2mm;
-            border-radius: 2mm;
-            border: 1px solid #e5e7eb;
+            padding: 4px;
+            border-radius: 3px;
+            border: 1px solid #d1d5db;
         }
 
         .dado-item .label {
-            font-size: 8px;
+            font-size: 7px;
             color: #6b7280;
             font-weight: 600;
             text-transform: uppercase;
@@ -885,76 +554,68 @@ function gerarHTMLImpressao(leitos) {
         }
 
         .dado-item .valor {
-            font-size: 11px;
+            font-size: 10px;
             color: #000;
             font-weight: 700;
         }
 
         .concessoes-section {
-            background: #f0f9ff;
-            padding: 2mm;
-            border-radius: 2mm;
-            border: 1px solid #0676bb;
+            margin-top: 6px;
+            padding: 6px;
+            background: #f9fafb;
+            border-radius: 4px;
+            border: 1px solid #d1d5db;
         }
 
         .concessoes-section .titulo {
             font-size: 8px;
-            color: #0676bb;
+            color: #000;
             font-weight: 700;
             text-transform: uppercase;
-            margin-bottom: 2mm;
+            margin-bottom: 4px;
         }
 
         .concessoes-chips {
             display: flex;
             flex-wrap: wrap;
-            gap: 1mm;
+            gap: 3px;
         }
 
         .chip {
             background: white;
-            border: 1px solid #0676bb;
-            color: #0676bb;
-            padding: 1mm 2mm;
-            border-radius: 2mm;
-            font-size: 7px;
-            font-weight: 600;
+            border: 1px solid #000;
+            color: #000;
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-size: 8px;
+            font-weight: 700;
         }
 
         @media print {
             body {
-                margin: 0;
-                padding: 0;
+                padding: 10mm;
             }
 
             .controles {
-                display: none !important;
+                display: none;
             }
 
             @page {
-                size: 145mm 95mm;
-                margin: 0;
+                size: A4 portrait;
+                margin: 10mm;
             }
 
-            .pagina-impressao {
-                width: 145mm;
-                height: 95mm;
-                margin: 0;
-                padding: 8mm;
-                border: 2px solid #000;
+            .leito-item {
+                margin-bottom: 8mm;
+            }
+
+            .leito-item:nth-child(4n) {
                 page-break-after: always;
-                page-break-inside: avoid;
+                margin-bottom: 0;
             }
 
-            .pagina-impressao:last-child {
+            .leito-item:last-child {
                 page-break-after: auto;
-            }
-        }
-
-        @media screen {
-            body {
-                background: #e5e7eb;
-                padding: 20px 0;
             }
         }
     </style>
@@ -962,19 +623,20 @@ function gerarHTMLImpressao(leitos) {
 <body>
     <div class="controles">
         <div>
-            <h1>Impressão de QR Codes</h1>
-            <p><strong>${leitos.length} leitos</strong> selecionados</p>
+            <h1 style="font-size: 18px; margin-bottom: 5px;">Impressão de QR Codes</h1>
+            <p style="color: #6b7280; font-size: 13px;">
+                <strong>${leitos.length} leitos</strong> selecionados
+            </p>
         </div>
-        <button class="btn-imprimir" onclick="window.print()">🖨️ Imprimir</button>
+        <button class="btn-imprimir" onclick="window.print()">Imprimir</button>
     </div>
-`;
 
-    // Gerar uma página para cada leito
-    leitos.forEach((leito, index) => {
+    <div class="impressao-container">`;
+    
+    leitos.forEach((leito) => {
         const qrURL = `${QR_API.BASE_URL}/?h=${leito.hospitalId}&l=${leito.leito}`;
         const qrImgURL = `${QR_API.API_URL}?size=300x300&data=${encodeURIComponent(qrURL)}`;
         
-        const leitoFormatado = getNomeLeitoFormatado(leito.hospitalId, leito.leito);
         const matricula = formatarMatricula(leito.matricula);
         const iniciais = leito.nome || '—';
         const idade = leito.idade ? `${leito.idade} anos` : '—';
@@ -984,75 +646,90 @@ function gerarHTMLImpressao(leitos) {
         const regiao = leito.regiao || '—';
         const isolamento = formatarIsolamento(leito.isolamento);
         const prevAlta = leito.prevAlta || '—';
+        const diretivas = leito.diretivas || 'Não se aplica';
         const tempoInternacao = leito.admAt ? calcularTempoInternacao(leito.admAt) : '—';
         
         const concessoes = Array.isArray(leito.concessoes) ? leito.concessoes : [];
         const concessoesHTML = concessoes.length > 0 
             ? concessoes.map(c => `<span class="chip">${c}</span>`).join('')
-            : '<span style="color: #9ca3af; font-size: 8px;">Nenhuma</span>';
+            : '<span style="color: #6b7280; font-size: 9px;">Nenhuma</span>';
         
         html += `
-    <div class="pagina-impressao">
-        <div class="qr-section">
-            <img src="${qrImgURL}" alt="QR Code" class="qr-code">
-            <div class="qr-label">Escaneie aqui</div>
-        </div>
-
-        <div class="dados-section">
-            <div class="dados-header">
-                <h2>${leito.hospitalNome}</h2>
-                <p>${leitoFormatado} • ${tempoInternacao} internado</p>
+        <div class="leito-item">
+            <div class="qr-section">
+                <img src="${qrImgURL}" alt="QR Code" class="qr-code">
+                <div class="qr-label">Escaneie aqui</div>
             </div>
 
-            <div class="dados-grid">
-                <div class="dado-item">
-                    <div class="label">Matrícula</div>
-                    <div class="valor">${matricula}</div>
+            <div class="dados-section">
+                <div class="dados-header">
+                    <h2>${leito.hospitalNome}</h2>
+                    <p>${leito.identificacao} • Internado há ${tempoInternacao}</p>
                 </div>
-                <div class="dado-item">
-                    <div class="label">Iniciais</div>
-                    <div class="valor">${iniciais}</div>
-                </div>
-                <div class="dado-item">
-                    <div class="label">Idade</div>
-                    <div class="valor">${idade}</div>
-                </div>
-                <div class="dado-item">
-                    <div class="label">Gênero</div>
-                    <div class="valor">${genero}</div>
-                </div>
-                <div class="dado-item">
-                    <div class="label">PPS</div>
-                    <div class="valor">${pps}</div>
-                </div>
-                <div class="dado-item">
-                    <div class="label">SPICT-BR</div>
-                    <div class="valor">${spict}</div>
-                </div>
-                <div class="dado-item">
-                    <div class="label">Região</div>
-                    <div class="valor">${regiao}</div>
-                </div>
-                <div class="dado-item">
-                    <div class="label">Isolamento</div>
-                    <div class="valor">${isolamento}</div>
-                </div>
-            </div>
 
-            <div class="concessoes-section">
-                <div class="titulo">Concessões Previstas na Alta</div>
-                <div class="concessoes-chips">${concessoesHTML}</div>
+                <div class="dados-principais">
+                    <div class="dado-destaque">
+                        <div class="label">Leito</div>
+                        <div class="valor">${leito.identificacao}</div>
+                    </div>
+                    <div class="dado-destaque">
+                        <div class="label">Matrícula</div>
+                        <div class="valor">${matricula}</div>
+                    </div>
+                    <div class="dado-destaque">
+                        <div class="label">Iniciais</div>
+                        <div class="valor">${iniciais}</div>
+                    </div>
+                </div>
+
+                <div class="dados-secundarios">
+                    <div class="dado-item">
+                        <div class="label">Idade</div>
+                        <div class="valor">${idade}</div>
+                    </div>
+                    <div class="dado-item">
+                        <div class="label">Gênero</div>
+                        <div class="valor">${genero}</div>
+                    </div>
+                    <div class="dado-item">
+                        <div class="label">PPS</div>
+                        <div class="valor">${pps}</div>
+                    </div>
+                    <div class="dado-item">
+                        <div class="label">SPICT-BR</div>
+                        <div class="valor">${spict}</div>
+                    </div>
+                    <div class="dado-item">
+                        <div class="label">Região</div>
+                        <div class="valor">${regiao}</div>
+                    </div>
+                    <div class="dado-item">
+                        <div class="label">Isolamento</div>
+                        <div class="valor">${isolamento}</div>
+                    </div>
+                    <div class="dado-item">
+                        <div class="label">Prev. Alta</div>
+                        <div class="valor">${prevAlta}</div>
+                    </div>
+                    <div class="dado-item">
+                        <div class="label">Diretivas</div>
+                        <div class="valor">${diretivas}</div>
+                    </div>
+                </div>
+
+                <div class="concessoes-section">
+                    <div class="titulo">Concessões Previstas na Alta</div>
+                    <div class="concessoes-chips">${concessoesHTML}</div>
+                </div>
             </div>
-        </div>
-    </div>
-`;
+        </div>`;
     });
     
     html += `
+    </div>
     <script>
         console.log('Página de impressão carregada');
         console.log('${leitos.length} leitos prontos para impressão');
-        console.log('Tamanho: 145mm x 95mm (1 por página)');
     </script>
 </body>
 </html>`;
@@ -1072,12 +749,12 @@ function formatarMatricula(matricula) {
 function formatarIsolamento(isolamento) {
     if (!isolamento || isolamento === 'Não Isolamento') return 'Não Isol';
     if (isolamento === 'Isolamento de Contato') return 'Contato';
-    if (isolamento === 'Isolamento Respiratório') return 'Respirat';
+    if (isolamento === 'Isolamento Respiratório') return 'Respiratório';
     return isolamento;
 }
 
 function calcularTempoInternacao(admissao) {
-    if (!admissao) return '—';
+    if (!admissao) return '';
     
     try {
         let dataAdmissao;
@@ -1098,18 +775,274 @@ function calcularTempoInternacao(admissao) {
         
         if (diffDays === 0) return `${diffHours}h`;
         if (diffDays === 1) return `1d ${diffHours}h`;
-        return `${diffDays}d`;
+        return `${diffDays}d ${diffHours}h`;
     } catch (error) {
         return '—';
     }
 }
 
-// =================== ESTILOS CSS ===================
-function injectQRStyles() {
-    if (document.getElementById('qrStyles')) return;
+function formatarDataHora(dataISO) {
+    if (!dataISO) return '—';
+    try {
+        const data = new Date(dataISO);
+        return data.toLocaleString('pt-BR', {
+            day: '2-digit',
+            month: '2-digit', 
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    } catch (error) {
+        return '—';
+    }
+}
+
+// =================== VERIFICAR SE É LEITO IRMÃO ===================
+function isLeitoIrmao(hospitalId, numeroLeito) {
+    return LEITOS_IRMAOS[hospitalId] && LEITOS_IRMAOS[hospitalId][numeroLeito];
+}
+
+function getLeitoIrmao(hospitalId, numeroLeito) {
+    return LEITOS_IRMAOS[hospitalId]?.[numeroLeito];
+}
+
+// =================== GERAR QR CODES DE UM HOSPITAL ===================
+window.generateQRCodesSimple = function() {
+    const hospitalId = document.getElementById('qrHospitalSelect').value;
+    const hospital = QR_API.HOSPITAIS[hospitalId];
+    const container = document.getElementById('qrCodesContainer');
     
+    document.getElementById('progressContainer').style.display = 'none';
+    container.innerHTML = `<h3>${hospital.nome}</h3>`;
+    
+    const leitosIrmaos = LEITOS_IRMAOS[hospitalId] || {};
+    const leitosProcessados = new Set();
+    
+    // Primeiro gerar QR codes não-irmãos
+    container.innerHTML += '<div class="qr-grid" id="grid-normais">';
+    const gridNormais = container.querySelector('#grid-normais');
+    
+    for (let i = 1; i <= hospital.leitos; i++) {
+        if (!leitosIrmaos[i] && !leitosProcessados.has(i)) {
+            const qrURL = `${QR_API.BASE_URL}/?h=${hospitalId}&l=${i}`;
+            const imgURL = `${QR_API.API_URL}?size=${QR_API.SIZE}x${QR_API.SIZE}&data=${encodeURIComponent(qrURL)}`;
+            const nomeLeitoFormatado = getNomeLeitoFormatado(hospitalId, i);
+            
+            gridNormais.innerHTML += `
+                <div class="qr-item">
+                    <div class="qr-label">
+                        <strong>${hospital.nome}</strong><br>
+                        ${nomeLeitoFormatado}
+                    </div>
+                    <img src="${imgURL}" alt="QR Code ${nomeLeitoFormatado}" class="qr-img" loading="lazy">
+                </div>
+            `;
+            leitosProcessados.add(i);
+        }
+    }
+    container.innerHTML += '</div>';
+    
+    // Se houver leitos irmãos, gerar em grid separado empilhado
+    if (Object.keys(leitosIrmaos).length > 0) {
+        container.innerHTML += '<div class="qr-grid-irmaos" id="grid-irmaos">';
+        const gridIrmaos = container.querySelector('#grid-irmaos');
+        
+        for (let i = 1; i <= hospital.leitos; i++) {
+            const irmao = leitosIrmaos[i];
+            
+            if (irmao && !leitosProcessados.has(i) && i < irmao) {
+                const qrURL1 = `${QR_API.BASE_URL}/?h=${hospitalId}&l=${i}`;
+                const qrURL2 = `${QR_API.BASE_URL}/?h=${hospitalId}&l=${irmao}`;
+                const imgURL1 = `${QR_API.API_URL}?size=${QR_API.SIZE}x${QR_API.SIZE}&data=${encodeURIComponent(qrURL1)}`;
+                const imgURL2 = `${QR_API.API_URL}?size=${QR_API.SIZE}x${QR_API.SIZE}&data=${encodeURIComponent(qrURL2)}`;
+                
+                const nome1 = getNomeLeitoFormatado(hospitalId, i);
+                const nome2 = getNomeLeitoFormatado(hospitalId, irmao);
+                
+                gridIrmaos.innerHTML += `
+                    <div class="qr-item-duplo">
+                        <div class="qr-item-irmao">
+                            <div class="qr-label">
+                                <strong>${hospital.nome}</strong><br>
+                                ${nome1}
+                            </div>
+                            <img src="${imgURL1}" alt="QR Code ${nome1}" class="qr-img" loading="lazy">
+                        </div>
+                        <div class="qr-item-irmao">
+                            <div class="qr-label">
+                                <strong>${hospital.nome}</strong><br>
+                                ${nome2}
+                            </div>
+                            <img src="${imgURL2}" alt="QR Code ${nome2}" class="qr-img" loading="lazy">
+                        </div>
+                    </div>
+                `;
+                
+                leitosProcessados.add(i);
+                leitosProcessados.add(irmao);
+            }
+        }
+        container.innerHTML += '</div>';
+    }
+    
+    console.log(`${hospital.leitos} QR Codes gerados para ${hospital.nome}`);
+};
+
+// =================== GERAR TODOS OS QR CODES ===================
+window.generateAllQRCodesOptimized = async function() {
+    if (isGenerating) return;
+    
+    isGenerating = true;
+    const btnGenerateAll = document.getElementById('btnGenerateAll');
+    const progressContainer = document.getElementById('progressContainer');
+    const container = document.getElementById('qrCodesContainer');
+    
+    totalQRCodes = Object.values(QR_API.HOSPITAIS).reduce((total, hospital) => total + hospital.leitos, 0);
+    generationProgress = 0;
+    
+    btnGenerateAll.disabled = true;
+    btnGenerateAll.textContent = 'Gerando...';
+    progressContainer.style.display = 'block';
+    container.innerHTML = '';
+    
+    try {
+        const hospitaisOrdenados = [
+            ['H5', QR_API.HOSPITAIS.H5],
+            ['H2', QR_API.HOSPITAIS.H2],
+            ['H1', QR_API.HOSPITAIS.H1],
+            ['H4', QR_API.HOSPITAIS.H4],
+            ['H6', QR_API.HOSPITAIS.H6],
+            ['H3', QR_API.HOSPITAIS.H3],
+            ['H7', QR_API.HOSPITAIS.H7],
+            ['H8', QR_API.HOSPITAIS.H8],
+            ['H9', QR_API.HOSPITAIS.H9]
+        ];
+        
+        for (const [hospitalId, hospital] of hospitaisOrdenados) {
+            await generateHospitalQRCodes(hospitalId, hospital, container);
+        }
+        
+        updateProgress('Concluído!', totalQRCodes, totalQRCodes);
+        setTimeout(() => progressContainer.style.display = 'none', 2000);
+        
+    } catch (error) {
+        console.error('Erro na geração:', error);
+    } finally {
+        isGenerating = false;
+        btnGenerateAll.disabled = false;
+        btnGenerateAll.textContent = 'Gerar Todos (293 QR Codes)';
+    }
+};
+
+async function generateHospitalQRCodes(hospitalId, hospital, container) {
+    container.innerHTML += `<h3 class="hospital-title">${hospital.nome}</h3>`;
+    
+    const leitosIrmaos = LEITOS_IRMAOS[hospitalId] || {};
+    const leitosProcessados = new Set();
+    
+    // Leitos normais
+    container.innerHTML += '<div class="qr-grid" id="grid-' + hospitalId + '-normais">';
+    const gridNormais = container.querySelector('#grid-' + hospitalId + '-normais');
+    
+    for (let i = 1; i <= hospital.leitos; i++) {
+        if (!leitosIrmaos[i] && !leitosProcessados.has(i)) {
+            const qrURL = `${QR_API.BASE_URL}/?h=${hospitalId}&l=${i}`;
+            const imgURL = `${QR_API.API_URL}?size=${QR_API.SIZE}x${QR_API.SIZE}&data=${encodeURIComponent(qrURL)}`;
+            const nomeLeitoFormatado = getNomeLeitoFormatado(hospitalId, i);
+            
+            const qrItem = document.createElement('div');
+            qrItem.className = 'qr-item';
+            qrItem.innerHTML = `
+                <div class="qr-label">
+                    <strong>${hospital.nome}</strong><br>
+                    ${nomeLeitoFormatado}
+                </div>
+                <img src="${imgURL}" alt="QR Code ${nomeLeitoFormatado}" class="qr-img" loading="lazy">
+            `;
+            
+            gridNormais.appendChild(qrItem);
+            leitosProcessados.add(i);
+            generationProgress++;
+            updateProgress(`Gerando ${hospital.nome}...`, generationProgress, totalQRCodes);
+            await sleep(QR_API.DELAY);
+        }
+    }
+    container.innerHTML += '</div>';
+    
+    // Leitos irmãos empilhados
+    if (Object.keys(leitosIrmaos).length > 0) {
+        container.innerHTML += '<div class="qr-grid-irmaos" id="grid-' + hospitalId + '-irmaos">';
+        const gridIrmaos = container.querySelector('#grid-' + hospitalId + '-irmaos');
+        
+        for (let i = 1; i <= hospital.leitos; i++) {
+            const irmao = leitosIrmaos[i];
+            
+            if (irmao && !leitosProcessados.has(i) && i < irmao) {
+                const qrURL1 = `${QR_API.BASE_URL}/?h=${hospitalId}&l=${i}`;
+                const qrURL2 = `${QR_API.BASE_URL}/?h=${hospitalId}&l=${irmao}`;
+                const imgURL1 = `${QR_API.API_URL}?size=${QR_API.SIZE}x${QR_API.SIZE}&data=${encodeURIComponent(qrURL1)}`;
+                const imgURL2 = `${QR_API.API_URL}?size=${QR_API.SIZE}x${QR_API.SIZE}&data=${encodeURIComponent(qrURL2)}`;
+                
+                const nome1 = getNomeLeitoFormatado(hospitalId, i);
+                const nome2 = getNomeLeitoFormatado(hospitalId, irmao);
+                
+                const qrItemDuplo = document.createElement('div');
+                qrItemDuplo.className = 'qr-item-duplo';
+                qrItemDuplo.innerHTML = `
+                    <div class="qr-item-irmao">
+                        <div class="qr-label">
+                            <strong>${hospital.nome}</strong><br>
+                            ${nome1}
+                        </div>
+                        <img src="${imgURL1}" alt="QR Code ${nome1}" class="qr-img" loading="lazy">
+                    </div>
+                    <div class="qr-item-irmao">
+                        <div class="qr-label">
+                            <strong>${hospital.nome}</strong><br>
+                            ${nome2}
+                        </div>
+                        <img src="${imgURL2}" alt="QR Code ${nome2}" class="qr-img" loading="lazy">
+                    </div>
+                `;
+                
+                gridIrmaos.appendChild(qrItemDuplo);
+                leitosProcessados.add(i);
+                leitosProcessados.add(irmao);
+                generationProgress += 2;
+                updateProgress(`Gerando ${hospital.nome}...`, generationProgress, totalQRCodes);
+                await sleep(QR_API.DELAY);
+            }
+        }
+        container.innerHTML += '</div>';
+    }
+}
+
+function updateProgress(text, current, total) {
+    const progressText = document.getElementById('progressText');
+    const progressCount = document.getElementById('progressCount');
+    const progressFill = document.getElementById('progressFill');
+    
+    if (progressText) progressText.textContent = text;
+    if (progressCount) progressCount.textContent = `${current}/${total}`;
+    if (progressFill) progressFill.style.width = `${(current / total) * 100}%`;
+}
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+window.closeQRModalSimple = function() {
+    const modal = document.querySelector('.qr-modal-simple');
+    if (modal) {
+        isGenerating = false;
+        modal.remove();
+    }
+};
+
+// =================== ESTILOS CSS ===================
+function addOptimizedStyles() {
     const styles = document.createElement('style');
-    styles.id = 'qrStyles';
+    styles.id = 'qrOptimizedStyles';
     styles.innerHTML = `
         .qr-modal-simple {
             position: fixed;
@@ -1117,554 +1050,600 @@ function injectQRStyles() {
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.95);
+            background: rgba(0,0,0,0.9);
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 9999;
-            overflow-y: auto;
-            padding: 20px;
+            z-index: 10000;
+            overflow: auto;
         }
         
-        .qr-modal-simple .qr-modal-content {
+        .qr-modal-content {
             background: white;
             border-radius: 12px;
             width: 95%;
             max-width: 1400px;
             max-height: 95vh;
-            overflow-y: auto;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            overflow: auto;
+            color: #333;
+            margin: 20px;
         }
         
-        .qr-modal-simple .qr-modal-header {
-            background: #172945;
-            padding: 20px 30px;
-            border-radius: 12px 12px 0 0;
+        .qr-modal-header {
+            padding: 20px;
+            border-bottom: 2px solid #e5e7eb;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 100;
+            background: #f8fafc;
         }
         
-        .qr-modal-simple .qr-modal-header h2 {
-            color: white;
+        .qr-modal-header h2 {
             margin: 0;
+            color: #1a1f2e;
             font-size: 24px;
+            font-family: 'Poppins', sans-serif;
             font-weight: 700;
         }
         
-        .qr-modal-simple .close-btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
+        .close-btn {
+            background: #ef4444;
             color: white;
-            font-size: 28px;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 16px;
             cursor: pointer;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            font-size: 18px;
+            font-weight: bold;
             transition: background 0.2s;
         }
         
-        .qr-modal-simple .close-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
+        .close-btn:hover {
+            background: #dc2626;
         }
         
-        .qr-modal-simple .qr-modal-body {
-            padding: 30px;
-        }
-        
-        .qr-modal-simple .qr-tabs {
+        .qr-tabs {
             display: flex;
             gap: 10px;
+            padding: 15px 20px 0;
             border-bottom: 2px solid #e5e7eb;
-            margin-bottom: 30px;
         }
         
-        .qr-modal-simple .qr-tab {
-            padding: 12px 24px;
-            border: none;
+        .qr-tab {
+            padding: 10px 20px;
             background: transparent;
-            color: #6b7280;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
+            border: none;
             border-bottom: 3px solid transparent;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #6b7280;
+        }
+        
+        .qr-tab:hover {
+            color: #1a1f2e;
+        }
+        
+        .qr-tab.active {
+            color: #60a5fa;
+            border-bottom-color: #60a5fa;
+        }
+        
+        .qr-tab-content {
+            padding: 20px;
+        }
+        
+        .selecao-controls {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .selecao-header {
+            margin-bottom: 20px;
+        }
+        
+        .selecao-header h3 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1a1f2e;
+            margin-bottom: 10px;
+        }
+        
+        .selecao-header select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 700;
+        }
+        
+        .selecao-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn-secondary {
+            padding: 8px 16px;
+            background: #6b7280;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+        
+        .tabela-leitos {
+            margin-top: 20px;
+        }
+        
+        .tabela-selecao {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .tabela-selecao thead {
+            background: #1a1f2e;
+            color: white;
+        }
+        
+        .tabela-selecao th {
+            padding: 12px;
+            text-align: left;
+            font-weight: 700;
+            font-size: 13px;
+            text-transform: uppercase;
+        }
+        
+        .tabela-selecao td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 14px;
+        }
+        
+        .linha-leito:hover {
+            background: #f9fafb;
+        }
+        
+        .checkbox-leito {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #60a5fa;
+        }
+        
+        .selecao-footer {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f9fafb;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .contador-selecao {
+            font-size: 18px;
+            color: #1a1f2e;
+        }
+        
+        .contador-selecao strong {
+            font-size: 24px;
+            color: #60a5fa;
+        }
+        
+        .btn-gerar-selecao {
+            padding: 12px 30px;
+            background: #10b981;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
             transition: all 0.2s;
         }
         
-        .qr-modal-simple .qr-tab.active {
-            color: #0676bb;
-            border-bottom-color: #0676bb;
+        .btn-gerar-selecao:hover:not(:disabled) {
+            background: #059669;
+            transform: translateY(-2px);
         }
         
-        .qr-modal-simple .qr-tab:hover {
-            color: #0676bb;
+        .btn-gerar-selecao:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
         }
         
-        .qr-modal-simple .qr-controls,
-        .qr-modal-simple .selecao-actions {
+        .qr-modal-body {
+            padding: 0;
+        }
+        
+        .qr-controls {
+            margin-bottom: 20px;
             display: flex;
             gap: 15px;
-            margin-bottom: 30px;
+            align-items: center;
             flex-wrap: wrap;
+            padding: 0 20px;
         }
         
-        .qr-modal-simple .qr-controls select {
-            flex: 1;
-            min-width: 200px;
-            padding: 12px 16px;
-            border: 2px solid #e5e7eb;
+        .qr-controls select {
+            padding: 12px;
+            border: 2px solid #d1d5db;
             border-radius: 8px;
-            font-size: 15px;
-            font-family: 'Poppins', sans-serif;
-            cursor: pointer;
+            font-size: 16px;
+            background: white;
+            min-width: 250px;
+            font-weight: 700;
         }
         
-        .qr-modal-simple .qr-controls button,
-        .qr-modal-simple .selecao-actions button {
+        .qr-controls button {
             padding: 12px 24px;
+            background: #3b82f6;
+            color: white;
             border: none;
             border-radius: 8px;
-            font-size: 15px;
-            font-weight: 600;
             cursor: pointer;
+            font-weight: 700;
+            font-size: 16px;
             transition: all 0.2s;
-            font-family: 'Poppins', sans-serif;
         }
         
-        .qr-modal-simple .btn-all {
-            background: #0676bb;
-            color: white;
-        }
-        
-        .qr-modal-simple .btn-all:hover:not(:disabled) {
-            background: #172945;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(6, 118, 187, 0.4);
-        }
-        
-        .qr-modal-simple .btn-all:disabled {
-            opacity: 0.5;
+        .qr-controls button:disabled {
+            background: #9ca3af;
             cursor: not-allowed;
         }
         
-        .qr-modal-simple .btn-print {
-            background: #9ca3af;
-            color: white;
+        .btn-all {
+            background: #10b981 !important;
         }
         
-        .qr-modal-simple .btn-print:hover {
-            background: #6b7280;
+        .btn-all:hover:not(:disabled) {
+            background: #059669 !important;
         }
         
-        .qr-modal-simple .btn-primary {
-            background: #0676bb;
-            color: white;
+        .btn-print {
+            background: #8b5cf6 !important;
         }
         
-        .qr-modal-simple .btn-primary:hover:not(:disabled) {
-            background: #172945;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(6, 118, 187, 0.4);
+        .btn-print:hover {
+            background: #7c3aed !important;
         }
         
-        .qr-modal-simple .btn-primary:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        
-        .qr-modal-simple .btn-secondary {
-            background: #9ca3af;
-            color: white;
-        }
-        
-        .qr-modal-simple .btn-secondary:hover {
-            background: #6b7280;
-        }
-        
-        .qr-modal-simple .progress-container {
-            background: #f3f4f6;
-            padding: 20px;
+        .progress-container {
+            background: #f1f5f9;
+            border: 2px solid #e2e8f0;
             border-radius: 8px;
-            margin-bottom: 30px;
+            padding: 15px;
+            margin: 0 20px 20px;
         }
         
-        .qr-modal-simple .progress-info {
+        .progress-info {
             display: flex;
             justify-content: space-between;
             margin-bottom: 10px;
-            font-size: 14px;
-            color: #6b7280;
+            font-weight: 700;
+            color: #374151;
         }
         
-        .qr-modal-simple .progress-bar {
+        .progress-bar {
+            width: 100%;
+            height: 20px;
             background: #e5e7eb;
-            height: 8px;
-            border-radius: 4px;
+            border-radius: 10px;
             overflow: hidden;
         }
         
-        .qr-modal-simple .progress-fill {
-            background: #0676bb;
+        .progress-fill {
             height: 100%;
+            background: linear-gradient(90deg, #10b981, #059669);
             width: 0%;
             transition: width 0.3s ease;
         }
         
-        .qr-modal-simple .qr-container {
-            display: flex;
-            flex-direction: column;
-            gap: 30px;
+        .qr-container {
+            padding: 0 20px;
         }
         
-        .qr-modal-simple .qr-container h3 {
-            margin: 0 0 15px 0;
-            padding: 12px 20px;
-            background: #0676bb;
-            color: white;
+        .qr-container h3 {
+            text-align: center;
+            color: #1a1f2e;
+            margin: 30px 0 20px 0;
+            font-size: 24px;
+            padding: 15px;
+            background: #f8fafc;
             border-radius: 8px;
-            font-size: 18px;
+            border-left: 4px solid #60a5fa;
             font-weight: 700;
         }
         
-        .qr-modal-simple .qr-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            gap: 20px;
+        .qr-container h3:first-child {
+            margin-top: 0;
         }
         
-        .qr-modal-simple .qr-grid-irmaos {
+        .qr-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
         }
         
-        .qr-modal-simple .qr-item {
+        .qr-grid-irmaos {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .qr-item-duplo {
+            border: 3px solid #60a5fa;
+            border-radius: 12px;
+            padding: 10px;
+            background: #f0f9ff;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .qr-item-irmao {
             border: 2px solid #e5e7eb;
             border-radius: 12px;
-            padding: 20px;
+            padding: 15px;
             text-align: center;
             background: white;
+            transition: all 0.2s;
+        }
+        
+        .qr-item {
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            background: #f9fafb;
             transition: all 0.2s;
             page-break-inside: avoid;
         }
         
-        .qr-modal-simple .qr-item:hover {
-            border-color: #0676bb;
-            box-shadow: 0 4px 12px rgba(6, 118, 187, 0.2);
+        .qr-item:hover, .qr-item-irmao:hover {
+            border-color: #60a5fa;
+            box-shadow: 0 4px 12px rgba(96, 165, 250, 0.2);
         }
         
-        .qr-modal-simple .qr-item-duplo {
-            border: 3px solid #0676bb;
-            border-radius: 12px;
-            padding: 15px;
-            background: #f0f9ff;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            page-break-inside: avoid;
-        }
-        
-        .qr-modal-simple .qr-item-irmao {
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
-            padding: 15px;
-            background: white;
-        }
-        
-        .qr-modal-simple .qr-label {
+        .qr-label {
             font-size: 14px;
-            color: #374151;
             margin-bottom: 12px;
+            color: #374151;
             line-height: 1.4;
+            font-weight: 700;
         }
         
-        .qr-modal-simple .qr-label strong {
-            color: #0676bb;
+        .qr-label strong {
+            color: #1e40af;
             font-size: 16px;
             font-weight: 700;
-            margin-bottom: 4px;
         }
         
-        .qr-modal-simple .qr-img {
-            width: 180px;
-            height: 180px;
-            border: 2px solid #e5e7eb;
+        .qr-img {
+            width: 160px;
+            height: 160px;
+            display: block;
+            margin: 0 auto;
             border-radius: 8px;
-            background: white;
-        }
-        
-        .qr-modal-simple .qr-item-irmao .qr-img {
-            width: 150px;
-            height: 150px;
-        }
-        
-        .qr-modal-simple .selecao-header {
-            margin-bottom: 20px;
-        }
-        
-        .qr-modal-simple .selecao-header h3 {
-            margin: 0 0 15px 0;
-            color: #0676bb;
-            font-size: 18px;
-            font-weight: 700;
-            background: none;
-            padding: 0;
-        }
-        
-        .qr-modal-simple .selecao-header select {
-            width: 100%;
-            padding: 12px 16px;
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
-            font-size: 15px;
-            font-family: 'Poppins', sans-serif;
-            cursor: pointer;
-        }
-        
-        .qr-modal-simple .tabela-leitos {
-            max-height: 400px;
-            overflow-y: auto;
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-        
-        .qr-modal-simple .tabela-selecao {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        
-        .qr-modal-simple .tabela-selecao thead {
-            position: sticky;
-            top: 0;
-            background: #f9fafb;
-            z-index: 10;
-        }
-        
-        .qr-modal-simple .tabela-selecao th {
-            padding: 12px;
-            text-align: left;
-            font-size: 14px;
-            font-weight: 700;
-            color: #374151;
-            border-bottom: 2px solid #e5e7eb;
-        }
-        
-        .qr-modal-simple .tabela-selecao td {
-            padding: 12px;
-            font-size: 14px;
-            color: #4b5563;
-            border-bottom: 1px solid #f3f4f6;
-        }
-        
-        .qr-modal-simple .tabela-selecao tr:hover {
-            background: #f3f4f6;
-        }
-        
-        .qr-modal-simple .tabela-selecao tr.status-ocupado {
-            background: #e5e7eb;
-        }
-        
-        .qr-modal-simple .tabela-selecao tr.status-ocupado:hover {
-            background: #d1d5db;
-        }
-        
-        .qr-modal-simple .badge-status {
-            padding: 4px 10px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-        
-        .qr-modal-simple .badge-status.status-ocupado {
-            background: #0676bb;
-            color: white;
-        }
-        
-        .qr-modal-simple .badge-status.status-vago {
-            background: #9ca3af;
-            color: white;
-        }
-        
-        .qr-modal-simple .selecao-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px;
-            background: #f9fafb;
-            border-radius: 8px;
-        }
-        
-        .qr-modal-simple .contador-selecao {
-            font-size: 16px;
-            color: #374151;
-        }
-        
-        .qr-modal-simple .contador-selecao strong {
-            color: #0676bb;
-            font-size: 24px;
         }
         
         @media print {
-            body.qr-modal-open > *:not(.qr-modal-simple) {
-                display: none !important;
-            }
-            
             @page {
-                size: 145mm 95mm;
-                margin: 0;
+                margin: 10mm;
+                size: A4 portrait;
             }
             
-            body {
-                margin: 0;
-                padding: 0;
+            body > *:not(.qr-modal-simple) {
+                display: none !important;
             }
             
             .qr-modal-simple {
-                position: static;
+                position: static !important;
                 background: white !important;
-                padding: 0 !important;
+                display: block !important;
+                overflow: visible !important;
             }
             
-            .qr-modal-simple .qr-modal-content {
-                max-width: 100% !important;
+            .qr-modal-content {
+                width: 100% !important;
+                max-width: none !important;
+                max-height: none !important;
+                border: none !important;
                 box-shadow: none !important;
+                margin: 0 !important;
+                overflow: visible !important;
                 border-radius: 0 !important;
             }
             
-            .qr-modal-simple .qr-modal-header,
-            .qr-modal-simple .qr-controls,
-            .qr-modal-simple .qr-tabs,
-            .qr-modal-simple .progress-container,
-            .qr-modal-simple .selecao-controls,
-            .qr-modal-simple .selecao-footer {
+            .qr-modal-header,
+            .qr-tabs,
+            .qr-controls,
+            .progress-container,
+            .close-btn {
                 display: none !important;
             }
             
-            .qr-modal-simple .qr-modal-body {
+            .qr-tab-content {
                 padding: 0 !important;
             }
             
-            .qr-modal-simple .qr-container {
+            .qr-modal-body {
+                padding: 0 !important;
+            }
+            
+            .qr-container {
                 width: 100% !important;
                 padding: 0 !important;
             }
             
-            .qr-modal-simple .qr-container h3 {
-                display: none !important;
-            }
-            
-            .qr-modal-simple .qr-grid,
-            .qr-modal-simple .qr-grid-irmaos {
-                display: block !important;
-            }
-            
-            .qr-modal-simple .qr-item,
-            .qr-modal-simple .qr-item-duplo {
-                width: 145mm !important;
-                height: 95mm !important;
-                border: 3px solid #000 !important;
-                border-radius: 5mm !important;
-                padding: 8mm !important;
+            .qr-container h3 {
+                page-break-before: always;
+                page-break-after: avoid;
+                margin: 0 0 5mm 0 !important;
+                font-size: 16px !important;
                 background: white !important;
-                page-break-before: always !important;
-                page-break-after: always !important;
-                page-break-inside: avoid !important;
-                display: flex !important;
-                flex-direction: column !important;
-                justify-content: center !important;
-                align-items: center !important;
-                margin: 0 !important;
+                border: none !important;
+                padding: 2mm 0 !important;
+                color: #000 !important;
+                text-align: left !important;
             }
             
-            .qr-modal-simple .qr-item:first-child,
-            .qr-modal-simple .qr-item-duplo:first-child {
-                page-break-before: auto !important;
+            .qr-container h3:first-child {
+                page-break-before: auto;
             }
             
-            .qr-modal-simple .qr-item-irmao {
-                width: 100% !important;
-                border: 2px solid #333 !important;
-                border-radius: 3mm !important;
+            .qr-grid {
+                display: block !important;
+                page-break-inside: auto !important;
+                margin-bottom: 5mm !important;
+            }
+            
+            .qr-grid-irmaos {
+                display: block !important;
+                page-break-inside: auto !important;
+                margin-bottom: 5mm !important;
+            }
+            
+            .qr-item-duplo {
+                width: 95mm !important;
+                height: 145mm !important;
+                border: 2px solid #000 !important;
+                border-radius: 2mm !important;
                 padding: 5mm !important;
                 background: white !important;
+                page-break-inside: avoid !important;
+                page-break-after: always !important;
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: space-around !important;
+                align-items: center !important;
+                margin: 0 auto 5mm !important;
+            }
+            
+            .qr-item-duplo:last-child {
+                page-break-after: auto !important;
+            }
+            
+            .qr-item-irmao {
+                width: 100% !important;
+                border: 1px solid #333 !important;
+                border-radius: 2mm !important;
+                padding: 3mm !important;
+                background: white !important;
                 display: flex !important;
                 flex-direction: column !important;
                 align-items: center !important;
-                margin-bottom: 4mm !important;
+                justify-content: center !important;
             }
             
-            .qr-modal-simple .qr-label {
+            .qr-item {
+                width: 95mm !important;
+                height: 145mm !important;
+                padding: 5mm !important;
+                page-break-inside: avoid !important;
+                page-break-after: always !important;
+                border: 2px solid #000 !important;
+                background: white !important;
+                margin: 0 auto 5mm !important;
+                border-radius: 2mm !important;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                justify-content: center !important;
+            }
+            
+            .qr-item:last-child {
+                page-break-after: auto !important;
+            }
+            
+            .qr-label {
                 font-size: 14px !important;
-                margin-bottom: 6mm !important;
+                margin-bottom: 5mm !important;
                 color: #000 !important;
+                line-height: 1.4 !important;
                 text-align: center !important;
             }
             
-            .qr-modal-simple .qr-label strong {
+            .qr-label strong {
                 color: #000 !important;
                 font-size: 16px !important;
                 font-weight: bold !important;
-                display: block !important;
-                margin-bottom: 2mm !important;
             }
             
-            .qr-modal-simple .qr-img {
-                width: 75mm !important;
-                height: 75mm !important;
+            .qr-img {
+                width: 70mm !important;
+                height: 70mm !important;
                 border: none !important;
                 border-radius: 2mm !important;
+                display: block !important;
             }
             
-            .qr-modal-simple .qr-item-irmao .qr-img {
-                width: 50mm !important;
-                height: 50mm !important;
+            .qr-item-irmao .qr-img {
+                width: 60mm !important;
+                height: 60mm !important;
+            }
+            
+            .qr-item-irmao .qr-label {
+                font-size: 12px !important;
+                margin-bottom: 3mm !important;
+            }
+            
+            .qr-item-irmao .qr-label strong {
+                font-size: 14px !important;
             }
         }
         
         @media (max-width: 768px) {
-            .qr-modal-simple .qr-modal-content {
+            .qr-modal-content {
                 width: 98%;
                 margin: 10px;
             }
             
-            .qr-modal-simple .qr-controls,
-            .qr-modal-simple .selecao-actions {
+            .qr-controls, .selecao-actions {
                 flex-direction: column;
                 align-items: stretch;
             }
             
-            .qr-modal-simple .qr-controls select,
-            .qr-modal-simple .qr-controls button {
+            .qr-controls select,
+            .qr-controls button {
                 width: 100%;
             }
             
-            .qr-modal-simple .qr-grid {
+            .qr-grid {
                 grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
                 gap: 10px;
             }
             
-            .qr-modal-simple .qr-grid-irmaos {
+            .qr-grid-irmaos {
                 grid-template-columns: 1fr;
             }
             
-            .qr-modal-simple .qr-img {
+            .qr-img {
                 width: 120px;
                 height: 120px;
             }
             
-            .qr-modal-simple .tabela-selecao {
+            .tabela-selecao {
                 font-size: 12px;
             }
             
-            .qr-modal-simple .tabela-selecao th,
-            .qr-modal-simple .tabela-selecao td {
+            .tabela-selecao th,
+            .tabela-selecao td {
                 padding: 8px 6px;
             }
         }
@@ -1675,12 +1654,9 @@ function injectQRStyles() {
 // =================== INICIALIZAÇÃO ===================
 document.addEventListener('DOMContentLoaded', function() {
     window.openQRCodes = window.openQRCodesSimple;
-    console.log('✅ Sistema QR Code V6.3 FINAL CORRIGIDO carregado');
-    console.log('✅ 293 QR codes (9 hospitais ativos)');
-    console.log('✅ Seleção personalizada: Abre janela com resumo completo');
-    console.log('✅ Impressão: 145mm x 95mm (14,5cm altura x 9,5cm largura)');
-    console.log('✅ 1 QR code por página');
-    console.log('✅ Cores do projeto (#0676bb, #172945, #9ca3af)');
-    console.log('✅ Cruz Azul: 13 pares de irmãos (21-46)');
-    console.log('✅ Santa Clara: 9 pares de irmãos (10-27)');
+    console.log('Sistema QR Code V6.0 carregado');
+    console.log('✅ 9 hospitais ativos - 293 leitos');
+    console.log('✅ H2: 13 pares de irmãos | H4: 9 pares de irmãos');
+    console.log('✅ Molduras de 14,5cm x 9,5cm');
+    console.log('✅ URL: https://qr-code-systelos.vercel.app');
 });
