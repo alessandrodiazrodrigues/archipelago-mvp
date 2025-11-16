@@ -657,36 +657,118 @@ window.carregarLeitosParaSelecao = function() {
     // Buscar dados reais do hospital usando window.hospitalData
     let leitosOcupados = [];
     
-    if (window.hospitalData) {
-        console.log('Dados disponíveis em hospitalData:', Object.keys(window.hospitalData));
+    // VERIFICAR SE OS DADOS EXISTEM
+    if (!window.hospitalData) {
+        console.error('❌ ERRO: window.hospitalData não existe!');
+        console.error('Os dados ainda não foram carregados do backend.');
+        alert('⚠️ AVISO: Dados ainda não foram carregados!\n\nPor favor, aguarde o carregamento completo da página antes de abrir os QR Codes.\n\nRecarregue a página (F5) e aguarde ver os cards de leitos antes de clicar em "QR Codes".');
         
-        if (window.hospitalData[hospitalId]) {
-            const dadosHospital = window.hospitalData[hospitalId];
-            console.log('Dados do hospital:', dadosHospital);
-            console.log('Total de leitos no hospital:', dadosHospital.leitos?.length || 0);
-            
-            if (dadosHospital.leitos && Array.isArray(dadosHospital.leitos)) {
-                leitosOcupados = dadosHospital.leitos
-                    .filter(l => {
-                        const ocupado = l.status === 'Ocupado';
-                        if (ocupado) {
-                            console.log(`Leito ${l.leito} ocupado por ${l.nome || 'N/A'}`);
-                        }
-                        return ocupado;
-                    })
-                    .map(l => parseInt(l.leito));
-            }
-        } else {
-            console.warn(`Dados do hospital ${hospitalId} não encontrados em hospitalData`);
-        }
-    } else {
-        console.error('window.hospitalData não está disponível! Verifique se os dados foram carregados.');
+        // Criar tabela com todos vagos (sem dados)
+        criarTabelaSemDados(hospitalId, hospital, tabela);
+        return;
     }
     
-    console.log('Leitos ocupados encontrados:', leitosOcupados);
+    console.log('✅ window.hospitalData existe');
+    console.log('Hospitais disponíveis:', Object.keys(window.hospitalData));
+    
+    if (!window.hospitalData[hospitalId]) {
+        console.error(`❌ ERRO: Dados do hospital ${hospitalId} não encontrados`);
+        console.error('Hospitais disponíveis:', Object.keys(window.hospitalData));
+        alert(`⚠️ AVISO: Dados do hospital ${hospital.nome} não encontrados!\n\nHospitais com dados: ${Object.keys(window.hospitalData).map(id => QR_API.HOSPITAIS[id]?.nome || id).join(', ')}`);
+        
+        criarTabelaSemDados(hospitalId, hospital, tabela);
+        return;
+    }
+    
+    const dadosHospital = window.hospitalData[hospitalId];
+    console.log('✅ Dados do hospital encontrados');
+    console.log('Estrutura:', {
+        nome: dadosHospital.nome,
+        temLeitos: !!dadosHospital.leitos,
+        totalLeitos: dadosHospital.leitos?.length || 0,
+        tipoLeitos: Array.isArray(dadosHospital.leitos) ? 'Array' : typeof dadosHospital.leitos
+    });
+    
+    if (!dadosHospital.leitos || !Array.isArray(dadosHospital.leitos)) {
+        console.error('❌ ERRO: dadosHospital.leitos não é um array');
+        console.error('Valor de leitos:', dadosHospital.leitos);
+        
+        criarTabelaSemDados(hospitalId, hospital, tabela);
+        return;
+    }
+    
+    console.log(`✅ Array de leitos encontrado: ${dadosHospital.leitos.length} leitos`);
+    
+    // Filtrar leitos ocupados
+    dadosHospital.leitos.forEach((leito, index) => {
+        console.log(`Leito ${index + 1}:`, {
+            numero: leito.leito,
+            status: leito.status,
+            nome: leito.nome || 'N/A',
+            tipo: leito.tipo || 'N/A'
+        });
+        
+        if (leito.status === 'Ocupado') {
+            const numeroLeito = parseInt(leito.leito);
+            leitosOcupados.push(numeroLeito);
+            console.log(`  ✅ Leito ${numeroLeito} OCUPADO por ${leito.nome || 'N/A'}`);
+        }
+    });
+    
+    console.log(`✅ Total de leitos ocupados: ${leitosOcupados.length}`);
+    console.log('Números dos leitos ocupados:', leitosOcupados);
     console.log('===================================');
     
     // Criar tabela
+    criarTabelaComDados(hospitalId, hospital, leitosOcupados, tabela);
+};
+
+// FUNÇÃO AUXILIAR: Criar tabela SEM dados (tudo vago)
+function criarTabelaSemDados(hospitalId, hospital, tabela) {
+    let html = `
+        <table class="tabela-selecao">
+            <thead>
+                <tr>
+                    <th style="width: 80px;">Selecionar</th>
+                    <th style="width: 80px;">Nº Leito</th>
+                    <th>Nome/Tipo</th>
+                    <th style="width: 100px;">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+    
+    for (let i = 1; i <= hospital.leitos; i++) {
+        const leitoFormatado = getNomeLeitoFormatado(hospitalId, i);
+        
+        html += `
+            <tr class="status-vago">
+                <td style="text-align: center;">
+                    <input type="checkbox" 
+                           id="leito_${i}" 
+                           data-leito="${i}"
+                           onchange="atualizarSelecaoLeitos()">
+                </td>
+                <td style="text-align: center;"><strong>${i}</strong></td>
+                <td>${leitoFormatado}</td>
+                <td style="text-align: center;">
+                    <span class="badge-status status-vago">Vago</span>
+                </td>
+            </tr>
+        `;
+    }
+    
+    html += `
+            </tbody>
+        </table>
+    `;
+    
+    tabela.innerHTML = html;
+    atualizarSelecaoLeitos();
+}
+
+// FUNÇÃO AUXILIAR: Criar tabela COM dados
+function criarTabelaComDados(hospitalId, hospital, leitosOcupados, tabela) {
     let html = `
         <table class="tabela-selecao">
             <thead>
@@ -730,7 +812,7 @@ window.carregarLeitosParaSelecao = function() {
     
     tabela.innerHTML = html;
     atualizarSelecaoLeitos();
-};
+}
 
 // =================== SELECIONAR TODOS OS LEITOS ===================
 window.selecionarTodosLeitos = function() {
@@ -1293,15 +1375,15 @@ function injectQRStyles() {
         }
         
         .qr-modal-simple .tabela-selecao tr:hover {
-            background: #f9fafb;
+            background: #f3f4f6;
         }
         
         .qr-modal-simple .tabela-selecao tr.status-ocupado {
-            background: #fef3c7;
+            background: #e5e7eb;
         }
         
         .qr-modal-simple .tabela-selecao tr.status-ocupado:hover {
-            background: #fde68a;
+            background: #d1d5db;
         }
         
         .qr-modal-simple .badge-status {
@@ -1413,16 +1495,16 @@ function injectQRStyles() {
                 page-break-inside: auto !important;
             }
             
-            /* 1 QR CODE POR PÁGINA */
+            /* 1 QR CODE POR PÁGINA - TAMANHO: 14,5cm x 9,5cm */
             .qr-modal-simple .qr-item,
             .qr-modal-simple .qr-item-duplo {
-                width: 100% !important;
-                max-width: 180mm !important;
-                height: auto !important;
-                min-height: 200mm !important;
+                width: 95mm !important;
+                max-width: 95mm !important;
+                height: 145mm !important;
+                min-height: 145mm !important;
                 border: 3px solid #000 !important;
                 border-radius: 5mm !important;
-                padding: 15mm !important;
+                padding: 10mm !important;
                 background: white !important;
                 page-break-inside: avoid !important;
                 page-break-after: always !important;
@@ -1430,7 +1512,7 @@ function injectQRStyles() {
                 flex-direction: column !important;
                 justify-content: center !important;
                 align-items: center !important;
-                margin: 0 auto 10mm !important;
+                margin: 0 auto !important;
             }
             
             .qr-modal-simple .qr-item:last-child,
@@ -1442,51 +1524,51 @@ function injectQRStyles() {
                 width: 100% !important;
                 border: 2px solid #333 !important;
                 border-radius: 3mm !important;
-                padding: 10mm !important;
+                padding: 6mm !important;
                 background: white !important;
                 display: flex !important;
                 flex-direction: column !important;
                 align-items: center !important;
                 justify-content: center !important;
-                margin-bottom: 10mm !important;
+                margin-bottom: 6mm !important;
             }
             
             .qr-modal-simple .qr-label {
-                font-size: 18px !important;
-                margin-bottom: 10mm !important;
+                font-size: 14px !important;
+                margin-bottom: 8mm !important;
                 color: #000 !important;
-                line-height: 1.6 !important;
+                line-height: 1.4 !important;
                 text-align: center !important;
             }
             
             .qr-modal-simple .qr-label strong {
                 color: #000 !important;
-                font-size: 22px !important;
+                font-size: 16px !important;
                 font-weight: bold !important;
                 display: block !important;
-                margin-bottom: 5mm !important;
+                margin-bottom: 3mm !important;
             }
             
             .qr-modal-simple .qr-img {
-                width: 120mm !important;
-                height: 120mm !important;
+                width: 75mm !important;
+                height: 75mm !important;
                 border: none !important;
-                border-radius: 3mm !important;
+                border-radius: 2mm !important;
                 display: block !important;
             }
             
             .qr-modal-simple .qr-item-irmao .qr-img {
-                width: 100mm !important;
-                height: 100mm !important;
+                width: 55mm !important;
+                height: 55mm !important;
             }
             
             .qr-modal-simple .qr-item-irmao .qr-label {
-                font-size: 16px !important;
-                margin-bottom: 8mm !important;
+                font-size: 12px !important;
+                margin-bottom: 5mm !important;
             }
             
             .qr-modal-simple .qr-item-irmao .qr-label strong {
-                font-size: 20px !important;
+                font-size: 14px !important;
             }
         }
         
