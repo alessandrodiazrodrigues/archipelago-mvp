@@ -422,6 +422,13 @@ function processarDadosHospitalExecutivo(hospitalId) {
     
     const vagos = leitos.filter(l => isVagoExecutivo(l));
     
+    // Buscar capacidade do hospital (DEVE VIR ANTES DE USAR)
+    const capacidade = window.HOSPITAL_CAPACIDADE[hospitalId];
+    if (!capacidade) {
+        console.error(`[ERRO] Capacidade não encontrada para ${hospitalId}`);
+        return null;
+    }
+    
     let vagosApto, vagosEnfFem, vagosEnfMasc;
     
     if (hospitalId === 'H2' || hospitalId === 'H4') {
@@ -542,7 +549,6 @@ function processarDadosHospitalExecutivo(hospitalId) {
     );
     
     const totalLeitos = leitos.length;
-    const capacidade = window.HOSPITAL_CAPACIDADE[hospitalId];
     const base = Math.max(capacidade.contratuais, ocupados.length);
     const taxaOcupacao = Math.min((ocupados.length / base) * 100, 100);
     
