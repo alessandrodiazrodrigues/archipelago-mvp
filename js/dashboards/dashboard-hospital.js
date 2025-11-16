@@ -746,45 +746,26 @@ window.processarDadosHospital = function(hospitalId) {
         // CAPACIDADE TOTAL: somar todas as possibilidades
         vagosEnfFem = vagosEnfSemRestricao + vagosEnfFemRestrita;
         vagosEnfMasc = vagosEnfSemRestricao + vagosEnfMascRestrita;
-    } else {
-        vagosApto = vagos.filter(l => 
-            l.tipo === 'Apartamento' || l.tipo === 'APTO' || l.tipo === 'Híbrido'
-        ).length;
-        vagosEnfFem = vagos.filter(l => 
-            l.tipo === 'Enfermaria Feminina'
-        ).length;
-        vagosEnfMasc = vagos.filter(l => 
-            l.tipo === 'Enfermaria Masculina'
-        ).length;
     }
 
-    let vagosAptoFinal = vagosApto;
-    let vagosEnfFemFinal = vagosEnfFem;
-    let vagosEnfMascFinal = vagosEnfMasc;
+    // Para híbridos, as variáveis serão definidas abaixo no bloco específico
+    let vagosAptoFinal = vagosApto || 0;
+    let vagosEnfFemFinal = vagosEnfFem || 0;
+    let vagosEnfMascFinal = vagosEnfMasc || 0;
     
     if (hospitalId === 'H1' || hospitalId === 'H3' || hospitalId === 'H5' || hospitalId === 'H6' || hospitalId === 'H7' || hospitalId === 'H8' || hospitalId === 'H9') {
-        // V6.0: Usar contratuais - ocupados (não conta extras)
+        // V6.0: Híbridos - leitos são 100% flexíveis
         const capacidadeInfo = window.HOSPITAL_CAPACIDADE ? window.HOSPITAL_CAPACIDADE[hospitalId] : null;
         const contratuais = capacidadeInfo ? capacidadeInfo.contratuais : leitos.length;
         
-        // Calcular total de disponíveis
+        // Calcular total de disponíveis contratuais
         const disponiveisTotais = Math.max(0, contratuais - ocupados.length);
         
-        // REGRA: Se disponíveis = 0, zerar TUDO
-        if (disponiveisTotais === 0) {
-            vagosAptoFinal = 0;
-            vagosEnfFemFinal = 0;
-            vagosEnfMascFinal = 0;
-        } else {
-            // Caso contrário, calcular normalmente
-            const dispApto = Math.max(0, contratuais - ocupadosApto);
-            const dispEnfFem = Math.max(0, contratuais - ocupadosEnfFem);
-            const dispEnfMasc = Math.max(0, contratuais - ocupadosEnfMasc);
-            
-            vagosAptoFinal = dispApto;
-            vagosEnfFemFinal = dispEnfFem;
-            vagosEnfMascFinal = dispEnfMasc;
-        }
+        // HÍBRIDOS: Cada vago PODE ser qualquer tipo (não simultâneo)
+        // Exemplo: 1 vago = até 1 apto OU até 1 fem OU até 1 masc
+        vagosAptoFinal = disponiveisTotais;
+        vagosEnfFemFinal = disponiveisTotais;
+        vagosEnfMascFinal = disponiveisTotais;
     }
     
     const tphValues = ocupados
