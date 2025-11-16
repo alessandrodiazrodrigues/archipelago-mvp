@@ -2434,14 +2434,15 @@ function getHospitalConsolidadoCSS() {
             /* =================== RESPONSIVIDADE MOBILE =================== */
             @media (max-width: 768px) {
                 .hospital-filter-selector {
-                    flex-direction: column;
-                    align-items: stretch;
+                    padding: 0 10px;
                 }
                 
-                .hospital-filter-btn {
+                .hospital-filter-select {
                     width: 100%;
+                    min-width: auto;
                     max-width: 100%;
-                    flex: 1 1 100%;
+                    padding: 12px 16px;
+                    font-size: 14px;
                 }
                 
                 .dashboard-title-central {
