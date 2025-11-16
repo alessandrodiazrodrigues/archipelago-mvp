@@ -1,8 +1,8 @@
-// =================== QRCODE-OPTIMIZED.JS - V4.4 IMPRESSÃO OTIMIZADA ===================
-// ✅ Molduras de 14,5cm x 9,5cm
-// ✅ 4 QR Codes por página (2x2)
-// ✅ Leitos irmãos empilhados verticalmente
-// ✅ Leitura da coluna AQ da planilha (identificacaoLeito)
+// =================== QRCODE V6.0 - 341 LEITOS ===================
+// ✅ Total: 341 QR codes (contratuais + extras)
+// ✅ Híbridos: "Híbrido 01", "Híbrido 02"...
+// ✅ H2/H4 Aptos: "Apartamento 01", "Apartamento 02"...
+// ✅ H2/H4 Enfs: "Enfermaria 21", "Enfermaria 22"... (pares empilhados)
 
 const QR_API = {
     BASE_URL: 'https://qrcode-seven-gamma.vercel.app',
@@ -10,13 +10,15 @@ const QR_API = {
     SIZE: 300,
     DELAY: 150,
     HOSPITAIS: {
-        H1: { nome: 'Neomater', leitos: 10 },
-        H2: { nome: 'Cruz Azul', leitos: 36 },
-        H3: { nome: 'Santa Marcelina', leitos: 7 },
-        H4: { nome: 'Santa Clara', leitos: 13 },
-        H5: { nome: 'Adventista', leitos: 13 },
-        H6: { nome: 'Santa Cruz', leitos: 7 },
-        H7: { nome: 'Santa Virgínia', leitos: 7 }
+        H1: { nome: 'Neomater', leitos: 25, tipo: 'hibrido' },
+        H2: { nome: 'Cruz Azul', leitos: 67, tipo: 'tipos_fixos' },
+        H3: { nome: 'Santa Marcelina', leitos: 28, tipo: 'hibrido' },
+        H4: { nome: 'Santa Clara', leitos: 57, tipo: 'tipos_fixos' },
+        H5: { nome: 'Adventista', leitos: 28, tipo: 'hibrido' },
+        H6: { nome: 'Santa Cruz', leitos: 22, tipo: 'hibrido' },
+        H7: { nome: 'Santa Virgínia', leitos: 22, tipo: 'hibrido' },
+        H8: { nome: 'São Camilo Ipiranga', leitos: 22, tipo: 'hibrido' },
+        H9: { nome: 'São Camilo Pompeia', leitos: 22, tipo: 'hibrido' }
     }
 };
 
@@ -26,24 +28,57 @@ let generationProgress = 0;
 let totalQRCodes = 0;
 let leitosSelecionados = [];
 
-// =================== FUNÇÃO PARA OBTER NOME DO LEITO ===================
-// ✅ LÊ DA PLANILHA (coluna AQ) APENAS para enfermarias Cruz Azul (21-36)
-// ✅ Usa ID numérico para todos os outros leitos
-function getNomeLeitoFormatado(hospitalId, numeroLeito, leitoData = null) {
-    // APENAS enfermarias do Cruz Azul (leitos 21-36) usam identificacaoLeito
-    if (hospitalId === 'H2' && numeroLeito >= 21 && numeroLeito <= 36) {
-        if (leitoData && (leitoData.identificacaoLeito || leitoData.identificacao_leito)) {
-            return leitoData.identificacaoLeito || leitoData.identificacao_leito;
-        }
+// =================== FUNÇÃO PARA OBTER NOME DO LEITO V6.0 ===================
+function getNomeLeitoFormatado(hospitalId, numeroLeito) {
+    const hospital = QR_API.HOSPITAIS[hospitalId];
+    
+    // HÍBRIDOS: "Híbrido 01", "Híbrido 02"...
+    if (hospital.tipo === 'hibrido') {
+        return `Híbrido ${String(numeroLeito).padStart(2, '0')}`;
     }
     
-    // Todos os outros: usar número do leito
+    // CRUZ AZUL (H2)
+    if (hospitalId === 'H2') {
+        // Apartamentos: leitos 1-20
+        if (numeroLeito >= 1 && numeroLeito <= 20) {
+            return `Apartamento ${String(numeroLeito).padStart(2, '0')}`;
+        }
+        // Enfermarias contratuais: leitos 21-36
+        if (numeroLeito >= 21 && numeroLeito <= 36) {
+            return `Enfermaria ${numeroLeito}`;
+        }
+        // Enfermarias extras: leitos 37-67
+        return `Enfermaria ${numeroLeito}`;
+    }
+    
+    // SANTA CLARA (H4)
+    if (hospitalId === 'H4') {
+        // Apartamentos contratuais: leitos 1-9
+        if (numeroLeito >= 1 && numeroLeito <= 9) {
+            return `Apartamento ${String(numeroLeito).padStart(2, '0')}`;
+        }
+        // Enfermarias contratuais (irmãos): leitos 10-17
+        if (numeroLeito >= 10 && numeroLeito <= 17) {
+            return `Enfermaria ${numeroLeito}`;
+        }
+        // Enfermarias extras: leitos 18-26
+        if (numeroLeito >= 18 && numeroLeito <= 26) {
+            return `Enfermaria ${numeroLeito}`;
+        }
+        // Apartamentos contratuais: leitos 27-35
+        if (numeroLeito >= 27 && numeroLeito <= 35) {
+            return `Apartamento ${String(numeroLeito).padStart(2, '0')}`;
+        }
+        // Apartamentos extras: leitos 36-57
+        return `Apartamento ${String(numeroLeito).padStart(2, '0')}`;
+    }
+    
     return `Leito ${String(numeroLeito).padStart(2, '0')}`;
 }
 
 // =================== FUNÇÃO PRINCIPAL - MODAL COM OPÇÕES ===================
 window.openQRCodesSimple = function() {
-    console.log('Abrindo gerador de QR Codes V4.4...');
+    console.log('Abrindo gerador de QR Codes V6.0...');
     
     if (document.querySelector('.qr-modal-simple')) {
         console.log('Modal já está aberto');
@@ -55,7 +90,7 @@ window.openQRCodesSimple = function() {
     modal.innerHTML = `
         <div class="qr-modal-content">
             <div class="qr-modal-header">
-                <h2>QR Codes dos Leitos - Sistema V4.4</h2>
+                <h2>QR Codes dos Leitos - V6.0 (341 Leitos)</h2>
                 <button onclick="closeQRModalSimple()" class="close-btn">✕</button>
             </div>
             <div class="qr-modal-body">
@@ -72,16 +107,18 @@ window.openQRCodesSimple = function() {
                 <div id="tabTodos" class="qr-tab-content active">
                     <div class="qr-controls">
                         <select id="qrHospitalSelect" onchange="generateQRCodesSimple()">
-                            <option value="H5">Adventista (13 leitos)</option>
-                            <option value="H2">Cruz Azul (36 leitos)</option>
-                            <option value="H1">Neomater (10 leitos)</option>
-                            <option value="H4">Santa Clara (13 leitos)</option>
-                            <option value="H6">Santa Cruz (7 leitos)</option>
-                            <option value="H3">Santa Marcelina (7 leitos)</option>
-                            <option value="H7">Santa Virgínia (7 leitos)</option>
+                            <option value="H5">Adventista (28 leitos)</option>
+                            <option value="H2">Cruz Azul (67 leitos)</option>
+                            <option value="H1">Neomater (25 leitos)</option>
+                            <option value="H4">Santa Clara (57 leitos)</option>
+                            <option value="H6">Santa Cruz (22 leitos)</option>
+                            <option value="H3">Santa Marcelina (28 leitos)</option>
+                            <option value="H7">Santa Virgínia (22 leitos)</option>
+                            <option value="H8">São Camilo Ipiranga (22 leitos)</option>
+                            <option value="H9">São Camilo Pompeia (22 leitos)</option>
                         </select>
                         <button onclick="generateAllQRCodesOptimized()" class="btn-all" id="btnGenerateAll">
-                            Gerar Todos (93 QR Codes)
+                            Gerar Todos (341 QR Codes)
                         </button>
                         <button onclick="window.print()" class="btn-print">Imprimir</button>
                     </div>
@@ -89,7 +126,7 @@ window.openQRCodesSimple = function() {
                     <div id="progressContainer" class="progress-container" style="display: none;">
                         <div class="progress-info">
                             <span id="progressText">Gerando QR Codes...</span>
-                            <span id="progressCount">0/93</span>
+                            <span id="progressCount">0/341</span>
                         </div>
                         <div class="progress-bar">
                             <div id="progressFill" class="progress-fill"></div>
@@ -113,6 +150,8 @@ window.openQRCodesSimple = function() {
                                 <option value="H6">Santa Cruz</option>
                                 <option value="H3">Santa Marcelina</option>
                                 <option value="H7">Santa Virgínia</option>
+                                <option value="H8">São Camilo Ipiranga</option>
+                                <option value="H9">São Camilo Pompeia</option>
                             </select>
                         </div>
                         
@@ -216,11 +255,7 @@ window.carregarLeitosParaSelecao = function() {
     `;
     
     leitosOcupados.forEach(leito => {
-        // ✅ LER DA COLUNA AQ
-        const identificacao = leito.identificacaoLeito || 
-                            leito.identificacao_leito || 
-                            `Leito ${leito.leito}`;
-        
+        const identificacao = getNomeLeitoFormatado(hospitalId, leito.leito);
         const matricula = formatarMatricula(leito.matricula);
         const iniciais = leito.nome || '—';
         const tipo = leito.categoriaEscolhida || leito.tipo || '—';
@@ -596,7 +631,7 @@ function gerarHTMLImpressao(leitos) {
 <body>
     <div class="controles">
         <div>
-            <h1 style="font-size: 18px; margin-bottom: 5px;">Impressão de QR Codes</h1>
+            <h1 style="font-size: 18px; margin-bottom: 5px;">Impressão de QR Codes V6.0</h1>
             <p style="color: #6b7280; font-size: 13px;">
                 <strong>${leitos.length} leitos</strong> selecionados
             </p>
@@ -754,22 +789,6 @@ function calcularTempoInternacao(admissao) {
     }
 }
 
-function formatarDataHora(dataISO) {
-    if (!dataISO) return '—';
-    try {
-        const data = new Date(dataISO);
-        return data.toLocaleString('pt-BR', {
-            day: '2-digit',
-            month: '2-digit', 
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-    } catch (error) {
-        return '—';
-    }
-}
-
 // =================== GERAR QR CODES DE UM HOSPITAL ===================
 window.generateQRCodesSimple = function() {
     const hospitalId = document.getElementById('qrHospitalSelect').value;
@@ -778,21 +797,16 @@ window.generateQRCodesSimple = function() {
     
     document.getElementById('progressContainer').style.display = 'none';
     
-    // Buscar dados do hospital
-    const hospitalData = window.hospitalData?.[hospitalId];
-    const leitos = hospitalData?.leitos || [];
-    
     container.innerHTML = `<h3>${hospital.nome}</h3>`;
     
-    // ✅ CRUZ AZUL: Agrupar leitos irmãos (21-36)
+    // ✅ CRUZ AZUL (H2): Agrupar leitos irmãos
     if (hospitalId === 'H2') {
-        // Apartamentos normalmente
+        // Apartamentos (1-20)
         container.innerHTML += '<div class="qr-grid">';
         for (let i = 1; i <= 20; i++) {
-            const leitoData = leitos.find(l => l.leito === i);
             const qrURL = `${QR_API.BASE_URL}/?h=${hospitalId}&l=${i}`;
             const imgURL = `${QR_API.API_URL}?size=${QR_API.SIZE}x${QR_API.SIZE}&data=${encodeURIComponent(qrURL)}`;
-            const nomeLeitoFormatado = getNomeLeitoFormatado(hospitalId, i, leitoData);
+            const nomeLeitoFormatado = getNomeLeitoFormatado(hospitalId, i);
             
             container.innerHTML += `
                 <div class="qr-item">
@@ -806,21 +820,19 @@ window.generateQRCodesSimple = function() {
         }
         container.innerHTML += '</div>';
         
-        // ✅ ENFERMARIAS: Leitos irmãos EMPILHADOS (um em cima do outro)
+        // Enfermarias contratuais (21-36) - PARES EMPILHADOS
         container.innerHTML += '<div class="qr-grid-irmaos">';
         for (let i = 21; i <= 36; i += 2) {
             const leito1 = i;
             const leito2 = i + 1;
-            const leitoData1 = leitos.find(l => l.leito === leito1);
-            const leitoData2 = leitos.find(l => l.leito === leito2);
             
             const qrURL1 = `${QR_API.BASE_URL}/?h=${hospitalId}&l=${leito1}`;
             const qrURL2 = `${QR_API.BASE_URL}/?h=${hospitalId}&l=${leito2}`;
             const imgURL1 = `${QR_API.API_URL}?size=${QR_API.SIZE}x${QR_API.SIZE}&data=${encodeURIComponent(qrURL1)}`;
             const imgURL2 = `${QR_API.API_URL}?size=${QR_API.SIZE}x${QR_API.SIZE}&data=${encodeURIComponent(qrURL2)}`;
             
-            const nome1 = getNomeLeitoFormatado(hospitalId, leito1, leitoData1);
-            const nome2 = getNomeLeitoFormatado(hospitalId, leito2, leitoData2);
+            const nome1 = getNomeLeitoFormatado(hospitalId, leito1);
+            const nome2 = getNomeLeitoFormatado(hospitalId, leito2);
             
             container.innerHTML += `
                 <div class="qr-item-duplo">
@@ -843,14 +855,109 @@ window.generateQRCodesSimple = function() {
         }
         container.innerHTML += '</div>';
         
-    } else {
-        // ✅ OUTROS HOSPITAIS: Normal
+        // Enfermarias extras (37-67) - INDIVIDUAIS
         container.innerHTML += '<div class="qr-grid">';
-        for (let i = 1; i <= hospital.leitos; i++) {
-            const leitoData = leitos.find(l => l.leito === i);
+        for (let i = 37; i <= 67; i++) {
             const qrURL = `${QR_API.BASE_URL}/?h=${hospitalId}&l=${i}`;
             const imgURL = `${QR_API.API_URL}?size=${QR_API.SIZE}x${QR_API.SIZE}&data=${encodeURIComponent(qrURL)}`;
-            const nomeLeitoFormatado = getNomeLeitoFormatado(hospitalId, i, leitoData);
+            const nomeLeitoFormatado = getNomeLeitoFormatado(hospitalId, i);
+            
+            container.innerHTML += `
+                <div class="qr-item">
+                    <div class="qr-label">
+                        <strong>${hospital.nome}</strong><br>
+                        ${nomeLeitoFormatado}
+                    </div>
+                    <img src="${imgURL}" alt="QR Code ${nomeLeitoFormatado}" class="qr-img" loading="lazy">
+                </div>
+            `;
+        }
+        container.innerHTML += '</div>';
+        
+    } 
+    // ✅ SANTA CLARA (H4): Agrupar leitos irmãos
+    else if (hospitalId === 'H4') {
+        // Apartamentos contratuais (1-9)
+        container.innerHTML += '<div class="qr-grid">';
+        for (let i = 1; i <= 9; i++) {
+            const qrURL = `${QR_API.BASE_URL}/?h=${hospitalId}&l=${i}`;
+            const imgURL = `${QR_API.API_URL}?size=${QR_API.SIZE}x${QR_API.SIZE}&data=${encodeURIComponent(qrURL)}`;
+            const nomeLeitoFormatado = getNomeLeitoFormatado(hospitalId, i);
+            
+            container.innerHTML += `
+                <div class="qr-item">
+                    <div class="qr-label">
+                        <strong>${hospital.nome}</strong><br>
+                        ${nomeLeitoFormatado}
+                    </div>
+                    <img src="${imgURL}" alt="QR Code ${nomeLeitoFormatado}" class="qr-img" loading="lazy">
+                </div>
+            `;
+        }
+        container.innerHTML += '</div>';
+        
+        // Enfermarias contratuais (10-17) - PARES EMPILHADOS
+        container.innerHTML += '<div class="qr-grid-irmaos">';
+        for (let i = 10; i <= 17; i += 2) {
+            const leito1 = i;
+            const leito2 = i + 1;
+            
+            const qrURL1 = `${QR_API.BASE_URL}/?h=${hospitalId}&l=${leito1}`;
+            const qrURL2 = `${QR_API.BASE_URL}/?h=${hospitalId}&l=${leito2}`;
+            const imgURL1 = `${QR_API.API_URL}?size=${QR_API.SIZE}x${QR_API.SIZE}&data=${encodeURIComponent(qrURL1)}`;
+            const imgURL2 = `${QR_API.API_URL}?size=${QR_API.SIZE}x${QR_API.SIZE}&data=${encodeURIComponent(qrURL2)}`;
+            
+            const nome1 = getNomeLeitoFormatado(hospitalId, leito1);
+            const nome2 = getNomeLeitoFormatado(hospitalId, leito2);
+            
+            container.innerHTML += `
+                <div class="qr-item-duplo">
+                    <div class="qr-item-irmao">
+                        <div class="qr-label">
+                            <strong>${hospital.nome}</strong><br>
+                            ${nome1}
+                        </div>
+                        <img src="${imgURL1}" alt="QR Code ${nome1}" class="qr-img" loading="lazy">
+                    </div>
+                    <div class="qr-item-irmao">
+                        <div class="qr-label">
+                            <strong>${hospital.nome}</strong><br>
+                            ${nome2}
+                        </div>
+                        <img src="${imgURL2}" alt="QR Code ${nome2}" class="qr-img" loading="lazy">
+                    </div>
+                </div>
+            `;
+        }
+        container.innerHTML += '</div>';
+        
+        // Enfermarias extras (18-26) + Apartamentos (27-57) - INDIVIDUAIS
+        container.innerHTML += '<div class="qr-grid">';
+        for (let i = 18; i <= 57; i++) {
+            const qrURL = `${QR_API.BASE_URL}/?h=${hospitalId}&l=${i}`;
+            const imgURL = `${QR_API.API_URL}?size=${QR_API.SIZE}x${QR_API.SIZE}&data=${encodeURIComponent(qrURL)}`;
+            const nomeLeitoFormatado = getNomeLeitoFormatado(hospitalId, i);
+            
+            container.innerHTML += `
+                <div class="qr-item">
+                    <div class="qr-label">
+                        <strong>${hospital.nome}</strong><br>
+                        ${nomeLeitoFormatado}
+                    </div>
+                    <img src="${imgURL}" alt="QR Code ${nomeLeitoFormatado}" class="qr-img" loading="lazy">
+                </div>
+            `;
+        }
+        container.innerHTML += '</div>';
+        
+    } 
+    // ✅ OUTROS HOSPITAIS (HÍBRIDOS): Normal
+    else {
+        container.innerHTML += '<div class="qr-grid">';
+        for (let i = 1; i <= hospital.leitos; i++) {
+            const qrURL = `${QR_API.BASE_URL}/?h=${hospitalId}&l=${i}`;
+            const imgURL = `${QR_API.API_URL}?size=${QR_API.SIZE}x${QR_API.SIZE}&data=${encodeURIComponent(qrURL)}`;
+            const nomeLeitoFormatado = getNomeLeitoFormatado(hospitalId, i);
             
             container.innerHTML += `
                 <div class="qr-item">
@@ -893,7 +1000,9 @@ window.generateAllQRCodesOptimized = async function() {
             ['H4', QR_API.HOSPITAIS.H4],
             ['H6', QR_API.HOSPITAIS.H6],
             ['H3', QR_API.HOSPITAIS.H3],
-            ['H7', QR_API.HOSPITAIS.H7]
+            ['H7', QR_API.HOSPITAIS.H7],
+            ['H8', QR_API.HOSPITAIS.H8],
+            ['H9', QR_API.HOSPITAIS.H9]
         ];
         
         for (const [hospitalId, hospital] of hospitaisOrdenados) {
@@ -908,27 +1017,23 @@ window.generateAllQRCodesOptimized = async function() {
     } finally {
         isGenerating = false;
         btnGenerateAll.disabled = false;
-        btnGenerateAll.textContent = 'Gerar Todos (93 QR Codes)';
+        btnGenerateAll.textContent = 'Gerar Todos (341 QR Codes)';
     }
 };
 
 async function generateHospitalQRCodes(hospitalId, hospital, container) {
     container.innerHTML += `<h3 class="hospital-title">${hospital.nome}</h3>`;
     
-    const hospitalData = window.hospitalData?.[hospitalId];
-    const leitos = hospitalData?.leitos || [];
-    
-    // ✅ CRUZ AZUL: Agrupar leitos irmãos
+    // ✅ CRUZ AZUL (H2)
     if (hospitalId === 'H2') {
-        // Apartamentos
+        // Apartamentos (1-20)
         container.innerHTML += '<div class="qr-grid" id="grid-apto-h2">';
         const gridApto = container.querySelector('#grid-apto-h2');
         
         for (let i = 1; i <= 20; i++) {
-            const leitoData = leitos.find(l => l.leito === i);
             const qrURL = `${QR_API.BASE_URL}/?h=${hospitalId}&l=${i}`;
             const imgURL = `${QR_API.API_URL}?size=${QR_API.SIZE}x${QR_API.SIZE}&data=${encodeURIComponent(qrURL)}`;
-            const nomeLeitoFormatado = getNomeLeitoFormatado(hospitalId, i, leitoData);
+            const nomeLeitoFormatado = getNomeLeitoFormatado(hospitalId, i);
             
             const qrItem = document.createElement('div');
             qrItem.className = 'qr-item';
@@ -947,23 +1052,21 @@ async function generateHospitalQRCodes(hospitalId, hospital, container) {
         }
         container.innerHTML += '</div>';
         
-        // Enfermarias (leitos irmãos EMPILHADOS)
+        // Enfermarias contratuais (21-36) - EMPILHADOS
         container.innerHTML += '<div class="qr-grid-irmaos" id="grid-enf-h2">';
         const gridEnf = container.querySelector('#grid-enf-h2');
         
         for (let i = 21; i <= 36; i += 2) {
             const leito1 = i;
             const leito2 = i + 1;
-            const leitoData1 = leitos.find(l => l.leito === leito1);
-            const leitoData2 = leitos.find(l => l.leito === leito2);
             
             const qrURL1 = `${QR_API.BASE_URL}/?h=${hospitalId}&l=${leito1}`;
             const qrURL2 = `${QR_API.BASE_URL}/?h=${hospitalId}&l=${leito2}`;
             const imgURL1 = `${QR_API.API_URL}?size=${QR_API.SIZE}x${QR_API.SIZE}&data=${encodeURIComponent(qrURL1)}`;
             const imgURL2 = `${QR_API.API_URL}?size=${QR_API.SIZE}x${QR_API.SIZE}&data=${encodeURIComponent(qrURL2)}`;
             
-            const nome1 = getNomeLeitoFormatado(hospitalId, leito1, leitoData1);
-            const nome2 = getNomeLeitoFormatado(hospitalId, leito2, leitoData2);
+            const nome1 = getNomeLeitoFormatado(hospitalId, leito1);
+            const nome2 = getNomeLeitoFormatado(hospitalId, leito2);
             
             const qrItemDuplo = document.createElement('div');
             qrItemDuplo.className = 'qr-item-duplo';
@@ -991,16 +1094,139 @@ async function generateHospitalQRCodes(hospitalId, hospital, container) {
         }
         container.innerHTML += '</div>';
         
-    } else {
-        // ✅ OUTROS HOSPITAIS: Normal
+        // Enfermarias extras (37-67) - INDIVIDUAIS
+        container.innerHTML += '<div class="qr-grid" id="grid-extra-h2">';
+        const gridExtra = container.querySelector('#grid-extra-h2');
+        
+        for (let i = 37; i <= 67; i++) {
+            const qrURL = `${QR_API.BASE_URL}/?h=${hospitalId}&l=${i}`;
+            const imgURL = `${QR_API.API_URL}?size=${QR_API.SIZE}x${QR_API.SIZE}&data=${encodeURIComponent(qrURL)}`;
+            const nomeLeitoFormatado = getNomeLeitoFormatado(hospitalId, i);
+            
+            const qrItem = document.createElement('div');
+            qrItem.className = 'qr-item';
+            qrItem.innerHTML = `
+                <div class="qr-label">
+                    <strong>${hospital.nome}</strong><br>
+                    ${nomeLeitoFormatado}
+                </div>
+                <img src="${imgURL}" alt="QR Code ${nomeLeitoFormatado}" class="qr-img" loading="lazy">
+            `;
+            
+            gridExtra.appendChild(qrItem);
+            generationProgress++;
+            updateProgress(`Gerando ${hospital.nome}...`, generationProgress, totalQRCodes);
+            
+            if (i < 67) await sleep(QR_API.DELAY);
+        }
+        container.innerHTML += '</div>';
+    }
+    // ✅ SANTA CLARA (H4)
+    else if (hospitalId === 'H4') {
+        // Apartamentos contratuais (1-9)
+        container.innerHTML += '<div class="qr-grid" id="grid-apto1-h4">';
+        const gridApto1 = container.querySelector('#grid-apto1-h4');
+        
+        for (let i = 1; i <= 9; i++) {
+            const qrURL = `${QR_API.BASE_URL}/?h=${hospitalId}&l=${i}`;
+            const imgURL = `${QR_API.API_URL}?size=${QR_API.SIZE}x${QR_API.SIZE}&data=${encodeURIComponent(qrURL)}`;
+            const nomeLeitoFormatado = getNomeLeitoFormatado(hospitalId, i);
+            
+            const qrItem = document.createElement('div');
+            qrItem.className = 'qr-item';
+            qrItem.innerHTML = `
+                <div class="qr-label">
+                    <strong>${hospital.nome}</strong><br>
+                    ${nomeLeitoFormatado}
+                </div>
+                <img src="${imgURL}" alt="QR Code ${nomeLeitoFormatado}" class="qr-img" loading="lazy">
+            `;
+            
+            gridApto1.appendChild(qrItem);
+            generationProgress++;
+            updateProgress(`Gerando ${hospital.nome}...`, generationProgress, totalQRCodes);
+            await sleep(QR_API.DELAY);
+        }
+        container.innerHTML += '</div>';
+        
+        // Enfermarias contratuais (10-17) - EMPILHADOS
+        container.innerHTML += '<div class="qr-grid-irmaos" id="grid-enf-h4">';
+        const gridEnf = container.querySelector('#grid-enf-h4');
+        
+        for (let i = 10; i <= 17; i += 2) {
+            const leito1 = i;
+            const leito2 = i + 1;
+            
+            const qrURL1 = `${QR_API.BASE_URL}/?h=${hospitalId}&l=${leito1}`;
+            const qrURL2 = `${QR_API.BASE_URL}/?h=${hospitalId}&l=${leito2}`;
+            const imgURL1 = `${QR_API.API_URL}?size=${QR_API.SIZE}x${QR_API.SIZE}&data=${encodeURIComponent(qrURL1)}`;
+            const imgURL2 = `${QR_API.API_URL}?size=${QR_API.SIZE}x${QR_API.SIZE}&data=${encodeURIComponent(qrURL2)}`;
+            
+            const nome1 = getNomeLeitoFormatado(hospitalId, leito1);
+            const nome2 = getNomeLeitoFormatado(hospitalId, leito2);
+            
+            const qrItemDuplo = document.createElement('div');
+            qrItemDuplo.className = 'qr-item-duplo';
+            qrItemDuplo.innerHTML = `
+                <div class="qr-item-irmao">
+                    <div class="qr-label">
+                        <strong>${hospital.nome}</strong><br>
+                        ${nome1}
+                    </div>
+                    <img src="${imgURL1}" alt="QR Code ${nome1}" class="qr-img" loading="lazy">
+                </div>
+                <div class="qr-item-irmao">
+                    <div class="qr-label">
+                        <strong>${hospital.nome}</strong><br>
+                        ${nome2}
+                    </div>
+                    <img src="${imgURL2}" alt="QR Code ${nome2}" class="qr-img" loading="lazy">
+                </div>
+            `;
+            
+            gridEnf.appendChild(qrItemDuplo);
+            generationProgress += 2;
+            updateProgress(`Gerando ${hospital.nome}...`, generationProgress, totalQRCodes);
+            await sleep(QR_API.DELAY);
+        }
+        container.innerHTML += '</div>';
+        
+        // Enfermarias extras + Apartamentos (18-57) - INDIVIDUAIS
+        container.innerHTML += '<div class="qr-grid" id="grid-resto-h4">';
+        const gridResto = container.querySelector('#grid-resto-h4');
+        
+        for (let i = 18; i <= 57; i++) {
+            const qrURL = `${QR_API.BASE_URL}/?h=${hospitalId}&l=${i}`;
+            const imgURL = `${QR_API.API_URL}?size=${QR_API.SIZE}x${QR_API.SIZE}&data=${encodeURIComponent(qrURL)}`;
+            const nomeLeitoFormatado = getNomeLeitoFormatado(hospitalId, i);
+            
+            const qrItem = document.createElement('div');
+            qrItem.className = 'qr-item';
+            qrItem.innerHTML = `
+                <div class="qr-label">
+                    <strong>${hospital.nome}</strong><br>
+                    ${nomeLeitoFormatado}
+                </div>
+                <img src="${imgURL}" alt="QR Code ${nomeLeitoFormatado}" class="qr-img" loading="lazy">
+            `;
+            
+            gridResto.appendChild(qrItem);
+            generationProgress++;
+            updateProgress(`Gerando ${hospital.nome}...`, generationProgress, totalQRCodes);
+            
+            if (i < 57) await sleep(QR_API.DELAY);
+        }
+        container.innerHTML += '</div>';
+    }
+    // ✅ OUTROS HOSPITAIS (HÍBRIDOS)
+    else {
         container.innerHTML += `<div class="qr-grid" id="grid-${hospitalId}">`;
         const grid = document.getElementById(`grid-${hospitalId}`);
         
         for (let i = 1; i <= hospital.leitos; i++) {
-            const leitoData = leitos.find(l => l.leito === i);
             const qrURL = `${QR_API.BASE_URL}/?h=${hospitalId}&l=${i}`;
             const imgURL = `${QR_API.API_URL}?size=${QR_API.SIZE}x${QR_API.SIZE}&data=${encodeURIComponent(qrURL)}`;
-            const nomeLeitoFormatado = getNomeLeitoFormatado(hospitalId, i, leitoData);
+            const nomeLeitoFormatado = getNomeLeitoFormatado(hospitalId, i);
             
             const qrItem = document.createElement('div');
             qrItem.className = 'qr-item';
@@ -1660,8 +1886,9 @@ function addOptimizedStyles() {
 // =================== INICIALIZAÇÃO ===================
 document.addEventListener('DOMContentLoaded', function() {
     window.openQRCodes = window.openQRCodesSimple;
-    console.log('Sistema QR Code V4.4 carregado');
-    console.log('✅ Molduras de 14,5cm x 9,5cm');
-    console.log('✅ 4 QR Codes por página (2x2)');
-    console.log('✅ Leitos irmãos empilhados');
+    console.log('Sistema QR Code V6.0 carregado');
+    console.log('✅ 341 QR codes (9 hospitais)');
+    console.log('✅ Híbridos: "Híbrido 01, 02..."');
+    console.log('✅ H2/H4 Aptos: "Apartamento 01, 02..."');
+    console.log('✅ H2/H4 Enfs: "Enfermaria 21, 22..." (pares empilhados)');
 });
