@@ -1111,9 +1111,10 @@ function createAdmissaoForm(hospitalNome, leitoNumero, hospitalId) {
                 </div>
             </div>
             
-            <!-- LINHA 1: IDENTIFICAÇÃO | TIPO QUARTO | ISOLAMENTO -->
+            <!-- LINHA 1: IDENTIFICAÇÃO (só H2/H4) | TIPO QUARTO | ISOLAMENTO -->
             <div style="margin-bottom: 20px;">
-                <div class="form-grid-3-cols" style="display: grid; grid-template-columns: ${(isHibrido || isCruzAzulEnfermaria || isSantaClaraEnfermaria || isApartamentoFixo || hospitalId === 'H4') ? '1fr 1fr 1fr' : '1fr 1fr'}; gap: 15px;">
+                <div class="form-grid-3-cols" style="display: grid; grid-template-columns: ${(isCruzAzulEnfermaria || isSantaClaraEnfermaria || isApartamentoFixo) ? '1fr 1fr 1fr' : (isHibrido ? '1fr 1fr' : '1fr 1fr')}; gap: 15px;">
+                    ${(isCruzAzulEnfermaria || isSantaClaraEnfermaria || isApartamentoFixo) ? `
                     <div>
                         <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600; font-size: 12px; white-space: nowrap;">Identificação do Leito <span style="color: #c86420;">*</span></label>
                         ${isCruzAzulEnfermaria 
@@ -1138,8 +1139,9 @@ function createAdmissaoForm(hospitalNome, leitoNumero, hospitalId) {
                                <div style="font-size: 10px; color: rgba(255,255,255,0.5); margin-top: 3px;">Aceita números e letras (1-6)</div>`
                         }
                     </div>
+                    ` : ''}
                     
-                    ${(isHibrido || isCruzAzulEnfermaria || isSantaClaraEnfermaria || isApartamentoFixo || hospitalId === 'H4') ? `
+                    ${(isHibrido || isCruzAzulEnfermaria || isSantaClaraEnfermaria || isApartamentoFixo) ? `
                     <div>
                         <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">Tipo de Quarto <span style="color: #c86420;">*</span></label>
                         ${isCruzAzulEnfermaria || isSantaClaraEnfermaria
