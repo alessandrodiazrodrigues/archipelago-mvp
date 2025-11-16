@@ -1535,7 +1535,7 @@ function getExecutiveCSS() {
                 top: 50%;
                 left: 50%;
                 transform: translate(-50%, -50%);
-                font-size: 43px;
+                font-size: 26px;
                 font-weight: 700;
                 color: white;
                 line-height: 1;
