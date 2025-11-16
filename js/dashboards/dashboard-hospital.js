@@ -160,20 +160,16 @@ window.atualizarTodasAsCores = function() {
  * @param {string} hospitalId - ID do hospital ou 'todos'
  * @param {HTMLElement} botao - Elemento do botão clicado
  */
-window.filtrarHospitalDashboard = function(hospitalId, botao) {
+window.filtrarHospitalDashboard = function(hospitalId) {
     console.log('[FILTRO] Filtrando:', hospitalId);
     
     // Atualizar variável global
     window.hospitalFiltroAtual = hospitalId;
     
-    // Remover active de todos os botões
-    document.querySelectorAll('.hospital-filter-btn').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    
-    // Adicionar active no botão clicado
-    if (botao) {
-        botao.classList.add('active');
+    // Atualizar dropdown
+    const dropdown = document.getElementById('hospitalFilterDropdown');
+    if (dropdown) {
+        dropdown.value = hospitalId;
     }
     
     // Filtrar cards
@@ -202,7 +198,7 @@ window.filtrarHospitalDashboard = function(hospitalId, botao) {
 };
 
 window.copiarDashboardParaWhatsApp = function() {
-    const hospitaisIds = ['H5', 'H2', 'H1', 'H4', 'H3', 'H6', 'H7'];
+    const hospitaisIds = ['H5', 'H2', 'H1', 'H4', 'H6', 'H3', 'H7', 'H8', 'H9'];
     const hospitaisNomes = {
         'H1': 'NEOMATER',
         'H2': 'CRUZ AZUL',
@@ -210,7 +206,9 @@ window.copiarDashboardParaWhatsApp = function() {
         'H4': 'SANTA CLARA',
         'H5': 'ADVENTISTA',
         'H6': 'SANTA CRUZ',
-        'H7': 'SANTA VIRGINIA'
+        'H7': 'SANTA VIRGINIA',
+        'H8': 'SAO CAMILO IPIRANGA',
+        'H9': 'SAO CAMILO POMPEIA'
     };
     
     // Verificar qual hospital está selecionado
@@ -413,7 +411,7 @@ function calcularModalidadesVagos(leitos, hospitalId) {
 
     const vagos = leitos.filter(l => isVago(l));
 
-    if (hospitalId === 'H1' || hospitalId === 'H3' || hospitalId === 'H5' || hospitalId === 'H6' || hospitalId === 'H7') {
+    if (hospitalId === 'H1' || hospitalId === 'H3' || hospitalId === 'H5' || hospitalId === 'H6' || hospitalId === 'H7' || hospitalId === 'H8' || hospitalId === 'H9') {
         modalidade.flexiveis = vagos.length;
         return modalidade;
     }
@@ -479,6 +477,60 @@ function calcularModalidadesVagos(leitos, hospitalId) {
         
         return modalidade;
     }
+    // SANTA CLARA (H4): Sistema de leitos irmãos (4 pares: 10-11, 12-13, 14-15, 16-17)
+    if (hospitalId === 'H4') {
+        vagos.forEach(leitoVago => {
+            const tipo = leitoVago.tipo || '';
+            
+            if (tipo === 'APTO' || tipo === 'Apartamento') {
+                modalidade.exclusivo_apto++;
+                return;
+            }
+            
+            if (tipo === 'ENFERMARIA' || tipo === 'Enfermaria') {
+                const numeroLeito = getLeitoNumero(leitoVago.leito);
+                
+                if (!numeroLeito || numeroLeito < 10 || numeroLeito > 17) {
+                    modalidade.exclusivo_enf_sem_restricao++;
+                    return;
+                }
+                
+                // Determinar irmão usando SANTA_CLARA_IRMAOS
+                const irmaosMap = window.SANTA_CLARA_IRMAOS || {
+                    10: 11, 11: 10,
+                    12: 13, 13: 12,
+                    14: 15, 15: 14,
+                    16: 17, 17: 16
+                };
+                
+                const numeroIrmao = irmaosMap[numeroLeito];
+                
+                if (!numeroIrmao) {
+                    modalidade.exclusivo_enf_sem_restricao++;
+                    return;
+                }
+                
+                const irmao = leitos.find(l => getLeitoNumero(l.leito) === numeroIrmao);
+                
+                if (!irmao || isVago(irmao)) {
+                    modalidade.exclusivo_enf_sem_restricao++;
+                } else if (irmao.isolamento && irmao.isolamento !== 'Não Isolamento') {
+                    // Isolamento: leito não disponível
+                } else {
+                    if (irmao.genero === 'Feminino') {
+                        modalidade.exclusivo_enf_fem++;
+                    } else if (irmao.genero === 'Masculino') {
+                        modalidade.exclusivo_enf_masc++;
+                    } else {
+                        modalidade.exclusivo_enf_sem_restricao++;
+                    }
+                }
+            }
+        });
+        
+        return modalidade;
+    }
+
 
     return modalidade;
 }
@@ -492,7 +544,7 @@ function calcularModalidadePorTipo(leitos, hospitalId) {
         exclusivo_enf_masc: 0
     };
 
-    if (hospitalId === 'H1' || hospitalId === 'H3' || hospitalId === 'H5' || hospitalId === 'H6' || hospitalId === 'H7') {
+    if (hospitalId === 'H1' || hospitalId === 'H3' || hospitalId === 'H5' || hospitalId === 'H6' || hospitalId === 'H7' || hospitalId === 'H8' || hospitalId === 'H9') {
         modalidade.flexiveis = leitos.length;
         return modalidade;
     }
@@ -657,7 +709,7 @@ window.processarDadosHospital = function(hospitalId) {
     let vagosEnfFemFinal = vagosEnfFem;
     let vagosEnfMascFinal = vagosEnfMasc;
     
-    if (hospitalId === 'H1' || hospitalId === 'H3' || hospitalId === 'H5' || hospitalId === 'H6' || hospitalId === 'H7') {
+    if (hospitalId === 'H1' || hospitalId === 'H3' || hospitalId === 'H5' || hospitalId === 'H6' || hospitalId === 'H7' || hospitalId === 'H8' || hospitalId === 'H9') {
         vagosAptoFinal = vagos.length;
         vagosEnfFemFinal = vagos.length;
         vagosEnfMascFinal = vagos.length;
@@ -745,7 +797,12 @@ window.processarDadosHospital = function(hospitalId) {
     }));
     
     const totalLeitos = leitos.length;
-    const taxaOcupacao = totalLeitos > 0 ? (ocupados.length / totalLeitos * 100) : 0;
+    
+    // V6.0: Usar HOSPITAL_CAPACIDADE para base de cálculo
+    const capacidadeInfo = window.HOSPITAL_CAPACIDADE ? window.HOSPITAL_CAPACIDADE[hospitalId] : null;
+    const contratuais = capacidadeInfo ? capacidadeInfo.contratuais : totalLeitos;
+    const base = Math.max(contratuais, ocupados.length);
+    const taxaOcupacao = totalLeitos > 0 ? Math.min((ocupados.length / base * 100), 100) : 0;
     
     const modalidadeOcupados = calcularModalidadePorTipo(ocupados, hospitalId);
     const modalidadePrevisao = calcularModalidadePorTipo(previsaoAlta, hospitalId);
@@ -758,7 +815,9 @@ window.processarDadosHospital = function(hospitalId) {
         'H4': 'Santa Clara',
         'H5': 'Adventista',
         'H6': 'Santa Cruz',
-        'H7': 'Santa Virgínia'
+        'H7': 'Santa Virgínia',
+        'H8': 'São Camilo Ipiranga',
+        'H9': 'São Camilo Pompeia'
     };
     
     return {
@@ -780,7 +839,7 @@ window.processarDadosHospital = function(hospitalId) {
             modalidade: modalidadePrevisao
         },
         disponiveis: {
-            total: vagos.length,
+            total: Math.max(contratuais - ocupados.length, 0),
             apartamento: vagosAptoFinal,
             enf_feminina: vagosEnfFemFinal,
             enf_masculina: vagosEnfMascFinal,
@@ -965,32 +1024,20 @@ window.renderDashboardHospitalar = function() {
             <div class="dashboard-header-filtro">
                 <h2 class="dashboard-title-central">Dashboard Hospitalar</h2>
                 
-                <!-- TODOS OS 8 BOTÕES NA MESMA LINHA -->
+                <!-- DROPDOWN COM TODOS OS HOSPITAIS -->
                 <div class="hospital-filter-selector">
-                    <button class="hospital-filter-btn active" onclick="window.filtrarHospitalDashboard('todos', this)">
-                        Todos
-                    </button>
-                    <button class="hospital-filter-btn" onclick="window.filtrarHospitalDashboard('H5', this)">
-                        Adventista
-                    </button>
-                    <button class="hospital-filter-btn" onclick="window.filtrarHospitalDashboard('H2', this)">
-                        Cruz Azul
-                    </button>
-                    <button class="hospital-filter-btn" onclick="window.filtrarHospitalDashboard('H1', this)">
-                        Neomater
-                    </button>
-                    <button class="hospital-filter-btn" onclick="window.filtrarHospitalDashboard('H4', this)">
-                        Santa Clara
-                    </button>
-                    <button class="hospital-filter-btn" onclick="window.filtrarHospitalDashboard('H6', this)">
-                        Santa Cruz
-                    </button>
-                    <button class="hospital-filter-btn" onclick="window.filtrarHospitalDashboard('H3', this)">
-                        Santa Marcelina
-                    </button>
-                    <button class="hospital-filter-btn" onclick="window.filtrarHospitalDashboard('H7', this)">
-                        Santa Virginia
-                    </button>
+                    <select id="hospitalFilterDropdown" class="hospital-filter-select" onchange="window.filtrarHospitalDashboard(this.value)">
+                        <option value="todos" selected>Todos</option>
+                        <option value="H5">Adventista</option>
+                        <option value="H2">Cruz Azul</option>
+                        <option value="H1">Neomater</option>
+                        <option value="H4">Santa Clara</option>
+                        <option value="H6">Santa Cruz</option>
+                        <option value="H3">Santa Marcelina</option>
+                        <option value="H7">Santa Virginia</option>
+                        <option value="H8">Sao Camilo Ipiranga</option>
+                        <option value="H9">Sao Camilo Pompeia</option>
+                    </select>
                 </div>
                 
                 <button onclick="window.copiarDashboardParaWhatsApp()" class="btn-whatsapp-dashboard">
@@ -1805,43 +1852,43 @@ function getHospitalConsolidadoCSS() {
                 text-transform: none !important;
             }
             
-            /* =================== LINHA DOS BOTÕES (8 BOTÕES) =================== */
+            /* =================== DROPDOWN DE FILTRO =================== */
             .hospital-filter-selector {
                 display: flex;
-                gap: 10px;
-                flex-wrap: wrap;
                 justify-content: center;
                 margin-bottom: 20px;
             }
             
-            /* =================== BOTÕES DE FILTRO =================== */
-            .hospital-filter-btn {
+            .hospital-filter-select {
                 background-color: #60a5fa;
                 color: #ffffff;
                 border: none;
-                padding: 12px 20px;
+                padding: 14px 28px;
                 border-radius: 8px;
                 cursor: pointer;
-                font-size: 13px;
+                font-size: 16px;
                 font-weight: 700;
                 font-family: 'Poppins', sans-serif;
+                min-width: 345px;
                 transition: all 0.3s ease;
-                flex: 1 1 calc(12.5% - 10px);
-                min-width: 120px;
-                max-width: 160px;
-                text-transform: none;
-                white-space: nowrap;
+                text-align: center;
             }
             
-            .hospital-filter-btn:hover {
+            .hospital-filter-select:hover {
                 background-color: #3b82f6;
                 transform: translateY(-2px);
                 box-shadow: 0 4px 12px rgba(96, 165, 250, 0.4);
             }
             
-            .hospital-filter-btn.active {
-                background-color: #3b82f6;
+            .hospital-filter-select:focus {
+                outline: none;
                 box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.3);
+            }
+            
+            .hospital-filter-select option {
+                background-color: #131b2e;
+                color: #ffffff;
+                padding: 10px;
             }
             
             /* =================== BOTÃO WHATSAPP =================== */
