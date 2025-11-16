@@ -1474,25 +1474,26 @@ function injectQRStyles() {
             }
             
             .qr-modal-simple .qr-container h3 {
-                page-break-before: always;
-                page-break-after: avoid;
-                margin: 0 0 10mm 0 !important;
-                font-size: 16px !important;
-                background: white !important;
-                border: none !important;
-                padding: 5mm 0 !important;
-                color: #000 !important;
-                text-align: left !important;
-            }
-            
-            .qr-modal-simple .qr-container h3:first-child {
-                page-break-before: auto;
+                display: none !important;
             }
             
             .qr-modal-simple .qr-grid,
             .qr-modal-simple .qr-grid-irmaos {
                 display: block !important;
                 page-break-inside: auto !important;
+            }
+            
+            /* FORÇAR QUEBRA DE PÁGINA EM CADA ITEM */
+            .qr-modal-simple .qr-grid > .qr-item,
+            .qr-modal-simple .qr-grid-irmaos > .qr-item-duplo {
+                page-break-before: always !important;
+                page-break-after: always !important;
+                page-break-inside: avoid !important;
+            }
+            
+            .qr-modal-simple .qr-grid > .qr-item:first-child,
+            .qr-modal-simple .qr-grid-irmaos > .qr-item-duplo:first-child {
+                page-break-before: auto !important;
             }
             
             /* 1 QR CODE POR PÁGINA - TAMANHO: 14,5cm x 9,5cm */
@@ -1506,8 +1507,9 @@ function injectQRStyles() {
                 border-radius: 5mm !important;
                 padding: 10mm !important;
                 background: white !important;
-                page-break-inside: avoid !important;
+                page-break-before: always !important;
                 page-break-after: always !important;
+                page-break-inside: avoid !important;
                 display: flex !important;
                 flex-direction: column !important;
                 justify-content: center !important;
@@ -1515,9 +1517,9 @@ function injectQRStyles() {
                 margin: 0 auto !important;
             }
             
-            .qr-modal-simple .qr-item:last-child,
-            .qr-modal-simple .qr-item-duplo:last-child {
-                page-break-after: auto !important;
+            .qr-modal-simple .qr-item:first-child,
+            .qr-modal-simple .qr-item-duplo:first-child {
+                page-break-before: auto !important;
             }
             
             .qr-modal-simple .qr-item-irmao {
