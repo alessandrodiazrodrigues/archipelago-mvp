@@ -102,7 +102,7 @@ window.searchLeitos = function() {
     logInfo(`Busca: "${searchTerm}" - ${visibleCards.length} resultados`);
 };
 
-// =================== 🆕 FUNÇÃO: RENDERIZAR FLAG DE OCUPAÇÃO V6.3 CORRIGIDA ===================
+// =================== 🆕 FUNÇÃO: RENDERIZAR FLAG DE OCUPAÇÃO V6.2 ===================
 window.renderFlagOcupacao = function(hospitalId, status, posicaoOcupacao, tipoLeito) {
     // Se leito vago, não exibe flag
     if (status === 'Vago' || status === 'vago') {
@@ -119,14 +119,21 @@ window.renderFlagOcupacao = function(hospitalId, status, posicaoOcupacao, tipoLe
     const isApartamento = tipoUpper.includes('APTO') || tipoUpper === 'APARTAMENTO';
     const isEnfermaria = tipoUpper.includes('ENF') || tipoUpper === 'ENFERMARIA';
 
-    // Calcular ocupação por tipo
+    // Obter estrutura de enfermarias (se disponível)
+    let enfermariasInfo = null;
+    if (hospitalId === 'H2' && window.CRUZ_AZUL_ENFERMARIAS) {
+        enfermariasInfo = window.CRUZ_AZUL_ENFERMARIAS;
+    } else if (hospitalId === 'H4' && window.SANTA_CLARA_ENFERMARIAS) {
+        enfermariasInfo = window.SANTA_CLARA_ENFERMARIAS;
+    }
+
+    // Calcular ocupação por tipo (se tiposFixos e temos info de enfermarias)
     let textoTipo = '';
     let ocupadosPorTipo = 0;
-    let totalContratuaisPorTipo = 0;
-    let extrasEmUsoPorTipo = 0;
+    let totalPorTipo = 0;
 
-    if (hospitalId === 'H2' || hospitalId === 'H4') {
-        // ✅ TIPOS FIXOS (Cruz Azul ou Santa Clara) - USA CARDS-CONFIG.JS
+    if (enfermariasInfo && (hospitalId === 'H2' || hospitalId === 'H4')) {
+        // TIPOS FIXOS (Cruz Azul ou Santa Clara)
         const leitosHospital = window.hospitalData[hospitalId]?.leitos || [];
         const ocupados = leitosHospital.filter(l => l.status === 'Ocupado' || l.status === 'Em uso' || l.status === 'ocupado');
 
@@ -138,27 +145,12 @@ window.renderFlagOcupacao = function(hospitalId, status, posicaoOcupacao, tipoLe
             });
             ocupadosPorTipo = ocupadosApto.length;
             
-            // ✅ USAR CARDS-CONFIG.JS
-            // Cruz Azul: window.CRUZ_AZUL_ENFERMARIAS.apartamentos = 35 (20 contratuais + 15 extras)
-            // Santa Clara: window.SANTA_CLARA_ENFERMARIAS.apartamentos = 33 (18 contratuais + 15 extras)
-            // Capacidade total - enfermarias contratuais = apartamentos contratuais
-            const capacidade = window.getCapacidade(hospitalId);
-            const enfInfo = (hospitalId === 'H2') ? window.CRUZ_AZUL_ENFERMARIAS : window.SANTA_CLARA_ENFERMARIAS;
-            
-            if (enfInfo && enfInfo.contratuais) {
-                // Apartamentos contratuais = Total contratuais - Enfermarias contratuais
-                totalContratuaisPorTipo = capacidade.contratuais - enfInfo.contratuais.length;
-            } else {
-                // Fallback: Cruz Azul = 20, Santa Clara = 18
-                totalContratuaisPorTipo = (hospitalId === 'H2') ? 20 : 18;
-            }
-            
+            // Total de apartamentos CONTRATUAIS apenas
+            // Cruz Azul: 20 aptos contratuais
+            // Santa Clara: 18 aptos contratuais
+            const totalAptoContratuais = (hospitalId === 'H2') ? 20 : 18;
+            totalPorTipo = totalAptoContratuais;  // ✅ Corrigido: só contratuais
             textoTipo = 'APARTAMENTO';
-            
-            // Calcular extras EM USO (contagem incremental)
-            if (ocupadosPorTipo > totalContratuaisPorTipo) {
-                extrasEmUsoPorTipo = ocupadosPorTipo - totalContratuaisPorTipo;
-            }
         } else if (isEnfermaria) {
             // Contar enfermarias ocupadas
             const ocupadosEnf = ocupados.filter(l => {
@@ -167,59 +159,22 @@ window.renderFlagOcupacao = function(hospitalId, status, posicaoOcupacao, tipoLe
             });
             ocupadosPorTipo = ocupadosEnf.length;
 
-            // ✅ USAR CARDS-CONFIG.JS
-            // window.CRUZ_AZUL_ENFERMARIAS.contratuais.length = 16
-            // window.SANTA_CLARA_ENFERMARIAS.contratuais.length = 8
-            const enfInfo = (hospitalId === 'H2') ? window.CRUZ_AZUL_ENFERMARIAS : window.SANTA_CLARA_ENFERMARIAS;
-            
-            if (enfInfo && enfInfo.contratuais) {
-                totalContratuaisPorTipo = enfInfo.contratuais.length;
-            } else {
-                // Fallback: Cruz Azul = 16, Santa Clara = 8
-                totalContratuaisPorTipo = (hospitalId === 'H2') ? 16 : 8;
-            }
-            
+            // Total de enfermarias CONTRATUAIS apenas
+            const totalEnfContratuais = enfermariasInfo.contratuais.length;
+            totalPorTipo = totalEnfContratuais;  // ✅ Corrigido: só contratuais, não soma extras
             textoTipo = 'ENFERMARIA';
-            
-            // Calcular extras EM USO (contagem incremental)
-            if (ocupadosPorTipo > totalContratuaisPorTipo) {
-                extrasEmUsoPorTipo = ocupadosPorTipo - totalContratuaisPorTipo;
-            }
         }
     } else {
         // HÍBRIDOS ou fallback
-        const leitosHospital = window.hospitalData[hospitalId]?.leitos || [];
-        const ocupados = leitosHospital.filter(l => l.status === 'Ocupado' || l.status === 'Em uso' || l.status === 'ocupado');
-        ocupadosPorTipo = ocupados.length;
-        totalContratuaisPorTipo = capacidade.contratuais;
+        ocupadosPorTipo = posicaoOcupacao;
+        totalPorTipo = capacidade.contratuais;  // ✅ Corrigido: usar contratuais, não total
         textoTipo = '';
-        
-        // Calcular extras EM USO (contagem incremental)
-        if (ocupadosPorTipo > totalContratuaisPorTipo) {
-            extrasEmUsoPorTipo = ocupadosPorTipo - totalContratuaisPorTipo;
-        }
     }
 
-    // ✅ VERIFICAR SE É EXTRA - POR TIPO (H2/H4) ou GERAL (híbridos)
-    let isLeitoExtraFinal = false;
-    
-    if (hospitalId === 'H2' || hospitalId === 'H4') {
-        // TIPOS FIXOS: verificar se é extra POR TIPO
-        if (isApartamento && ocupadosPorTipo > totalContratuaisPorTipo) {
-            isLeitoExtraFinal = true;  // É apartamento EXTRA
-        } else if (isEnfermaria && ocupadosPorTipo > totalContratuaisPorTipo) {
-            isLeitoExtraFinal = true;  // É enfermaria EXTRA
-        }
-    } else {
-        // HÍBRIDOS: verificar pela posição geral
-        isLeitoExtraFinal = isExtra;
-    }
+    if (isExtra) {
+        // LEITO EXTRA
+        const { extras } = window.calcularLeitosExtras(hospitalId, posicaoOcupacao);
 
-    if (isLeitoExtraFinal) {
-        // ✅ LEITO EXTRA - CONTAGEM INCREMENTAL (X/X)
-        // Mostra: "EXTRA 1/1", "EXTRA 2/2", "EXTRA 3/3", etc
-        // NÃO mostra o total disponível (15), mas sim quantos extras estão EM USO
-        
         return `
             <div style="
                 background: ${window.COR_FLAG_EXTRA};
@@ -232,13 +187,13 @@ window.renderFlagOcupacao = function(hospitalId, status, posicaoOcupacao, tipoLe
                 margin-top: 8px;
                 font-family: 'Poppins', sans-serif;
             ">
-                EXTRA ${textoTipo} ${extrasEmUsoPorTipo}/${extrasEmUsoPorTipo}
+                EXTRA ${textoTipo} ${extras}/${capacidade.extras}
             </div>
         `;
     } else {
-        // ✅ LEITO CONTRATUAL
-        // Mostra: "OCUPACAO 10/10" (contratuais em uso / total contratuais)
-        
+        // LEITO CONTRATUAL
+        const { contratuais } = window.calcularLeitosExtras(hospitalId, posicaoOcupacao);
+
         return `
             <div style="
                 background: ${window.COR_FLAG_CONTRATUAL};
@@ -251,7 +206,7 @@ window.renderFlagOcupacao = function(hospitalId, status, posicaoOcupacao, tipoLe
                 margin-top: 8px;
                 font-family: 'Poppins', sans-serif;
             ">
-                OCUPACAO ${textoTipo} ${Math.min(ocupadosPorTipo, totalContratuaisPorTipo)}/${totalContratuaisPorTipo}
+                OCUPACAO ${textoTipo} ${ocupadosPorTipo || contratuais}/${totalPorTipo || capacidade.contratuais}
             </div>
         `;
     }
@@ -299,20 +254,42 @@ window.renderCards = function() {
         l.status === 'Vago' || l.status === 'vago'
     );
     
-    // Ordenar OCUPADOS por identificacao_leito
-    leitosOcupados.sort((a, b) => {
-        const idA = a.identificacaoLeito || a.identificacao_leito || '';
-        const idB = b.identificacaoLeito || b.identificacao_leito || '';
-        
-        if (idA && idB) {
-            return idA.localeCompare(idB);
-        }
-        
-        if (idA) return -1;
-        if (idB) return 1;
-        
-        return (a.leito || 0) - (b.leito || 0);
-    });
+    // ✅ Ordenar OCUPADOS
+    if (hospitalId === 'H2' || hospitalId === 'H4') {
+        // TIPOS FIXOS: Apartamentos ANTES de Enfermarias, depois por identificacaoLeito
+        leitosOcupados.sort((a, b) => {
+            const tipoA = (a.tipo || '').toUpperCase();
+            const tipoB = (b.tipo || '').toUpperCase();
+            
+            const isAptoA = tipoA.includes('APTO') || tipoA === 'APARTAMENTO';
+            const isAptoB = tipoB.includes('APTO') || tipoB === 'APARTAMENTO';
+            
+            // Apartamentos antes de enfermarias
+            if (isAptoA && !isAptoB) return -1;
+            if (!isAptoA && isAptoB) return 1;
+            
+            // Dentro do mesmo tipo, ordenar por identificacaoLeito
+            const idA = a.identificacaoLeito || a.identificacao_leito || a.leito;
+            const idB = b.identificacaoLeito || b.identificacao_leito || b.leito;
+            
+            return String(idA).localeCompare(String(idB), undefined, {numeric: true});
+        });
+    } else {
+        // HÍBRIDOS: ordenação padrão por identificacaoLeito
+        leitosOcupados.sort((a, b) => {
+            const idA = a.identificacaoLeito || a.identificacao_leito || '';
+            const idB = b.identificacaoLeito || b.identificacao_leito || '';
+            
+            if (idA && idB) {
+                return idA.localeCompare(idB);
+            }
+            
+            if (idA) return -1;
+            if (idB) return 1;
+            
+            return (a.leito || 0) - (b.leito || 0);
+        });
+    }
     
     // Ordenar VAGOS por número do leito
     leitosVagos.sort((a, b) => (a.leito || 0) - (b.leito || 0));
@@ -403,7 +380,30 @@ window.renderCards = function() {
     console.log('[CARDS V6.1] Ocupados:', leitosOcupados.length, '| Vagos filtrados:', vagosParaMostrar.length);
     
     leitosOrdenados.forEach((leito, index) => {
-        const posicaoOcupacao = leitosOcupados.findIndex(l => l.leito === leito.leito) + 1;
+        // ✅ Calcular posição DENTRO DO TIPO (H2/H4) ou geral (híbridos)
+        let posicaoOcupacao = 1;
+        
+        if (leito.status === 'Vago' || leito.status === 'vago') {
+            posicaoOcupacao = 0; // Vagos não têm posição
+        } else if (hospitalId === 'H2' || hospitalId === 'H4') {
+            // TIPOS FIXOS: posição dentro do tipo
+            const tipoLeito = (leito.tipo || '').toUpperCase();
+            const isApto = tipoLeito.includes('APTO') || tipoLeito === 'APARTAMENTO';
+            
+            // Filtrar ocupados do MESMO TIPO
+            const ocupadosMesmoTipo = leitosOcupados.filter(l => {
+                const tipoL = (l.tipo || '').toUpperCase();
+                const isAptoL = tipoL.includes('APTO') || tipoL === 'APARTAMENTO';
+                return isApto === isAptoL;
+            });
+            
+            // Encontrar posição deste leito dentro do tipo
+            posicaoOcupacao = ocupadosMesmoTipo.findIndex(l => l.leito === leito.leito) + 1;
+        } else {
+            // HÍBRIDOS: posição geral
+            posicaoOcupacao = leitosOcupados.findIndex(l => l.leito === leito.leito) + 1;
+        }
+        
         const card = createCard(leito, hospitalNome, hospitalId, posicaoOcupacao);
         container.appendChild(card);
     });
@@ -1140,28 +1140,9 @@ function createAdmissaoForm(hospitalNome, leitoNumero, hospitalId) {
         sufixoPreDefinido = (leitoNumero % 2 === 0) ? 'C' : 'A';
     }
     
-    // VERIFICAR TIPO PELA PLANILHA para H2 e H4
-    let tipoLeitoPlanilha = null;
-    if (hospitalId === 'H2' || hospitalId === 'H4') {
-        const leitosHospital = window.hospitalData[hospitalId]?.leitos || [];
-        const dadosLeito = leitosHospital.find(l => l.leito == leitoNumero);
-        tipoLeitoPlanilha = dadosLeito?.tipo || '';
-    }
-    
     const isCruzAzulApartamento = (hospitalId === 'H2' && leitoNumero >= 1 && leitoNumero <= 20);
     const isSantaClaraApartamento = (hospitalId === 'H4' && ((leitoNumero >= 1 && leitoNumero <= 9) || (leitoNumero >= 27 && leitoNumero <= 57)));
-    
-    // TIPOS FIXOS: usa tipo da planilha (inclui extras!)
-    const isTipoFixoApartamento = (hospitalId === 'H2' || hospitalId === 'H4') && 
-                                   tipoLeitoPlanilha && 
-                                   (tipoLeitoPlanilha.toUpperCase().includes('APTO') || tipoLeitoPlanilha.toUpperCase() === 'APARTAMENTO');
-    
-    const isTipoFixoEnfermaria = (hospitalId === 'H2' || hospitalId === 'H4') && 
-                                  tipoLeitoPlanilha && 
-                                  (tipoLeitoPlanilha.toUpperCase().includes('ENF') || tipoLeitoPlanilha.toUpperCase() === 'ENFERMARIA');
-    
-    const isApartamentoFixo = isTipoFixoApartamento;
-    const isEnfermariaFixa = isTipoFixoEnfermaria;
+    const isApartamentoFixo = isCruzAzulApartamento || isSantaClaraApartamento;
     
     return `
         <div class="modal-content" style="background: #1a1f2e; border-radius: 12px; padding: 30px; max-width: 700px; width: 95%; max-height: 90vh; overflow-y: auto; color: #ffffff; font-family: 'Poppins', sans-serif;">
@@ -1207,12 +1188,12 @@ function createAdmissaoForm(hospitalNome, leitoNumero, hospitalId) {
                     
                     <div>
                         <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">Tipo de Quarto <span style="color: #c86420;">*</span></label>
-                        ${isEnfermariaFixa || isCruzAzulEnfermaria || isSantaClaraEnfermaria
+                        ${isCruzAzulEnfermaria || isSantaClaraEnfermaria
                             ? `<select id="admTipoQuarto" disabled style="width: 100%; padding: 12px; background: #1f2937 !important; color: #9ca3af !important; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; font-size: 14px; cursor: not-allowed; font-family: 'Poppins', sans-serif;">
                                 <option value="Enfermaria" selected>Enfermaria</option>
                                </select>
                                <div style="font-size: 10px; color: rgba(255,255,255,0.5); margin-top: 3px;">Tipo fixo (Enfermaria)</div>`
-                            : isApartamentoFixo || isTipoFixoApartamento
+                            : isApartamentoFixo
                             ? `<select id="admTipoQuarto" disabled style="width: 100%; padding: 12px; background: #1f2937 !important; color: #9ca3af !important; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; font-size: 14px; cursor: not-allowed; font-family: 'Poppins', sans-serif;">
                                 <option value="Apartamento" selected>Apartamento</option>
                                </select>
