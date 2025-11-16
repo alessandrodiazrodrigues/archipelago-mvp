@@ -63,8 +63,31 @@ let totalQRCodes = 0;
 let leitosSelecionados = [];
 
 // =================== FUNÇÃO PARA OBTER NOME DO LEITO ===================
-// ✅ Agora usa apenas o ID do leito (número lógico da coluna B)
+// ✅ H2 e H4: Apartamento ID ou Enfermaria ID
+// ✅ Demais hospitais: Leito XX
 function getNomeLeitoFormatado(hospitalId, numeroLeito) {
+    // H2 - CRUZ AZUL
+    if (hospitalId === 'H2') {
+        if (numeroLeito >= 1 && numeroLeito <= 20) {
+            return `Apartamento ID ${String(numeroLeito).padStart(2, '0')}`;
+        } else if (numeroLeito >= 21 && numeroLeito <= 67) {
+            return `Enfermaria ID ${String(numeroLeito).padStart(2, '0')}`;
+        }
+    }
+    
+    // H4 - SANTA CLARA
+    if (hospitalId === 'H4') {
+        // Apartamentos: leitos 27-57
+        if (numeroLeito >= 27 && numeroLeito <= 57) {
+            return `Apartamento ID ${String(numeroLeito).padStart(2, '0')}`;
+        } 
+        // Enfermarias: leitos 1-26
+        else if (numeroLeito >= 1 && numeroLeito <= 26) {
+            return `Enfermaria ID ${String(numeroLeito).padStart(2, '0')}`;
+        }
+    }
+    
+    // Outros hospitais: Leito XX
     return `Leito ${String(numeroLeito).padStart(2, '0')}`;
 }
 
@@ -374,9 +397,33 @@ function abrirPaginaImpressao(leitos) {
         return;
     }
     
+    // Aguardar carregamento completo das imagens antes de permitir impressão
+    janelaImpressao.addEventListener('load', function() {
+        const imagens = janelaImpressao.document.querySelectorAll('img');
+        let imagensCarregadas = 0;
+        const totalImagens = imagens.length;
+        
+        imagens.forEach(img => {
+            if (img.complete) {
+                imagensCarregadas++;
+            } else {
+                img.addEventListener('load', function() {
+                    imagensCarregadas++;
+                    console.log(`Imagem ${imagensCarregadas}/${totalImagens} carregada`);
+                });
+                img.addEventListener('error', function() {
+                    imagensCarregadas++;
+                    console.error(`Erro ao carregar imagem ${imagensCarregadas}/${totalImagens}`);
+                });
+            }
+        });
+        
+        console.log(`Total de ${totalImagens} imagens sendo carregadas...`);
+    });
+    
     setTimeout(() => {
         URL.revokeObjectURL(url);
-    }, 5000);
+    }, 10000);
     
     console.log('Página de impressão aberta com sucesso!');
 }
@@ -657,7 +704,7 @@ function gerarHTMLImpressao(leitos) {
         html += `
         <div class="leito-item">
             <div class="qr-section">
-                <img src="${qrImgURL}" alt="QR Code" class="qr-code">
+                <img src="${qrImgURL}" alt="QR Code" class="qr-code" loading="eager" decoding="sync">
                 <div class="qr-label">Escaneie aqui</div>
             </div>
 
@@ -730,6 +777,36 @@ function gerarHTMLImpressao(leitos) {
     <script>
         console.log('Página de impressão carregada');
         console.log('${leitos.length} leitos prontos para impressão');
+        
+        // Garantir que todas as imagens sejam carregadas
+        window.addEventListener('load', function() {
+            const imagens = document.querySelectorAll('img');
+            let carregadas = 0;
+            const total = imagens.length;
+            
+            console.log('Aguardando carregamento de ' + total + ' imagens...');
+            
+            function verificarCarregamento() {
+                carregadas++;
+                console.log('Imagem ' + carregadas + '/' + total + ' carregada');
+                
+                if (carregadas === total) {
+                    console.log('Todas as imagens carregadas! Pronto para imprimir.');
+                }
+            }
+            
+            imagens.forEach(function(img, index) {
+                if (img.complete) {
+                    verificarCarregamento();
+                } else {
+                    img.addEventListener('load', verificarCarregamento);
+                    img.addEventListener('error', function() {
+                        console.error('Erro ao carregar imagem ' + (index + 1));
+                        verificarCarregamento();
+                    });
+                }
+            });
+        });
     </script>
 </body>
 </html>`;
@@ -834,7 +911,7 @@ window.generateQRCodesSimple = function() {
                         <strong>${hospital.nome}</strong><br>
                         ${nomeLeitoFormatado}
                     </div>
-                    <img src="${imgURL}" alt="QR Code ${nomeLeitoFormatado}" class="qr-img" loading="lazy">
+                    <img src="${imgURL}" alt="QR Code ${nomeLeitoFormatado}" class="qr-img" loading="eager">
                 </div>
             `;
             leitosProcessados.add(i);
@@ -866,14 +943,14 @@ window.generateQRCodesSimple = function() {
                                 <strong>${hospital.nome}</strong><br>
                                 ${nome1}
                             </div>
-                            <img src="${imgURL1}" alt="QR Code ${nome1}" class="qr-img" loading="lazy">
+                            <img src="${imgURL1}" alt="QR Code ${nome1}" class="qr-img" loading="eager">
                         </div>
                         <div class="qr-item-irmao">
                             <div class="qr-label">
                                 <strong>${hospital.nome}</strong><br>
                                 ${nome2}
                             </div>
-                            <img src="${imgURL2}" alt="QR Code ${nome2}" class="qr-img" loading="lazy">
+                            <img src="${imgURL2}" alt="QR Code ${nome2}" class="qr-img" loading="eager">
                         </div>
                     </div>
                 `;
@@ -957,7 +1034,7 @@ async function generateHospitalQRCodes(hospitalId, hospital, container) {
                     <strong>${hospital.nome}</strong><br>
                     ${nomeLeitoFormatado}
                 </div>
-                <img src="${imgURL}" alt="QR Code ${nomeLeitoFormatado}" class="qr-img" loading="lazy">
+                <img src="${imgURL}" alt="QR Code ${nomeLeitoFormatado}" class="qr-img" loading="eager">
             `;
             
             gridNormais.appendChild(qrItem);
@@ -994,14 +1071,14 @@ async function generateHospitalQRCodes(hospitalId, hospital, container) {
                             <strong>${hospital.nome}</strong><br>
                             ${nome1}
                         </div>
-                        <img src="${imgURL1}" alt="QR Code ${nome1}" class="qr-img" loading="lazy">
+                        <img src="${imgURL1}" alt="QR Code ${nome1}" class="qr-img" loading="eager">
                     </div>
                     <div class="qr-item-irmao">
                         <div class="qr-label">
                             <strong>${hospital.nome}</strong><br>
                             ${nome2}
                         </div>
-                        <img src="${imgURL2}" alt="QR Code ${nome2}" class="qr-img" loading="lazy">
+                        <img src="${imgURL2}" alt="QR Code ${nome2}" class="qr-img" loading="eager">
                     </div>
                 `;
                 
