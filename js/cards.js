@@ -568,9 +568,13 @@ function createCard(leito, hospitalNome, hospitalId, posicaoOcupacao) {
     const isSantaClaraEnfermaria = (hospitalId === 'H4') && window.isEnfermariaComIrmao('H4', numeroLeito);
 
     if ((isCruzAzulEnfermaria || isSantaClaraEnfermaria) && (leito.status === 'Vago' || leito.status === 'vago')) {
-        const leitoIrmao = window.CRUZ_AZUL_IRMAOS[numeroLeito];
+        // ✅ Usar mapa correto baseado no hospital
+        const mapaIrmaos = isCruzAzulEnfermaria ? window.CRUZ_AZUL_IRMAOS : window.SANTA_CLARA_IRMAOS;
+        const leitoIrmao = mapaIrmaos[numeroLeito];
+        
         if (leitoIrmao) {
-            const leitosHospital = window.hospitalData['H2']?.leitos || [];
+            // ✅ Buscar no hospital correto
+            const leitosHospital = window.hospitalData[hospitalId]?.leitos || [];
             const dadosLeitoIrmao = leitosHospital.find(l => l.leito == leitoIrmao);
             
             if (dadosLeitoIrmao && (dadosLeitoIrmao.status === 'Em uso' || dadosLeitoIrmao.status === 'ocupado')) {
