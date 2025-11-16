@@ -842,6 +842,7 @@ window.processarDadosHospital = function(hospitalId) {
     return {
         nome: nomeHospital[hospitalId] || hospitalId,
         totalLeitos,
+        contratuais,
         taxaOcupacao,
         ocupados: {
             total: ocupados.length,
@@ -1171,7 +1172,7 @@ function renderHospitalSection(hospitalId, hoje) {
                     <div class="kpi-title">Leitos Disponíveis</div>
                     
                     <div class="kpi-content">
-                        ${renderGaugeV5_Hosp((dados.disponiveis.total / dados.totalLeitos * 100) || 0, CORES_ARCHIPELAGO.disponiveis, dados.disponiveis.total)}
+                        ${renderGaugeV5_Hosp((dados.disponiveis.total / dados.contratuais * 100) || 0, CORES_ARCHIPELAGO.disponiveis, dados.disponiveis.total)}
                         
                         <div class="kpi-items-lista">
                             <div class="kpi-subtitle">Capacidade Total por Tipo de Leito (não Simultâneo)</div>
