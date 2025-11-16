@@ -154,6 +154,9 @@ window.openQRCodesSimple = function() {
         return;
     }
     
+    // Adicionar classe ao body para controle de impressão
+    document.body.classList.add('qr-modal-open');
+    
     const modal = document.createElement('div');
     modal.className = 'qr-modal-simple';
     modal.innerHTML = `
@@ -282,6 +285,7 @@ window.closeQRModalSimple = function() {
     const modal = document.querySelector('.qr-modal-simple');
     if (modal) {
         modal.remove();
+        document.body.classList.remove('qr-modal-open');
         isGenerating = false;
         generationProgress = 0;
         totalQRCodes = 0;
@@ -646,15 +650,41 @@ window.carregarLeitosParaSelecao = function() {
     
     const hospital = QR_API.HOSPITAIS[hospitalId];
     
+    console.log('=== DEBUG SELEÇÃO PERSONALIZADA ===');
+    console.log('Hospital selecionado:', hospitalId, hospital.nome);
+    console.log('window.hospitalData existe?', !!window.hospitalData);
+    
     // Buscar dados reais do hospital usando window.hospitalData
     let leitosOcupados = [];
-    if (window.hospitalData && window.hospitalData[hospitalId]) {
-        leitosOcupados = window.hospitalData[hospitalId].leitos
-            .filter(l => l.status === 'Ocupado')
-            .map(l => parseInt(l.leito));
+    
+    if (window.hospitalData) {
+        console.log('Dados disponíveis em hospitalData:', Object.keys(window.hospitalData));
+        
+        if (window.hospitalData[hospitalId]) {
+            const dadosHospital = window.hospitalData[hospitalId];
+            console.log('Dados do hospital:', dadosHospital);
+            console.log('Total de leitos no hospital:', dadosHospital.leitos?.length || 0);
+            
+            if (dadosHospital.leitos && Array.isArray(dadosHospital.leitos)) {
+                leitosOcupados = dadosHospital.leitos
+                    .filter(l => {
+                        const ocupado = l.status === 'Ocupado';
+                        if (ocupado) {
+                            console.log(`Leito ${l.leito} ocupado por ${l.nome || 'N/A'}`);
+                        }
+                        return ocupado;
+                    })
+                    .map(l => parseInt(l.leito));
+            }
+        } else {
+            console.warn(`Dados do hospital ${hospitalId} não encontrados em hospitalData`);
+        }
+    } else {
+        console.error('window.hospitalData não está disponível! Verifique se os dados foram carregados.');
     }
     
-    console.log(`Leitos ocupados em ${hospitalId}:`, leitosOcupados);
+    console.log('Leitos ocupados encontrados:', leitosOcupados);
+    console.log('===================================');
     
     // Criar tabela
     let html = `
@@ -1312,6 +1342,11 @@ function injectQRStyles() {
         
         /* IMPRESSÃO */
         @media print {
+            /* OCULTAR TODO O RESTO DA PÁGINA (DASHBOARD) */
+            body.qr-modal-open > *:not(.qr-modal-simple) {
+                display: none !important;
+            }
+            
             @page {
                 size: A4 portrait;
                 margin: 10mm;
