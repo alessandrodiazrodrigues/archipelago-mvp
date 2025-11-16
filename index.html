@@ -291,10 +291,18 @@
                 overlay.style.display = 'none';
             }
             
-            // Depois abre QR Codes
-            if (typeof openQRCodes === 'function') {
-                openQRCodes();
-            }
+            
+            // Aguardar menu fechar
+            setTimeout(() => {
+                // Abre MODAL do qrcode.js na mesma página (com X no canto)
+                if (typeof window.openQRCodesSimple === 'function') {
+                    window.openQRCodesSimple();
+                } else if (typeof openQRCodes === 'function') {
+                    openQRCodes();
+                } else {
+                    console.error('❌ qrcode.js não carregado!');
+                }
+            }, 100);
         }
     </script>
     
