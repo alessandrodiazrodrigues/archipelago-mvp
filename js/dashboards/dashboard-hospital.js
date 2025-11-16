@@ -704,6 +704,17 @@ window.processarDadosHospital = function(hospitalId) {
         
         vagosEnfFem = capacidadeFem;
         vagosEnfMasc = capacidadeMasc;
+        
+        // REGRA: Se disponíveis = 0, zerar TUDO
+        const capacidadeInfo = window.HOSPITAL_CAPACIDADE ? window.HOSPITAL_CAPACIDADE[hospitalId] : null;
+        const contratuais = capacidadeInfo ? capacidadeInfo.contratuais : leitos.length;
+        const disponiveisTotais = Math.max(0, contratuais - ocupados.length);
+        
+        if (disponiveisTotais === 0) {
+            vagosApto = 0;
+            vagosEnfFem = 0;
+            vagosEnfMasc = 0;
+        }
     } else {
         vagosApto = vagos.filter(l => 
             l.tipo === 'Apartamento' || l.tipo === 'APTO' || l.tipo === 'Híbrido'
@@ -725,13 +736,24 @@ window.processarDadosHospital = function(hospitalId) {
         const capacidadeInfo = window.HOSPITAL_CAPACIDADE ? window.HOSPITAL_CAPACIDADE[hospitalId] : null;
         const contratuais = capacidadeInfo ? capacidadeInfo.contratuais : leitos.length;
         
-        const dispApto = Math.max(0, contratuais - ocupadosApto);
-        const dispEnfFem = Math.max(0, contratuais - ocupadosEnfFem);
-        const dispEnfMasc = Math.max(0, contratuais - ocupadosEnfMasc);
+        // Calcular total de disponíveis
+        const disponiveisTotais = Math.max(0, contratuais - ocupados.length);
         
-        vagosAptoFinal = dispApto;
-        vagosEnfFemFinal = dispEnfFem;
-        vagosEnfMascFinal = dispEnfMasc;
+        // REGRA: Se disponíveis = 0, zerar TUDO
+        if (disponiveisTotais === 0) {
+            vagosAptoFinal = 0;
+            vagosEnfFemFinal = 0;
+            vagosEnfMascFinal = 0;
+        } else {
+            // Caso contrário, calcular normalmente
+            const dispApto = Math.max(0, contratuais - ocupadosApto);
+            const dispEnfFem = Math.max(0, contratuais - ocupadosEnfFem);
+            const dispEnfMasc = Math.max(0, contratuais - ocupadosEnfMasc);
+            
+            vagosAptoFinal = dispApto;
+            vagosEnfFemFinal = dispEnfFem;
+            vagosEnfMascFinal = dispEnfMasc;
+        }
     }
     
     const tphValues = ocupados
