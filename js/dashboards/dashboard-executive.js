@@ -258,50 +258,119 @@ function calcularModalidadesVagosExecutivo(leitos, hospitalId) {
 
     const vagos = leitos.filter(l => isVagoExecutivo(l));
 
-    // Híbridos Puros: H1, H3, H5, H6, H7
-    if (hospitalId === 'H1' || hospitalId === 'H3' || hospitalId === 'H5' || hospitalId === 'H6' || hospitalId === 'H7') {
-        modalidade.flexiveis = vagos.length;
+    // Híbridos Puros: H1, H3, H5, H6, H7, H8, H9
+    if (hospitalId === 'H1' || hospitalId === 'H3' || hospitalId === 'H5' || hospitalId === 'H6' || hospitalId === 'H7' || hospitalId === 'H8' || hospitalId === 'H9') {
+        // V6.0: Usar contratuais (não conta extras)
+        const capacidadeInfo = window.HOSPITAL_CAPACIDADE ? window.HOSPITAL_CAPACIDADE[hospitalId] : null;
+        const contratuais = capacidadeInfo ? capacidadeInfo.contratuais : leitos.length;
+        const ocupados = leitos.filter(l => isOcupadoExecutivo(l)).length;
+        modalidade.flexiveis = Math.max(0, contratuais - ocupados);
         return modalidade;
     }
 
-
-
-    // H2 - Cruz Azul, H4 - Santa Clara (Tipos fixos + Leito irmão)
-    if (hospitalId === 'H2' || hospitalId === 'H4') {
-        vagos.forEach(leitoVago => {
-            const tipo = leitoVago.tipo || '';
+    // =================== H2 - CRUZ AZUL ===================
+    if (hospitalId === 'H2') {
+        // APARTAMENTOS: contratuais - ocupados
+        const aptosContratuais = 20;
+        const aptosOcupados = leitos.filter(l => 
+            isOcupadoExecutivo(l) && (l.tipo === 'APTO' || l.tipo === 'Apartamento')
+        ).length;
+        modalidade.exclusivo_apto = Math.max(0, aptosContratuais - aptosOcupados);
+        
+        // ENFERMARIAS: apenas leitos contratuais (21-36)
+        const vagosContratuais = vagos.filter(l => {
+            const tipo = l.tipo || '';
+            if (tipo !== 'ENFERMARIA' && tipo !== 'Enfermaria') return false;
+            const numeroLeito = typeof l.leito === 'number' ? l.leito : parseInt(l.leito);
+            return numeroLeito && numeroLeito >= 21 && numeroLeito <= 36;
+        });
+        
+        vagosContratuais.forEach(leitoVago => {
+            const numeroLeito = typeof leitoVago.leito === 'number' ? leitoVago.leito : parseInt(leitoVago.leito);
             
-            if (tipo === 'APTO' || tipo === 'Apartamento') {
-                modalidade.exclusivo_apto++;
+            // Buscar irmão usando CRUZ_AZUL_IRMAOS
+            const irmaosMap = window.CRUZ_AZUL_IRMAOS || {};
+            const numeroIrmao = irmaosMap[numeroLeito];
+            
+            if (!numeroIrmao) {
+                modalidade.exclusivo_enf_sem_restricao++;
                 return;
             }
             
-            if (tipo === 'ENFERMARIA' || tipo === 'Enfermaria') {
-                const numeroLeito = leitoVago.leito;
-                
-                if (!numeroLeito || typeof numeroLeito !== 'number') {
-                    modalidade.exclusivo_enf_sem_restricao++;
-                    return;
-                }
-                
-                const numeroIrmao = (numeroLeito % 2 === 0) 
-                    ? numeroLeito - 1
-                    : numeroLeito + 1;
-                
-                const irmao = leitos.find(l => l.leito === numeroIrmao);
-                
-                if (!irmao || isVagoExecutivo(irmao)) {
-                    modalidade.exclusivo_enf_sem_restricao++;
-                } else if (irmao.isolamento && irmao.isolamento !== 'Não Isolamento') {
-                    // Isolamento: não conta
+            const irmao = leitos.find(l => {
+                const leitoNum = typeof l.leito === 'number' ? l.leito : parseInt(l.leito);
+                return leitoNum === numeroIrmao;
+            });
+            
+            if (!irmao || isVagoExecutivo(irmao)) {
+                modalidade.exclusivo_enf_sem_restricao++;
+            } else if (irmao.isolamento && irmao.isolamento !== 'Não Isolamento') {
+                // Isolamento: leito não disponível (não conta)
+            } else {
+                if (irmao.genero === 'Feminino') {
+                    modalidade.exclusivo_enf_fem++;
+                } else if (irmao.genero === 'Masculino') {
+                    modalidade.exclusivo_enf_masc++;
                 } else {
-                    if (irmao.genero === 'Feminino') {
-                        modalidade.exclusivo_enf_fem++;
-                    } else if (irmao.genero === 'Masculino') {
-                        modalidade.exclusivo_enf_masc++;
-                    } else {
-                        modalidade.exclusivo_enf_sem_restricao++;
-                    }
+                    modalidade.exclusivo_enf_sem_restricao++;
+                }
+            }
+        });
+        
+        return modalidade;
+    }
+    
+    // =================== H4 - SANTA CLARA ===================
+    if (hospitalId === 'H4') {
+        // APARTAMENTOS: contratuais - ocupados
+        const aptosContratuais = 18;
+        const aptosOcupados = leitos.filter(l => 
+            isOcupadoExecutivo(l) && (l.tipo === 'APTO' || l.tipo === 'Apartamento')
+        ).length;
+        modalidade.exclusivo_apto = Math.max(0, aptosContratuais - aptosOcupados);
+        
+        // ENFERMARIAS: apenas leitos contratuais (10-17)
+        const vagosContratuais = vagos.filter(l => {
+            const tipo = l.tipo || '';
+            if (tipo !== 'ENFERMARIA' && tipo !== 'Enfermaria') return false;
+            const numeroLeito = typeof l.leito === 'number' ? l.leito : parseInt(l.leito);
+            return numeroLeito && numeroLeito >= 10 && numeroLeito <= 17;
+        });
+        
+        vagosContratuais.forEach(leitoVago => {
+            const numeroLeito = typeof leitoVago.leito === 'number' ? leitoVago.leito : parseInt(leitoVago.leito);
+            
+            // Determinar irmão usando SANTA_CLARA_IRMAOS
+            const irmaosMap = window.SANTA_CLARA_IRMAOS || {
+                10: 11, 11: 10,
+                12: 13, 13: 12,
+                14: 15, 15: 14,
+                16: 17, 17: 16
+            };
+            
+            const numeroIrmao = irmaosMap[numeroLeito];
+            
+            if (!numeroIrmao) {
+                modalidade.exclusivo_enf_sem_restricao++;
+                return;
+            }
+            
+            const irmao = leitos.find(l => {
+                const leitoNum = typeof l.leito === 'number' ? l.leito : parseInt(l.leito);
+                return leitoNum === numeroIrmao;
+            });
+            
+            if (!irmao || isVagoExecutivo(irmao)) {
+                modalidade.exclusivo_enf_sem_restricao++;
+            } else if (irmao.isolamento && irmao.isolamento !== 'Não Isolamento') {
+                // Isolamento: leito não disponível (não conta)
+            } else {
+                if (irmao.genero === 'Feminino') {
+                    modalidade.exclusivo_enf_fem++;
+                } else if (irmao.genero === 'Masculino') {
+                    modalidade.exclusivo_enf_masc++;
+                } else {
+                    modalidade.exclusivo_enf_sem_restricao++;
                 }
             }
         });
@@ -432,75 +501,101 @@ function processarDadosHospitalExecutivo(hospitalId) {
     let vagosApto, vagosEnfFem, vagosEnfMasc;
     
     if (hospitalId === 'H2' || hospitalId === 'H4') {
-        // APARTAMENTOS: simples
-        vagosApto = vagos.filter(l => 
-            l.tipo === 'Apartamento' || l.tipo === 'APTO'
-        ).length;
+        // =================== LÓGICA APENAS PARA CONTRATUAIS ===================
         
-        // ENFERMARIAS: calcular por PARES (capacidade total)
-        let paresEnfermarias;
-        
+        // Definir estrutura de contratuais
+        let aptosContratuais, enfsContratuais, rangeMin, rangeMax;
         if (hospitalId === 'H2') {
-            // Cruz Azul: 8 pares (21-22, 23-24, ..., 35-36)
-            paresEnfermarias = [
-                [21, 22], [23, 24], [25, 26], [27, 28],
-                [29, 30], [31, 32], [33, 34], [35, 36]
-            ];
+            aptosContratuais = 20; // leitos 1-20
+            enfsContratuais = 16;  // leitos 21-36 (8 pares)
+            rangeMin = 21;
+            rangeMax = 36;
         } else {
-            // Santa Clara: 4 pares (10-11, 12-13, 14-15, 16-17)
-            paresEnfermarias = [
-                [10, 11], [12, 13], [14, 15], [16, 17]
-            ];
+            aptosContratuais = 18; // leitos 1-9 + 27-35
+            enfsContratuais = 8;   // leitos 10-17 (4 pares)
+            rangeMin = 10;
+            rangeMax = 17;
         }
         
-        let capacidadeFem = 0;
-        let capacidadeMasc = 0;
+        // APARTAMENTOS: contratuais - ocupados
+        const aptosOcupados = leitos.filter(l => 
+            isOcupadoExecutivo(l) && (l.tipo === 'APTO' || l.tipo === 'Apartamento')
+        ).length;
+        vagosApto = Math.max(0, aptosContratuais - aptosOcupados);
         
-        paresEnfermarias.forEach(([num1, num2]) => {
-            const leito1 = leitos.find(l => l.leito === num1);
-            const leito2 = leitos.find(l => l.leito === num2);
+        // ENFERMARIAS: processar apenas contratuais com sistema de irmãos
+        let irmaosMap;
+        if (hospitalId === 'H2') {
+            irmaosMap = window.CRUZ_AZUL_IRMAOS || {
+                21: 22, 22: 21, 23: 24, 24: 23,
+                25: 26, 26: 25, 27: 28, 28: 27,
+                29: 30, 30: 29, 31: 32, 32: 31,
+                33: 34, 34: 33, 35: 36, 36: 35
+            };
+        } else {
+            irmaosMap = window.SANTA_CLARA_IRMAOS || {
+                10: 11, 11: 10,
+                12: 13, 13: 12,
+                14: 15, 15: 14,
+                16: 17, 17: 16
+            };
+        }
+        
+        // Processar APENAS leitos vagos DENTRO DO RANGE CONTRATUAL
+        const vagosContratuais = vagos.filter(l => {
+            const tipo = l.tipo || '';
+            if (tipo !== 'ENFERMARIA' && tipo !== 'Enfermaria') return false;
             
-            const vago1 = leito1 && isVagoExecutivo(leito1);
-            const vago2 = leito2 && isVagoExecutivo(leito2);
-            const ocupado1 = leito1 && isOcupadoExecutivo(leito1);
-            const ocupado2 = leito2 && isOcupadoExecutivo(leito2);
+            const numeroLeito = typeof l.leito === 'number' ? l.leito : parseInt(l.leito);
+            return numeroLeito && numeroLeito >= rangeMin && numeroLeito <= rangeMax;
+        });
+        
+        let vagosEnfSemRestricao = 0;
+        let vagosEnfFemRestrita = 0;
+        let vagosEnfMascRestrita = 0;
+        
+        vagosContratuais.forEach(leitoVago => {
+            const numeroLeito = typeof leitoVago.leito === 'number' ? leitoVago.leito : parseInt(leitoVago.leito);
+            const numeroIrmao = irmaosMap[numeroLeito];
             
-            if (vago1 && vago2) {
-                capacidadeFem += 2;
-                capacidadeMasc += 2;
+            if (!numeroIrmao) {
+                vagosEnfSemRestricao++;
+                return;
             }
-            else if (ocupado1 && vago2) {
-                const isolamento1 = leito1.isolamento && leito1.isolamento !== 'Não Isolamento';
-                if (!isolamento1) {
-                    const genero1 = leito1.genero;
-                    if (genero1 === 'Feminino') capacidadeFem += 1;
-                    else if (genero1 === 'Masculino') capacidadeMasc += 1;
-                    else { capacidadeFem += 1; capacidadeMasc += 1; }
-                }
+            
+            const irmao = leitos.find(l => {
+                const leitoNum = typeof l.leito === 'number' ? l.leito : parseInt(l.leito);
+                return leitoNum === numeroIrmao;
+            });
+            
+            // Irmão vago: sem restrição
+            if (!irmao || isVagoExecutivo(irmao)) {
+                vagosEnfSemRestricao++;
             }
-            else if (vago1 && ocupado2) {
-                const isolamento2 = leito2.isolamento && leito2.isolamento !== 'Não Isolamento';
-                if (!isolamento2) {
-                    const genero2 = leito2.genero;
-                    if (genero2 === 'Feminino') capacidadeFem += 1;
-                    else if (genero2 === 'Masculino') capacidadeMasc += 1;
-                    else { capacidadeFem += 1; capacidadeMasc += 1; }
+            // Irmão com isolamento: NÃO conta (leito bloqueado)
+            else if (irmao.isolamento && irmao.isolamento !== 'Não Isolamento') {
+                // Não conta nada - leito bloqueado
+            }
+            // Irmão ocupado: contar por gênero
+            else {
+                if (irmao.genero === 'Feminino') {
+                    vagosEnfFemRestrita++;
+                } else if (irmao.genero === 'Masculino') {
+                    vagosEnfMascRestrita++;
+                } else {
+                    vagosEnfSemRestricao++;
                 }
             }
         });
         
-        vagosEnfFem = capacidadeFem;
-        vagosEnfMasc = capacidadeMasc;
+        // CAPACIDADE TOTAL: somar todas as possibilidades
+        vagosEnfFem = vagosEnfSemRestricao + vagosEnfFemRestrita;
+        vagosEnfMasc = vagosEnfSemRestricao + vagosEnfMascRestrita;
     } else {
-        vagosApto = vagos.filter(l => 
-            l.tipo === 'Apartamento' || l.tipo === 'APTO' || l.tipo === 'Híbrido'
-        ).length;
-        vagosEnfFem = vagos.filter(l => 
-            l.tipo === 'Enfermaria Feminina'
-        ).length;
-        vagosEnfMasc = vagos.filter(l => 
-            l.tipo === 'Enfermaria Masculina'
-        ).length;
+        // Híbridos: não usa essa lógica (será substituído abaixo)
+        vagosApto = 0;
+        vagosEnfFem = 0;
+        vagosEnfMasc = 0;
     }
 
     let vagosAptoFinal = vagosApto;
