@@ -785,6 +785,19 @@ function createCard(leito, hospitalNome, hospitalId, posicaoOcupacao) {
             </div>
         </div>
 
+        <!-- ANOTAÇÕES -->
+        <div class="card-section" style="margin-bottom: 15px; font-family: 'Poppins', sans-serif;">
+            <div class="section-header" style="background: #60a5fa; color: #ffffff; font-size: 10px; padding: 6px 8px; border-radius: 4px; margin-bottom: 6px; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px;">
+                ANOTAÇÕES
+            </div>
+            <div class="anotacoes-container" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 8px; min-height: 40px;">
+                ${(leito.anotacoes && leito.anotacoes.trim()) 
+                    ? `<span style="color: rgba(255,255,255,0.9); font-size: 11px; line-height: 1.6; font-family: 'Poppins', sans-serif; white-space: pre-wrap;">${leito.anotacoes}</span>`
+                    : '<span style="color: rgba(255,255,255,0.5); font-size: 10px; font-style: italic;">Sem anotações</span>'
+                }
+            </div>
+        </div>
+
         <!-- FOOTER -->
         <div class="card-footer" style="display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.05); gap: 10px; font-family: 'Poppins', sans-serif;">
             <div class="card-info" style="display: flex; gap: 8px; flex-wrap: wrap; flex: 1;">
@@ -2358,25 +2371,28 @@ if (!document.getElementById('cardsConsolidadoCSS')) {
                 position: sticky !important;
                 bottom: 0 !important;
                 background: #1a1f2e !important;
-                padding: 15px 10px !important;
+                padding: 12px 10px !important;
                 margin: 0 -20px -20px -20px !important;
                 border-top: 2px solid rgba(96, 165, 250, 0.3) !important;
                 z-index: 10 !important;
-                flex-wrap: wrap !important;
+                display: flex !important;
+                flex-direction: row !important;
                 justify-content: center !important;
+                gap: 6px !important;
+                flex-wrap: nowrap !important;
             }
             
             .modal-buttons button {
-                flex: 1 1 auto !important;
-                min-width: 120px !important;
-                padding: 14px 20px !important;
-                font-size: 13px !important;
+                flex: 1 !important;
+                max-width: 31% !important;
+                min-width: 85px !important;
+                padding: 11px 6px !important;
+                font-size: 11px !important;
+                white-space: nowrap !important;
             }
             
             .btn-alta {
-                order: 1 !important;
-                flex: 1 1 100% !important;
-                margin-bottom: 10px !important;
+                /* Botão de alta na mesma linha - sem order */
             }
         }
         
