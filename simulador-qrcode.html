@@ -487,6 +487,37 @@
         </div>
     </div>
     
+    <!-- SELEÇÃO DE AMBIENTE -->
+    <div class="ambiente-selector" style="background: rgba(255, 255, 255, 0.05); margin: 15px 20px; padding: 15px; border-radius: 12px; border: 2px solid rgba(96, 165, 250, 0.3);">
+        <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+            <span style="color: #60a5fa; font-weight: 600; font-size: 14px;">Ambiente:</span>
+            
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                <input type="radio" name="ambiente" value="producao" checked onchange="alterarAmbiente('producao')" style="accent-color: #60a5fa;">
+                <span style="color: #ffffff; font-size: 13px;">
+                    <strong>Produção (Em Uso)</strong>
+                    <span style="color: #9ca3af; font-size: 11px; margin-left: 5px;">qrcode-seven-gamma / archipelago-one</span>
+                </span>
+            </label>
+            
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                <input type="radio" name="ambiente" value="teste" onchange="alterarAmbiente('teste')" style="accent-color: #60a5fa;">
+                <span style="color: #ffffff; font-size: 13px;">
+                    <strong>Teste</strong>
+                    <span style="color: #9ca3af; font-size: 11px; margin-left: 5px;">qr-code-systelos / archipelago-mvp</span>
+                </span>
+            </label>
+        </div>
+        
+        <div style="margin-top: 10px; padding: 10px; background: rgba(96, 165, 250, 0.1); border-radius: 8px; border-left: 3px solid #60a5fa;">
+            <div style="font-size: 11px; color: #60a5fa; font-weight: 600; margin-bottom: 5px;">URLs ATIVAS:</div>
+            <div style="font-size: 12px; color: #e2e8f0;" id="urlsAtivas">
+                QR Code: <span style="color: #60a5fa; font-weight: 600;">https://qrcode-seven-gamma.vercel.app</span><br>
+                Dashboard: <span style="color: #60a5fa; font-weight: 600;">https://archipelago-one.vercel.app</span>
+            </div>
+        </div>
+    </div>
+    
     <!-- CONTROLES (apenas para modo QR Code) -->
     <div class="controles" id="controlesQRCode">
         <div class="controle-group">
@@ -572,10 +603,53 @@
             H9: { nome: 'São Camilo Pompeia', leitos: 22 }
         };
         
-        const QRCODE_BASE_URL = 'https://qr-code-systelos.vercel.app';
-        const DASHBOARD_URL = 'https://archipelago-mvp.vercel.app/';
+        // =================== CONFIGURAÇÃO DE AMBIENTES ===================
+        const AMBIENTES = {
+            producao: {
+                nome: 'Produção (Em Uso)',
+                qrcode: 'https://qrcode-seven-gamma.vercel.app',
+                dashboard: 'https://archipelago-one.vercel.app/'
+            },
+            teste: {
+                nome: 'Teste',
+                qrcode: 'https://qr-code-systelos.vercel.app',
+                dashboard: 'https://archipelago-mvp.vercel.app/'
+            }
+        };
+        
+        let ambienteAtual = 'producao'; // Ambiente padrão
+        let QRCODE_BASE_URL = AMBIENTES[ambienteAtual].qrcode;
+        let DASHBOARD_URL = AMBIENTES[ambienteAtual].dashboard;
+        
         
         let modoAtual = 'qrcode';
+        
+        // =================== FUNÇÃO PARA ALTERNAR AMBIENTE ===================
+        function alterarAmbiente(ambiente) {
+            ambienteAtual = ambiente;
+            QRCODE_BASE_URL = AMBIENTES[ambiente].qrcode;
+            DASHBOARD_URL = AMBIENTES[ambiente].dashboard;
+            
+            // Atualizar exibição das URLs ativas
+            const urlsDiv = document.getElementById('urlsAtivas');
+            urlsDiv.innerHTML = `
+                QR Code: <span style="color: #60a5fa; font-weight: 600;">${QRCODE_BASE_URL}</span><br>
+                Dashboard: <span style="color: #60a5fa; font-weight: 600;">${DASHBOARD_URL}</span>
+            `;
+            
+            // Recarregar iframe se estiver em modo dashboard ou se já tiver URL carregada
+            const iframe = document.getElementById('deviceIframe');
+            if (modoAtual === 'dashboard' || (iframe.src && iframe.src !== 'about:blank')) {
+                if (modoAtual === 'dashboard') {
+                    carregarDashboard();
+                } else {
+                    recarregarIframe();
+                }
+            }
+            
+            // Mostrar alerta de mudança
+            mostrarAlerta(`Ambiente alterado para: ${AMBIENTES[ambiente].nome}`, 'success');
+        }
         
         // =================== SELECIONAR MODO ===================
         function selecionarModo(modo) {
@@ -787,8 +861,8 @@ ao cliente como fica a versão mobile!
             console.log('9 hospitais | 293 leitos');
             console.log('Sistema 100% funcional');
             console.log('URLs atualizadas:');
-            console.log('  QR: https://qr-code-systelos.vercel.app');
-            console.log('  Dashboard: https://archipelago-mvp.vercel.app');
+            console.log('  QR: ' + QRCODE_BASE_URL);
+            console.log('  Dashboard: ' + DASHBOARD_URL);
         });
     </script>
 </body>
