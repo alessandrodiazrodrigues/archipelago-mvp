@@ -572,19 +572,45 @@ function createCard(leito, hospitalNome, hospitalId, posicaoOcupacao) {
     let motivoBloqueio = '';
 
     const numeroLeito = parseInt(leito.leito);
+    
+    // 🔍 DEBUG - Santa Clara
+    if (hospitalId === 'H4') {
+        console.log('🔍 DEBUG H4 - Leito:', numeroLeito);
+        console.log('🔍 SANTA_CLARA_IRMAOS existe?', typeof window.SANTA_CLARA_IRMAOS);
+        console.log('🔍 SANTA_CLARA_IRMAOS:', window.SANTA_CLARA_IRMAOS);
+        console.log('🔍 Leito está no mapa?', numeroLeito in window.SANTA_CLARA_IRMAOS);
+    }
+    
     // ✅ Verificar diretamente nos mapas de irmãos (sem depender de função externa)
     const isCruzAzulEnfermaria = (hospitalId === 'H2') && (numeroLeito in window.CRUZ_AZUL_IRMAOS);
     const isSantaClaraEnfermaria = (hospitalId === 'H4') && (numeroLeito in window.SANTA_CLARA_IRMAOS);
+    
+    // 🔍 DEBUG - Resultado da verificação
+    if (hospitalId === 'H4') {
+        console.log('🔍 isSantaClaraEnfermaria:', isSantaClaraEnfermaria);
+    }
 
     if ((isCruzAzulEnfermaria || isSantaClaraEnfermaria) && (leito.status === 'Vago' || leito.status === 'vago')) {
         // ✅ Usar mapa correto baseado no hospital
         const mapaIrmaos = isCruzAzulEnfermaria ? window.CRUZ_AZUL_IRMAOS : window.SANTA_CLARA_IRMAOS;
         const leitoIrmao = mapaIrmaos[numeroLeito];
         
+        // 🔍 DEBUG
+        if (hospitalId === 'H4') {
+            console.log('🔍 Leito irmão encontrado:', leitoIrmao);
+        }
+        
         if (leitoIrmao) {
             // ✅ Buscar no hospital correto
             const leitosHospital = window.hospitalData[hospitalId]?.leitos || [];
             const dadosLeitoIrmao = leitosHospital.find(l => l.leito == leitoIrmao);
+            
+            // 🔍 DEBUG
+            if (hospitalId === 'H4') {
+                console.log('🔍 Dados do irmão:', dadosLeitoIrmao);
+                console.log('🔍 Status do irmão:', dadosLeitoIrmao?.status);
+                console.log('🔍 Gênero do irmão:', dadosLeitoIrmao?.genero);
+            }
             
             if (dadosLeitoIrmao && (dadosLeitoIrmao.status === 'Em uso' || dadosLeitoIrmao.status === 'ocupado' || dadosLeitoIrmao.status === 'Ocupado')) {
                 const isolamentoIrmao = dadosLeitoIrmao.isolamento || '';
@@ -597,6 +623,11 @@ function createCard(leito, hospitalNome, hospitalId, posicaoOcupacao) {
                 } else if (dadosLeitoIrmao.genero) {
                     bloqueadoPorGenero = true;
                     generoPermitido = dadosLeitoIrmao.genero;
+                    
+                    // 🔍 DEBUG
+                    if (hospitalId === 'H4') {
+                        console.log('✅ BLOQUEADO POR GÊNERO! generoPermitido:', generoPermitido);
+                    }
                 }
             }
         }
@@ -621,6 +652,11 @@ function createCard(leito, hospitalNome, hospitalId, posicaoOcupacao) {
         isVago = true;
         if (bloqueadoPorGenero) {
             statusTexto = `Disp. ${generoPermitido === 'Masculino' ? 'Masc' : 'Fem'}`;
+            
+            // 🔍 DEBUG
+            if (hospitalId === 'H4') {
+                console.log('✅ STATUS FINAL:', statusTexto);
+            }
         }
     }
     
