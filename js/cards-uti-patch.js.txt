@@ -1,0 +1,52 @@
+// =================== CARDS-UTI-PATCH.JS ===================
+// Versao: 7.0 - Dezembro/2025
+// CARREGAR DEPOIS de cards.js
+// 
+// Este arquivo adiciona APENAS o filtro de UTI ao sistema existente.
+// O cards.js V6.1 permanece intacto.
+// Se algo der errado, basta remover este arquivo.
+
+console.log('[PATCH UTI] Carregando patch de filtro UTI...');
+
+// =================== FUNÇÃO: VERIFICAR SE LEITO É UTI ===================
+window.isLeitoUTI = function(leito) {
+    if (!leito) return false;
+    const tipo = (leito.tipo || '').toUpperCase().trim();
+    return tipo === 'UTI';
+};
+
+// =================== SALVAR REFERÊNCIA DO RENDERCARDS ORIGINAL ===================
+const _renderCardsOriginal = window.renderCards;
+
+// =================== SOBRESCREVER RENDERCARDS COM FILTRO UTI ===================
+window.renderCards = function() {
+    const hospitalId = window.currentHospital || 'H1';
+    const hospital = window.hospitalData[hospitalId];
+    
+    if (hospital && hospital.leitos) {
+        // Contar UTIs antes do filtro
+        const totalAntes = hospital.leitos.length;
+        const leitosUTI = hospital.leitos.filter(l => window.isLeitoUTI(l));
+        
+        if (leitosUTI.length > 0) {
+            console.log(`[PATCH UTI] Filtrando ${leitosUTI.length} leitos UTI de ${hospitalId}`);
+            
+            // Filtrar UTIs temporariamente
+            hospital.leitos = hospital.leitos.filter(l => !window.isLeitoUTI(l));
+        }
+        
+        // Chamar renderCards original
+        _renderCardsOriginal();
+        
+        // Restaurar leitos UTI (para não perder dados)
+        if (leitosUTI.length > 0) {
+            hospital.leitos = [...hospital.leitos, ...leitosUTI];
+        }
+    } else {
+        // Sem dados, chamar original normalmente
+        _renderCardsOriginal();
+    }
+};
+
+console.log('[PATCH UTI] ✅ Filtro UTI ativado!');
+console.log('[PATCH UTI] Leitos tipo "UTI" serão ocultados no dashboard de Enfermaria');

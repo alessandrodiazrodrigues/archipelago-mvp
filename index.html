@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Archipelago Dashboard V6.0</title>
+    <title>Archipelago Dashboard V7.0</title>
     
     <!-- Google Fonts - Poppins Bold -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -51,7 +51,7 @@
         </div>
     </header>
 
-    <!-- =================== MENU LATERAL =================== -->
+    <!-- =================== MENU LATERAL V7.0 =================== -->
     <aside id="sideMenu" class="side-menu">
         <div class="menu-header">
             <h2>Menu</h2>
@@ -62,11 +62,25 @@
             <a href="#" class="side-menu-item" data-tab="dash2" onclick="setActiveTabAndCloseMenu('dash2'); return false;">
                 Dashboard Executivo
             </a>
+            
+            <!-- SEPARADOR: ENFERMARIAS V7.0 -->
+            <div class="menu-section-label">ENFERMARIAS</div>
+            
             <a href="#" class="side-menu-item" data-tab="dash1" onclick="setActiveTabAndCloseMenu('dash1'); return false;">
-                Dashboard Hospitalar
+                Dashboard Enfermarias
             </a>
             <a href="#" class="side-menu-item" data-tab="leitos" onclick="setActiveTabAndCloseMenu('leitos'); return false;">
                 Gestão de Leitos
+            </a>
+            
+            <!-- SEPARADOR: UTI V7.0 -->
+            <div class="menu-section-label">UTI</div>
+            
+            <a href="#" class="side-menu-item" data-tab="dashUti" onclick="setActiveTabAndCloseMenu('dashUti'); return false;">
+                Dashboard UTI
+            </a>
+            <a href="#" class="side-menu-item" data-tab="leitosUti" onclick="setActiveTabAndCloseMenu('leitosUti'); return false;">
+                Gestão de Leitos UTI
             </a>
         </nav>
         
@@ -102,7 +116,7 @@
             <div class="leitos-header">
                 <!-- BOX ÚNICO COM TÍTULO E DROPDOWN -->
                 <div class="hospital-selector-container">
-                    <h2>Gestão de Leitos Hospitalares</h2>
+                    <h2>Gestão de Leitos - Enfermarias</h2>
                     
                     <div class="hospital-selector" id="hospitalSelector">
                         <select id="hospitalDropdown" class="hospital-select" onchange="selectHospital(this.value)">
@@ -137,13 +151,91 @@
             <div id="cardsContainer" class="cards-grid"></div>
         </section>
         
+        <!-- =================== NOVAS SEÇÕES UTI V7.0 =================== -->
+        
+        <!-- DASHBOARD UTI -->
+        <section id="dashUti" class="hidden">
+            <div id="dashUtiContent">
+                <div class="uti-placeholder">
+                    <div class="placeholder-icon">🏥</div>
+                    <h2>Dashboard UTI</h2>
+                    <p>63 leitos em 8 hospitais</p>
+                    <p class="placeholder-note">Em desenvolvimento - Fase 2 do V7.0</p>
+                    <div class="uti-stats-preview">
+                        <div class="stat-item">
+                            <span class="stat-value">63</span>
+                            <span class="stat-label">Leitos UTI Total</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">39</span>
+                            <span class="stat-label">Contratuais</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">24</span>
+                            <span class="stat-label">Extras</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">8</span>
+                            <span class="stat-label">Hospitais</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- GESTÃO DE LEITOS UTI -->
+        <section id="leitosUtiView" class="section-leitos hidden">
+            <div class="leitos-header">
+                <div class="hospital-selector-container uti-theme">
+                    <h2>Gestão de Leitos - UTI</h2>
+                    
+                    <div class="hospital-selector" id="hospitalSelectorUti">
+                        <select id="hospitalDropdownUti" class="hospital-select uti-select" onchange="selectHospitalUti(this.value)">
+                            <option value="H1">Neomater (5 UTI)</option>
+                            <option value="H2" selected>Cruz Azul (30 UTI)</option>
+                            <option value="H3">Santa Marcelina (4 UTI)</option>
+                            <option value="H4">Santa Clara (6 UTI)</option>
+                            <option value="H5">Adventista (6 UTI)</option>
+                            <option value="H6">Santa Cruz (4 UTI)</option>
+                            <option value="H8">São Camilo Ipiranga (4 UTI)</option>
+                            <option value="H9">São Camilo Pompeia (4 UTI)</option>
+                            <!-- H7 Santa Virgínia NÃO TEM UTI -->
+                        </select>
+                    </div>
+                    <p class="uti-note">* H7 Santa Virgínia não possui leitos UTI</p>
+                </div>
+                
+                <!-- CAMPO DE BUSCA UTI -->
+                <div class="search-container">
+                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                    <input 
+                        type="text" 
+                        id="searchLeitosUtiInput" 
+                        placeholder="Buscar por matrícula, leito ou iniciais..." 
+                        oninput="window.searchLeitosUti && window.searchLeitosUti()">
+                </div>
+            </div>
+            
+            <!-- CONTAINER DOS CARDS UTI -->
+            <div id="cardsContainerUti" class="cards-grid">
+                <div class="uti-placeholder-cards">
+                    <div class="placeholder-icon">🛏️</div>
+                    <h3>Leitos UTI</h3>
+                    <p>Em desenvolvimento - Fase 2 do V7.0</p>
+                </div>
+            </div>
+        </section>
+        
     </main>
 
     <!-- =================== FOOTER V4.0 =================== -->
     <footer id="mainFooter" class="footer hidden">
         <p>Sistema em versão BETA - não pode ser usado como única fonte de referência</p>
         <p>Para decisões críticas, consulte sempre fontes adicionais e profissionais qualificados</p>
-        <p><strong>Archipelago Dashboard V6.0 - Novembro/2025</strong></p>
+        <p><strong>Archipelago Dashboard V7.0 - Dezembro/2025</strong></p>
     </footer>
 
     <!-- =================== MODAL DE PACIENTE =================== -->
@@ -178,45 +270,52 @@
     <!-- 3. INTERFACE (Depende de cards-config.js) -->
     <script src="js/cards.js"></script>
     
-    <!-- 4. DASHBOARDS (Dependem de cards-config.js) -->
+    <!-- 4. PATCH UTI V7.0 (Filtra leitos UTI - DEVE vir DEPOIS de cards.js) -->
+    <script src="js/cards-uti-patch.js"></script>
+    
+    <!-- 5. DASHBOARDS (Dependem de cards-config.js) -->
     <script src="js/dashboards/dashboard-hospital.js"></script>
     <script src="js/dashboards/dashboard-executive.js"></script>
     
-    <!-- 5. FUNCIONALIDADES -->
+    <!-- 6. FUNCIONALIDADES -->
     <script src="js/qrcode.js"></script>
     
-    <!-- 6. INICIALIZAÇÃO (Último a carregar) -->
+    <!-- 7. INICIALIZAÇÃO (Último a carregar) -->
     <script src="js/main.js"></script>
     
-    <!-- =================== FUNÇÕES AUXILIARES MENU V4.0 =================== -->
+    <!-- =================== FUNÇÕES AUXILIARES MENU V7.0 =================== -->
     <script>
-        console.log('Archipelago Dashboard V6.0 - Inicializando...');
-        console.log('Novembro/2025 - Versao V6.0');
+        console.log('Archipelago Dashboard V7.0 - Inicializando...');
+        console.log('Dezembro/2025 - Versao V7.0');
         console.log('');
-        console.log('NOVIDADES V6.0:');
-        console.log('   • 11 Hospitais (9 ativos + 2 reservas) - Total: 341 leitos');
-        console.log('   • H8: Sao Camilo Ipiranga (22 leitos)');
-        console.log('   • H9: Sao Camilo Pompeia (22 leitos)');
-        console.log('   • Sistema de leitos extras dinamico');
-        console.log('   • Campo anotacoes (800 caracteres)');
-        console.log('   • Santa Clara expandido (57 leitos)');
-        console.log('   • Cruz Azul expandido (67 leitos)');
-        console.log('   • Santa Marcelina expandido (28 leitos)');
-        console.log('   • Dropdown de selecao de hospitais');
+        console.log('NOVIDADES V7.0:');
+        console.log('   • Menu reorganizado: Enfermarias + UTI');
+        console.log('   • Dashboard UTI (placeholder - Fase 2)');
+        console.log('   • Gestao de Leitos UTI (placeholder - Fase 2)');
+        console.log('   • 63 leitos UTI em 8 hospitais');
+        console.log('   • H7 Santa Virginia: SEM UTI');
+        console.log('   • Sistema de Reservas no backend');
+        console.log('');
+        console.log('CAPACIDADE:');
+        console.log('   • ENFERMARIA: 293 leitos (9 hospitais)');
+        console.log('   • UTI: 63 leitos (8 hospitais)');
+        console.log('   • TOTAL: 356 leitos');
         console.log('');
         console.log('📦 ORDEM DE CARREGAMENTO DOS SCRIPTS:');
         console.log('   1. app.js (autenticação)');
         console.log('   2. api.js (comunicação com backend)');
-        console.log('   3. cards-config.js (configurações globais) ⭐');
-        console.log('   4. cards.js (interface de leitos)');
-        console.log('   5. dashboard-hospital.js');
-        console.log('   6. dashboard-executive.js');
-        console.log('   7. qrcode.js');
-        console.log('   8. main.js (inicialização)');
+        console.log('   3. cards-config.js (configurações globais) V7.0');
+        console.log('   4. cards.js (interface de leitos) V6.1');
+        console.log('   5. cards-uti-patch.js (filtro UTI) V7.0 *NOVO*');
+        console.log('   6. dashboard-hospital.js');
+        console.log('   7. dashboard-executive.js');
+        console.log('   8. qrcode.js');
+        console.log('   9. main.js (inicialização)');
         console.log('');
         
         /**
          * Função que combina mudança de aba + fechamento do menu
+         * V7.0: Atualizado para suportar abas UTI
          */
         function setActiveTabAndCloseMenu(tabName) {
             // Primeiro fecha o menu
@@ -231,10 +330,41 @@
                 overlay.style.display = 'none';
             }
             
-            // Depois muda a aba
-            if (typeof setActiveTab === 'function') {
-                setActiveTab(tabName);
+            // V7.0: Suporte para novas abas UTI
+            if (tabName === 'dashUti') {
+                // Esconder todas as seções
+                document.querySelectorAll('#mainContent > section').forEach(s => s.classList.add('hidden'));
+                // Mostrar Dashboard UTI
+                document.getElementById('dashUti')?.classList.remove('hidden');
+                // Atualizar item ativo no menu
+                document.querySelectorAll('.side-menu-item').forEach(item => {
+                    item.classList.remove('active');
+                    if (item.dataset.tab === 'dashUti') item.classList.add('active');
+                });
+            } else if (tabName === 'leitosUti') {
+                // Esconder todas as seções
+                document.querySelectorAll('#mainContent > section').forEach(s => s.classList.add('hidden'));
+                // Mostrar Gestão de Leitos UTI
+                document.getElementById('leitosUtiView')?.classList.remove('hidden');
+                // Atualizar item ativo no menu
+                document.querySelectorAll('.side-menu-item').forEach(item => {
+                    item.classList.remove('active');
+                    if (item.dataset.tab === 'leitosUti') item.classList.add('active');
+                });
+            } else {
+                // Depois muda a aba (comportamento original)
+                if (typeof setActiveTab === 'function') {
+                    setActiveTab(tabName);
+                }
             }
+        }
+        
+        /**
+         * V7.0: Função para selecionar hospital na UTI
+         */
+        function selectHospitalUti(hospitalId) {
+            console.log('[UTI] Hospital selecionado:', hospitalId);
+            // TODO: Implementar na Fase 2
         }
         
         /**
@@ -711,6 +841,155 @@
             margin: 0 auto;
         }
         
+        /* =================== V7.0: ESTILOS UTI =================== */
+        
+        /* Labels de seção no menu */
+        .menu-section-label {
+            padding: 15px 20px 8px;
+            color: #9ca3af;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            margin-top: 10px;
+        }
+        
+        .menu-section-label:first-of-type {
+            border-top: none;
+            margin-top: 0;
+        }
+        
+        /* Tema UTI para container */
+        .hospital-selector-container.uti-theme {
+            border: 2px solid #f59e0b;
+        }
+        
+        .hospital-selector-container.uti-theme h2 {
+            color: #f59e0b;
+        }
+        
+        .uti-note {
+            text-align: center;
+            color: #9ca3af;
+            font-size: 12px;
+            margin-top: 15px;
+            font-style: italic;
+        }
+        
+        /* Select UTI */
+        .hospital-select.uti-select {
+            background-color: #f59e0b;
+        }
+        
+        .hospital-select.uti-select:hover {
+            background-color: #d97706;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+        }
+        
+        /* Campo de busca UTI */
+        #searchLeitosUtiInput {
+            width: 100%;
+            padding: 14px 14px 14px 46px;
+            background: #374151;
+            color: #ffffff;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 400;
+            transition: all 0.3s ease;
+        }
+        
+        #searchLeitosUtiInput:focus {
+            outline: none;
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
+            background: #475569;
+        }
+        
+        #searchLeitosUtiInput::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        /* Placeholder UTI */
+        .uti-placeholder,
+        .uti-placeholder-cards {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 2px dashed #f59e0b;
+            border-radius: 16px;
+            padding: 60px 40px;
+            text-align: center;
+            max-width: 800px;
+            margin: 40px auto;
+        }
+        
+        .uti-placeholder-cards {
+            grid-column: 1 / -1;
+            padding: 40px;
+        }
+        
+        .placeholder-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+        
+        .uti-placeholder h2,
+        .uti-placeholder-cards h3 {
+            color: #f59e0b;
+            font-size: 28px;
+            margin-bottom: 10px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+        }
+        
+        .uti-placeholder p,
+        .uti-placeholder-cards p {
+            color: #9ca3af;
+            font-size: 16px;
+            margin-bottom: 10px;
+            font-weight: 400;
+        }
+        
+        .placeholder-note {
+            color: #60a5fa !important;
+            font-style: italic;
+            margin-top: 20px !important;
+        }
+        
+        .uti-stats-preview {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 40px;
+            flex-wrap: wrap;
+        }
+        
+        .stat-item {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: 12px;
+            padding: 20px 30px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            display: block;
+            font-size: 36px;
+            font-weight: 700;
+            color: #f59e0b;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        .stat-label {
+            display: block;
+            font-size: 12px;
+            color: #9ca3af;
+            text-transform: uppercase;
+            margin-top: 5px;
+            font-weight: 400;
+        }
+        
         /* =================== FOOTER =================== */
         .footer {
             background: #1e293b;
@@ -736,6 +1015,18 @@
             .cards-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
+            
+            .uti-stats-preview {
+                gap: 15px;
+            }
+            
+            .stat-item {
+                padding: 15px 20px;
+            }
+            
+            .stat-value {
+                font-size: 28px;
+            }
         }
         
         @media (max-width: 768px) {
@@ -757,6 +1048,15 @@
             
             .search-container {
                 max-width: 100%;
+            }
+            
+            .uti-stats-preview {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .stat-item {
+                width: 100%;
             }
         }
     </style>
