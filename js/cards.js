@@ -234,20 +234,28 @@ window.renderFlagOcupacao = function(hospitalId, status, posicaoOcupacao, tipoLe
 
 // =================== FUNÇÃO PRINCIPAL DE RENDERIZAÇÃO ===================
 window.renderCards = function() {
-    logInfo('🎯 [CARDS V6.1] Renderizando com filtro inteligente de vagos...');
-    console.log('[CARDS V6.1] Lógica:');
-    console.log('  - Híbridos: TODOS ocupados + 1 vago (menor ID)');
+    logInfo('[CARDS V6.1] Renderizando com filtro inteligente de vagos...');
+    console.log('[CARDS V6.1] Logica:');
+    console.log('  - Hibridos: TODOS ocupados + 1 vago (menor ID)');
     console.log('  - Apartamentos: TODOS ocupados + 1 vago (menor ID)');
     console.log('  - Enfermarias: TODOS ocupados + TODOS vagos (exceto bloqueados por isolamento)');
     
     const container = document.getElementById('cardsContainer');
     if (!container) {
-        logError('Container cardsContainer não encontrado');
+        logError('Container cardsContainer nao encontrado');
         return;
     }
 
     container.innerHTML = '';
     const hospitalId = window.currentHospital || 'H1';
+    
+    // V7.0: Sincronizar dropdown com currentHospital
+    const dropdown = document.getElementById('hospitalDropdown');
+    if (dropdown && dropdown.value !== hospitalId) {
+        dropdown.value = hospitalId;
+        console.log('[V7.0] Dropdown sincronizado com hospital: ' + hospitalId);
+    }
+    
     const hospital = window.hospitalData[hospitalId];
     const hospitalNome = window.HOSPITAL_MAPPING[hospitalId]?.nome || 'Hospital';
     
