@@ -683,6 +683,41 @@ function createCardReservado(reserva, hospitalNome, hospitalId) {
     return card;
 }
 
+// =================== V7.0: CANCELAR RESERVA ===================
+window.cancelarReserva = async function(hospital, identificacaoLeito, matricula) {
+    logInfo(`[V7.0] Cancelando reserva: ${hospital} - ${identificacaoLeito}`);
+    
+    try {
+        const response = await fetch(window.API_URL + '?action=cancelarReserva', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                hospital: hospital,
+                identificacaoLeito: identificacaoLeito,
+                matricula: matricula
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Atualizar dados locais
+            if (window.reservasData) {
+                window.reservasData = window.reservasData.filter(r => 
+                    !(r.hospital === hospital && 
+                      (r.identificacaoLeito === identificacaoLeito || r.matricula === matricula))
+                );
+            }
+            return true;
+        } else {
+            throw new Error(result.message || 'Erro ao cancelar reserva');
+        }
+    } catch (error) {
+        logError('Erro ao cancelar reserva:', error);
+        throw error;
+    }
+};
+
 // =================== CRIAR CARD INDIVIDUAL ===================
 function createCard(leito, hospitalNome, hospitalId, posicaoOcupacao) {
     const card = document.createElement('div');
