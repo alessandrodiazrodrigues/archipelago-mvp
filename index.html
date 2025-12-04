@@ -21,14 +21,14 @@
     <link rel="stylesheet" href="css/background-grafismo.css">
     
     <!-- BIBLIOTECAS EXTERNAS -->
-    <!-- Chart.js para gráficos -->
+    <!-- Chart.js para graficos -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
-    <!-- QRCode.js OBRIGATÓRIA - Necessária para gerar QR Codes -->
+    <!-- QRCode.js OBRIGATORIA - Necessaria para gerar QR Codes -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
-    <!-- =================== MODAL DE AUTENTICAÇÃO =================== -->
+    <!-- =================== MODAL DE AUTENTICACAO =================== -->
     <div id="authModal" class="modal-auth">
         <div class="auth-container">
             <h1>Archipelago Dashboard</h1>
@@ -42,34 +42,49 @@
     <!-- =================== HEADER PRINCIPAL =================== -->
     <header id="mainHeader" class="header hidden">
         <div class="header-left">
-            <span class="hamburger" onclick="toggleMenu()">☰</span>
+            <span class="hamburger" onclick="toggleMenu()">&#9776;</span>
             <h1>Archipelago Dashboard</h1>
         </div>
         <div class="header-right">
-            <div id="updateTimer">Próxima atualização em: 4:00</div>
+            <div id="updateTimer">Proxima atualizacao em: 4:00</div>
             <button onclick="updateData()">Atualizar</button>
         </div>
     </header>
 
-    <!-- =================== MENU LATERAL =================== -->
+    <!-- =================== MENU LATERAL V7.0 =================== -->
     <aside id="sideMenu" class="side-menu">
         <div class="menu-header">
             <h2>Menu</h2>
-            <button class="menu-close" onclick="toggleMenu()">×</button>
+            <button class="menu-close" onclick="toggleMenu()">&times;</button>
         </div>
         
         <nav class="menu-items">
+            <!-- DASHBOARD EXECUTIVO -->
             <a href="#" class="side-menu-item" data-tab="dash2" onclick="setActiveTabAndCloseMenu('dash2'); return false;">
                 Dashboard Executivo
             </a>
+            
+            <!-- DASHBOARD ENFERMARIAS (antigo Hospitalar) -->
             <a href="#" class="side-menu-item" data-tab="dash1" onclick="setActiveTabAndCloseMenu('dash1'); return false;">
-                Dashboard Leitos
+                Dashboard Enfermarias
             </a>
-            <a href="#" class="side-menu-item" data-tab="dashUTI" onclick="setActiveTabAndCloseMenu('dashUTI'); return false;">
+            
+            <!-- DASHBOARD UTIs (NOVO V7.0) -->
+            <a href="#" class="side-menu-item" data-tab="dash3" onclick="setActiveTabAndCloseMenu('dash3'); return false;">
                 Dashboard UTIs
             </a>
+            
+            <!-- SEPARADOR -->
+            <div class="menu-section-divider"></div>
+            
+            <!-- MAPA DE LEITOS - ENFERMARIAS (antigo Gestao de Leitos) -->
             <a href="#" class="side-menu-item" data-tab="leitos" onclick="setActiveTabAndCloseMenu('leitos'); return false;">
                 Mapa de Leitos
+            </a>
+            
+            <!-- MAPA DE LEITOS - UTI (NOVO V7.0) -->
+            <a href="#" class="side-menu-item" data-tab="leitosUTI" onclick="setActiveTabAndCloseMenu('leitosUTI'); return false;">
+                Mapa de Leitos UTI
             </a>
         </nav>
         
@@ -87,7 +102,7 @@
     <!-- OVERLAY DO MENU -->
     <div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
 
-    <!-- =================== CONTEÚDO PRINCIPAL =================== -->
+    <!-- =================== CONTEUDO PRINCIPAL =================== -->
     <main id="mainContent" class="main-content hidden">
         
         <!-- DASHBOARD EXECUTIVO - TELA INICIAL -->
@@ -95,22 +110,22 @@
             <div id="dashExecutivoContent"></div>
         </section>
 
-        <!-- DASHBOARD LEITOS (antigo Dashboard Hospitalar) -->
+        <!-- DASHBOARD ENFERMARIAS (antigo Hospitalar) -->
         <section id="dash1" class="hidden">
             <div id="dashHospitalarContent"></div>
         </section>
         
-        <!-- DASHBOARD UTIs - NOVO V7.0 -->
-        <section id="dashUTI" class="hidden">
+        <!-- DASHBOARD UTIs (NOVO V7.0) -->
+        <section id="dash3" class="hidden">
             <div id="dashUTIContent"></div>
         </section>
         
-        <!-- SEÇÃO DE LEITOS (Mapa de Leitos) -->
+        <!-- =================== MAPA DE LEITOS - ENFERMARIAS =================== -->
         <section id="leitosView" class="section-leitos hidden">
             <div class="leitos-header">
-                <!-- BOX ÚNICO COM TÍTULO E DROPDOWN -->
+                <!-- BOX COM TITULO E DROPDOWN -->
                 <div class="hospital-selector-container">
-                    <h2>Mapa de Leitos</h2>
+                    <h2>Mapa de Leitos - Enfermarias</h2>
                     
                     <div class="hospital-selector" id="hospitalSelector">
                         <select id="hospitalDropdown" class="hospital-select" onchange="selectHospital(this.value)">
@@ -120,14 +135,14 @@
                             <option value="H4">Santa Clara</option>
                             <option value="H6">Santa Cruz</option>
                             <option value="H3">Santa Marcelina</option>
-                            <option value="H7">Santa Virgínia</option>
-                            <option value="H8">São Camilo Ipiranga</option>
-                            <option value="H9">São Camilo Pompeia</option>
+                            <option value="H7">Santa Virginia</option>
+                            <option value="H8">Sao Camilo Ipiranga</option>
+                            <option value="H9">Sao Camilo Pompeia</option>
                         </select>
                     </div>
                 </div>
                 
-                <!-- CAMPO DE BUSCA - NOVO V4.0 -->
+                <!-- CAMPO DE BUSCA -->
                 <div class="search-container">
                     <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="11" cy="11" r="8"></circle>
@@ -136,21 +151,56 @@
                     <input 
                         type="text" 
                         id="searchLeitosInput" 
-                        placeholder="Buscar por matrícula, leito ou iniciais..." 
+                        placeholder="Buscar por matricula, leito ou iniciais..." 
                         oninput="window.searchLeitos()">
                 </div>
             </div>
             
-            <!-- CONTAINER DOS CARDS -->
+            <!-- CONTAINER DOS CARDS ENFERMARIAS -->
             <div id="cardsContainer" class="cards-grid"></div>
+        </section>
+        
+        <!-- =================== MAPA DE LEITOS - UTI (NOVO V7.0) =================== -->
+        <section id="leitosUTIView" class="section-leitos hidden">
+            <div class="leitos-header">
+                <!-- BOX COM TITULO E DROPDOWN UTI -->
+                <div class="hospital-selector-container hospital-selector-uti">
+                    <h2>Mapa de Leitos - UTI</h2>
+                    
+                    <div class="hospital-selector" id="hospitalSelectorUTI">
+                        <select id="hospitalDropdownUTI" class="hospital-select" onchange="selectHospitalUTI(this.value)">
+                            <option value="H2" selected>Cruz Azul (30 UTI)</option>
+                            <!-- Outros hospitais serao adicionados quando ativados -->
+                        </select>
+                    </div>
+                    
+                    <p class="uti-nota">* H7 Santa Virginia nao possui leitos UTI</p>
+                </div>
+                
+                <!-- CAMPO DE BUSCA UTI -->
+                <div class="search-container">
+                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                    <input 
+                        type="text" 
+                        id="searchLeitosUTIInput" 
+                        placeholder="Buscar por matricula, leito ou iniciais..." 
+                        oninput="window.searchLeitosUTI()">
+                </div>
+            </div>
+            
+            <!-- CONTAINER DOS CARDS UTI -->
+            <div id="cardsContainerUTI" class="cards-grid"></div>
         </section>
         
     </main>
 
     <!-- =================== FOOTER V7.0 =================== -->
     <footer id="mainFooter" class="footer hidden">
-        <p>Sistema em versão BETA - não pode ser usado como única fonte de referência</p>
-        <p>Para decisões críticas, consulte sempre fontes adicionais e profissionais qualificados</p>
+        <p>Sistema em versao BETA - nao pode ser usado como unica fonte de referencia</p>
+        <p>Para decisoes criticas, consulte sempre fontes adicionais e profissionais qualificados</p>
         <p><strong>Archipelago Dashboard V7.0 - Dezembro/2025</strong></p>
     </footer>
 
@@ -159,11 +209,11 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2 id="modalTitle">Admitir Paciente</h2>
-                <button class="modal-close" onclick="closeModal()">×</button>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
             </div>
             <div class="modal-body">
                 <form id="patientForm">
-                    <!-- Formulário gerado dinamicamente pelo cards.js -->
+                    <!-- Formulario gerado dinamicamente pelo cards.js -->
                 </form>
             </div>
             <div class="modal-footer">
@@ -180,7 +230,7 @@
     <script src="js/app.js"></script>
     <script src="js/api.js"></script>
     
-    <!-- 2. CONFIGURAÇÕES GLOBAIS (Fonte única de verdade - DEVE vir ANTES de tudo) -->
+    <!-- 2. CONFIGURACOES GLOBAIS (Fonte unica de verdade - DEVE vir ANTES de tudo) -->
     <script src="js/cards-config.js"></script>
     
     <!-- 3. INTERFACE (Depende de cards-config.js) -->
@@ -194,129 +244,147 @@
     <!-- 5. FUNCIONALIDADES -->
     <script src="js/qrcode.js"></script>
     
-    <!-- 6. INICIALIZAÇÃO (Último a carregar) -->
+    <!-- 6. INICIALIZACAO (Ultimo a carregar) -->
     <script src="js/main.js"></script>
     
-    <!-- =================== FUNÇÕES AUXILIARES MENU V7.0 =================== -->
+    <!-- =================== FUNCOES AUXILIARES MENU V7.0 =================== -->
     <script>
         console.log('Archipelago Dashboard V7.0 - Inicializando...');
         console.log('Dezembro/2025 - Versao V7.0');
         console.log('');
         console.log('NOVIDADES V7.0:');
-        console.log('   - 11 Hospitais (9 ativos + 2 reservas) - Total: 356 leitos');
-        console.log('   - Sistema de UTI: 63 leitos em 8 hospitais');
-        console.log('   - Sistema de Reservas de leitos');
-        console.log('   - Dashboard UTIs (novo)');
-        console.log('   - H7 Santa Virginia sem UTI');
-        console.log('   - Sistema de leitos extras dinamico');
-        console.log('   - Campo anotacoes (800 caracteres)');
+        console.log('   - Dashboard Enfermarias (antigo Hospitalar)');
+        console.log('   - Dashboard UTIs (NOVO)');
+        console.log('   - Mapa de Leitos separado para Enfermarias e UTI');
+        console.log('   - Sistema de Reservas');
+        console.log('   - Filtro UTI em todos os dashboards');
+        console.log('   - Senha Dashboard Executivo (6h validade)');
         console.log('');
         console.log('ORDEM DE CARREGAMENTO DOS SCRIPTS:');
         console.log('   1. app.js (autenticacao)');
         console.log('   2. api.js (comunicacao com backend)');
         console.log('   3. cards-config.js (configuracoes globais)');
         console.log('   4. cards.js (interface de leitos)');
-        console.log('   5. dashboard-hospital.js');
+        console.log('   5. dashboard-hospital.js (Enfermarias)');
         console.log('   6. dashboard-executive.js');
-        console.log('   7. dashboard-uti.js (NOVO V7.0)');
+        console.log('   7. dashboard-uti.js (NOVO)');
         console.log('   8. qrcode.js');
         console.log('   9. main.js (inicializacao)');
-        console.log('');
         
-        /**
-         * Função que combina mudança de aba + fechamento do menu
-         */
-        function setActiveTabAndCloseMenu(tabName) {
-            // Primeiro fecha o menu
+        // =================== FUNCOES DO MENU ===================
+        function toggleMenu() {
             const menu = document.getElementById('sideMenu');
             const overlay = document.getElementById('menuOverlay');
             
-            if (menu && menu.classList.contains('open')) {
-                menu.classList.remove('open');
+            if (menu) {
+                menu.classList.toggle('open');
             }
             
             if (overlay) {
-                overlay.style.display = 'none';
-            }
-            
-            // Depois muda a aba
-            if (typeof setActiveTab === 'function') {
-                setActiveTab(tabName);
-            }
-        }
-        
-        /**
-         * Função para fechar menu antes de navegar para página externa
-         */
-        function closeMenuBeforeNavigation() {
-            const menu = document.getElementById('sideMenu');
-            const overlay = document.getElementById('menuOverlay');
-            
-            if (menu && menu.classList.contains('open')) {
-                menu.classList.remove('open');
-            }
-            
-            if (overlay) {
-                overlay.style.display = 'none';
-            }
-        }
-        
-        /**
-         * Função para abrir Simulador e fechar menu
-         */
-        function openSimuladorAndCloseMenu() {
-            // Primeiro fecha o menu
-            const menu = document.getElementById('sideMenu');
-            const overlay = document.getElementById('menuOverlay');
-            
-            if (menu && menu.classList.contains('open')) {
-                menu.classList.remove('open');
-            }
-            
-            if (overlay) {
-                overlay.style.display = 'none';
-            }
-            
-            // Depois abre o simulador em nova aba
-            window.open('simulador-qrcode.html', '_blank');
-            
-            console.log('Abrindo Simulador Mobile em nova aba...');
-        }
-        
-        /**
-         * Função para abrir QR Codes e fechar menu
-         */
-        function openQRCodesAndCloseMenu() {
-            // Primeiro fecha o menu
-            const menu = document.getElementById('sideMenu');
-            const overlay = document.getElementById('menuOverlay');
-            
-            if (menu && menu.classList.contains('open')) {
-                menu.classList.remove('open');
-            }
-            
-            if (overlay) {
-                overlay.style.display = 'none';
-            }
-            
-            
-            // Aguardar menu fechar
-            setTimeout(() => {
-                // Abre MODAL do qrcode.js na mesma página (com X no canto)
-                if (typeof window.openQRCodesSimple === 'function') {
-                    window.openQRCodesSimple();
-                } else if (typeof openQRCodes === 'function') {
-                    openQRCodes();
+                if (menu && menu.classList.contains('open')) {
+                    overlay.style.display = 'block';
                 } else {
-                    console.error('qrcode.js nao carregado!');
+                    overlay.style.display = 'none';
                 }
-            }, 100);
+            }
         }
+        
+        function setActiveTabAndCloseMenu(tabId) {
+            console.log('[V7.0] Navegando para:', tabId);
+            
+            // Fechar menu
+            toggleMenu();
+            
+            // Esconder todas as secoes
+            const sections = ['dash2', 'dash1', 'dash3', 'leitosView', 'leitosUTIView'];
+            sections.forEach(id => {
+                const section = document.getElementById(id);
+                if (section) {
+                    section.classList.add('hidden');
+                }
+            });
+            
+            // Atualizar item ativo no menu
+            document.querySelectorAll('.side-menu-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            const activeItem = document.querySelector(`.side-menu-item[data-tab="${tabId}"]`);
+            if (activeItem) {
+                activeItem.classList.add('active');
+            }
+            
+            // Mostrar secao correta
+            if (tabId === 'dash2') {
+                document.getElementById('dash2').classList.remove('hidden');
+                if (window.renderDashboardExecutivo) {
+                    window.renderDashboardExecutivo();
+                }
+            } else if (tabId === 'dash1') {
+                document.getElementById('dash1').classList.remove('hidden');
+                if (window.renderDashboardHospitalar) {
+                    window.renderDashboardHospitalar();
+                }
+            } else if (tabId === 'dash3') {
+                document.getElementById('dash3').classList.remove('hidden');
+                if (window.renderDashboardUTI) {
+                    window.renderDashboardUTI();
+                }
+            } else if (tabId === 'leitos') {
+                document.getElementById('leitosView').classList.remove('hidden');
+                if (window.renderCards) {
+                    const hospitalId = document.getElementById('hospitalDropdown')?.value || 'H5';
+                    window.renderCards(hospitalId);
+                }
+            } else if (tabId === 'leitosUTI') {
+                document.getElementById('leitosUTIView').classList.remove('hidden');
+                if (window.renderCardsUTI) {
+                    const hospitalId = document.getElementById('hospitalDropdownUTI')?.value || 'H2';
+                    window.renderCardsUTI(hospitalId);
+                }
+            }
+        }
+        
+        function openSimuladorAndCloseMenu() {
+            toggleMenu();
+            if (window.abrirSimulador) {
+                window.abrirSimulador();
+            }
+        }
+        
+        function openQRCodesAndCloseMenu() {
+            toggleMenu();
+            if (window.gerarQRCodes) {
+                window.gerarQRCodes();
+            }
+        }
+        
+        // =================== FUNCAO PARA SELECIONAR HOSPITAL (ENFERMARIAS) ===================
+        function selectHospital(hospitalId) {
+            console.log('[V7.0] Hospital selecionado (Enfermarias):', hospitalId);
+            if (window.renderCards) {
+                window.renderCards(hospitalId);
+            }
+        }
+        
+        // =================== FUNCAO PARA SELECIONAR HOSPITAL (UTI) ===================
+        function selectHospitalUTI(hospitalId) {
+            console.log('[V7.0] Hospital selecionado (UTI):', hospitalId);
+            if (window.renderCardsUTI) {
+                window.renderCardsUTI(hospitalId);
+            }
+        }
+        
+        // Expor funcoes globalmente
+        window.toggleMenu = toggleMenu;
+        window.setActiveTabAndCloseMenu = setActiveTabAndCloseMenu;
+        window.selectHospital = selectHospital;
+        window.selectHospitalUTI = selectHospitalUTI;
     </script>
     
-    <!-- =================== ESTILOS INLINE V4.0 =================== -->
+    <!-- =================== ESTILOS EMBUTIDOS V7.0 =================== -->
     <style>
-        /* =================== RESET E BASE =================== */
+        /* =================== RESET BASICO =================== */
         * {
             margin: 0;
             padding: 0;
@@ -325,67 +393,65 @@
         
         body {
             font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            font-weight: 700;
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            color: #e2e8f0;
+            background: linear-gradient(135deg, #131b2e 0%, #1e293b 100%);
             min-height: 100vh;
+            color: #e2e8f0;
+            font-weight: 400;
         }
         
         .hidden {
             display: none !important;
         }
         
-        /* =================== MODAL DE AUTENTICAÇÃO (TRANSPARENTE PARA VER FUNDO) =================== */
+        /* =================== MODAL AUTENTICACAO =================== */
         .modal-auth {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.6); /* REDUZIDO DE 0.9 PARA 0.6 */
+            background: linear-gradient(135deg, #131b2e 0%, #1e293b 100%);
             display: flex;
-            justify-content: center;
             align-items: center;
-            z-index: 10000;
-            backdrop-filter: blur(4px); /* BLUR LEVE PARA VER O FUNDO */
+            justify-content: center;
+            z-index: 9999;
         }
         
         .auth-container {
-            background: #1e293b;
-            padding: 40px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 50px;
             border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-            width: 90%;
-            max-width: 400px;
             text-align: center;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            max-width: 400px;
+            width: 90%;
         }
         
         .auth-container h1 {
             color: #60a5fa;
-            margin-bottom: 10px;
+            margin-bottom: 20px;
             font-size: 28px;
-            font-family: 'Poppins', sans-serif;
             font-weight: 700;
         }
         
         .auth-container p {
             color: #9ca3af;
             margin-bottom: 25px;
-            font-size: 14px;
             font-weight: 400;
         }
         
         .auth-container input {
             width: 100%;
-            padding: 12px;
-            background: #0f172a;
-            border: 2px solid #334155;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
             border-radius: 8px;
             color: white;
-            font-size: 16px;
-            margin-bottom: 20px;
-            transition: border-color 0.3s;
-            font-family: 'Poppins', sans-serif;
+            font-size: 18px;
+            text-align: center;
+            font-weight: 400;
         }
         
         .auth-container input:focus {
@@ -395,37 +461,35 @@
         
         .auth-container button {
             width: 100%;
-            padding: 12px;
-            background: #60a5fa;
-            color: white;
+            padding: 15px;
+            background: #0676bb;
             border: none;
             border-radius: 8px;
+            color: white;
             font-size: 16px;
             font-weight: 700;
             cursor: pointer;
             transition: background 0.3s;
-            font-family: 'Poppins', sans-serif;
         }
         
         .auth-container button:hover {
-            background: #3b82f6;
+            background: #0589d6;
         }
         
         .error-msg {
-            color: #f87171;
-            text-align: center;
+            color: #ef4444;
             margin-top: 15px;
-            font-size: 14px;
+            font-weight: 400;
         }
         
         /* =================== HEADER =================== */
         .header {
             background: #1e293b;
-            padding: 20px 30px;
+            padding: 15px 25px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
             position: sticky;
             top: 0;
             z-index: 1000;
@@ -434,33 +498,30 @@
         .header-left {
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 15px;
         }
         
         .hamburger {
             font-size: 24px;
             cursor: pointer;
-            padding: 8px;
-            border-radius: 6px;
-            transition: background 0.3s;
+            color: #60a5fa;
+            transition: color 0.3s;
         }
         
         .hamburger:hover {
-            background: rgba(255, 255, 255, 0.1);
+            color: #93c5fd;
         }
         
         .header-left h1 {
-            margin: 0;
-            font-size: 22px;
             color: #60a5fa;
+            font-size: 22px;
             font-weight: 700;
-            font-family: 'Poppins', sans-serif;
         }
         
         .header-right {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 20px;
         }
         
         #updateTimer {
@@ -470,33 +531,35 @@
         }
         
         .header-right button {
-            background: rgba(156, 163, 175, 0.5);
+            background: #0676bb;
             color: white;
             border: none;
             padding: 10px 20px;
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
             font-weight: 700;
-            transition: background 0.3s;
-            font-family: 'Poppins', sans-serif;
+            transition: all 0.3s;
         }
         
         .header-right button:hover {
-            background: rgba(156, 163, 175, 0.7);
+            background: #0589d6;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(6, 118, 187, 0.4);
         }
         
         /* =================== MENU LATERAL =================== */
         .side-menu {
             position: fixed;
-            left: -280px;
+            left: -320px;
             top: 0;
-            width: 280px;
-            height: 100vh;
+            width: 300px;
+            height: 100%;
             background: #1e293b;
-            box-shadow: 2px 0 8px rgba(0, 0, 0, 0.2);
-            transition: left 0.3s ease;
             z-index: 2000;
-            overflow-y: auto;
+            transition: left 0.3s ease;
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.4);
+            display: flex;
+            flex-direction: column;
         }
         
         .side-menu.open {
@@ -504,58 +567,51 @@
         }
         
         .menu-header {
-            padding: 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
         
         .menu-header h2 {
-            margin: 0;
             color: #60a5fa;
             font-size: 20px;
-            font-family: 'Poppins', sans-serif;
             font-weight: 700;
         }
         
         .menu-close {
             background: none;
             border: none;
-            color: white;
+            color: #9ca3af;
             font-size: 28px;
             cursor: pointer;
-            padding: 0;
-            width: 32px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 6px;
-            transition: background 0.3s;
+            transition: color 0.3s;
         }
         
         .menu-close:hover {
-            background: rgba(255, 255, 255, 0.1);
+            color: #ef4444;
         }
         
         .menu-items {
+            flex: 1;
             padding: 20px 0;
+            overflow-y: auto;
         }
         
         .side-menu-item {
             display: block;
-            padding: 12px 20px;
+            padding: 15px 25px;
             color: #e2e8f0;
             text-decoration: none;
-            transition: all 0.3s;
+            font-size: 14px;
+            font-weight: 400;
+            transition: all 0.3s ease;
             border-left: 3px solid transparent;
-            font-family: 'Poppins', sans-serif;
-            font-weight: 700;
         }
         
         .side-menu-item:hover {
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(96, 165, 250, 0.05);
             border-left-color: #60a5fa;
         }
         
@@ -564,6 +620,13 @@
             border-left-color: #60a5fa;
             color: #60a5fa;
             font-weight: 700;
+        }
+        
+        /* V7.0: Separador de secao no menu */
+        .menu-section-divider {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.1);
+            margin: 15px 20px;
         }
         
         .menu-footer {
@@ -595,13 +658,13 @@
             display: block;
         }
         
-        /* =================== CONTEÚDO PRINCIPAL =================== */
+        /* =================== CONTEUDO PRINCIPAL =================== */
         .main-content {
             padding: 30px;
             min-height: calc(100vh - 200px);
         }
         
-        /* =================== SEÇÃO DE LEITOS =================== */
+        /* =================== SECAO DE LEITOS =================== */
         .section-leitos {
             width: 100%;
         }
@@ -610,7 +673,7 @@
             margin-bottom: 30px;
         }
         
-        /* BOX AZUL ESCURO COM TÍTULO E BOTÕES */
+        /* BOX AZUL ESCURO COM TITULO E BOTOES */
         .hospital-selector-container {
             background: #1e293b;
             border-radius: 12px;
@@ -626,6 +689,19 @@
             font-family: 'Poppins', sans-serif;
             font-weight: 700;
             text-align: center;
+        }
+        
+        /* V7.0: Estilo especifico para UTI */
+        .hospital-selector-uti h2 {
+            color: #f59e0b;
+        }
+        
+        .uti-nota {
+            color: #9ca3af;
+            font-size: 12px;
+            text-align: center;
+            margin-top: 15px;
+            font-style: italic;
         }
         
         /* =================== SELETOR DE HOSPITAL (DROPDOWN) =================== */
@@ -667,7 +743,17 @@
             font-weight: 700;
         }
         
-        /* =================== CAMPO DE BUSCA V4.0 =================== */
+        /* V7.0: Dropdown UTI com cor diferente */
+        .hospital-selector-uti .hospital-select {
+            background-color: #f59e0b;
+        }
+        
+        .hospital-selector-uti .hospital-select:hover {
+            background-color: #d97706;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+        }
+        
+        /* =================== CAMPO DE BUSCA =================== */
         .search-container {
             position: relative;
             max-width: 600px;
@@ -685,7 +771,8 @@
             pointer-events: none;
         }
         
-        #searchLeitosInput {
+        #searchLeitosInput,
+        #searchLeitosUTIInput {
             width: 100%;
             padding: 14px 14px 14px 46px;
             background: #374151;
@@ -698,14 +785,16 @@
             transition: all 0.3s ease;
         }
         
-        #searchLeitosInput:focus {
+        #searchLeitosInput:focus,
+        #searchLeitosUTIInput:focus {
             outline: none;
             border-color: #60a5fa;
             box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
             background: #475569;
         }
         
-        #searchLeitosInput::placeholder {
+        #searchLeitosInput::placeholder,
+        #searchLeitosUTIInput::placeholder {
             color: rgba(255, 255, 255, 0.5);
         }
         
