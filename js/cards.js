@@ -39,11 +39,13 @@ window.cancelarReserva = async function(hospital, identificacaoLeito, matricula)
     console.log('[V7.0] Cancelando reserva:', hospital, identificacaoLeito);
     try {
         // Usar GET com parametros na URL (evita CORS)
+        const idLeito = String(identificacaoLeito || '');
+        const mat = String(matricula || '');
         const params = new URLSearchParams({
             action: 'cancelarReserva',
             hospital: hospital,
-            identificacaoLeito: identificacaoLeito || '',
-            matricula: matricula || ''
+            identificacaoLeito: idLeito,
+            matricula: mat
         });
         
         const response = await fetch(window.API_URL + '?' + params.toString(), {
@@ -54,7 +56,7 @@ window.cancelarReserva = async function(hospital, identificacaoLeito, matricula)
         if (result.ok || result.success) {
             if (window.reservasData) {
                 window.reservasData = window.reservasData.filter(r => 
-                    !(r.hospital === hospital && (r.identificacaoLeito === identificacaoLeito || r.matricula === matricula))
+                    !(r.hospital === hospital && (String(r.identificacaoLeito || '') === idLeito || String(r.matricula || '') === mat))
                 );
             }
             return true;
@@ -313,13 +315,13 @@ window.renderCards = function() {
             return String(idA).localeCompare(String(idB), undefined, {numeric: true});
         });
     } else {
-        // HÍBRIDOS: ordenação padrão por identificacaoLeito
+        // HIBRIDOS: ordenacao padrao por identificacaoLeito
         leitosOcupados.sort((a, b) => {
-            const idA = a.identificacaoLeito || a.identificacao_leito || '';
-            const idB = b.identificacaoLeito || b.identificacao_leito || '';
+            const idA = String(a.identificacaoLeito || a.identificacao_leito || '');
+            const idB = String(b.identificacaoLeito || b.identificacao_leito || '');
             
             if (idA && idB) {
-                return idA.localeCompare(idB);
+                return idA.localeCompare(idB, undefined, {numeric: true});
             }
             
             if (idA) return -1;
@@ -439,12 +441,12 @@ window.renderCards = function() {
             leito: reserva.leito,
             status: 'Reservado',
             tipo: reserva.tipo || 'Hibrido',
-            identificacaoLeito: reserva.identificacaoLeito || '',
-            identificacao_leito: reserva.identificacaoLeito || '',
+            identificacaoLeito: String(reserva.identificacaoLeito || ''),
+            identificacao_leito: String(reserva.identificacaoLeito || ''),
             isolamento: reserva.isolamento || '',
             genero: reserva.genero || '',
             nome: reserva.iniciais || '',
-            matricula: reserva.matricula || '',
+            matricula: String(reserva.matricula || ''),
             idade: reserva.idade || '',
             pps: '', spict: '', complexidade: '', prevAlta: '',
             regiao: '', diretivas: '', anotacoes: '', admAt: '',
@@ -688,11 +690,11 @@ function createCard(leito, hospitalNome, hospitalId, posicaoOcupacao) {
             
             if (dadosLeitoIrmao && (dadosLeitoIrmao.status === 'Em uso' || dadosLeitoIrmao.status === 'ocupado' || dadosLeitoIrmao.status === 'Ocupado')) {
                 const isolamentoIrmao = dadosLeitoIrmao.isolamento || '';
-                if (isolamentoIrmao && isolamentoIrmao !== 'Não Isolamento') {
+                if (isolamentoIrmao && isolamentoIrmao !== 'Nao Isolamento') {
                     bloqueadoPorIsolamento = true;
-                    const identificacaoIrmao = dadosLeitoIrmao?.identificacaoLeito || 
+                    const identificacaoIrmao = String(dadosLeitoIrmao?.identificacaoLeito || 
                                                dadosLeitoIrmao?.identificacao_leito || 
-                                               `Leito ${leitoIrmao}`;
+                                               `Leito ${leitoIrmao}`);
                     motivoBloqueio = `Isolamento no ${identificacaoIrmao}`;
                 } else if (dadosLeitoIrmao.genero) {
                     bloqueadoPorGenero = true;
@@ -764,8 +766,8 @@ function createCard(leito, hospitalNome, hospitalId, posicaoOcupacao) {
         isolamento = 'Não Isolamento';
     }
     
-    // Identificação do leito
-    let identificacaoLeito = leito.identificacaoLeito || leito.identificacao_leito || '';
+    // Identificacao do leito - CORRECAO: sempre converter para string
+    let identificacaoLeito = String(leito.identificacaoLeito || leito.identificacao_leito || '');
     
     const regiao = leito.regiao || '';
     const sexo = leito.genero || '';
@@ -1161,15 +1163,16 @@ function openAdmissaoModalComReserva(leitoNumero, dadosReserva) {
     // Pre-preencher com dados da reserva
     setTimeout(() => {
         const idInput = modal.querySelector('#admIdentificacaoLeito') || modal.querySelector('#admIdentificacaoNumero');
-        if (idInput && dadosReserva.identificacaoLeito) {
-            if (dadosReserva.identificacaoLeito.includes('-')) {
-                const partes = dadosReserva.identificacaoLeito.split('-');
+        const identificacaoReserva = String(dadosReserva.identificacaoLeito || '');
+        if (idInput && identificacaoReserva) {
+            if (identificacaoReserva.includes('-')) {
+                const partes = identificacaoReserva.split('-');
                 const numInput = modal.querySelector('#admIdentificacaoNumero');
                 const sufInput = modal.querySelector('#admIdentificacaoSufixo');
                 if (numInput) numInput.value = partes[0];
                 if (sufInput) sufInput.value = partes[1];
             } else {
-                idInput.value = dadosReserva.identificacaoLeito;
+                idInput.value = identificacaoReserva;
             }
         }
         const isoSelect = modal.querySelector('#admIsolamento');
@@ -1330,10 +1333,10 @@ function createAdmissaoForm(hospitalNome, leitoNumero, hospitalId) {
                     }
                 }
                 
-                // PRÉ-PREENCHER NÚMERO BASE SE IRMÃO OCUPADO
-                const identificacaoIrmao = dadosLeitoIrmao.identificacaoLeito || dadosLeitoIrmao.identificacao_leito || '';
+                // PRE-PREENCHER NUMERO BASE SE IRMAO OCUPADO
+                const identificacaoIrmao = String(dadosLeitoIrmao.identificacaoLeito || dadosLeitoIrmao.identificacao_leito || '');
                 if (identificacaoIrmao) {
-                    // Extrair número base (ex: "101-1" → "101")
+                    // Extrair numero base (ex: "101-1" -> "101")
                     const partes = identificacaoIrmao.split('-');
                     if (partes.length > 0) {
                         numeroBasePreenchido = partes[0];
@@ -1367,10 +1370,10 @@ function createAdmissaoForm(hospitalNome, leitoNumero, hospitalId) {
                     }
                 }
                 
-                // PRÉ-PREENCHER NÚMERO BASE SE IRMÃO OCUPADO
-                const identificacaoIrmao = dadosLeitoIrmao.identificacaoLeito || dadosLeitoIrmao.identificacao_leito || '';
+                // PRE-PREENCHER NUMERO BASE SE IRMAO OCUPADO
+                const identificacaoIrmao = String(dadosLeitoIrmao.identificacaoLeito || dadosLeitoIrmao.identificacao_leito || '');
                 if (identificacaoIrmao) {
-                    // Extrair número base (ex: "201-A" → "201")
+                    // Extrair numero base (ex: "201-A" -> "201")
                     const partes = identificacaoIrmao.split('-');
                     if (partes.length > 0) {
                         numeroBasePreenchido = partes[0];
@@ -1668,7 +1671,7 @@ function createReservaForm(hospitalNome, leitoNumero, hospitalId, dadosLeito) {
                         generoDisabled = true;
                     }
                 }
-                const identificacaoIrmao = dadosLeitoIrmao.identificacaoLeito || dadosLeitoIrmao.identificacao_leito || '';
+                const identificacaoIrmao = String(dadosLeitoIrmao.identificacaoLeito || dadosLeitoIrmao.identificacao_leito || '');
                 if (identificacaoIrmao) {
                     const partes = identificacaoIrmao.split('-');
                     if (partes.length > 0) numeroBasePreenchido = partes[0];
@@ -1678,7 +1681,7 @@ function createReservaForm(hospitalNome, leitoNumero, hospitalId, dadosLeito) {
         sufixoPreDefinido = (leitoNumero % 2 === 0) ? '3' : '1';
     }
     
-    // Lógica de leitos irmãos H4
+    // Logica de leitos irmaos H4
     if (isSantaClaraEnfermaria) {
         const leitoIrmao = window.SANTA_CLARA_IRMAOS[leitoNumero];
         if (leitoIrmao) {
@@ -1686,17 +1689,17 @@ function createReservaForm(hospitalNome, leitoNumero, hospitalId, dadosLeito) {
             const dadosLeitoIrmao = leitosHospital.find(l => l.leito == leitoIrmao);
             if (dadosLeitoIrmao && (dadosLeitoIrmao.status === 'Ocupado' || dadosLeitoIrmao.status === 'ocupado')) {
                 const isolamentoIrmao = dadosLeitoIrmao.isolamento || '';
-                if (!isolamentoIrmao || isolamentoIrmao === 'Não Isolamento') {
-                    isolamentoPreDefinido = 'Não Isolamento';
+                if (!isolamentoIrmao || isolamentoIrmao === 'Nao Isolamento') {
+                    isolamentoPreDefinido = 'Nao Isolamento';
                     isolamentoDisabled = true;
                     if (dadosLeitoIrmao.genero) {
                         generoPreDefinido = dadosLeitoIrmao.genero;
                         generoDisabled = true;
                     }
                 }
-                const identificacaoIrmao = dadosLeitoIrmao.identificacaoLeito || dadosLeitoIrmao.identificacao_leito || '';
-                if (identificacaoIrmao) {
-                    const partes = identificacaoIrmao.split('-');
+                const identificacaoIrmao2 = String(dadosLeitoIrmao.identificacaoLeito || dadosLeitoIrmao.identificacao_leito || '');
+                if (identificacaoIrmao2) {
+                    const partes = identificacaoIrmao2.split('-');
                     if (partes.length > 0) numeroBasePreenchido = partes[0];
                 }
             }
@@ -2050,11 +2053,11 @@ function setupReservaModalEventListeners(modal) {
                         hospital: hospitalId,
                         leito: leitoNumero,
                         tipo: tipoQuarto,
-                        identificacaoLeito: identificacaoLeito,
+                        identificacaoLeito: String(identificacaoLeito || ''),
                         isolamento: isolamento,
                         genero: genero,
-                        iniciais: iniciais.replace(/\s/g, ''),
-                        matricula: matricula,
+                        iniciais: String(iniciais || '').replace(/\s/g, ''),
+                        matricula: String(matricula || ''),
                         idade: idade,
                         linha: result.linha || result.data?.linha
                     };
@@ -2123,11 +2126,11 @@ function createAtualizacaoForm(hospitalNome, leitoNumero, dadosLeito) {
     const isCruzAzulApartamento = (hospitalId === 'H2' && leitoNumero >= 1 && leitoNumero <= 20);
     const isApartamentoFixo = isCruzAzulApartamento;
     
-    let identificacaoAtual = dadosLeito?.identificacaoLeito || 
+    let identificacaoAtual = String(dadosLeito?.identificacaoLeito || 
                         dadosLeito?.identificacao_leito || 
-                        '';
+                        '');
     
-    let leitoDisplay = identificacaoAtual && identificacaoAtual.trim() 
+    let leitoDisplay = identificacaoAtual.trim() 
         ? identificacaoAtual.trim().toUpperCase()
         : `LEITO ${leitoNumero}`;
     
@@ -2818,14 +2821,14 @@ function buscarReservaParaAdmissao(hospitalId, identificacaoLeito, matricula) {
     const reservas = window.reservasData || [];
     
     // Normalizar para comparacao
-    const idNorm = (identificacaoLeito || '').trim().toUpperCase();
-    const matNorm = (matricula || '').replace(/-/g, '').trim();
+    const idNorm = String(identificacaoLeito || '').trim().toUpperCase();
+    const matNorm = String(matricula || '').replace(/-/g, '').trim();
     
     // Buscar por identificacao do leito (mesmo hospital)
     if (idNorm) {
         const porLeito = reservas.find(r => {
             if (r.hospital !== hospitalId) return false;
-            const idReserva = (r.identificacaoLeito || '').trim().toUpperCase();
+            const idReserva = String(r.identificacaoLeito || '').trim().toUpperCase();
             return idReserva === idNorm;
         });
         if (porLeito) return porLeito;
@@ -2834,7 +2837,7 @@ function buscarReservaParaAdmissao(hospitalId, identificacaoLeito, matricula) {
     // Buscar por matricula (qualquer hospital)
     if (matNorm) {
         const porMatricula = reservas.find(r => {
-            const matReserva = (r.matricula || '').replace(/-/g, '').trim();
+            const matReserva = String(r.matricula || '').replace(/-/g, '').trim();
             return matReserva === matNorm;
         });
         if (porMatricula) return porMatricula;
