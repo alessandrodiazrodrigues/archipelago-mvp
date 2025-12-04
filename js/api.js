@@ -16,7 +16,7 @@
 // ==================================================================================
 
 // =================== URL DA API V7.0 ===================
-window.API_URL = 'https://script.google.com/macros/s/AKfycbw1vQypFiizcUwO0n2kUg4ZCNHriuYVDW4Kn4zvL7f573xng2WncUIGPFM-mlTTcN4RMQ/exec';
+window.API_URL = 'https://script.google.com/macros/s/AKfycbzJ1JAwVMyHcizLxOmGVYhim1SFYOC8NlRGHXk822YXwfbeMt-O5QvPfD5v12v3kOti3Q/exec';
 
 // =================== CONFIGURAÇÃO DOS HOSPITAIS V7.0 ===================
 window.HOSPITAIS_CONFIG = {
