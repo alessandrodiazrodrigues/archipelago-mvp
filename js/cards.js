@@ -2629,14 +2629,24 @@ function setupModalEventListeners(modal, tipo) {
                         if (confirma) {
                             // Cancelar a reserva no backend
                             try {
-                                await window.cancelarReserva(
+                                console.log('[V7.0] Tentando cancelar reserva antes da admissao...');
+                                const cancelado = await window.cancelarReserva(
                                     reservaEncontrada.hospital, 
                                     reservaEncontrada.identificacaoLeito, 
                                     reservaEncontrada.matricula
                                 );
-                                console.log('[V7.0] Reserva cancelada antes da admissao');
+                                if (cancelado) {
+                                    console.log('[V7.0] Reserva cancelada com sucesso!');
+                                } else {
+                                    console.warn('[V7.0] Reserva nao foi cancelada, mas continuando admissao...');
+                                }
                             } catch (err) {
-                                console.warn('[V7.0] Erro ao cancelar reserva:', err);
+                                console.error('[V7.0] ERRO ao cancelar reserva:', err);
+                                // Perguntar se quer continuar mesmo assim
+                                const continuarMesmoAssim = confirm('Erro ao cancelar a reserva na planilha. Deseja continuar com a admissao mesmo assim?\n\nVoce precisara apagar a reserva manualmente na aba "reservas".');
+                                if (!continuarMesmoAssim) {
+                                    return;
+                                }
                             }
                             // Continuar com a admissao normalmente
                         } else {
@@ -2824,7 +2834,7 @@ function mostrarConfirmacaoReserva(reserva) {
                 </div>
             </div>
             <p style="color: #9ca3af; text-align: center; font-size: 13px; margin-bottom: 20px;">
-                Deseja <strong style="color: #22c55e;">cancelar a reserva</strong> e <strong style="color: #60a5fa;">admitir o paciente</strong>?
+                Deseja cancelar a reserva e admitir o paciente?
             </p>
             <div style="display: flex; gap: 12px;">
                 <button id="btnCancelarConfirm" style="
@@ -2834,7 +2844,7 @@ function mostrarConfirmacaoReserva(reserva) {
                 ">NAO, VOLTAR</button>
                 <button id="btnConfirmarAdmissao" style="
                     flex: 1; padding: 12px; border-radius: 8px; border: none;
-                    background: #22c55e; color: #ffffff;
+                    background: #60a5fa; color: #ffffff;
                     font-weight: 600; cursor: pointer; font-family: 'Poppins', sans-serif;
                 ">SIM, ADMITIR</button>
             </div>
