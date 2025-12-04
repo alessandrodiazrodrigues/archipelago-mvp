@@ -1910,78 +1910,100 @@ function setupReservaModalEventListeners(modal) {
         if (e.target === modal) modal.remove();
     });
     
-    // Botão Salvar Reserva
+    // Botao Salvar Reserva
     const btnSalvar = modal.querySelector('.btn-salvar-reserva');
     if (btnSalvar) {
+        console.log('[V7.0 RESERVA] Configurando evento do botao Salvar Reserva');
         btnSalvar.addEventListener('click', async function(e) {
             e.preventDefault();
+            console.log('[V7.0 RESERVA] Botao Salvar Reserva clicado');
             
-            const leitoNumero = window.selectedLeito;
-            const isCruzAzulEnfermaria = (hospitalId === 'H2') && (window.CRUZ_AZUL_IRMAOS[leitoNumero] !== undefined);
-            const isSantaClaraEnfermaria = (hospitalId === 'H4') && (window.SANTA_CLARA_IRMAOS[leitoNumero] !== undefined);
-            
-            // Coletar dados
-            const tipoQuarto = modal.querySelector('#resTipoQuarto')?.value || '';
-            const isolamento = modal.querySelector('#resIsolamento')?.value || '';
-            const genero = modal.querySelector('#resSexo')?.value || '';
-            const iniciais = modal.querySelector('#resNome')?.value?.trim() || '';
-            const matricula = modal.querySelector('#resMatricula')?.value?.trim().replace(/-/g, '') || '';
-            const idade = modal.querySelector('#resIdade')?.value || '';
-            
-            // Montar identificação
-            let identificacaoLeito = '';
-            if (isCruzAzulEnfermaria || isSantaClaraEnfermaria) {
-                const numero = modal.querySelector('#resIdentificacaoNumero')?.value?.trim() || '';
-                const sufixo = modal.querySelector('#resIdentificacaoSufixo')?.value || '';
-                identificacaoLeito = numero && sufixo ? `${numero}-${sufixo}` : numero;
-            } else if (isHibrido && tipoQuarto === 'Enfermaria') {
-                const numero = modal.querySelector('#resIdentificacaoNumero')?.value?.trim() || '';
-                const digito = modal.querySelector('#resIdentificacaoDigito')?.value?.trim() || '';
-                identificacaoLeito = numero && digito ? `${numero}-${digito}` : numero;
-            } else {
-                identificacaoLeito = modal.querySelector('#resIdentificacaoLeito')?.value?.trim() || '';
-            }
-            
-            // Validações
-            if (isHibrido && !tipoQuarto) {
-                showErrorMessage('Selecione o Tipo de Quarto');
-                return;
-            }
-            if (!identificacaoLeito) {
-                showErrorMessage('Preencha a Identificacao do Leito');
-                return;
-            }
-            if (!isolamento) {
-                showErrorMessage('Selecione o Isolamento');
-                return;
-            }
-            if (!genero) {
-                showErrorMessage('Selecione o Genero');
-                return;
-            }
-            
-            // V7.0: Validar duplicidade de identificacao do leito
-            const validacaoId = validarIdentificacaoDuplicada(hospitalId, identificacaoLeito);
-            if (!validacaoId.valido) {
-                showErrorMessage(validacaoId.mensagem);
-                return;
-            }
-            
-            // V7.0: Validar duplicidade de matricula (se preenchida)
-            if (matricula) {
-                const validacaoMat = validarMatriculaDuplicada(hospitalId, matricula);
-                if (!validacaoMat.valido) {
-                    showErrorMessage(validacaoMat.mensagem);
+            // V7.0: TUDO dentro de try-catch para evitar Promise rejeitada
+            try {
+                const leitoNumero = window.selectedLeito;
+                console.log('[V7.0 RESERVA] leitoNumero:', leitoNumero, 'hospitalId:', hospitalId);
+                
+                // Verificar variaveis globais com seguranca
+                const cruzAzulIrmaos = window.CRUZ_AZUL_IRMAOS || {};
+                const santaClaraIrmaos = window.SANTA_CLARA_IRMAOS || {};
+                
+                const isCruzAzulEnfermaria = (hospitalId === 'H2') && (cruzAzulIrmaos[leitoNumero] !== undefined);
+                const isSantaClaraEnfermaria = (hospitalId === 'H4') && (santaClaraIrmaos[leitoNumero] !== undefined);
+                
+                console.log('[V7.0 RESERVA] isCruzAzulEnfermaria:', isCruzAzulEnfermaria, 'isSantaClaraEnfermaria:', isSantaClaraEnfermaria);
+                
+                // Coletar dados
+                const tipoQuarto = modal.querySelector('#resTipoQuarto')?.value || '';
+                const isolamento = modal.querySelector('#resIsolamento')?.value || '';
+                const genero = modal.querySelector('#resSexo')?.value || '';
+                const iniciais = modal.querySelector('#resNome')?.value?.trim() || '';
+                const matricula = modal.querySelector('#resMatricula')?.value?.trim().replace(/-/g, '') || '';
+                const idade = modal.querySelector('#resIdade')?.value || '';
+                
+                console.log('[V7.0 RESERVA] Dados coletados:', { tipoQuarto, isolamento, genero, iniciais, matricula, idade });
+                
+                // Montar identificacao
+                let identificacaoLeito = '';
+                if (isCruzAzulEnfermaria || isSantaClaraEnfermaria) {
+                    const numero = modal.querySelector('#resIdentificacaoNumero')?.value?.trim() || '';
+                    const sufixo = modal.querySelector('#resIdentificacaoSufixo')?.value || '';
+                    identificacaoLeito = numero && sufixo ? `${numero}-${sufixo}` : numero;
+                    console.log('[V7.0 RESERVA] Identificacao Cruz Azul/Santa Clara:', numero, sufixo);
+                } else if (isHibrido && tipoQuarto === 'Enfermaria') {
+                    const numero = modal.querySelector('#resIdentificacaoNumero')?.value?.trim() || '';
+                    const digito = modal.querySelector('#resIdentificacaoDigito')?.value?.trim() || '';
+                    identificacaoLeito = numero && digito ? `${numero}-${digito}` : numero;
+                    console.log('[V7.0 RESERVA] Identificacao Hibrido Enfermaria:', numero, digito);
+                } else {
+                    identificacaoLeito = modal.querySelector('#resIdentificacaoLeito')?.value?.trim() || '';
+                    console.log('[V7.0 RESERVA] Identificacao simples:', identificacaoLeito);
+                }
+                
+                console.log('[V7.0 RESERVA] identificacaoLeito final:', identificacaoLeito);
+                
+                // Validacoes
+                if (isHibrido && !tipoQuarto) {
+                    showErrorMessage('Selecione o Tipo de Quarto');
                     return;
                 }
-            }
-            
-            // Salvar
-            const originalText = btnSalvar.innerHTML;
-            btnSalvar.innerHTML = 'SALVANDO...';
-            btnSalvar.disabled = true;
-            
-            try {
+                if (!identificacaoLeito) {
+                    showErrorMessage('Preencha a Identificacao do Leito');
+                    return;
+                }
+                if (!isolamento) {
+                    showErrorMessage('Selecione o Isolamento');
+                    return;
+                }
+                if (!genero) {
+                    showErrorMessage('Selecione o Genero');
+                    return;
+                }
+                
+                // V7.0: Validar duplicidade de identificacao do leito
+                console.log('[V7.0 RESERVA] Validando duplicidade de identificacao...');
+                const validacaoId = validarIdentificacaoDuplicada(hospitalId, identificacaoLeito);
+                if (!validacaoId.valido) {
+                    showErrorMessage(validacaoId.mensagem);
+                    return;
+                }
+                
+                // V7.0: Validar duplicidade de matricula (se preenchida)
+                if (matricula) {
+                    console.log('[V7.0 RESERVA] Validando duplicidade de matricula...');
+                    const validacaoMat = validarMatriculaDuplicada(hospitalId, matricula);
+                    if (!validacaoMat.valido) {
+                        showErrorMessage(validacaoMat.mensagem);
+                        return;
+                    }
+                }
+                
+                // Salvar
+                const originalText = btnSalvar.innerHTML;
+                btnSalvar.innerHTML = 'SALVANDO...';
+                btnSalvar.disabled = true;
+                
+                console.log('[V7.0 RESERVA] Enviando para API...');
+                
                 // Usar GET com parametros na URL (evita CORS)
                 const params = new URLSearchParams({
                     action: 'reservar',
@@ -1996,19 +2018,24 @@ function setupReservaModalEventListeners(modal) {
                     idade: idade || ''
                 });
                 
-                const response = await fetch(window.API_URL + '?' + params.toString(), {
+                const urlCompleta = window.API_URL + '?' + params.toString();
+                console.log('[V7.0 RESERVA] URL:', urlCompleta);
+                
+                const response = await fetch(urlCompleta, {
                     method: 'GET',
                     headers: { 'Accept': 'application/json' }
                 });
                 
+                console.log('[V7.0 RESERVA] Response status:', response.status);
                 const result = await response.json();
+                console.log('[V7.0 RESERVA] Result:', result);
                 
                 if (result.ok || result.success) {
                     modal.remove();
                     showSuccessMessage('Leito reservado com sucesso!');
                     
                     // V7.0: Forcar atualizacao completa dos cards
-                    console.log('[V7.0] Reserva salva, forcando atualizacao...');
+                    console.log('[V7.0 RESERVA] Reserva salva, forcando atualizacao...');
                     
                     // Guardar reserva local antes de recarregar
                     const reservaLocal = {
@@ -2036,21 +2063,29 @@ function setupReservaModalEventListeners(modal) {
                     );
                     if (!jaExiste) {
                         window.reservasData.push(reservaLocal);
-                        console.log('[V7.0] Reserva local re-adicionada ao array');
+                        console.log('[V7.0 RESERVA] Reserva local re-adicionada ao array');
                     }
                     
                     if (window.renderCards && window.currentHospital) {
                         window.renderCards(window.currentHospital);
                     }
                 } else {
+                    btnSalvar.innerHTML = originalText;
+                    btnSalvar.disabled = false;
                     throw new Error(result.message || result.error || 'Erro ao reservar leito');
                 }
             } catch (error) {
-                btnSalvar.innerHTML = originalText;
-                btnSalvar.disabled = false;
-                showErrorMessage('Erro ao reservar: ' + error.message);
+                console.error('[V7.0 RESERVA] ERRO:', error);
+                const btnSalvarErr = modal.querySelector('.btn-salvar-reserva');
+                if (btnSalvarErr) {
+                    btnSalvarErr.innerHTML = 'Salvar Reserva';
+                    btnSalvarErr.disabled = false;
+                }
+                showErrorMessage('Erro ao reservar: ' + (error.message || 'Erro desconhecido'));
             }
         });
+    } else {
+        console.error('[V7.0 RESERVA] ERRO: Botao .btn-salvar-reserva NAO encontrado no modal!');
     }
 }
 
