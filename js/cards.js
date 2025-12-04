@@ -2967,26 +2967,31 @@ function validarMatriculaOcupada(hospitalId, matricula, leitoAtual = null) {
     return { valido: true };
 }
 
-// =================== VALIDAÇÕES DE DUPLICATAS (para RESERVA) ===================
+// =================== VALIDACOES DE DUPLICATAS (para RESERVA) ===================
 
-// Validar se identificação já está sendo usada no hospital
+// Validar se identificacao ja esta sendo usada no hospital
 function validarIdentificacaoDuplicada(hospitalId, identificacao, leitoAtual = null) {
-    if (!identificacao || !identificacao.trim()) return { valido: true };
+    if (!identificacao) return { valido: true };
     
-    const identificacaoNorm = identificacao.trim().toUpperCase();
+    // CORRECAO: Converter para string antes de usar trim/toUpperCase
+    const identificacaoStr = String(identificacao).trim();
+    if (!identificacaoStr) return { valido: true };
+    
+    const identificacaoNorm = identificacaoStr.toUpperCase();
     
     // 1. Verificar em leitos OCUPADOS
     const leitosHospital = window.hospitalData[hospitalId]?.leitos || [];
     const duplicadoOcupado = leitosHospital.find(l => {
-        const idLeito = l.identificacaoLeito || l.identificacao_leito || '';
+        // CORRECAO: Converter para string antes de usar trim/toUpperCase
+        const idLeito = String(l.identificacaoLeito || l.identificacao_leito || '').trim().toUpperCase();
         const statusOcupado = (l.status === 'Ocupado' || l.status === 'ocupado' || l.status === 'Em uso');
         
-        // Se for atualização, ignorar o próprio leito
+        // Se for atualizacao, ignorar o proprio leito
         if (leitoAtual && parseInt(l.leito) === parseInt(leitoAtual)) {
             return false;
         }
         
-        return statusOcupado && idLeito.trim().toUpperCase() === identificacaoNorm;
+        return statusOcupado && idLeito === identificacaoNorm;
     });
     
     if (duplicadoOcupado) {
@@ -3001,7 +3006,8 @@ function validarIdentificacaoDuplicada(hospitalId, identificacao, leitoAtual = n
     const reservas = window.reservasData || [];
     const duplicadoReserva = reservas.find(r => {
         if (r.hospital !== hospitalId) return false;
-        const idReserva = (r.identificacaoLeito || '').trim().toUpperCase();
+        // CORRECAO: Converter para string antes de usar trim/toUpperCase
+        const idReserva = String(r.identificacaoLeito || '').trim().toUpperCase();
         return idReserva === identificacaoNorm;
     });
     
@@ -3018,19 +3024,23 @@ function validarIdentificacaoDuplicada(hospitalId, identificacao, leitoAtual = n
 
 // Validar se matrícula já está sendo usada no hospital
 function validarMatriculaDuplicada(hospitalId, matricula, leitoAtual = null) {
-    if (!matricula || !matricula.trim()) return { valido: true };
+    if (!matricula) return { valido: true };
     
-    // Remover hífen para comparação
-    const matriculaSemHifen = matricula.replace(/-/g, '').trim();
+    // Converter para string e remover hifen para comparacao
+    const matriculaStr = String(matricula).trim();
+    if (!matriculaStr) return { valido: true };
+    
+    const matriculaSemHifen = matriculaStr.replace(/-/g, '').trim();
     if (!matriculaSemHifen) return { valido: true };
     
     // 1. Verificar em leitos OCUPADOS
     const leitosHospital = window.hospitalData[hospitalId]?.leitos || [];
     const duplicadoOcupado = leitosHospital.find(l => {
-        const matLeito = (l.matricula || '').replace(/-/g, '').trim();
+        // CORRECAO: Converter para string antes de usar replace
+        const matLeito = String(l.matricula || '').replace(/-/g, '').trim();
         const statusOcupado = (l.status === 'Ocupado' || l.status === 'ocupado' || l.status === 'Em uso');
         
-        // Se for atualização, ignorar o próprio leito
+        // Se for atualizacao, ignorar o proprio leito
         if (leitoAtual && parseInt(l.leito) === parseInt(leitoAtual)) {
             return false;
         }
@@ -3049,7 +3059,8 @@ function validarMatriculaDuplicada(hospitalId, matricula, leitoAtual = null) {
     // 2. V7.0: Verificar em RESERVAS (TODOS os hospitais)
     const reservas = window.reservasData || [];
     const duplicadoReserva = reservas.find(r => {
-        const matReserva = (r.matricula || '').replace(/-/g, '').trim();
+        // CORRECAO: Converter para string antes de usar replace
+        const matReserva = String(r.matricula || '').replace(/-/g, '').trim();
         return matReserva === matriculaSemHifen;
     });
     
