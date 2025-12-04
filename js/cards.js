@@ -1,15 +1,13 @@
 // =================== CARDS.JS - GESTAO DE LEITOS HOSPITALARES ===================
-// Versao: 6.1 CORRIGIDO - 15/Novembro/2025
+// Versao: 7.0 - 04/Dezembro/2025
 // Depende de: cards-config.js (carregar ANTES)
 // 
-// ✅ CORREÇÕES V6.1 APLICADAS:
-// 1. ✅ Flag de ocupação implementada (renderFlagOcupacao)
-// 2. ✅ Nome do hospital corrigido (usando .nome)
-// 3. ✅ Lógica de enfermarias corrigida (1 par livre apenas)
-// 4. ✅ Borda laranja em leitos extras
-// 5. ✅ Posição de ocupação calculada corretamente
-
-// Depende de: cards-config.js (carregar ANTES)
+// V7.0 - SISTEMA DE RESERVAS + CAMPO IDENTIFICACAO DINAMICO:
+// 1. Filtro tipo !== 'UTI' (apenas Enfermarias)
+// 2. Botao RESERVAR nos cards vagos
+// 3. Modal de reserva igual ao de admissao (campos bloqueados)
+// 4. Ordenacao: Ocupados > Reservados > Vagos
+// 5. Campo Identificacao dinamico para HIBRIDOS (Enfermaria: numero+digito)
 
 console.log('CARDS.JS V7.0 - Carregando com Sistema de Reservas...');
 
@@ -27,47 +25,34 @@ if (typeof window.desnormalizarTexto === 'undefined') {
 console.log('Dependencias validadas - cards-config.js OK');
 
 // =================== V7.0: FUNCOES DE RESERVA ===================
-// Buscar reservas de um hospital (filtrando UTI)
 window.getReservasHospital = function(hospitalId) {
     const todasReservas = window.reservasData || [];
     return todasReservas.filter(r => r.hospital === hospitalId && r.tipo !== 'UTI');
 };
 
-// Verificar se um leito esta reservado
 window.isLeitoReservado = function(hospitalId, leitoNumero) {
     const reservas = window.getReservasHospital(hospitalId);
     return reservas.find(r => parseInt(r.leito) === parseInt(leitoNumero));
 };
 
-// Cancelar reserva
 window.cancelarReserva = async function(hospital, identificacaoLeito, matricula) {
-    console.log(`[V7.0] Cancelando reserva: ${hospital} - ${identificacaoLeito}`);
-    
+    console.log('[V7.0] Cancelando reserva:', hospital, identificacaoLeito);
     try {
         const response = await fetch(window.API_URL + '?action=cancelarReserva', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                hospital: hospital,
-                identificacaoLeito: identificacaoLeito,
-                matricula: matricula
-            })
+            body: JSON.stringify({ hospital, identificacaoLeito, matricula })
         });
-        
         const result = await response.json();
-        
         if (result.success) {
-            // Atualizar dados locais
             if (window.reservasData) {
                 window.reservasData = window.reservasData.filter(r => 
-                    !(r.hospital === hospital && 
-                      (r.identificacaoLeito === identificacaoLeito || r.matricula === matricula))
+                    !(r.hospital === hospital && (r.identificacaoLeito === identificacaoLeito || r.matricula === matricula))
                 );
             }
             return true;
-        } else {
-            throw new Error(result.message || 'Erro ao cancelar reserva');
         }
+        throw new Error(result.message || 'Erro ao cancelar reserva');
     } catch (error) {
         console.error('Erro ao cancelar reserva:', error);
         throw error;
@@ -274,15 +259,15 @@ window.renderCards = function() {
         return;
     }
     
-    // ✅ V7.0: Filtrar leitos (remover UTI - apenas Dashboard Enfermarias)
+    // V7.0: Filtrar leitos (remover UTI)
     const leitosSemUTI = hospital.leitos.filter(l => {
         const tipo = (l.tipo || '').toUpperCase();
         return tipo !== 'UTI';
     });
     
-    // ✅ V7.0: Buscar reservas deste hospital
+    // V7.0: Buscar reservas deste hospital
     const reservasHospital = window.getReservasHospital(hospitalId);
-    console.log(`[V7.0] Hospital ${hospitalId}: ${reservasHospital.length} reservas`);
+    console.log('[V7.0] Hospital ' + hospitalId + ': ' + reservasHospital.length + ' reservas');
     
     // Separar ocupados e vagos (usando leitos filtrados)
     const leitosOcupados = leitosSemUTI.filter(l => 
@@ -292,7 +277,7 @@ window.renderCards = function() {
         l.status === 'Vago' || l.status === 'vago'
     );
     
-    // ✅ Ordenar OCUPADOS
+    // Ordenar OCUPADOS
     if (hospitalId === 'H2' || hospitalId === 'H4') {
         // TIPOS FIXOS: Apartamentos ANTES de Enfermarias, depois por identificacaoLeito
         leitosOcupados.sort((a, b) => {
@@ -411,69 +396,58 @@ window.renderCards = function() {
         vagosParaMostrar = leitosVagos.length > 0 ? [leitosVagos[0]] : [];
     }
     
-    // V7.0: Juntar: OCUPADOS primeiro, depois RESERVADOS, depois VAGOS FILTRADOS
-    console.log('[CARDS V7.0] Total de leitos a exibir:', leitosOcupados.length + reservasHospital.length + vagosParaMostrar.length);
-    console.log('[CARDS V7.0] Ocupados:', leitosOcupados.length, '| Reservados:', reservasHospital.length, '| Vagos filtrados:', vagosParaMostrar.length);
+    // V7.0: Renderizar na ordem: OCUPADOS > RESERVADOS > VAGOS
+    console.log('[V7.0] Total: ' + leitosOcupados.length + ' ocupados + ' + reservasHospital.length + ' reservados + ' + vagosParaMostrar.length + ' vagos');
     
-    // Renderizar OCUPADOS primeiro
+    // 1. Renderizar OCUPADOS
     leitosOcupados.forEach((leito, index) => {
         let posicaoOcupacao = 1;
-        
         if (hospitalId === 'H2' || hospitalId === 'H4') {
             const tipoLeito = (leito.tipo || '').toUpperCase();
             const isApto = tipoLeito.includes('APTO') || tipoLeito === 'APARTAMENTO';
-            
             const ocupadosMesmoTipo = leitosOcupados.filter(l => {
                 const tipoL = (l.tipo || '').toUpperCase();
                 const isAptoL = tipoL.includes('APTO') || tipoL === 'APARTAMENTO';
                 return isApto === isAptoL;
             });
-            
             posicaoOcupacao = ocupadosMesmoTipo.findIndex(l => l.leito === leito.leito) + 1;
         } else {
             posicaoOcupacao = leitosOcupados.findIndex(l => l.leito === leito.leito) + 1;
         }
-        
         const card = createCard(leito, hospitalNome, hospitalId, posicaoOcupacao);
         container.appendChild(card);
     });
     
-    // V7.0: Renderizar RESERVADOS (usando mesmo createCard com status Reservado)
+    // 2. V7.0: Renderizar RESERVADOS (como se fossem ocupados, mas com status Reservado)
     reservasHospital.forEach((reserva) => {
         const leitoReservado = {
             leito: reserva.leito,
             status: 'Reservado',
             tipo: reserva.tipo || 'Hibrido',
-            identificacaoLeito: reserva.identificacaoLeito || reserva.identificacao_leito || '',
-            identificacao_leito: reserva.identificacaoLeito || reserva.identificacao_leito || '',
+            identificacaoLeito: reserva.identificacaoLeito || '',
+            identificacao_leito: reserva.identificacaoLeito || '',
             isolamento: reserva.isolamento || '',
             genero: reserva.genero || '',
             nome: reserva.iniciais || '',
             matricula: reserva.matricula || '',
             idade: reserva.idade || '',
-            pps: '',
-            spict: '',
-            complexidade: '',
-            prevAlta: '',
-            regiao: '',
-            diretivas: '',
-            anotacoes: '',
-            admAt: '',
+            pps: '', spict: '', complexidade: '', prevAlta: '',
+            regiao: '', diretivas: '', anotacoes: '', admAt: '',
             _isReserva: true,
             _reservaId: reserva.linha || reserva.id
         };
-        
         const card = createCard(leitoReservado, hospitalNome, hospitalId, 0);
         container.appendChild(card);
     });
     
-    // Renderizar VAGOS por ultimo
+    // 3. Renderizar VAGOS
     vagosParaMostrar.forEach((leito) => {
         const card = createCard(leito, hospitalNome, hospitalId, 0);
         container.appendChild(card);
     });
     
-    logInfo(`${leitosOcupados.length + reservasHospital.length + vagosParaMostrar.length} cards renderizados para ${hospitalNome} (${leitosOcupados.length} ocupados + ${reservasHospital.length} reservados + ${vagosParaMostrar.length} vagos filtrados)`);
+    const total = leitosOcupados.length + reservasHospital.length + vagosParaMostrar.length;
+    logInfo(total + ' cards renderizados para ' + hospitalNome);
 };
 
 // =================== FUNÇÃO: BADGE DE ISOLAMENTO ===================
@@ -720,6 +694,7 @@ function createCard(leito, hospitalNome, hospitalId, posicaoOcupacao) {
     
     // Determinar status
     let isVago = false;
+    let isReservado = false;
     let statusBgColor = '#60a5fa';
     let statusTextColor = '#ffffff';
     let statusTexto = 'Disponível';
@@ -736,6 +711,7 @@ function createCard(leito, hospitalNome, hospitalId, posicaoOcupacao) {
     } else if (leito.status === 'Reservado') {
         // V7.0: Status Reservado
         isVago = false;
+        isReservado = true;
         statusBgColor = '#f59a1d';
         statusTextColor = '#131b2e';
         statusTexto = 'Reservado';
@@ -744,9 +720,9 @@ function createCard(leito, hospitalNome, hospitalId, posicaoOcupacao) {
         if (bloqueadoPorGenero) {
             statusTexto = `Disp. ${generoPermitido === 'Masculino' ? 'Masc' : 'Fem'}`;
             
-            // 🔍 DEBUG
+            // DEBUG
             if (hospitalId === 'H4') {
-                console.log('✅ STATUS FINAL:', statusTexto);
+                console.log('STATUS FINAL:', statusTexto);
             }
         }
     }
@@ -997,116 +973,48 @@ function createCard(leito, hospitalNome, hospitalId, posicaoOcupacao) {
                 ` : ''}
             </div>
             
-            ${leito._isReserva ? `
-            <!-- V7.0: Botoes para RESERVADO -->
+            ${isReservado ? `
+            <!-- V7.0: Botoes RESERVADO -->
             <div style="display: flex; gap: 8px;">
                 <button class="btn-action btn-cancelar-reserva" 
                         data-action="cancelar-reserva" 
                         data-leito="${numeroLeito}"
                         data-identificacao="${identificacaoLeito}"
                         data-matricula="${matricula}"
-                        data-reserva-id="${leito._reservaId || ''}"
-                        style="padding: 10px 18px; 
-                               background: #c86420; 
-                               color: #ffffff; 
-                               border: none; 
-                               border-radius: 6px; 
-                               cursor: pointer; 
-                               font-weight: 800; 
-                               text-transform: uppercase; 
-                               font-size: 11px; 
-                               font-family: 'Poppins', sans-serif;
-                               transition: all 0.2s ease; 
-                               letter-spacing: 0.5px; 
-                               white-space: nowrap; 
-                               flex-shrink: 0;">
-                    CANCELAR RESERVA
+                        style="padding: 10px 16px; background: #c86420; color: #ffffff; border: none; border-radius: 6px; cursor: pointer; font-weight: 800; text-transform: uppercase; font-size: 10px; font-family: 'Poppins', sans-serif;">
+                    CANCELAR
                 </button>
                 <button class="btn-action" 
                         data-action="admitir-reserva" 
                         data-leito="${numeroLeito}"
-                        style="padding: 10px 18px; 
-                               background: #60a5fa; 
-                               color: #ffffff; 
-                               border: none; 
-                               border-radius: 6px; 
-                               cursor: pointer; 
-                               font-weight: 800; 
-                               text-transform: uppercase; 
-                               font-size: 11px; 
-                               font-family: 'Poppins', sans-serif;
-                               transition: all 0.2s ease; 
-                               letter-spacing: 0.5px; 
-                               white-space: nowrap; 
-                               flex-shrink: 0;">
+                        style="padding: 10px 16px; background: #60a5fa; color: #ffffff; border: none; border-radius: 6px; cursor: pointer; font-weight: 800; text-transform: uppercase; font-size: 10px; font-family: 'Poppins', sans-serif;">
                     ADMITIR
                 </button>
             </div>
             ` : isVago ? `
-            <!-- V7.0: Botoes para VAGO -->
+            <!-- V7.0: Botoes VAGO -->
             <div style="display: flex; gap: 8px;">
                 <button class="btn-action btn-reservar" 
                         data-action="reservar" 
                         data-leito="${numeroLeito}" 
                         ${bloqueadoPorIsolamento ? 'disabled' : ''}
-                        style="padding: 10px 18px; 
-                               background: ${bloqueadoPorIsolamento ? '#b2adaa' : '#60a5fa'}; 
-                               color: #ffffff; 
-                               border: none; 
-                               border-radius: 6px; 
-                               cursor: ${bloqueadoPorIsolamento ? 'not-allowed' : 'pointer'}; 
-                               font-weight: 800; 
-                               text-transform: uppercase; 
-                               font-size: 11px; 
-                               font-family: 'Poppins', sans-serif;
-                               transition: all 0.2s ease; 
-                               letter-spacing: 0.5px; 
-                               white-space: nowrap; 
-                               flex-shrink: 0;
-                               opacity: ${bloqueadoPorIsolamento ? '0.5' : '1'};">
+                        style="padding: 10px 16px; background: ${bloqueadoPorIsolamento ? '#b2adaa' : '#60a5fa'}; color: #ffffff; border: none; border-radius: 6px; cursor: ${bloqueadoPorIsolamento ? 'not-allowed' : 'pointer'}; font-weight: 800; text-transform: uppercase; font-size: 10px; font-family: 'Poppins', sans-serif; opacity: ${bloqueadoPorIsolamento ? '0.5' : '1'};">
                     ${bloqueadoPorIsolamento ? 'BLOQUEADO' : 'RESERVAR'}
                 </button>
                 <button class="btn-action" 
                         data-action="admitir" 
                         data-leito="${numeroLeito}" 
                         ${bloqueadoPorIsolamento ? 'disabled' : ''}
-                        style="padding: 10px 18px; 
-                               background: ${bloqueadoPorIsolamento ? '#b2adaa' : '#60a5fa'}; 
-                               color: #ffffff; 
-                               border: none; 
-                               border-radius: 6px; 
-                               cursor: ${bloqueadoPorIsolamento ? 'not-allowed' : 'pointer'}; 
-                               font-weight: 800; 
-                               text-transform: uppercase; 
-                               font-size: 11px; 
-                               font-family: 'Poppins', sans-serif;
-                               transition: all 0.2s ease; 
-                               letter-spacing: 0.5px; 
-                               white-space: nowrap; 
-                               flex-shrink: 0;
-                               opacity: ${bloqueadoPorIsolamento ? '0.5' : '1'};">
+                        style="padding: 10px 16px; background: ${bloqueadoPorIsolamento ? '#b2adaa' : '#60a5fa'}; color: #ffffff; border: none; border-radius: 6px; cursor: ${bloqueadoPorIsolamento ? 'not-allowed' : 'pointer'}; font-weight: 800; text-transform: uppercase; font-size: 10px; font-family: 'Poppins', sans-serif; opacity: ${bloqueadoPorIsolamento ? '0.5' : '1'};">
                     ${bloqueadoPorIsolamento ? 'BLOQUEADO' : 'ADMITIR'}
                 </button>
             </div>
             ` : `
-            <!-- Botao para OCUPADO -->
+            <!-- Botao OCUPADO -->
             <button class="btn-action" 
                     data-action="atualizar" 
                     data-leito="${numeroLeito}" 
-                    style="padding: 10px 18px; 
-                           background: rgba(156,163,175,0.5); 
-                           color: #ffffff; 
-                           border: none; 
-                           border-radius: 6px; 
-                           cursor: pointer; 
-                           font-weight: 800; 
-                           text-transform: uppercase; 
-                           font-size: 11px; 
-                           font-family: 'Poppins', sans-serif;
-                           transition: all 0.2s ease; 
-                           letter-spacing: 0.5px; 
-                           white-space: nowrap; 
-                           flex-shrink: 0;">
+                    style="padding: 10px 18px; background: rgba(156,163,175,0.5); color: #ffffff; border: none; border-radius: 6px; cursor: pointer; font-weight: 800; text-transform: uppercase; font-size: 11px; font-family: 'Poppins', sans-serif;">
                 ATUALIZAR
             </button>
             `}
@@ -1122,15 +1030,7 @@ function createCard(leito, hospitalNome, hospitalId, posicaoOcupacao) {
         });
     }
     
-    const updateBtn = card.querySelector('[data-action="atualizar"]');
-    if (updateBtn) {
-        updateBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            openAtualizacaoFlow(numeroLeito, leito);
-        });
-    }
-    
-    // V7.0: Event listener para RESERVAR
+    // V7.0: Event listener RESERVAR
     const reservarBtn = card.querySelector('[data-action="reservar"]');
     if (reservarBtn) {
         reservarBtn.addEventListener('click', (e) => {
@@ -1139,39 +1039,37 @@ function createCard(leito, hospitalNome, hospitalId, posicaoOcupacao) {
         });
     }
     
-    // V7.0: Event listener para CANCELAR RESERVA
-    const cancelarReservaBtn = card.querySelector('[data-action="cancelar-reserva"]');
-    if (cancelarReservaBtn) {
-        cancelarReservaBtn.addEventListener('click', async (e) => {
+    // V7.0: Event listener CANCELAR RESERVA
+    const cancelarBtn = card.querySelector('[data-action="cancelar-reserva"]');
+    if (cancelarBtn) {
+        cancelarBtn.addEventListener('click', async (e) => {
             e.preventDefault();
-            const identificacao = cancelarReservaBtn.dataset.identificacao;
-            const matriculaReserva = cancelarReservaBtn.dataset.matricula;
-            const reservaId = cancelarReservaBtn.dataset.reservaId;
-            
-            if (confirm('Deseja realmente cancelar esta reserva?')) {
-                const originalText = cancelarReservaBtn.innerHTML;
-                showButtonLoading(cancelarReservaBtn, 'CANCELANDO...');
-                
+            if (confirm('Deseja cancelar esta reserva?')) {
                 try {
-                    await window.cancelarReserva(hospitalId, numeroLeito, identificacao, matriculaReserva);
-                    hideButtonLoading(cancelarReservaBtn, originalText);
-                    showSuccessMessage('Reserva cancelada com sucesso!');
+                    await window.cancelarReserva(hospitalId, cancelarBtn.dataset.identificacao, cancelarBtn.dataset.matricula);
+                    showSuccessMessage('Reserva cancelada!');
                     await window.refreshAfterAction();
                 } catch (error) {
-                    hideButtonLoading(cancelarReservaBtn, originalText);
-                    showErrorMessage('Erro ao cancelar reserva: ' + error.message);
+                    showErrorMessage('Erro: ' + error.message);
                 }
             }
         });
     }
     
-    // V7.0: Event listener para ADMITIR RESERVA (converte reserva em admissao)
+    // V7.0: Event listener ADMITIR RESERVA
     const admitirReservaBtn = card.querySelector('[data-action="admitir-reserva"]');
     if (admitirReservaBtn) {
         admitirReservaBtn.addEventListener('click', (e) => {
             e.preventDefault();
-            // Abrir modal de admissao com dados pre-preenchidos da reserva
             openAdmissaoModalComReserva(numeroLeito, leito);
+        });
+    }
+    
+    const updateBtn = card.querySelector('[data-action="atualizar"]');
+    if (updateBtn) {
+        updateBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            openAtualizacaoFlow(numeroLeito, leito);
         });
     }
 
@@ -1216,7 +1114,7 @@ function openReservaFlow(leitoNumero, dadosLeito) {
     setTimeout(() => {
         hideButtonLoading(button, originalText);
         openReservaModal(leitoNumero, dadosLeito);
-        logInfo(`[V7.0] Modal de reserva aberto: ${window.currentHospital} - Leito ${leitoNumero}`);
+        logInfo('[V7.0] Modal de reserva aberto: ' + window.currentHospital + ' - Leito ' + leitoNumero);
     }, 800);
 }
 
@@ -1225,6 +1123,7 @@ function openReservaModal(leitoNumero, dadosLeito) {
     const hospitalNome = window.HOSPITAL_MAPPING[hospitalId]?.nome || 'Hospital';
     
     window.selectedLeito = leitoNumero;
+    window.isReservaMode = true;
     
     const modal = createModalOverlay();
     modal.innerHTML = createReservaForm(hospitalNome, leitoNumero, hospitalId, dadosLeito);
@@ -1246,34 +1145,30 @@ function openAdmissaoModalComReserva(leitoNumero, dadosReserva) {
     
     // Pre-preencher com dados da reserva
     setTimeout(() => {
-        if (dadosReserva.identificacaoLeito || dadosReserva.identificacao_leito) {
-            const idInput = modal.querySelector('#identificacaoLeito');
-            if (idInput) idInput.value = dadosReserva.identificacaoLeito || dadosReserva.identificacao_leito;
+        const idInput = modal.querySelector('#admIdentificacaoLeito') || modal.querySelector('#admIdentificacaoNumero');
+        if (idInput && dadosReserva.identificacaoLeito) {
+            if (dadosReserva.identificacaoLeito.includes('-')) {
+                const partes = dadosReserva.identificacaoLeito.split('-');
+                const numInput = modal.querySelector('#admIdentificacaoNumero');
+                const sufInput = modal.querySelector('#admIdentificacaoSufixo');
+                if (numInput) numInput.value = partes[0];
+                if (sufInput) sufInput.value = partes[1];
+            } else {
+                idInput.value = dadosReserva.identificacaoLeito;
+            }
         }
-        if (dadosReserva.isolamento) {
-            const isoSelect = modal.querySelector('#isolamento');
-            if (isoSelect) isoSelect.value = dadosReserva.isolamento;
-        }
-        if (dadosReserva.genero) {
-            const genSelect = modal.querySelector('#genero');
-            if (genSelect) genSelect.value = dadosReserva.genero;
-        }
-        if (dadosReserva.nome) {
-            const nomeInput = modal.querySelector('#nome');
-            if (nomeInput) nomeInput.value = dadosReserva.nome;
-        }
-        if (dadosReserva.matricula) {
-            const matInput = modal.querySelector('#matricula');
-            if (matInput) matInput.value = dadosReserva.matricula;
-        }
-        if (dadosReserva.idade) {
-            const idadeInput = modal.querySelector('#idade');
-            if (idadeInput) idadeInput.value = dadosReserva.idade;
-        }
-        if (dadosReserva.tipo) {
-            const tipoSelect = modal.querySelector('#tipoQuarto');
-            if (tipoSelect) tipoSelect.value = dadosReserva.tipo;
-        }
+        const isoSelect = modal.querySelector('#admIsolamento');
+        if (isoSelect && dadosReserva.isolamento) isoSelect.value = dadosReserva.isolamento;
+        const genSelect = modal.querySelector('#admSexo');
+        if (genSelect && dadosReserva.genero) genSelect.value = dadosReserva.genero;
+        const nomeInput = modal.querySelector('#admNome');
+        if (nomeInput && dadosReserva.nome) nomeInput.value = dadosReserva.nome;
+        const matInput = modal.querySelector('#admMatricula');
+        if (matInput && dadosReserva.matricula) matInput.value = dadosReserva.matricula;
+        const idadeSelect = modal.querySelector('#admIdade');
+        if (idadeSelect && dadosReserva.idade) idadeSelect.value = dadosReserva.idade;
+        const tipoSelect = modal.querySelector('#admTipoQuarto');
+        if (tipoSelect && dadosReserva.tipo && !tipoSelect.disabled) tipoSelect.value = dadosReserva.tipo;
     }, 100);
     
     setupModalEventListeners(modal, 'admissao');
@@ -1328,445 +1223,6 @@ function createModalOverlay() {
     return modal;
 }
 
-// =================== V7.0: FORMULARIO DE RESERVA ===================
-function createReservaForm(hospitalNome, leitoNumero, hospitalId, dadosLeito) {
-    const isHibrido = window.HOSPITAIS_HIBRIDOS.includes(hospitalId);
-    const isTiposFixos = window.HOSPITAIS_TIPOS_FIXOS.includes(hospitalId);
-    
-    // Verificar leito irmao para pre-preencher dados
-    let generoIrmao = '';
-    let isolamentoIrmao = '';
-    let identificacaoBase = '';
-    let sufixoSugerido = '';
-    
-    if (hospitalId === 'H2' && window.CRUZ_AZUL_IRMAOS) {
-        const irmaoLeito = window.CRUZ_AZUL_IRMAOS[leitoNumero];
-        if (irmaoLeito) {
-            const hospital = window.hospitalData[hospitalId];
-            const leitoIrmao = hospital?.leitos?.find(l => l.leito === irmaoLeito);
-            if (leitoIrmao && (leitoIrmao.status === 'Ocupado' || leitoIrmao.status === 'ocupado')) {
-                generoIrmao = leitoIrmao.genero || '';
-                if (leitoIrmao.isolamento && leitoIrmao.isolamento !== 'Não Isolamento') {
-                    isolamentoIrmao = 'BLOQUEADO';
-                } else {
-                    isolamentoIrmao = 'Não Isolamento';
-                }
-                // Pegar identificacao base e sugerir sufixo alternado
-                const idIrmao = leitoIrmao.identificacaoLeito || leitoIrmao.identificacao_leito || '';
-                if (idIrmao) {
-                    const match = idIrmao.match(/^(\d+)-?([13])?$/);
-                    if (match) {
-                        identificacaoBase = match[1];
-                        sufixoSugerido = match[2] === '1' ? '3' : '1';
-                    }
-                }
-            }
-        }
-    } else if (hospitalId === 'H4' && window.SANTA_CLARA_IRMAOS) {
-        const irmaoLeito = window.SANTA_CLARA_IRMAOS[leitoNumero];
-        if (irmaoLeito) {
-            const hospital = window.hospitalData[hospitalId];
-            const leitoIrmao = hospital?.leitos?.find(l => l.leito === irmaoLeito);
-            if (leitoIrmao && (leitoIrmao.status === 'Ocupado' || leitoIrmao.status === 'ocupado')) {
-                generoIrmao = leitoIrmao.genero || '';
-                if (leitoIrmao.isolamento && leitoIrmao.isolamento !== 'Não Isolamento') {
-                    isolamentoIrmao = 'BLOQUEADO';
-                } else {
-                    isolamentoIrmao = 'Não Isolamento';
-                }
-                // Pegar identificacao base e sugerir sufixo alternado
-                const idIrmao = leitoIrmao.identificacaoLeito || leitoIrmao.identificacao_leito || '';
-                if (idIrmao) {
-                    const match = idIrmao.match(/^(\d+)-?([AC])?$/i);
-                    if (match) {
-                        identificacaoBase = match[1];
-                        sufixoSugerido = match[2]?.toUpperCase() === 'A' ? 'C' : 'A';
-                    }
-                }
-            }
-        }
-    }
-    
-    // Determinar tipo de leito para H2/H4 (fixo)
-    let tipoLeitoFixo = '';
-    if (isTiposFixos) {
-        const tipoLeito = dadosLeito?.tipo || '';
-        if (tipoLeito.toUpperCase().includes('APTO') || tipoLeito.toUpperCase() === 'APARTAMENTO') {
-            tipoLeitoFixo = 'Apartamento';
-        } else if (tipoLeito.toUpperCase().includes('ENF') || tipoLeito.toUpperCase() === 'ENFERMARIA') {
-            tipoLeitoFixo = 'Enfermaria';
-        }
-    }
-    
-    return `
-        <div class="modal-content" style="
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            border-radius: 16px;
-            max-width: 500px;
-            width: 95%;
-            max-height: 90vh;
-            overflow-y: auto;
-            padding: 24px;
-            border: 1px solid rgba(96,165,250,0.2);
-            animation: slideIn 0.3s ease;
-            font-family: 'Poppins', sans-serif;
-        ">
-            <!-- Header -->
-            <div style="text-align: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1);">
-                <h2 style="margin: 0 0 5px 0; color: #60a5fa; font-size: 18px; font-weight: 700;">
-                    RESERVAR LEITO
-                </h2>
-                <p style="margin: 0; color: rgba(255,255,255,0.6); font-size: 12px;">
-                    ${hospitalNome} - Leito ${leitoNumero}
-                </p>
-            </div>
-            
-            <!-- Aviso -->
-            <div style="background: rgba(245,158,29,0.1); border: 1px solid rgba(245,158,29,0.3); border-radius: 8px; padding: 12px; margin-bottom: 20px;">
-                <p style="margin: 0; color: #f59a1d; font-size: 11px; text-align: center;">
-                    A reserva garante o leito. Os demais campos serao preenchidos na admissao.
-                </p>
-            </div>
-            
-            <!-- Formulario -->
-            <div style="display: flex; flex-direction: column; gap: 16px;">
-                
-                <!-- Tipo de Quarto (obrigatorio para hibridos) -->
-                ${isHibrido ? `
-                <div>
-                    <label style="display: block; color: rgba(255,255,255,0.7); font-size: 11px; margin-bottom: 6px; font-weight: 600;">
-                        TIPO DE QUARTO *
-                    </label>
-                    <select id="reservaTipoQuarto" required style="
-                        width: 100%; padding: 12px; background: rgba(0,0,0,0.3);
-                        border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;
-                        color: white; font-size: 13px; font-family: 'Poppins', sans-serif;
-                    ">
-                        <option value="">Selecione...</option>
-                        <option value="Apartamento">Apartamento</option>
-                        <option value="Enfermaria">Enfermaria</option>
-                    </select>
-                </div>
-                ` : `
-                <input type="hidden" id="reservaTipoQuarto" value="${tipoLeitoFixo}">
-                <div style="background: rgba(96,165,250,0.1); padding: 10px; border-radius: 8px; margin-bottom: 8px;">
-                    <span style="color: rgba(255,255,255,0.6); font-size: 11px;">Tipo de Quarto:</span>
-                    <span style="color: #60a5fa; font-size: 13px; font-weight: 600; margin-left: 8px;">${tipoLeitoFixo}</span>
-                </div>
-                `}
-                
-                <!-- Identificacao do Leito -->
-                <div>
-                    <label style="display: block; color: rgba(255,255,255,0.7); font-size: 11px; margin-bottom: 6px; font-weight: 600;">
-                        IDENTIFICACAO DO LEITO *
-                    </label>
-                    <div id="reservaIdentificacaoContainer" style="display: flex; gap: 8px;">
-                        ${tipoLeitoFixo === 'Enfermaria' || (!isHibrido && tipoLeitoFixo === 'Enfermaria') ? `
-                        <!-- Enfermaria: numero + digito -->
-                        <input type="text" id="reservaIdentificacaoNumero" placeholder="Numero" 
-                               value="${identificacaoBase}"
-                               style="flex: 1; padding: 12px; background: rgba(0,0,0,0.3);
-                               border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;
-                               color: white; font-size: 13px; font-family: 'Poppins', sans-serif;">
-                        <input type="text" id="reservaIdentificacaoDigito" placeholder="Digito" maxlength="1"
-                               value="${sufixoSugerido}"
-                               style="width: 70px; padding: 12px; background: rgba(0,0,0,0.3);
-                               border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;
-                               color: white; font-size: 13px; text-align: center; font-family: 'Poppins', sans-serif;">
-                        ` : isHibrido ? `
-                        <!-- Hibrido: placeholder ate selecionar tipo -->
-                        <input type="text" id="reservaIdentificacao" placeholder="Selecione primeiro o Tipo de Quarto" disabled
-                               style="width: 100%; padding: 12px; background: rgba(0,0,0,0.2);
-                               border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;
-                               color: rgba(255,255,255,0.5); font-size: 13px; font-family: 'Poppins', sans-serif;">
-                        ` : `
-                        <!-- Apartamento: apenas numero -->
-                        <input type="text" id="reservaIdentificacao" placeholder="Numero do quarto"
-                               style="width: 100%; padding: 12px; background: rgba(0,0,0,0.3);
-                               border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;
-                               color: white; font-size: 13px; font-family: 'Poppins', sans-serif;">
-                        `}
-                    </div>
-                </div>
-                
-                <!-- Isolamento -->
-                <div>
-                    <label style="display: block; color: rgba(255,255,255,0.7); font-size: 11px; margin-bottom: 6px; font-weight: 600;">
-                        ISOLAMENTO *
-                    </label>
-                    <select id="reservaIsolamento" required ${isolamentoIrmao === 'BLOQUEADO' ? 'disabled' : ''} style="
-                        width: 100%; padding: 12px; background: ${isolamentoIrmao === 'BLOQUEADO' ? 'rgba(200,100,32,0.3)' : 'rgba(0,0,0,0.3)'};
-                        border: 1px solid ${isolamentoIrmao === 'BLOQUEADO' ? '#c86420' : 'rgba(255,255,255,0.2)'}; border-radius: 8px;
-                        color: white; font-size: 13px; font-family: 'Poppins', sans-serif;
-                    ">
-                        ${isolamentoIrmao === 'BLOQUEADO' ? `
-                        <option value="BLOQUEADO" selected>BLOQUEADO (Irmao em isolamento)</option>
-                        ` : isolamentoIrmao ? `
-                        <option value="Não Isolamento" selected>Nao Isolamento</option>
-                        ` : `
-                        <option value="">Selecione...</option>
-                        <option value="Não Isolamento">Nao Isolamento</option>
-                        <option value="Isolamento de Contato">Isolamento de Contato</option>
-                        <option value="Isolamento Respiratório">Isolamento Respiratorio</option>
-                        `}
-                    </select>
-                </div>
-                
-                <!-- Genero -->
-                <div>
-                    <label style="display: block; color: rgba(255,255,255,0.7); font-size: 11px; margin-bottom: 6px; font-weight: 600;">
-                        GENERO *
-                    </label>
-                    <select id="reservaGenero" required ${generoIrmao ? 'disabled' : ''} style="
-                        width: 100%; padding: 12px; background: ${generoIrmao ? 'rgba(96,165,250,0.2)' : 'rgba(0,0,0,0.3)'};
-                        border: 1px solid ${generoIrmao ? '#60a5fa' : 'rgba(255,255,255,0.2)'}; border-radius: 8px;
-                        color: white; font-size: 13px; font-family: 'Poppins', sans-serif;
-                    ">
-                        ${generoIrmao ? `
-                        <option value="${generoIrmao}" selected>${generoIrmao} (mesmo do irmao)</option>
-                        ` : `
-                        <option value="">Selecione...</option>
-                        <option value="Feminino">Feminino</option>
-                        <option value="Masculino">Masculino</option>
-                        `}
-                    </select>
-                </div>
-                
-                <!-- Separador -->
-                <div style="border-top: 1px solid rgba(255,255,255,0.1); margin: 8px 0;"></div>
-                <p style="color: rgba(255,255,255,0.5); font-size: 10px; margin: 0; text-align: center;">
-                    Campos opcionais (podem ser preenchidos na admissao)
-                </p>
-                
-                <!-- Iniciais -->
-                <div>
-                    <label style="display: block; color: rgba(255,255,255,0.5); font-size: 11px; margin-bottom: 6px; font-weight: 600;">
-                        INICIAIS
-                    </label>
-                    <input type="text" id="reservaIniciais" placeholder="Ex: A D R" maxlength="11"
-                           oninput="window.formatarIniciaisAutomatico(this)"
-                           style="width: 100%; padding: 12px; background: rgba(0,0,0,0.3);
-                           border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;
-                           color: white; font-size: 13px; text-transform: uppercase; letter-spacing: 2px; font-family: 'Poppins', sans-serif;">
-                </div>
-                
-                <!-- Matricula -->
-                <div>
-                    <label style="display: block; color: rgba(255,255,255,0.5); font-size: 11px; margin-bottom: 6px; font-weight: 600;">
-                        MATRICULA
-                    </label>
-                    <input type="text" id="reservaMatricula" placeholder="000000-0" maxlength="9"
-                           oninput="window.formatarMatriculaInput(this)"
-                           style="width: 100%; padding: 12px; background: rgba(0,0,0,0.3);
-                           border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;
-                           color: white; font-size: 13px; font-family: 'Poppins', sans-serif;">
-                </div>
-                
-                <!-- Idade -->
-                <div>
-                    <label style="display: block; color: rgba(255,255,255,0.5); font-size: 11px; margin-bottom: 6px; font-weight: 600;">
-                        IDADE
-                    </label>
-                    <input type="number" id="reservaIdade" placeholder="Idade" min="0" max="150"
-                           style="width: 100%; padding: 12px; background: rgba(0,0,0,0.3);
-                           border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;
-                           color: white; font-size: 13px; font-family: 'Poppins', sans-serif;">
-                </div>
-            </div>
-            
-            <!-- Botoes -->
-            <div style="display: flex; gap: 12px; margin-top: 24px;">
-                <button id="btnCancelarReserva" style="
-                    flex: 1; padding: 14px; background: rgba(255,255,255,0.1);
-                    border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;
-                    color: white; font-size: 13px; font-weight: 600; cursor: pointer;
-                    font-family: 'Poppins', sans-serif;
-                ">
-                    CANCELAR
-                </button>
-                <button id="btnSalvarReserva" style="
-                    flex: 1; padding: 14px; background: #60a5fa;
-                    border: none; border-radius: 8px;
-                    color: white; font-size: 13px; font-weight: 600; cursor: pointer;
-                    font-family: 'Poppins', sans-serif;
-                ">
-                    RESERVAR
-                </button>
-            </div>
-        </div>
-    `;
-}
-
-// =================== V7.0: EVENT LISTENERS DO MODAL DE RESERVA ===================
-function setupReservaModalEventListeners(modal) {
-    const hospitalId = window.currentHospital;
-    const isHibrido = window.HOSPITAIS_HIBRIDOS.includes(hospitalId);
-    
-    // Botao Cancelar
-    const btnCancelar = modal.querySelector('#btnCancelarReserva');
-    if (btnCancelar) {
-        btnCancelar.addEventListener('click', () => {
-            modal.remove();
-        });
-    }
-    
-    // Click fora do modal
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            modal.remove();
-        }
-    });
-    
-    // Mudanca no tipo de quarto (hibridos)
-    if (isHibrido) {
-        const tipoSelect = modal.querySelector('#reservaTipoQuarto');
-        const idContainer = modal.querySelector('#reservaIdentificacaoContainer');
-        
-        if (tipoSelect && idContainer) {
-            tipoSelect.addEventListener('change', function() {
-                const tipo = this.value;
-                
-                if (!tipo) {
-                    idContainer.innerHTML = `
-                        <input type="text" id="reservaIdentificacao" placeholder="Selecione primeiro o Tipo de Quarto" disabled
-                               style="width: 100%; padding: 12px; background: rgba(0,0,0,0.2);
-                               border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;
-                               color: rgba(255,255,255,0.5); font-size: 13px; font-family: 'Poppins', sans-serif;">
-                    `;
-                } else if (tipo === 'Enfermaria') {
-                    // Enfermaria: numero + digito
-                    idContainer.innerHTML = `
-                        <input type="text" id="reservaIdentificacaoNumero" placeholder="Numero"
-                               style="flex: 1; padding: 12px; background: rgba(0,0,0,0.3);
-                               border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;
-                               color: white; font-size: 13px; font-family: 'Poppins', sans-serif;">
-                        <input type="text" id="reservaIdentificacaoDigito" placeholder="Digito" maxlength="1"
-                               style="width: 70px; padding: 12px; background: rgba(0,0,0,0.3);
-                               border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;
-                               color: white; font-size: 13px; text-align: center; font-family: 'Poppins', sans-serif;">
-                    `;
-                } else {
-                    // Apartamento: apenas numero
-                    idContainer.innerHTML = `
-                        <input type="text" id="reservaIdentificacao" placeholder="Numero do quarto"
-                               style="width: 100%; padding: 12px; background: rgba(0,0,0,0.3);
-                               border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;
-                               color: white; font-size: 13px; font-family: 'Poppins', sans-serif;">
-                    `;
-                }
-            });
-        }
-    }
-    
-    // Botao Salvar Reserva
-    const btnSalvar = modal.querySelector('#btnSalvarReserva');
-    if (btnSalvar) {
-        btnSalvar.addEventListener('click', async () => {
-            // Coletar dados
-            const tipoQuarto = modal.querySelector('#reservaTipoQuarto')?.value || '';
-            const isolamento = modal.querySelector('#reservaIsolamento')?.value || '';
-            const genero = modal.querySelector('#reservaGenero')?.value || '';
-            const iniciais = modal.querySelector('#reservaIniciais')?.value || '';
-            const matricula = modal.querySelector('#reservaMatricula')?.value || '';
-            const idade = modal.querySelector('#reservaIdade')?.value || '';
-            
-            // Montar identificacao
-            let identificacaoLeito = '';
-            const inputNumero = modal.querySelector('#reservaIdentificacaoNumero');
-            const inputDigito = modal.querySelector('#reservaIdentificacaoDigito');
-            const inputSimples = modal.querySelector('#reservaIdentificacao');
-            
-            if (inputNumero && inputDigito) {
-                // Enfermaria: numero-digito
-                const num = inputNumero.value.trim();
-                const dig = inputDigito.value.trim().toUpperCase();
-                if (num && dig) {
-                    identificacaoLeito = `${num}-${dig}`;
-                } else if (num) {
-                    identificacaoLeito = num;
-                }
-            } else if (inputSimples) {
-                identificacaoLeito = inputSimples.value.trim();
-            }
-            
-            // Validacoes
-            if (isHibrido && !tipoQuarto) {
-                showErrorMessage('Selecione o Tipo de Quarto');
-                return;
-            }
-            if (!identificacaoLeito) {
-                showErrorMessage('Preencha a Identificacao do Leito');
-                return;
-            }
-            if (!isolamento || isolamento === 'BLOQUEADO') {
-                if (isolamento === 'BLOQUEADO') {
-                    showErrorMessage('Este leito esta bloqueado por isolamento do irmao');
-                    return;
-                }
-                showErrorMessage('Selecione o Isolamento');
-                return;
-            }
-            if (!genero) {
-                showErrorMessage('Selecione o Genero');
-                return;
-            }
-            
-            // Mostrar loading
-            const originalText = btnSalvar.innerHTML;
-            btnSalvar.innerHTML = 'SALVANDO...';
-            btnSalvar.disabled = true;
-            
-            try {
-                // Chamar API para salvar reserva
-                const response = await fetch(window.API_URL + '?action=reservar', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        hospital: hospitalId,
-                        leito: window.selectedLeito,
-                        tipo: tipoQuarto,
-                        identificacaoLeito: identificacaoLeito,
-                        isolamento: isolamento,
-                        genero: genero,
-                        iniciais: iniciais.replace(/\s/g, ''),
-                        matricula: matricula,
-                        idade: idade
-                    })
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    // Adicionar reserva aos dados locais
-                    if (!window.reservasData) window.reservasData = [];
-                    window.reservasData.push({
-                        hospital: hospitalId,
-                        leito: window.selectedLeito,
-                        tipo: tipoQuarto,
-                        identificacaoLeito: identificacaoLeito,
-                        isolamento: isolamento,
-                        genero: genero,
-                        iniciais: iniciais.replace(/\s/g, ''),
-                        matricula: matricula,
-                        idade: idade,
-                        linha: result.linha
-                    });
-                    
-                    modal.remove();
-                    showSuccessMessage('Leito reservado com sucesso!');
-                    await window.refreshAfterAction();
-                } else {
-                    throw new Error(result.message || 'Erro ao reservar leito');
-                }
-            } catch (error) {
-                btnSalvar.innerHTML = originalText;
-                btnSalvar.disabled = false;
-                showErrorMessage('Erro ao reservar: ' + error.message);
-            }
-        });
-    }
-}
-
 // FUNÇÃO DE BUSCA DINÂMICA
 function setupSearchFilter(modal, containerId, searchId) {
     const searchInput = modal.querySelector(`#${searchId}`);
@@ -1813,339 +1269,6 @@ function setupSearchFilter(modal, containerId, searchId) {
     });
     
     logSuccess(`Busca dinâmica configurada: ${searchId}`);
-}
-
-// =================== V7.0: FORMULÁRIO DE RESERVA ===================
-function createReservaForm(hospitalNome, leitoNumero, hospitalId, dadosLeito) {
-    const idSequencial = String(leitoNumero).padStart(2, '0');
-    const isHibrido = window.HOSPITAIS_HIBRIDOS.includes(hospitalId);
-    const isTipoFixo = hospitalId === 'H2' || hospitalId === 'H4';
-    
-    // Verificar se é enfermaria (tem leito irmao)
-    const isCruzAzulEnfermaria = (hospitalId === 'H2') && (leitoNumero in window.CRUZ_AZUL_IRMAOS);
-    const isSantaClaraEnfermaria = (hospitalId === 'H4') && (leitoNumero in window.SANTA_CLARA_IRMAOS);
-    const isEnfermaria = isCruzAzulEnfermaria || isSantaClaraEnfermaria;
-    
-    // Verificar se leito irmao esta ocupado e pegar restricoes
-    let generoRestrito = null;
-    let isolamentoRestrito = null;
-    let identificacaoBase = '';
-    let sufixoSugerido = '';
-    
-    if (isEnfermaria) {
-        const mapaIrmaos = isCruzAzulEnfermaria ? window.CRUZ_AZUL_IRMAOS : window.SANTA_CLARA_IRMAOS;
-        const leitoIrmao = mapaIrmaos[leitoNumero];
-        
-        if (leitoIrmao) {
-            const leitosHospital = window.hospitalData[hospitalId]?.leitos || [];
-            const dadosIrmao = leitosHospital.find(l => l.leito == leitoIrmao);
-            
-            if (dadosIrmao && (dadosIrmao.status === 'Ocupado' || dadosIrmao.status === 'Em uso')) {
-                // Irmao ocupado - pegar restricoes
-                const isolamentoIrmao = dadosIrmao.isolamento || '';
-                if (isolamentoIrmao && isolamentoIrmao !== 'Não Isolamento') {
-                    // Bloqueado por isolamento - nao deveria chegar aqui
-                    isolamentoRestrito = 'BLOQUEADO';
-                } else {
-                    // Herdar genero e forcar Nao Isolamento
-                    generoRestrito = dadosIrmao.genero || null;
-                    isolamentoRestrito = 'Não Isolamento';
-                    
-                    // Pegar identificacao base do irmao
-                    const idIrmao = dadosIrmao.identificacaoLeito || dadosIrmao.identificacao_leito || '';
-                    if (idIrmao) {
-                        // Extrair numero base (ex: 101 de 101-1 ou 101-A)
-                        const match = idIrmao.match(/^(\d+)/);
-                        if (match) {
-                            identificacaoBase = match[1];
-                            // Determinar sufixo alternado
-                            if (hospitalId === 'H2') {
-                                // Cruz Azul: 1 ou 3
-                                sufixoSugerido = idIrmao.includes('-1') ? '3' : '1';
-                            } else {
-                                // Santa Clara: A ou C
-                                sufixoSugerido = idIrmao.includes('-A') ? 'C' : 'A';
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    
-    // Determinar tipo do leito para tipos fixos
-    let tipoFixo = '';
-    if (isTipoFixo) {
-        const tipoLeito = (dadosLeito?.tipo || '').toUpperCase();
-        if (tipoLeito.includes('APTO') || tipoLeito === 'APARTAMENTO') {
-            tipoFixo = 'Apartamento';
-        } else if (tipoLeito.includes('ENF') || tipoLeito === 'ENFERMARIA') {
-            tipoFixo = 'Enfermaria';
-        }
-    }
-    
-    return `
-        <div class="modal-content" style="background: #131b2e; border-radius: 16px; width: 95%; max-width: 800px; max-height: 90vh; overflow-y: auto; padding: 25px; font-family: 'Poppins', sans-serif; border: 1px solid rgba(96,165,250,0.3);">
-            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1);">
-                <div>
-                    <h2 style="margin: 0; color: #60a5fa; font-size: 20px; font-weight: 700;">RESERVAR LEITO</h2>
-                    <p style="margin: 5px 0 0 0; color: rgba(255,255,255,0.6); font-size: 12px;">
-                        ${hospitalNome} | Leito ${idSequencial}
-                    </p>
-                </div>
-                <button class="btn-close-modal" style="background: none; border: none; color: #ffffff; font-size: 28px; cursor: pointer; padding: 0; line-height: 1;">&times;</button>
-            </div>
-            
-            <form id="reservaForm">
-                <!-- Aviso sobre campos limitados -->
-                <div style="background: rgba(245,154,29,0.15); border: 1px solid #f59a1d; border-radius: 8px; padding: 12px; margin-bottom: 20px;">
-                    <p style="margin: 0; color: #f59a1d; font-size: 11px; line-height: 1.5;">
-                        <strong>Reserva de Leito:</strong> Preencha apenas os campos obrigatorios. Os demais campos serao preenchidos no momento da admissao.
-                    </p>
-                </div>
-                
-                <!-- Linha 1: Tipo de Quarto e Identificacao -->
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
-                    ${isHibrido ? `
-                    <div>
-                        <label style="display: block; color: rgba(255,255,255,0.7); font-size: 11px; margin-bottom: 5px; font-weight: 600;">TIPO DE QUARTO *</label>
-                        <select id="reservaTipoQuarto" required style="width: 100%; padding: 10px; background: #1a1f2e; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; color: white; font-family: 'Poppins', sans-serif;">
-                            <option value="">Selecione...</option>
-                            <option value="Apartamento">Apartamento</option>
-                            <option value="Enfermaria">Enfermaria</option>
-                        </select>
-                    </div>
-                    ` : `
-                    <div>
-                        <label style="display: block; color: rgba(255,255,255,0.7); font-size: 11px; margin-bottom: 5px; font-weight: 600;">TIPO DE QUARTO</label>
-                        <input type="text" id="reservaTipoQuarto" value="${tipoFixo || 'Definido pelo hospital'}" disabled 
-                               style="width: 100%; padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: rgba(255,255,255,0.5); font-family: 'Poppins', sans-serif;">
-                    </div>
-                    `}
-                    
-                    <div>
-                        <label style="display: block; color: rgba(255,255,255,0.7); font-size: 11px; margin-bottom: 5px; font-weight: 600;">IDENTIFICACAO DO LEITO *</label>
-                        ${isEnfermaria ? `
-                        <div style="display: flex; gap: 8px;">
-                            <input type="text" id="reservaIdentificacaoNumero" placeholder="Numero" value="${identificacaoBase}" required
-                                   pattern="[0-9]*" inputmode="numeric"
-                                   style="flex: 2; padding: 10px; background: #1a1f2e; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; color: white; font-family: 'Poppins', sans-serif;">
-                            <input type="text" id="reservaIdentificacaoDigito" placeholder="${hospitalId === 'H2' ? '1 ou 3' : 'A ou C'}" value="${sufixoSugerido}" required
-                                   maxlength="1" 
-                                   style="flex: 1; padding: 10px; background: #1a1f2e; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; color: white; font-family: 'Poppins', sans-serif; text-align: center; text-transform: uppercase;">
-                        </div>
-                        ` : `
-                        <input type="text" id="reservaIdentificacaoLeito" placeholder="Ex: 101, 202" required
-                               style="width: 100%; padding: 10px; background: #1a1f2e; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; color: white; font-family: 'Poppins', sans-serif;">
-                        `}
-                    </div>
-                </div>
-                
-                <!-- Linha 2: Isolamento e Genero -->
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
-                    <div>
-                        <label style="display: block; color: rgba(255,255,255,0.7); font-size: 11px; margin-bottom: 5px; font-weight: 600;">ISOLAMENTO *</label>
-                        <select id="reservaIsolamento" required ${isolamentoRestrito ? 'disabled' : ''} 
-                                style="width: 100%; padding: 10px; background: ${isolamentoRestrito ? 'rgba(255,255,255,0.05)' : '#1a1f2e'}; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; color: ${isolamentoRestrito ? 'rgba(255,255,255,0.5)' : 'white'}; font-family: 'Poppins', sans-serif;">
-                            ${isolamentoRestrito ? `
-                            <option value="${isolamentoRestrito}" selected>${isolamentoRestrito}</option>
-                            ` : `
-                            <option value="">Selecione...</option>
-                            <option value="Não Isolamento">Não Isolamento</option>
-                            <option value="Isolamento de Contato">Isolamento de Contato</option>
-                            <option value="Isolamento Respiratório">Isolamento Respiratório</option>
-                            `}
-                        </select>
-                        ${isolamentoRestrito ? `<input type="hidden" id="reservaIsolamentoHidden" value="${isolamentoRestrito}">` : ''}
-                    </div>
-                    
-                    <div>
-                        <label style="display: block; color: rgba(255,255,255,0.7); font-size: 11px; margin-bottom: 5px; font-weight: 600;">GENERO *</label>
-                        <select id="reservaGenero" required ${generoRestrito ? 'disabled' : ''} 
-                                style="width: 100%; padding: 10px; background: ${generoRestrito ? 'rgba(255,255,255,0.05)' : '#1a1f2e'}; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; color: ${generoRestrito ? 'rgba(255,255,255,0.5)' : 'white'}; font-family: 'Poppins', sans-serif;">
-                            ${generoRestrito ? `
-                            <option value="${generoRestrito}" selected>${generoRestrito}</option>
-                            ` : `
-                            <option value="">Selecione...</option>
-                            <option value="Masculino">Masculino</option>
-                            <option value="Feminino">Feminino</option>
-                            `}
-                        </select>
-                        ${generoRestrito ? `<input type="hidden" id="reservaGeneroHidden" value="${generoRestrito}">` : ''}
-                    </div>
-                </div>
-                
-                <!-- Linha 3: Iniciais, Matricula, Idade (opcionais) -->
-                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 15px;">
-                    <div>
-                        <label style="display: block; color: rgba(255,255,255,0.5); font-size: 11px; margin-bottom: 5px; font-weight: 600;">INICIAIS (opcional)</label>
-                        <input type="text" id="reservaIniciais" placeholder="Ex: ABC" maxlength="10"
-                               oninput="window.formatarIniciaisAutomatico(this)"
-                               style="width: 100%; padding: 10px; background: #1a1f2e; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; color: white; font-family: 'Poppins', sans-serif; text-transform: uppercase;">
-                    </div>
-                    
-                    <div>
-                        <label style="display: block; color: rgba(255,255,255,0.5); font-size: 11px; margin-bottom: 5px; font-weight: 600;">MATRICULA (opcional)</label>
-                        <input type="text" id="reservaMatricula" placeholder="Ex: 1234567-8" maxlength="10"
-                               oninput="window.formatarMatriculaInput(this)"
-                               style="width: 100%; padding: 10px; background: #1a1f2e; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; color: white; font-family: 'Poppins', sans-serif;">
-                    </div>
-                    
-                    <div>
-                        <label style="display: block; color: rgba(255,255,255,0.5); font-size: 11px; margin-bottom: 5px; font-weight: 600;">IDADE (opcional)</label>
-                        <input type="number" id="reservaIdade" placeholder="Ex: 75" min="0" max="150"
-                               style="width: 100%; padding: 10px; background: #1a1f2e; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; color: white; font-family: 'Poppins', sans-serif;">
-                    </div>
-                </div>
-                
-                <!-- Campos desabilitados (aviso) -->
-                <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 15px; margin-bottom: 20px;">
-                    <p style="margin: 0 0 10px 0; color: rgba(255,255,255,0.4); font-size: 10px; font-weight: 600; text-transform: uppercase;">
-                        Campos preenchidos na admissao:
-                    </p>
-                    <p style="margin: 0; color: rgba(255,255,255,0.3); font-size: 11px; line-height: 1.6;">
-                        PPS, SPICT-BR, Complexidade, Previsao de Alta, Regiao, Diretivas Antecipadas, Concessoes, Linhas de Cuidado, Anotacoes
-                    </p>
-                </div>
-                
-                <!-- Botoes -->
-                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
-                    <button type="button" class="btn-cancelar" 
-                            style="padding: 12px 25px; background: rgba(255,255,255,0.1); color: #ffffff; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-family: 'Poppins', sans-serif;">
-                        Cancelar
-                    </button>
-                    <button type="submit" class="btn-salvar" 
-                            style="padding: 12px 25px; background: #60a5fa; color: #ffffff; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-family: 'Poppins', sans-serif;">
-                        Salvar Reserva
-                    </button>
-                </div>
-            </form>
-        </div>
-    `;
-}
-
-function setupReservaModalEventListeners(modal) {
-    const form = modal.querySelector('#reservaForm');
-    const closeBtn = modal.querySelector('.btn-close-modal');
-    const cancelBtn = modal.querySelector('.btn-cancelar');
-    
-    // Fechar modal
-    const fecharModal = () => {
-        modal.remove();
-        window.selectedLeito = null;
-    };
-    
-    if (closeBtn) closeBtn.addEventListener('click', fecharModal);
-    if (cancelBtn) cancelBtn.addEventListener('click', fecharModal);
-    
-    // Click fora do modal
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) fecharModal();
-    });
-    
-    // Submit do formulario
-    if (form) {
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const hospitalId = window.currentHospital;
-            const leitoNumero = window.selectedLeito;
-            
-            // Coletar dados
-            const tipoQuarto = modal.querySelector('#reservaTipoQuarto')?.value || '';
-            const isEnfermaria = modal.querySelector('#reservaIdentificacaoNumero') !== null;
-            
-            let identificacaoLeito = '';
-            if (isEnfermaria) {
-                const numero = modal.querySelector('#reservaIdentificacaoNumero')?.value || '';
-                const digito = modal.querySelector('#reservaIdentificacaoDigito')?.value || '';
-                identificacaoLeito = numero + (digito ? '-' + digito.toUpperCase() : '');
-            } else {
-                identificacaoLeito = modal.querySelector('#reservaIdentificacaoLeito')?.value || '';
-            }
-            
-            const isolamento = modal.querySelector('#reservaIsolamentoHidden')?.value || 
-                              modal.querySelector('#reservaIsolamento')?.value || '';
-            const genero = modal.querySelector('#reservaGeneroHidden')?.value || 
-                          modal.querySelector('#reservaGenero')?.value || '';
-            const iniciais = modal.querySelector('#reservaIniciais')?.value || '';
-            const matricula = modal.querySelector('#reservaMatricula')?.value || '';
-            const idade = modal.querySelector('#reservaIdade')?.value || '';
-            
-            // Validar campos obrigatorios
-            if (!identificacaoLeito) {
-                showErrorMessage('Preencha a identificacao do leito');
-                return;
-            }
-            if (!isolamento) {
-                showErrorMessage('Selecione o isolamento');
-                return;
-            }
-            if (!genero) {
-                showErrorMessage('Selecione o genero');
-                return;
-            }
-            
-            // Para hibridos, tipo de quarto e obrigatorio
-            const isHibrido = window.HOSPITAIS_HIBRIDOS.includes(hospitalId);
-            if (isHibrido && !tipoQuarto) {
-                showErrorMessage('Selecione o tipo de quarto');
-                return;
-            }
-            
-            // Enviar para API
-            const btnSalvar = modal.querySelector('.btn-salvar');
-            const originalText = btnSalvar.innerHTML;
-            showButtonLoading(btnSalvar, 'SALVANDO...');
-            
-            try {
-                const response = await fetch(window.API_URL + '?action=reservar', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        hospital: hospitalId,
-                        leito: leitoNumero,
-                        tipo: tipoQuarto || 'Hibrido',
-                        identificacaoLeito: identificacaoLeito,
-                        isolamento: isolamento,
-                        genero: genero,
-                        iniciais: iniciais,
-                        matricula: matricula,
-                        idade: idade
-                    })
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    // Adicionar a reserva localmente
-                    if (!window.reservasData) window.reservasData = [];
-                    window.reservasData.push({
-                        hospital: hospitalId,
-                        leito: leitoNumero,
-                        tipo: tipoQuarto || 'Hibrido',
-                        identificacaoLeito: identificacaoLeito,
-                        isolamento: isolamento,
-                        genero: genero,
-                        iniciais: iniciais,
-                        matricula: matricula,
-                        idade: idade,
-                        linha: result.linha
-                    });
-                    
-                    hideButtonLoading(btnSalvar, originalText);
-                    fecharModal();
-                    showSuccessMessage('Reserva criada com sucesso!');
-                    await window.refreshAfterAction();
-                } else {
-                    throw new Error(result.message || 'Erro ao criar reserva');
-                }
-            } catch (error) {
-                hideButtonLoading(btnSalvar, originalText);
-                showErrorMessage('Erro ao criar reserva: ' + error.message);
-            }
-        });
-    }
 }
 
 // =================== FORMULÁRIO DE ADMISSÃO ===================
@@ -2308,6 +1431,11 @@ function createAdmissaoForm(hospitalNome, leitoNumero, hospitalId) {
                                 </select>
                                </div>
                                <div style="font-size: 10px; color: rgba(255,255,255,0.5); margin-top: 3px;">Número + Sufixo (A ou C)</div>`
+                            : isHibrido
+                            ? `<div id="admIdentificacaoContainer">
+                                <input id="admIdentificacaoLeito" type="text" placeholder="Selecione o Tipo de Quarto" disabled style="width: 100%; padding: 12px; background: #1f2937; color: #9ca3af; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif; cursor: not-allowed;">
+                               </div>
+                               <div id="admIdentificacaoHint" style="font-size: 10px; color: rgba(255,255,255,0.5); margin-top: 3px;">Primeiro selecione o Tipo de Quarto</div>`
                             : `<input id="admIdentificacaoLeito" type="text" placeholder="Ex: 1A, 21, 711.1" maxlength="6" required style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
                                <div style="font-size: 10px; color: rgba(255,255,255,0.5); margin-top: 3px;">Aceita números e letras (1-6)</div>`
                         }
@@ -2491,6 +1619,392 @@ function createAdmissaoForm(hospitalNome, leitoNumero, hospitalId) {
             </div>
         </div>
     `;
+}
+
+// =================== V7.0: FORMULÁRIO DE RESERVA ===================
+// Igual ao formulário de admissão, mas com campos bloqueados em cinza
+function createReservaForm(hospitalNome, leitoNumero, hospitalId, dadosLeito) {
+    const idSequencial = String(leitoNumero).padStart(2, '0');
+    const isHibrido = window.HOSPITAIS_HIBRIDOS.includes(hospitalId);
+    const isCruzAzulEnfermaria = (hospitalId === 'H2') && (window.CRUZ_AZUL_IRMAOS[leitoNumero] !== undefined);
+    const isSantaClaraEnfermaria = (hospitalId === 'H4') && (window.SANTA_CLARA_IRMAOS[leitoNumero] !== undefined);
+    
+    // Verificar leito irmão para pré-definir gênero/isolamento
+    let generoPreDefinido = null;
+    let generoDisabled = false;
+    let isolamentoPreDefinido = null;
+    let isolamentoDisabled = false;
+    let numeroBasePreenchido = '';
+    let sufixoPreDefinido = '';
+    
+    // Lógica de leitos irmãos H2
+    if (isCruzAzulEnfermaria) {
+        const leitoIrmao = window.CRUZ_AZUL_IRMAOS[leitoNumero];
+        if (leitoIrmao) {
+            const leitosHospital = window.hospitalData['H2']?.leitos || [];
+            const dadosLeitoIrmao = leitosHospital.find(l => l.leito == leitoIrmao);
+            if (dadosLeitoIrmao && (dadosLeitoIrmao.status === 'Ocupado' || dadosLeitoIrmao.status === 'ocupado')) {
+                const isolamentoIrmao = dadosLeitoIrmao.isolamento || '';
+                if (!isolamentoIrmao || isolamentoIrmao === 'Não Isolamento') {
+                    isolamentoPreDefinido = 'Não Isolamento';
+                    isolamentoDisabled = true;
+                    if (dadosLeitoIrmao.genero) {
+                        generoPreDefinido = dadosLeitoIrmao.genero;
+                        generoDisabled = true;
+                    }
+                }
+                const identificacaoIrmao = dadosLeitoIrmao.identificacaoLeito || dadosLeitoIrmao.identificacao_leito || '';
+                if (identificacaoIrmao) {
+                    const partes = identificacaoIrmao.split('-');
+                    if (partes.length > 0) numeroBasePreenchido = partes[0];
+                }
+            }
+        }
+        sufixoPreDefinido = (leitoNumero % 2 === 0) ? '3' : '1';
+    }
+    
+    // Lógica de leitos irmãos H4
+    if (isSantaClaraEnfermaria) {
+        const leitoIrmao = window.SANTA_CLARA_IRMAOS[leitoNumero];
+        if (leitoIrmao) {
+            const leitosHospital = window.hospitalData['H4']?.leitos || [];
+            const dadosLeitoIrmao = leitosHospital.find(l => l.leito == leitoIrmao);
+            if (dadosLeitoIrmao && (dadosLeitoIrmao.status === 'Ocupado' || dadosLeitoIrmao.status === 'ocupado')) {
+                const isolamentoIrmao = dadosLeitoIrmao.isolamento || '';
+                if (!isolamentoIrmao || isolamentoIrmao === 'Não Isolamento') {
+                    isolamentoPreDefinido = 'Não Isolamento';
+                    isolamentoDisabled = true;
+                    if (dadosLeitoIrmao.genero) {
+                        generoPreDefinido = dadosLeitoIrmao.genero;
+                        generoDisabled = true;
+                    }
+                }
+                const identificacaoIrmao = dadosLeitoIrmao.identificacaoLeito || dadosLeitoIrmao.identificacao_leito || '';
+                if (identificacaoIrmao) {
+                    const partes = identificacaoIrmao.split('-');
+                    if (partes.length > 0) numeroBasePreenchido = partes[0];
+                }
+            }
+        }
+        sufixoPreDefinido = (leitoNumero % 2 === 0) ? 'C' : 'A';
+    }
+    
+    // Tipo fixo para H2/H4
+    let isApartamentoFixo = false;
+    let isEnfermariaFixa = isCruzAzulEnfermaria || isSantaClaraEnfermaria;
+    if (hospitalId === 'H2' || hospitalId === 'H4') {
+        const hospital = window.hospitalData && window.hospitalData[hospitalId];
+        if (hospital && hospital.leitos) {
+            const dadosLeitoAtual = hospital.leitos.find(l => parseInt(l.leito) === parseInt(leitoNumero));
+            if (dadosLeitoAtual && dadosLeitoAtual.tipo) {
+                const tipoUpper = dadosLeitoAtual.tipo.toUpperCase();
+                isApartamentoFixo = tipoUpper.includes('APTO') || tipoUpper === 'APARTAMENTO';
+            }
+        }
+    }
+    
+    const estiloCampoBloqueado = 'background: #1f2937 !important; color: #6b7280 !important; cursor: not-allowed;';
+    
+    return `
+        <div class="modal-content" style="background: #1a1f2e; border-radius: 12px; padding: 30px; max-width: 700px; width: 95%; max-height: 90vh; overflow-y: auto; color: #ffffff; font-family: 'Poppins', sans-serif;">
+            <h2 style="margin: 0 0 20px 0; text-align: center; color: #f59a1d; font-size: 24px; font-weight: 700; text-transform: uppercase;">
+                Reservar Leito
+            </h2>
+            
+            <div style="text-align: center; margin-bottom: 20px; padding: 12px; background: rgba(245,154,29,0.1); border: 1px solid rgba(245,154,29,0.3); border-radius: 8px;">
+                <div style="color: #f59a1d; font-size: 12px;">
+                    <strong>Reserva de Leito:</strong> Preencha apenas os campos obrigatorios. Os demais campos serao preenchidos no momento da admissao.
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-bottom: 30px; padding: 15px; background: rgba(96,165,250,0.1); border-radius: 8px;">
+                <strong>Hospital:</strong> ${hospitalNome} | <strong>Leito:</strong> ${idSequencial}${isHibrido ? ' | <strong>LEITO HÍBRIDO</strong>' : ''}
+            </div>
+            
+            <!-- LINHA 1: TIPO QUARTO | IDENTIFICAÇÃO | ISOLAMENTO -->
+            <div style="margin-bottom: 20px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+                    <div>
+                        <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">Tipo de Quarto <span style="color: #c86420;">*</span></label>
+                        ${isCruzAzulEnfermaria || isSantaClaraEnfermaria || isEnfermariaFixa
+                            ? `<select id="resTipoQuarto" disabled style="width: 100%; padding: 12px; ${estiloCampoBloqueado} border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
+                                <option value="Enfermaria" selected>Enfermaria</option>
+                               </select>`
+                            : isApartamentoFixo
+                            ? `<select id="resTipoQuarto" disabled style="width: 100%; padding: 12px; ${estiloCampoBloqueado} border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
+                                <option value="Apartamento" selected>Apartamento</option>
+                               </select>`
+                            : `<select id="resTipoQuarto" required style="width: 100%; padding: 12px; background: #374151 !important; color: #ffffff !important; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
+                                <option value="">Selecionar...</option>
+                                ${window.TIPO_QUARTO_OPTIONS.map(tipo => `<option value="${tipo}">${tipo}</option>`).join('')}
+                               </select>`
+                        }
+                    </div>
+                    
+                    <div>
+                        <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600; font-size: 12px;">Identificacao do Leito <span style="color: #c86420;">*</span></label>
+                        ${isCruzAzulEnfermaria 
+                            ? `<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 8px;">
+                                <input id="resIdentificacaoNumero" type="text" value="${numeroBasePreenchido}" placeholder="Ex: 101" maxlength="4" required ${numeroBasePreenchido ? 'readonly' : ''} oninput="this.value = this.value.replace(/[^0-9]/g, '')" style="width: 100%; padding: 12px; background: ${numeroBasePreenchido ? '#1f2937' : '#374151'}; color: ${numeroBasePreenchido ? '#9ca3af' : '#ffffff'}; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
+                                <select id="resIdentificacaoSufixo" required style="width: 100%; padding: 12px; background: #374151 !important; color: #ffffff !important; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
+                                    <option value="1" ${sufixoPreDefinido === '1' ? 'selected' : ''}>1</option>
+                                    <option value="3" ${sufixoPreDefinido === '3' ? 'selected' : ''}>3</option>
+                                </select>
+                               </div>`
+                            : isSantaClaraEnfermaria
+                            ? `<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 8px;">
+                                <input id="resIdentificacaoNumero" type="text" value="${numeroBasePreenchido}" placeholder="Ex: 201" maxlength="4" required ${numeroBasePreenchido ? 'readonly' : ''} oninput="this.value = this.value.replace(/[^0-9]/g, '')" style="width: 100%; padding: 12px; background: ${numeroBasePreenchido ? '#1f2937' : '#374151'}; color: ${numeroBasePreenchido ? '#9ca3af' : '#ffffff'}; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
+                                <select id="resIdentificacaoSufixo" required style="width: 100%; padding: 12px; background: #374151 !important; color: #ffffff !important; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
+                                    <option value="A" ${sufixoPreDefinido === 'A' ? 'selected' : ''}>A</option>
+                                    <option value="C" ${sufixoPreDefinido === 'C' ? 'selected' : ''}>C</option>
+                                </select>
+                               </div>`
+                            : isHibrido
+                            ? `<div id="resIdentificacaoContainer">
+                                <input id="resIdentificacaoLeito" type="text" placeholder="Selecione o Tipo de Quarto" disabled style="width: 100%; padding: 12px; ${estiloCampoBloqueado} border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
+                               </div>`
+                            : `<input id="resIdentificacaoLeito" type="text" placeholder="Ex: 101, 202" maxlength="6" required style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">`
+                        }
+                    </div>
+                    
+                    <div>
+                        <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">Isolamento <span style="color: #c86420;">*</span></label>
+                        <select id="resIsolamento" required ${isolamentoDisabled ? 'disabled' : ''} style="width: 100%; padding: 12px; background: ${isolamentoDisabled ? '#1f2937' : '#374151'} !important; color: ${isolamentoDisabled ? '#9ca3af' : '#ffffff'} !important; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
+                            ${isolamentoPreDefinido ? '' : '<option value="">Selecione...</option>'}
+                            ${window.ISOLAMENTO_OPTIONS.map(opcao => `<option value="${opcao}" ${isolamentoPreDefinido === opcao ? 'selected' : ''}>${opcao}</option>`).join('')}
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- LINHA 2: GÊNERO | REGIÃO (bloqueado) | PREVISÃO ALTA (bloqueado) -->
+            <div style="margin-bottom: 20px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+                    <div>
+                        <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">Genero <span style="color: #c86420;">*</span></label>
+                        <select id="resSexo" required ${generoDisabled ? 'disabled' : ''} style="width: 100%; padding: 12px; background: ${generoDisabled ? '#1f2937' : '#374151'} !important; color: ${generoDisabled ? '#9ca3af' : '#ffffff'} !important; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
+                            ${generoPreDefinido 
+                                ? `<option value="${generoPreDefinido}" selected>${generoPreDefinido}</option>`
+                                : `<option value="">Selecionar...</option>
+                                   ${window.SEXO_OPTIONS.map(sexo => `<option value="${sexo}">${sexo}</option>`).join('')}`
+                            }
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 5px; color: #6b7280; font-weight: 600;">Regiao</label>
+                        <select disabled style="width: 100%; padding: 12px; ${estiloCampoBloqueado} border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
+                            <option value="">Preenchido na admissao</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 5px; color: #6b7280; font-weight: 600;">Previsao Alta</label>
+                        <select disabled style="width: 100%; padding: 12px; ${estiloCampoBloqueado} border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
+                            <option value="">Preenchido na admissao</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- LINHA 3: INICIAIS, MATRÍCULA, IDADE -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                <div>
+                    <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">Iniciais (opcional)</label>
+                    <input id="resNome" type="text" placeholder="Ex: ABC" maxlength="20" oninput="window.formatarIniciaisAutomatico(this)" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif; letter-spacing: 2px;">
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">Matricula (opcional)</label>
+                    <input id="resMatricula" type="text" placeholder="Ex: 1234567-8" maxlength="11" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;" oninput="formatarMatriculaInput(this)">
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">Idade (opcional)</label>
+                    <select id="resIdade" style="width: 100%; padding: 12px; background: #374151 !important; color: #ffffff !important; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
+                        <option value="">Ex: 75</option>
+                        ${window.IDADE_OPTIONS.map(idade => `<option value="${idade}">${idade} anos</option>`).join('')}
+                    </select>
+                </div>
+            </div>
+            
+            <!-- LINHA 4: PPS | SPICT-BR | DIRETIVAS (todos bloqueados) -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                <div>
+                    <label style="display: block; margin-bottom: 5px; color: #6b7280; font-weight: 600;">PPS</label>
+                    <select disabled style="width: 100%; padding: 12px; ${estiloCampoBloqueado} border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
+                        <option value="">Preenchido na admissao</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 5px; color: #6b7280; font-weight: 600;">SPICT-BR</label>
+                    <select disabled style="width: 100%; padding: 12px; ${estiloCampoBloqueado} border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
+                        <option value="">Preenchido na admissao</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 5px; color: #6b7280; font-weight: 600;">Diretivas</label>
+                    <select disabled style="width: 100%; padding: 12px; ${estiloCampoBloqueado} border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
+                        <option value="">Preenchido na admissao</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- AVISO CAMPOS BLOQUEADOS -->
+            <div style="background: rgba(107,114,128,0.2); border: 1px solid rgba(107,114,128,0.3); border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+                <div style="color: #9ca3af; font-size: 12px; text-align: center;">
+                    <strong>Campos preenchidos na admissao:</strong><br>
+                    PPS, SPICT-BR, Complexidade, Previsao de Alta, Regiao, Diretivas Antecipadas, Concessoes, Linhas de Cuidado, Anotacoes
+                </div>
+            </div>
+            
+            <!-- BOTÕES -->
+            <div class="modal-buttons" style="display: flex; justify-content: flex-end; gap: 12px; padding: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
+                <button class="btn-cancelar" style="padding: 12px 30px; background: rgba(255,255,255,0.1); color: #ffffff; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; font-weight: 600; text-transform: uppercase; cursor: pointer; font-family: 'Poppins', sans-serif;">Cancelar</button>
+                <button class="btn-salvar-reserva" style="padding: 12px 30px; background: #f59a1d; color: #131b2e; border: none; border-radius: 8px; font-weight: 600; text-transform: uppercase; cursor: pointer; font-family: 'Poppins', sans-serif;">Salvar Reserva</button>
+            </div>
+        </div>
+    `;
+}
+
+// =================== V7.0: EVENT LISTENERS DO MODAL DE RESERVA ===================
+function setupReservaModalEventListeners(modal) {
+    const hospitalId = window.currentHospital;
+    const isHibrido = window.HOSPITAIS_HIBRIDOS && window.HOSPITAIS_HIBRIDOS.includes(hospitalId);
+    
+    // Campo dinâmico para híbridos
+    const tipoQuartoSelect = modal.querySelector('#resTipoQuarto');
+    const identificacaoContainer = modal.querySelector('#resIdentificacaoContainer');
+    
+    if (tipoQuartoSelect && identificacaoContainer && !tipoQuartoSelect.disabled) {
+        tipoQuartoSelect.addEventListener('change', function() {
+            const tipoSelecionado = this.value;
+            if (!tipoSelecionado) {
+                identificacaoContainer.innerHTML = `<input id="resIdentificacaoLeito" type="text" placeholder="Selecione o Tipo de Quarto" disabled style="width: 100%; padding: 12px; background: #1f2937; color: #9ca3af; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif; cursor: not-allowed;">`;
+            } else if (tipoSelecionado === 'Enfermaria') {
+                identificacaoContainer.innerHTML = `
+                    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 8px;">
+                        <input id="resIdentificacaoNumero" type="text" placeholder="Numero" maxlength="4" required oninput="this.value = this.value.replace(/[^0-9]/g, '')" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
+                        <input id="resIdentificacaoDigito" type="text" placeholder="Dig" maxlength="1" required oninput="this.value = this.value.toUpperCase()" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif; text-align: center;">
+                    </div>`;
+            } else {
+                identificacaoContainer.innerHTML = `<input id="resIdentificacaoLeito" type="text" placeholder="Numero do quarto" maxlength="6" required style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">`;
+            }
+        });
+    }
+    
+    // Botão Cancelar
+    const btnCancelar = modal.querySelector('.btn-cancelar');
+    if (btnCancelar) {
+        btnCancelar.addEventListener('click', function(e) {
+            e.preventDefault();
+            modal.remove();
+        });
+    }
+    
+    // Click fora do modal
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.remove();
+    });
+    
+    // Botão Salvar Reserva
+    const btnSalvar = modal.querySelector('.btn-salvar-reserva');
+    if (btnSalvar) {
+        btnSalvar.addEventListener('click', async function(e) {
+            e.preventDefault();
+            
+            const leitoNumero = window.selectedLeito;
+            const isCruzAzulEnfermaria = (hospitalId === 'H2') && (window.CRUZ_AZUL_IRMAOS[leitoNumero] !== undefined);
+            const isSantaClaraEnfermaria = (hospitalId === 'H4') && (window.SANTA_CLARA_IRMAOS[leitoNumero] !== undefined);
+            
+            // Coletar dados
+            const tipoQuarto = modal.querySelector('#resTipoQuarto')?.value || '';
+            const isolamento = modal.querySelector('#resIsolamento')?.value || '';
+            const genero = modal.querySelector('#resSexo')?.value || '';
+            const iniciais = modal.querySelector('#resNome')?.value?.trim() || '';
+            const matricula = modal.querySelector('#resMatricula')?.value?.trim().replace(/-/g, '') || '';
+            const idade = modal.querySelector('#resIdade')?.value || '';
+            
+            // Montar identificação
+            let identificacaoLeito = '';
+            if (isCruzAzulEnfermaria || isSantaClaraEnfermaria) {
+                const numero = modal.querySelector('#resIdentificacaoNumero')?.value?.trim() || '';
+                const sufixo = modal.querySelector('#resIdentificacaoSufixo')?.value || '';
+                identificacaoLeito = numero && sufixo ? `${numero}-${sufixo}` : numero;
+            } else if (isHibrido && tipoQuarto === 'Enfermaria') {
+                const numero = modal.querySelector('#resIdentificacaoNumero')?.value?.trim() || '';
+                const digito = modal.querySelector('#resIdentificacaoDigito')?.value?.trim() || '';
+                identificacaoLeito = numero && digito ? `${numero}-${digito}` : numero;
+            } else {
+                identificacaoLeito = modal.querySelector('#resIdentificacaoLeito')?.value?.trim() || '';
+            }
+            
+            // Validações
+            if (isHibrido && !tipoQuarto) {
+                showErrorMessage('Selecione o Tipo de Quarto');
+                return;
+            }
+            if (!identificacaoLeito) {
+                showErrorMessage('Preencha a Identificacao do Leito');
+                return;
+            }
+            if (!isolamento) {
+                showErrorMessage('Selecione o Isolamento');
+                return;
+            }
+            if (!genero) {
+                showErrorMessage('Selecione o Genero');
+                return;
+            }
+            
+            // Salvar
+            const originalText = btnSalvar.innerHTML;
+            btnSalvar.innerHTML = 'SALVANDO...';
+            btnSalvar.disabled = true;
+            
+            try {
+                const response = await fetch(window.API_URL + '?action=reservar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        hospital: hospitalId,
+                        leito: leitoNumero,
+                        tipo: tipoQuarto,
+                        identificacaoLeito: identificacaoLeito,
+                        isolamento: isolamento,
+                        genero: genero,
+                        iniciais: iniciais.replace(/\s/g, ''),
+                        matricula: matricula,
+                        idade: idade
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    if (!window.reservasData) window.reservasData = [];
+                    window.reservasData.push({
+                        hospital: hospitalId,
+                        leito: leitoNumero,
+                        tipo: tipoQuarto,
+                        identificacaoLeito: identificacaoLeito,
+                        isolamento: isolamento,
+                        genero: genero,
+                        iniciais: iniciais.replace(/\s/g, ''),
+                        matricula: matricula,
+                        idade: idade,
+                        linha: result.linha
+                    });
+                    
+                    modal.remove();
+                    showSuccessMessage('Leito reservado com sucesso!');
+                    await window.refreshAfterAction();
+                } else {
+                    throw new Error(result.message || 'Erro ao reservar leito');
+                }
+            } catch (error) {
+                btnSalvar.innerHTML = originalText;
+                btnSalvar.disabled = false;
+                showErrorMessage('Erro ao reservar: ' + error.message);
+            }
+        });
+    }
 }
 
 // =================== FORMULÁRIO DE ATUALIZAÇÃO - CORRIGIDO ===================
@@ -2845,6 +2359,45 @@ function setupConcessoesLogic(modal, concessoesId) {
 
 // =================== EVENT LISTENERS DOS MODAIS ===================
 function setupModalEventListeners(modal, tipo) {
+    // V7.0: CAMPO IDENTIFICACAO DINAMICO PARA HIBRIDOS
+    const tipoQuartoSelect = modal.querySelector('#admTipoQuarto');
+    const identificacaoContainer = modal.querySelector('#admIdentificacaoContainer');
+    const identificacaoHint = modal.querySelector('#admIdentificacaoHint');
+    
+    if (tipoQuartoSelect && identificacaoContainer && !tipoQuartoSelect.disabled) {
+        tipoQuartoSelect.addEventListener('change', function() {
+            const tipoSelecionado = this.value;
+            
+            if (!tipoSelecionado) {
+                identificacaoContainer.innerHTML = `
+                    <input id="admIdentificacaoLeito" type="text" placeholder="Selecione o Tipo de Quarto" disabled 
+                           style="width: 100%; padding: 12px; background: #1f2937; color: #9ca3af; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif; cursor: not-allowed;">
+                `;
+                if (identificacaoHint) identificacaoHint.textContent = 'Primeiro selecione o Tipo de Quarto';
+            } else if (tipoSelecionado === 'Enfermaria') {
+                // Enfermaria: numero + digito
+                identificacaoContainer.innerHTML = `
+                    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 8px;">
+                        <input id="admIdentificacaoNumero" type="text" placeholder="Numero" maxlength="4" required 
+                               oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                               style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
+                        <input id="admIdentificacaoDigito" type="text" placeholder="Dig" maxlength="1" required 
+                               oninput="this.value = this.value.toUpperCase()"
+                               style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif; text-align: center;">
+                    </div>
+                `;
+                if (identificacaoHint) identificacaoHint.textContent = 'Numero + Digito (1 caractere)';
+            } else {
+                // Apartamento: campo simples
+                identificacaoContainer.innerHTML = `
+                    <input id="admIdentificacaoLeito" type="text" placeholder="Numero do quarto" maxlength="6" required 
+                           style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
+                `;
+                if (identificacaoHint) identificacaoHint.textContent = 'Numero do quarto';
+            }
+        });
+    }
+    
     // CONTADOR DE CARACTERES PARA ANOTAÇÕES
     const anotacoesField = modal.querySelector(tipo === 'admissao' ? '#admAnotacoes' : '#updAnotacoes');
     const anotacoesCount = modal.querySelector(tipo === 'admissao' ? '#admAnotacoesCount' : '#updAnotacoesCount');
@@ -2875,21 +2428,56 @@ function setupModalEventListeners(modal, tipo) {
             const leitoNumero = window.selectedLeito;
             const isCruzAzulEnfermaria = (hospitalId === 'H2' && leitoNumero >= 21 && leitoNumero <= 46);
             const isSantaClaraEnfermaria = (hospitalId === 'H4' && leitoNumero >= 10 && leitoNumero <= 27);
+            const isHibrido = window.HOSPITAIS_HIBRIDOS && window.HOSPITAIS_HIBRIDOS.includes(hospitalId);
             
             // VALIDAR IDENTIFICAÇÃO DO LEITO
             if (isCruzAzulEnfermaria || isSantaClaraEnfermaria) {
+                // H2/H4 enfermarias: numero + sufixo (select)
                 const numeroField = modal.querySelector(tipo === 'admissao' ? '#admIdentificacaoNumero' : '#updIdentificacaoNumero');
                 const sufixoField = modal.querySelector(tipo === 'admissao' ? '#admIdentificacaoSufixo' : '#updIdentificacaoSufixo');
                 
                 if (numeroField && sufixoField) {
                     if (!numeroField.value.trim()) {
-                        showErrorMessage('Campo "Número do Leito" é obrigatório!');
+                        showErrorMessage('Campo "Numero do Leito" é obrigatorio!');
                         numeroField.focus();
                         return;
                     }
                     if (!sufixoField.value) {
-                        showErrorMessage('Campo "Sufixo" é obrigatório!');
+                        showErrorMessage('Campo "Sufixo" é obrigatorio!');
                         sufixoField.focus();
+                        return;
+                    }
+                }
+            } else if (isHibrido && tipo === 'admissao') {
+                // V7.0: Hibridos - verificar se tem numero+digito ou campo simples
+                const tipoQuartoField = modal.querySelector('#admTipoQuarto');
+                const tipoQuarto = tipoQuartoField ? tipoQuartoField.value : '';
+                
+                if (!tipoQuarto) {
+                    showErrorMessage('Campo "Tipo de Quarto" é obrigatorio!');
+                    tipoQuartoField.focus();
+                    return;
+                }
+                
+                if (tipoQuarto === 'Enfermaria') {
+                    const numeroField = modal.querySelector('#admIdentificacaoNumero');
+                    const digitoField = modal.querySelector('#admIdentificacaoDigito');
+                    
+                    if (!numeroField || !numeroField.value.trim()) {
+                        showErrorMessage('Campo "Numero" é obrigatorio!');
+                        if (numeroField) numeroField.focus();
+                        return;
+                    }
+                    if (!digitoField || !digitoField.value.trim()) {
+                        showErrorMessage('Campo "Digito" é obrigatorio!');
+                        if (digitoField) digitoField.focus();
+                        return;
+                    }
+                } else {
+                    const identificacaoField = modal.querySelector('#admIdentificacaoLeito');
+                    if (!identificacaoField || !identificacaoField.value.trim()) {
+                        showErrorMessage('Campo "Identificacao do Leito" é obrigatorio!');
+                        if (identificacaoField) identificacaoField.focus();
                         return;
                     }
                 }
@@ -3159,6 +2747,7 @@ function coletarDadosFormulario(modal, tipo) {
     const leitoNumero = window.selectedLeito;
     const isCruzAzulEnfermaria = (hospitalId === 'H2') && (window.CRUZ_AZUL_IRMAOS[leitoNumero] !== undefined);
     const isSantaClaraEnfermaria = (hospitalId === 'H4') && (window.SANTA_CLARA_IRMAOS[leitoNumero] !== undefined);
+    const isHibrido = window.HOSPITAIS_HIBRIDOS && window.HOSPITAIS_HIBRIDOS.includes(hospitalId);
     
     if (tipo === 'admissao') {
         dados.nome = modal.querySelector('#admNome')?.value?.trim() || '';
@@ -3170,11 +2759,21 @@ function coletarDadosFormulario(modal, tipo) {
         dados.prevAlta = modal.querySelector('#admPrevAlta')?.value || 'Sem Previsão';
         dados.isolamento = modal.querySelector('#admIsolamento')?.value || '';
         
-        // IDENTIFICAÇÃO DO LEITO - CONCATENAR NÚMERO + SUFIXO SE FOR IRMÃO
+        // IDENTIFICAÇÃO DO LEITO - V7.0: suporte a hibridos com numero+digito
         if (isCruzAzulEnfermaria || isSantaClaraEnfermaria) {
             const numero = modal.querySelector('#admIdentificacaoNumero')?.value?.trim() || '';
             const sufixo = modal.querySelector('#admIdentificacaoSufixo')?.value || '';
             dados.identificacaoLeito = numero && sufixo ? `${numero}-${sufixo}` : numero;
+        } else if (isHibrido) {
+            // V7.0: Hibridos - verificar se é enfermaria (numero+digito) ou apartamento
+            const tipoQuarto = modal.querySelector('#admTipoQuarto')?.value || '';
+            if (tipoQuarto === 'Enfermaria') {
+                const numero = modal.querySelector('#admIdentificacaoNumero')?.value?.trim() || '';
+                const digito = modal.querySelector('#admIdentificacaoDigito')?.value?.trim() || '';
+                dados.identificacaoLeito = numero && digito ? `${numero}-${digito}` : numero;
+            } else {
+                dados.identificacaoLeito = modal.querySelector('#admIdentificacaoLeito')?.value?.trim() || '';
+            }
         } else {
             dados.identificacaoLeito = modal.querySelector('#admIdentificacaoLeito')?.value?.trim() || '';
         }
@@ -3603,21 +3202,20 @@ if (!document.getElementById('cardsConsolidadoCSS')) {
     document.head.appendChild(style);
 }
 
-
-// =================== INICIALIZAÇÃO V7.0 ===================
+// =================== INICIALIZAÇÃO ===================
 document.addEventListener('DOMContentLoaded', function() {
-    logSuccess('CARDS.JS V7.0 CARREGADO - FILTRO UTI + SISTEMA RESERVAS');
+    logSuccess('CARDS.JS V4.3 CORRIGIDO CARREGADO');
     
     if (window.CONCESSOES_LIST.length !== 13) {
-        logError('ERRO: Esperadas 13 concessoes (12 + "Nao se aplica"), encontradas ' + window.CONCESSOES_LIST.length);
+        logError(`ERRO: Esperadas 13 concessões (12 + "Não se aplica"), encontradas ${window.CONCESSOES_LIST.length}`);
     } else {
-        logSuccess(window.CONCESSOES_LIST.length + ' concessoes confirmadas');
+        logSuccess(`✅ ${window.CONCESSOES_LIST.length} concessões confirmadas`);
     }
     
     if (window.LINHAS_CUIDADO_LIST.length !== 45) {
-        logError('ERRO: Esperadas 45 linhas, encontradas ' + window.LINHAS_CUIDADO_LIST.length);
+        logError(`ERRO: Esperadas 45 linhas, encontradas ${window.LINHAS_CUIDADO_LIST.length}`);
     } else {
-        logSuccess(window.LINHAS_CUIDADO_LIST.length + ' linhas de cuidado confirmadas');
+        logSuccess(`✅ ${window.LINHAS_CUIDADO_LIST.length} linhas de cuidado confirmadas`);
     }
 });
 
@@ -3629,6 +3227,7 @@ window.openAdmissaoModal = openAdmissaoModal;
 window.openAtualizacaoModal = openAtualizacaoModal;
 window.openReservaModal = openReservaModal;
 window.openReservaFlow = openReservaFlow;
+window.openAdmissaoModalComReserva = openAdmissaoModalComReserva;
 window.forcarPreMarcacao = forcarPreMarcacao;
 window.coletarDadosFormulario = coletarDadosFormulario;
 window.getBadgeIsolamento = getBadgeIsolamento;
@@ -3639,4 +3238,4 @@ window.formatarMatriculaExibicao = formatarMatriculaExibicao;
 window.setupSearchFilter = setupSearchFilter;
 window.searchLeitos = searchLeitos;
 
-console.log('CARDS.JS V7.0 COMPLETO - FILTRO UTI + SISTEMA RESERVAS + NOVA ORDENACAO!');
+console.log('CARDS.JS V7.0 COMPLETO - SISTEMA DE RESERVAS + CAMPO IDENTIFICACAO DINAMICO!');
