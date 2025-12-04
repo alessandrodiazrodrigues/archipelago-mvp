@@ -1,14 +1,14 @@
-// =================== CARDS.JS - MAPA DE LEITOS ===================
-// Versao: 7.0 SIMPLIFICADO - 03/Dezembro/2025
+// =================== CARDS.JS - MAPA DE LEITOS HOSPITALARES ===================
+// Versao: 7.0 - 04/Dezembro/2025
 // Depende de: cards-config.js (carregar ANTES)
 // 
 // ALTERACOES V7.0:
-// 1. Filtro de leitos UTI (nao aparecem no Mapa de Leitos)
-// 2. Sistema de Reservas (status roxo, ordenacao, pre-preenchimento)
-// 3. MANTIDO V6.1: Flag de ocupacao, leitos irmaos, borda laranja extras
-// 4. SEM logica de exibicao UTI (fica no uti.js separado)
+// 1. Filtro UTI - Leitos tipo UTI NAO aparecem no Mapa de Leitos
+// 2. Sistema de Reservas - Cards reservados, botao RESERVAR, modal de reserva
+// 3. Nova Ordenacao - Ocupados > Reservados > Vagos (por tipo em H2/H4)
+// 4. Renomeado de "Gestao de Leitos" para "Mapa de Leitos"
 
-console.log('CARDS.JS v7.0 - Carregando...');
+console.log('CARDS.JS V7.0 - Carregando...');
 
 // =================== VALIDAR DEPENDENCIAS ===================
 if (typeof window.CONCESSOES_DISPLAY_MAP === 'undefined') {
@@ -23,65 +23,27 @@ if (typeof window.desnormalizarTexto === 'undefined') {
 
 console.log('Dependencias validadas - cards-config.js OK');
 
-// =================== FUNCOES AUXILIARES V7.0 ===================
+// =================== CONSTANTES V7.0 - CORES DE RESERVA ===================
+const COR_RESERVADO_BG = '#fbbf24';
+const COR_RESERVADO_BORDA = '#f59e0b';
+const COR_RESERVADO_TEXTO = '#131b2e';
 
-// Verificar se leito e UTI (para filtro)
-function isLeitoUTI(leito) {
-    if (!leito) return false;
-    // Verificar flag isUTI (adicionada pelo api.js)
-    if (leito.isUTI === true) return true;
-    // Verificar tipo
-    const tipo = (leito.tipo || '').toUpperCase().trim();
-    return tipo === 'UTI';
-}
-
-// Verificar se leito tem reserva
-function getReservaParaLeito(hospitalId, leito) {
-    if (!window.reservasData || !Array.isArray(window.reservasData)) return null;
-    
-    const identificacao = leito.identificacaoLeito || leito.identificacao_leito || '';
-    const numeroLeito = leito.leito;
-    
-    return window.reservasData.find(r => {
-        if (r.hospital !== hospitalId) return false;
-        // Verificar por identificacao ou numero do leito
-        if (identificacao && r.identificacao_leito === identificacao) return true;
-        if (r.leito == numeroLeito) return true;
-        return false;
-    });
-}
-
-// Exportar funcoes para uso global
-window.isLeitoUTI = isLeitoUTI;
-window.getReservaParaLeito = getReservaParaLeito;
-
-// =================== FUNÇÃO: FORMATAR INICIAIS AUTOMATICAMENTE ===================
+// =================== FUNCAO: FORMATAR INICIAIS AUTOMATICAMENTE ===================
 window.formatarIniciaisAutomatico = function(input) {
     let texto = input.value || '';
-    
-    // Remove tudo que não é letra
     texto = texto.replace(/[^a-zA-Z]/g, '');
-    
-    // Converte para maiúsculas
     texto = texto.toUpperCase();
-    
-    // Limita a 6 letras (exemplo: A D R = 3 letras, mas pode ter até 6)
     if (texto.length > 6) {
         texto = texto.substring(0, 6);
     }
-    
-    // Adiciona espaço entre cada letra
     const resultado = texto.split('').join(' ');
-    
-    // Atualiza o campo
     input.value = resultado;
-    
     return resultado;
 };
 
-// =================== FUNÇÃO: SELECT HOSPITAL ===================
+// =================== FUNCAO: SELECT HOSPITAL ===================
 window.selectHospital = function(hospitalId) {
-    logInfo(`Selecionando hospital: ${hospitalId} (${window.HOSPITAL_MAPPING[hospitalId]})`);
+    logInfo('Selecionando hospital: ' + hospitalId + ' (' + window.HOSPITAL_MAPPING[hospitalId] + ')');
     
     window.currentHospital = hospitalId;
     
@@ -93,10 +55,10 @@ window.selectHospital = function(hospitalId) {
     });
     
     window.renderCards();
-    logSuccess(`Hospital selecionado: ${window.HOSPITAL_MAPPING[hospitalId]}`);
+    logSuccess('Hospital selecionado: ' + window.HOSPITAL_MAPPING[hospitalId]);
 };
 
-// =================== FUNÇÃO DE BUSCA ===================
+// =================== FUNCAO DE BUSCA ===================
 window.searchLeitos = function() {
     const searchInput = document.getElementById('searchLeitosInput');
     if (!searchInput) return;
@@ -128,13 +90,13 @@ window.searchLeitos = function() {
     });
     
     const visibleCards = Array.from(cards).filter(c => c.style.display !== 'none');
-    logInfo(`Busca: "${searchTerm}" - ${visibleCards.length} resultados`);
+    logInfo('Busca: "' + searchTerm + '" - ' + visibleCards.length + ' resultados');
 };
 
-// =================== 🆕 FUNÇÃO: RENDERIZAR FLAG DE OCUPAÇÃO V6.3 FINAL ===================
+// =================== FUNCAO: RENDERIZAR FLAG DE OCUPACAO V7.0 ===================
 window.renderFlagOcupacao = function(hospitalId, status, posicaoOcupacao, tipoLeito) {
-    // Se leito vago, não exibe flag
-    if (status === 'Vago' || status === 'vago') {
+    // Se leito vago ou reservado, nao exibe flag
+    if (status === 'Vago' || status === 'vago' || status === 'Reservado') {
         return '';
     }
 
@@ -142,96 +104,67 @@ window.renderFlagOcupacao = function(hospitalId, status, posicaoOcupacao, tipoLe
 
     const capacidade = window.getCapacidade(hospitalId);
     
-    // Determinar se é apartamento ou enfermaria
     const tipoUpper = (tipoLeito || '').toUpperCase().trim();
     const isApartamento = tipoUpper.includes('APTO') || tipoUpper === 'APARTAMENTO';
     const isEnfermaria = tipoUpper.includes('ENF') || tipoUpper === 'ENFERMARIA';
 
-    // Calcular total de contratuais POR TIPO
     let textoTipo = '';
     let totalContratuaisPorTipo = 0;
 
     if (hospitalId === 'H2' || hospitalId === 'H4') {
-        // ✅ TIPOS FIXOS: Usar cards-config.js
         const enfInfo = (hospitalId === 'H2') ? window.CRUZ_AZUL_ENFERMARIAS : window.SANTA_CLARA_ENFERMARIAS;
         
         if (isApartamento) {
-            // Apartamentos contratuais = Total contratuais - Enfermarias contratuais
             if (enfInfo && enfInfo.contratuais) {
                 totalContratuaisPorTipo = capacidade.contratuais - enfInfo.contratuais.length;
             } else {
-                totalContratuaisPorTipo = (hospitalId === 'H2') ? 20 : 18; // Fallback
+                totalContratuaisPorTipo = (hospitalId === 'H2') ? 20 : 18;
             }
             textoTipo = 'APARTAMENTO';
             
         } else if (isEnfermaria) {
-            // Enfermarias contratuais = Do cards-config.js
             if (enfInfo && enfInfo.contratuais) {
                 totalContratuaisPorTipo = enfInfo.contratuais.length;
             } else {
-                totalContratuaisPorTipo = (hospitalId === 'H2') ? 16 : 8; // Fallback
+                totalContratuaisPorTipo = (hospitalId === 'H2') ? 16 : 8;
             }
             textoTipo = 'ENFERMARIA';
         }
     } else {
-        // ✅ HÍBRIDOS: Sem tipo na flag
         totalContratuaisPorTipo = capacidade.contratuais;
         textoTipo = '';
     }
 
-    // ✅ VERIFICAR SE É EXTRA (baseado na posição dentro do tipo)
     const isLeitoExtra = (posicaoOcupacao > totalContratuaisPorTipo);
 
     if (isLeitoExtra) {
-        // ✅ LEITO EXTRA - Contagem incremental X/X
         const numExtra = posicaoOcupacao - totalContratuaisPorTipo;
 
-        return `
-            <div style="
-                background: ${window.COR_FLAG_EXTRA};
-                color: #131b2e;
-                padding: 4px 8px;
-                border-radius: 4px;
-                font-size: 11px;
-                font-weight: 700;
-                text-align: center;
-                margin-top: 8px;
-                font-family: 'Poppins', sans-serif;
-            ">
-                EXTRA ${textoTipo} ${numExtra}/${numExtra}
-            </div>
-        `;
+        return '<div style="background: ' + window.COR_FLAG_EXTRA + '; color: #131b2e; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; text-align: center; margin-top: 8px; font-family: Poppins, sans-serif;">EXTRA ' + textoTipo + ' ' + numExtra + '/' + numExtra + '</div>';
     } else {
-        // ✅ LEITO CONTRATUAL - Usa posicaoOcupacao
-        return `
-            <div style="
-                background: ${window.COR_FLAG_CONTRATUAL};
-                color: #ffffff;
-                padding: 4px 8px;
-                border-radius: 4px;
-                font-size: 11px;
-                font-weight: 700;
-                text-align: center;
-                margin-top: 8px;
-                font-family: 'Poppins', sans-serif;
-            ">
-                OCUPACAO ${textoTipo} ${posicaoOcupacao}/${totalContratuaisPorTipo}
-            </div>
-        `;
+        return '<div style="background: ' + window.COR_FLAG_CONTRATUAL + '; color: #ffffff; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; text-align: center; margin-top: 8px; font-family: Poppins, sans-serif;">OCUPACAO ' + textoTipo + ' ' + posicaoOcupacao + '/' + totalContratuaisPorTipo + '</div>';
     }
 };
 
-// =================== FUNÇÃO PRINCIPAL DE RENDERIZAÇÃO ===================
+// =================== FUNCAO: OBTER RESERVAS DO HOSPITAL ===================
+function getReservasHospital(hospitalId) {
+    if (!window.reservasData || !Array.isArray(window.reservasData)) {
+        return [];
+    }
+    return window.reservasData.filter(r => r.hospital === hospitalId && r.tipo !== 'UTI');
+}
+
+// =================== FUNCAO PRINCIPAL DE RENDERIZACAO V7.0 ===================
 window.renderCards = function() {
-    logInfo('🎯 [CARDS V6.1] Renderizando com filtro inteligente de vagos...');
-    console.log('[CARDS V6.1] Lógica:');
-    console.log('  - Híbridos: TODOS ocupados + 1 vago (menor ID)');
-    console.log('  - Apartamentos: TODOS ocupados + 1 vago (menor ID)');
-    console.log('  - Enfermarias: TODOS ocupados + TODOS vagos (exceto bloqueados por isolamento)');
+    logInfo('[CARDS V7.0] Renderizando - Filtro UTI + Sistema Reservas + Nova Ordenacao');
+    console.log('[CARDS V7.0] Logica:');
+    console.log('  - Leitos UTI: FILTRADOS (nao aparecem)');
+    console.log('  - Ocupados > Reservados > Vagos');
+    console.log('  - H2/H4: Separados por tipo (Apto/Enf)');
     
     const container = document.getElementById('cardsContainer');
     if (!container) {
-        logError('Container cardsContainer não encontrado');
+        logError('Container cardsContainer nao encontrado');
         return;
     }
 
@@ -241,50 +174,36 @@ window.renderCards = function() {
     const hospitalNome = window.HOSPITAL_MAPPING[hospitalId]?.nome || 'Hospital';
     
     if (!hospital || !hospital.leitos || hospital.leitos.length === 0) {
-        container.innerHTML = `
-            <div class="card" style="grid-column: 1 / -1; text-align: center; padding: 40px;">
-                <div style="color: #60a5fa; margin-bottom: 15px;">
-                    <h3 style="font-family: 'Poppins', sans-serif;">${hospitalNome}</h3>
-                </div>
-                <div style="background: rgba(96,165,250,0.1); border-radius: 8px; padding: 20px;">
-                    <p style="margin-bottom: 15px; font-family: 'Poppins', sans-serif;">Carregando dados...</p>
-                    <p style="color: #60a5fa; font-family: 'Poppins', sans-serif;"><em>API conectada</em></p>
-                </div>
-            </div>
-        `;
+        container.innerHTML = '<div class="card" style="grid-column: 1 / -1; text-align: center; padding: 40px;"><div style="color: #60a5fa; margin-bottom: 15px;"><h3 style="font-family: Poppins, sans-serif;">' + hospitalNome + '</h3></div><div style="background: rgba(96,165,250,0.1); border-radius: 8px; padding: 20px;"><p style="margin-bottom: 15px; font-family: Poppins, sans-serif;">Carregando dados...</p><p style="color: #60a5fa; font-family: Poppins, sans-serif;"><em>API conectada</em></p></div></div>';
         return;
     }
     
-    // V7.0: Filtrar leitos UTI (nao aparecem no Mapa de Leitos)
-    const leitosFiltrados = hospital.leitos.filter(l => !isLeitoUTI(l));
+    // V7.0: FILTRAR LEITOS UTI - NAO APARECEM NO MAPA DE LEITOS
+    const leitosSemUTI = hospital.leitos.filter(l => l.tipo !== 'UTI');
     
-    // Separar ocupados e vagos
-    const leitosOcupados = leitosFiltrados.filter(l => 
+    // Separar ocupados e vagos (sem UTI)
+    const leitosOcupados = leitosSemUTI.filter(l => 
         l.status === 'Ocupado' || l.status === 'Em uso' || l.status === 'ocupado'
     );
-    const leitosVagosTodos = leitosFiltrados.filter(l => 
+    const leitosVagos = leitosSemUTI.filter(l => 
         l.status === 'Vago' || l.status === 'vago'
     );
     
-    // V7.0: Separar leitos reservados dos vagos livres
-    const leitosReservados = [];
-    const leitosVagos = [];
+    // V7.0: OBTER RESERVAS DO HOSPITAL (sem UTI)
+    const reservasHospital = getReservasHospital(hospitalId);
     
-    leitosVagosTodos.forEach(leito => {
-        const reserva = getReservaParaLeito(hospitalId, leito);
-        if (reserva) {
-            leito._reserva = reserva; // Anexar dados da reserva
-            leitosReservados.push(leito);
-        } else {
-            leitosVagos.push(leito);
-        }
-    });
+    console.log('[CARDS V7.0] Leitos sem UTI:', leitosSemUTI.length);
+    console.log('[CARDS V7.0] Ocupados:', leitosOcupados.length);
+    console.log('[CARDS V7.0] Reservados:', reservasHospital.length);
+    console.log('[CARDS V7.0] Vagos:', leitosVagos.length);
     
-    console.log('[CARDS V7.0] Ocupados:', leitosOcupados.length, '| Reservados:', leitosReservados.length, '| Vagos:', leitosVagos.length);
+    // V7.0: ORDENACAO - OCUPADOS > RESERVADOS > VAGOS
+    const isHibrido = window.HOSPITAIS_HIBRIDOS.includes(hospitalId);
+    const isTiposFixos = window.HOSPITAIS_TIPOS_FIXOS.includes(hospitalId);
     
     // Ordenar OCUPADOS
-    if (hospitalId === 'H2' || hospitalId === 'H4') {
-        // TIPOS FIXOS: Apartamentos ANTES de Enfermarias, depois por identificacaoLeito
+    if (isTiposFixos) {
+        // H2/H4: Apartamentos ANTES de Enfermarias, depois por identificacaoLeito
         leitosOcupados.sort((a, b) => {
             const tipoA = (a.tipo || '').toUpperCase();
             const tipoB = (b.tipo || '').toUpperCase();
@@ -292,24 +211,22 @@ window.renderCards = function() {
             const isAptoA = tipoA.includes('APTO') || tipoA === 'APARTAMENTO';
             const isAptoB = tipoB.includes('APTO') || tipoB === 'APARTAMENTO';
             
-            // Apartamentos antes de enfermarias
             if (isAptoA && !isAptoB) return -1;
             if (!isAptoA && isAptoB) return 1;
             
-            // Dentro do mesmo tipo, ordenar por identificacaoLeito
             const idA = a.identificacaoLeito || a.identificacao_leito || a.leito;
             const idB = b.identificacaoLeito || b.identificacao_leito || b.leito;
             
             return String(idA).localeCompare(String(idB), undefined, {numeric: true});
         });
     } else {
-        // HÍBRIDOS: ordenação padrão por identificacaoLeito
+        // Hibridos: ordenacao padrao por identificacaoLeito
         leitosOcupados.sort((a, b) => {
             const idA = a.identificacaoLeito || a.identificacao_leito || '';
             const idB = b.identificacaoLeito || b.identificacao_leito || '';
             
             if (idA && idB) {
-                return idA.localeCompare(idB);
+                return idA.localeCompare(idB, undefined, {numeric: true});
             }
             
             if (idA) return -1;
@@ -319,26 +236,24 @@ window.renderCards = function() {
         });
     }
     
-    // V7.0: Ordenar RESERVADOS por numero do leito
-    leitosReservados.sort((a, b) => (a.leito || 0) - (b.leito || 0));
+    // Ordenar RESERVADOS por identificacaoLeito
+    reservasHospital.sort((a, b) => {
+        const idA = a.identificacaoLeito || '';
+        const idB = b.identificacaoLeito || '';
+        return String(idA).localeCompare(String(idB), undefined, {numeric: true});
+    });
     
     // Ordenar VAGOS por numero do leito
     leitosVagos.sort((a, b) => (a.leito || 0) - (b.leito || 0));
     
-    // =================== FILTRO INTELIGENTE DE VAGOS V7.0 ===================
-    // hospitalId ja declarado anteriormente
-    const isHibrido = window.HOSPITAIS_HIBRIDOS.includes(hospitalId);
-    const isTiposFixos = window.HOSPITAIS_TIPOS_FIXOS.includes(hospitalId);
-    
+    // FILTRO INTELIGENTE DE VAGOS
     let vagosParaMostrar = [];
     
     if (isHibrido) {
-        // HIBRIDOS: Mostrar apenas 1 vago (menor ID)
         vagosParaMostrar = leitosVagos.length > 0 ? [leitosVagos[0]] : [];
         console.log('[CARDS V7.0] Hibrido: 1 vago (menor ID)');
         
     } else if (isTiposFixos) {
-        // TIPOS FIXOS: Separar apartamentos e enfermarias
         const vagosApartamentos = leitosVagos.filter(l => {
             const tipo = l.tipo || '';
             return tipo.toUpperCase().includes('APTO') || tipo === 'APTO' || tipo === 'Apartamento';
@@ -349,112 +264,101 @@ window.renderCards = function() {
             return tipo.toUpperCase().includes('ENF') || tipo === 'ENFERMARIA' || tipo === 'Enfermaria';
         });
         
-        // 1. APARTAMENTOS: Apenas 1 vago (menor ID)
         const apartamentoParaMostrar = vagosApartamentos.length > 0 ? [vagosApartamentos[0]] : [];
         
-        // 2️⃣ ENFERMARIAS: ✅ CORREÇÃO V6.1
-        // ✅ TODAS com 1 ocupado + 1 vago (restrição de gênero)
-        // ✅ APENAS 1 par com AMBOS vagos (livre para isolamento)
         const enfermariasParaMostrar = [];
-        let parLivreJaAdicionado = false; // 🆕 FLAG NOVA
+        let parLivreJaAdicionado = false;
         
         vagosEnfermarias.forEach(leitoVago => {
             const numeroLeito = parseInt(leitoVago.leito);
             const leitoIrmao = window.getLeitoIrmao(hospitalId, numeroLeito);
             
             if (!leitoIrmao) {
-                // Não tem irmão, pode mostrar
                 enfermariasParaMostrar.push(leitoVago);
             } else {
-                // Tem irmão, verificar status
                 const dadosIrmao = hospital.leitos.find(l => parseInt(l.leito) === leitoIrmao);
                 
                 if (!dadosIrmao || dadosIrmao.status === 'Vago' || dadosIrmao.status === 'vago') {
-                    // ✅ IRMÃO VAGO: Mostrar APENAS 1 par livre
                     if (!parLivreJaAdicionado) {
                         enfermariasParaMostrar.push(leitoVago);
                         parLivreJaAdicionado = true;
-                        console.log(`[CARDS V6.1] Par livre: leitos ${numeroLeito}-${leitoIrmao} (1º par livre)`);
-                    } else {
-                        console.log(`[CARDS V6.1] Par ${numeroLeito}-${leitoIrmao} OCULTO (já tem 1 par livre)`);
                     }
                 } else {
-                    // ✅ IRMÃO OCUPADO: Verificar isolamento
                     const isolamentoIrmao = dadosIrmao.isolamento || '';
                     
-                    // ✅ CORREÇÃO: Bloquear APENAS isolamentos reais (não "Não Isolamento")
-                    if (isolamentoIrmao === 'Isolamento de Contato' || isolamentoIrmao === 'Isolamento Respiratório') {
-                        // ❌ BLOQUEADO por isolamento
-                        console.log(`[CARDS V6.1] Leito ${numeroLeito} BLOQUEADO - Irmão ${leitoIrmao} com isolamento`);
+                    if (isolamentoIrmao === 'Isolamento de Contato' || isolamentoIrmao === 'Isolamento Respiratorio') {
+                        // Bloqueado
                     } else {
-                        // ✅ MOSTRAR (vago com restrição de gênero)
                         enfermariasParaMostrar.push(leitoVago);
-                        const generoIrmao = dadosIrmao.genero || 'desconhecido';
-                        console.log(`[CARDS V6.1] Leito ${numeroLeito} OK - Restrição ${generoIrmao}`);
                     }
                 }
             }
         });
         
         vagosParaMostrar = [...apartamentoParaMostrar, ...enfermariasParaMostrar];
-        console.log('[CARDS V6.1] Tipos Fixos: ' + apartamentoParaMostrar.length + ' apto + ' + enfermariasParaMostrar.length + ' enf');
+        console.log('[CARDS V7.0] Tipos Fixos: ' + apartamentoParaMostrar.length + ' apto + ' + enfermariasParaMostrar.length + ' enf');
         
     } else {
-        // Fallback: mostrar 1 vago
         vagosParaMostrar = leitosVagos.length > 0 ? [leitosVagos[0]] : [];
     }
     
-    // V7.0: Juntar: OCUPADOS primeiro, depois RESERVADOS, depois VAGOS FILTRADOS
-    const leitosOrdenados = [...leitosOcupados, ...leitosReservados, ...vagosParaMostrar];
+    // V7.0: RENDERIZAR NA ORDEM - OCUPADOS > RESERVADOS > VAGOS
+    let cardsRenderizados = 0;
     
-    console.log('[CARDS V7.0] Total de leitos a exibir:', leitosOrdenados.length);
-    console.log('[CARDS V7.0] Ocupados:', leitosOcupados.length, '| Reservados:', leitosReservados.length, '| Vagos filtrados:', vagosParaMostrar.length);
-    
-    leitosOrdenados.forEach((leito, index) => {
-        // Calcular posicao DENTRO DO TIPO (H2/H4) ou geral (hibridos)
+    // 1. OCUPADOS
+    leitosOcupados.forEach((leito, index) => {
         let posicaoOcupacao = 1;
         
-        if (leito.status === 'Vago' || leito.status === 'vago') {
-            posicaoOcupacao = 0; // Vagos nao tem posicao
-        } else if (hospitalId === 'H2' || hospitalId === 'H4') {
-            // TIPOS FIXOS: posicao dentro do tipo
+        if (isTiposFixos) {
             const tipoLeito = (leito.tipo || '').toUpperCase();
             const isApto = tipoLeito.includes('APTO') || tipoLeito === 'APARTAMENTO';
             
-            // Filtrar ocupados do MESMO TIPO
             const ocupadosMesmoTipo = leitosOcupados.filter(l => {
                 const tipoL = (l.tipo || '').toUpperCase();
                 const isAptoL = tipoL.includes('APTO') || tipoL === 'APARTAMENTO';
                 return isApto === isAptoL;
             });
             
-            // Encontrar posicao deste leito dentro do tipo
             posicaoOcupacao = ocupadosMesmoTipo.findIndex(l => l.leito === leito.leito) + 1;
         } else {
-            // HIBRIDOS: posicao geral
-            posicaoOcupacao = leitosOcupados.findIndex(l => l.leito === leito.leito) + 1;
+            posicaoOcupacao = index + 1;
         }
         
         const card = createCard(leito, hospitalNome, hospitalId, posicaoOcupacao);
         container.appendChild(card);
+        cardsRenderizados++;
     });
     
-    logInfo(`${leitosOrdenados.length} cards renderizados para ${hospitalNome} (${leitosOcupados.length} ocupados + ${leitosReservados.length} reservados + ${vagosParaMostrar.length} vagos filtrados)`);
+    // 2. RESERVADOS
+    reservasHospital.forEach(reserva => {
+        const card = createCardReservado(reserva, hospitalNome, hospitalId);
+        container.appendChild(card);
+        cardsRenderizados++;
+    });
+    
+    // 3. VAGOS
+    vagosParaMostrar.forEach(leito => {
+        const card = createCard(leito, hospitalNome, hospitalId, 0);
+        container.appendChild(card);
+        cardsRenderizados++;
+    });
+    
+    logInfo(cardsRenderizados + ' cards renderizados para ' + hospitalNome + ' (' + leitosOcupados.length + ' ocupados + ' + reservasHospital.length + ' reservados + ' + vagosParaMostrar.length + ' vagos)');
 };
 
-// =================== FUNÇÃO: BADGE DE ISOLAMENTO ===================
+// =================== FUNCAO: BADGE DE ISOLAMENTO ===================
 function getBadgeIsolamento(isolamento) {
-    if (!isolamento || isolamento === 'Não Isolamento') {
-        return { cor: '#b2adaa', texto: 'Não Isol', textoCor: '#ffffff' };
+    if (!isolamento || isolamento === 'Nao Isolamento') {
+        return { cor: '#b2adaa', texto: 'Nao Isol', textoCor: '#ffffff' };
     } else if (isolamento === 'Isolamento de Contato') {
         return { cor: '#f59a1d', texto: 'Contato', textoCor: '#131b2e' };
-    } else if (isolamento === 'Isolamento Respiratório') {
-        return { cor: '#c86420', texto: 'Respiratório', textoCor: '#ffffff' };
+    } else if (isolamento === 'Isolamento Respiratorio') {
+        return { cor: '#c86420', texto: 'Respiratorio', textoCor: '#ffffff' };
     }
-    return getBadgeIsolamento('Não Isolamento');
+    return getBadgeIsolamento('Nao Isolamento');
 }
 
-// =================== FUNÇÃO: BADGE DE GÊNERO ===================
+// =================== FUNCAO: BADGE DE GENERO ===================
 function getBadgeGenero(sexo) {
     if (sexo === 'Masculino') {
         return {
@@ -483,10 +387,10 @@ function getBadgeGenero(sexo) {
 function getBadgeDiretivas(diretivas) {
     if (diretivas === 'Sim') {
         return { cor: 'rgba(96,165,250,0.2)', borda: '#60a5fa', textoCor: '#60a5fa', texto: 'Sim' };
-    } else if (diretivas === 'Não') {
-        return { cor: 'rgba(60,58,62,0.2)', borda: '#3c3a3e', textoCor: '#b2adaa', texto: 'Não' };
+    } else if (diretivas === 'Nao') {
+        return { cor: 'rgba(60,58,62,0.2)', borda: '#3c3a3e', textoCor: '#b2adaa', texto: 'Nao' };
     }
-    return { cor: 'rgba(96,165,250,0.2)', borda: '#60a5fa', textoCor: '#60a5fa', texto: 'Não se aplica' };
+    return { cor: 'rgba(96,165,250,0.2)', borda: '#60a5fa', textoCor: '#60a5fa', texto: 'Nao se aplica' };
 }
 
 // DETERMINAR TIPO REAL DO LEITO
@@ -499,38 +403,31 @@ function getTipoLeito(leito, hospitalId) {
     
     const numeroLeito = parseInt(leito.leito);
     
-    // SANTA CLARA (H4): TIPOS FIXOS baseado na planilha
-    // Leitos 1-27: ENFERMARIA | Leitos 28-57: APTO
-    // NÃO é híbrido - tipo está hardcoded na planilha (coluna C)
     if (hospitalId === 'H4') {
-        // Sempre usar tipo da planilha para Santa Clara
-        if (leito.tipo && leito.tipo !== 'Hibrido' && leito.tipo !== 'Híbrido') {
+        if (leito.tipo && leito.tipo !== 'Hibrido' && leito.tipo !== 'Hibrido') {
             return leito.tipo;
         }
-        // Fallback baseado no número do leito
         return numeroLeito <= 27 ? 'ENFERMARIA' : 'APTO';
     }
     
-    // VAGOS de híbridos: "Híbrido"
     const isVago = leito.status === 'Vago' || leito.status === 'vago';
     if (window.HOSPITAIS_HIBRIDOS.includes(hospitalId) && isVago) {
-        return 'Híbrido';
+        return 'Hibrido';
     }
     
-    // OCUPADOS de híbridos: usar categoria
     const isOcupado = leito.status === 'Em uso' || leito.status === 'ocupado' || leito.status === 'Ocupado';
     if (window.HOSPITAIS_HIBRIDOS.includes(hospitalId) && isOcupado) {
-        if (categoriaValue && categoriaValue.trim() !== '' && categoriaValue !== 'Híbrido') {
+        if (categoriaValue && categoriaValue.trim() !== '' && categoriaValue !== 'Hibrido') {
             return categoriaValue;
         }
-        if (leito.tipo && leito.tipo !== 'Híbrido') return leito.tipo;
+        if (leito.tipo && leito.tipo !== 'Hibrido') return leito.tipo;
         return 'Apartamento';
     }
     
     return leito.tipo || 'Apartamento';
 }
 
-// FORMATAÇÃO DO TIPO (SEM EMOJI)
+// FORMATACAO DO TIPO (SEM EMOJI)
 function formatarTipoTexto(tipo) {
     const tipoUpper = (tipo || '').toUpperCase().trim();
     
@@ -542,14 +439,14 @@ function formatarTipoTexto(tipo) {
         case 'ENF':
             return 'Enfermaria';
         case 'HIBRIDO':
-        case 'HÍBRIDO':
-            return 'Híbrido';
+        case 'HIBRIDO':
+            return 'Hibrido';
         default:
             return tipo.charAt(0).toUpperCase() + tipo.slice(1).toLowerCase();
     }
 }
 
-// FORMATAR MATRÍCULA COM HÍFEN NO ÚLTIMO DÍGITO
+// FORMATAR MATRICULA COM HIFEN NO ULTIMO DIGITO
 function formatarMatriculaExibicao(matricula) {
     if (!matricula || matricula === '—') return '—';
     const mat = String(matricula).replace(/\D/g, '');
@@ -558,11 +455,10 @@ function formatarMatriculaExibicao(matricula) {
     return mat.slice(0, -1) + '-' + mat.slice(-1);
 }
 
-// VALIDAÇÃO DE BLOQUEIO CRUZ AZUL E SANTA CLARA (LEITOS IRMÃOS)
+// VALIDACAO DE BLOQUEIO CRUZ AZUL E SANTA CLARA (LEITOS IRMAOS)
 function validarAdmissaoCruzAzul(leitoNumero, generoNovo) {
     const hospitalId = window.currentHospital;
     
-    // ✅ Verificar se é H2 ou H4 e se o leito tem irmão
     const isCruzAzul = (hospitalId === 'H2') && (leitoNumero in window.CRUZ_AZUL_IRMAOS);
     const isSantaClara = (hospitalId === 'H4') && (leitoNumero in window.SANTA_CLARA_IRMAOS);
     
@@ -570,12 +466,10 @@ function validarAdmissaoCruzAzul(leitoNumero, generoNovo) {
         return { permitido: true };
     }
     
-    // ✅ Usar mapa correto
     const mapaIrmaos = isCruzAzul ? window.CRUZ_AZUL_IRMAOS : window.SANTA_CLARA_IRMAOS;
     const leitoIrmao = mapaIrmaos[leitoNumero];
     if (!leitoIrmao) return { permitido: true };
     
-    // ✅ Buscar no hospital correto
     const leitosHospital = window.hospitalData[hospitalId]?.leitos || [];
     const dadosLeitoIrmao = leitosHospital.find(l => l.leito == leitoIrmao);
     
@@ -584,10 +478,10 @@ function validarAdmissaoCruzAzul(leitoNumero, generoNovo) {
     }
     
     const isolamentoIrmao = dadosLeitoIrmao.isolamento || '';
-    if (isolamentoIrmao && isolamentoIrmao !== 'Não Isolamento' && isolamentoIrmao !== '') {
+    if (isolamentoIrmao && isolamentoIrmao !== 'Nao Isolamento' && isolamentoIrmao !== '') {
         return {
             permitido: false,
-            motivo: `Leito bloqueado! O leito ${leitoIrmao} está com isolamento: ${isolamentoIrmao}`,
+            motivo: 'Leito bloqueado! O leito ' + leitoIrmao + ' esta com isolamento: ' + isolamentoIrmao,
             tipo: 'isolamento'
         };
     }
@@ -596,7 +490,7 @@ function validarAdmissaoCruzAzul(leitoNumero, generoNovo) {
     if (generoIrmao && generoNovo && generoIrmao !== generoNovo) {
         return {
             permitido: false,
-            motivo: `Leito bloqueado! O leito ${leitoIrmao} está ocupado por paciente do gênero ${generoIrmao}`,
+            motivo: 'Leito bloqueado! O leito ' + leitoIrmao + ' esta ocupado por paciente do genero ' + generoIrmao,
             tipo: 'genero'
         };
     }
@@ -604,15 +498,196 @@ function validarAdmissaoCruzAzul(leitoNumero, generoNovo) {
     return { permitido: true };
 }
 
+// =================== V7.0: CRIAR CARD DE RESERVA ===================
+function createCardReservado(reserva, hospitalNome, hospitalId) {
+    const card = document.createElement('div');
+    card.className = 'card card-reservado';
+    card.style.cssText = 'background: #1a1f2e; border-radius: 12px; padding: 18px; color: #ffffff; box-shadow: 0 4px 6px rgba(0,0,0,0.1); font-family: "Poppins", sans-serif; border: 2px solid ' + COR_RESERVADO_BORDA + ' !important;';
+    
+    const tipo = reserva.tipo || 'Apartamento';
+    const identificacaoLeito = reserva.identificacaoLeito || '—';
+    const isolamento = reserva.isolamento || 'Nao Isolamento';
+    const genero = reserva.genero || '';
+    const iniciais = reserva.iniciais || '—';
+    const matricula = reserva.matricula || '';
+    const idade = reserva.idade || null;
+    
+    const badgeIsolamento = getBadgeIsolamento(isolamento);
+    const badgeGenero = getBadgeGenero(genero);
+    const matriculaFormatada = formatarMatriculaExibicao(matricula);
+    
+    const isHibrido = window.HOSPITAIS_HIBRIDOS.includes(hospitalId);
+    
+    card.innerHTML = `
+        <!-- HEADER: HOSPITAL -->
+        <div class="card-header" style="text-align: center; margin-bottom: 12px; padding-bottom: 8px; font-family: 'Poppins', sans-serif;">
+            <div style="font-size: 9px; color: rgba(255,255,255,0.7); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px;">HOSPITAL</div>
+            <div style="font-size: 16px; color: #ffffff; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">${hospitalNome}</div>
+            ${isHibrido ? '<div style="font-size: 10px; color: rgba(255,255,255,0.6); font-weight: 600; margin-top: 2px;">Leito Hibrido</div>' : ''}
+        </div>
+
+        <!-- LINHA 1: LEITO | TIPO | STATUS RESERVADO -->
+        <div class="card-row" style="display: grid; grid-template-columns: 100px 1fr 1fr; gap: 8px; margin-bottom: 10px; font-family: 'Poppins', sans-serif;">
+            <div class="card-box" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 8px; min-height: 45px; display: flex; flex-direction: column; justify-content: center;">
+                <div class="box-label" style="font-size: 9px; color: rgba(255,255,255,0.8); font-weight: 700; text-transform: uppercase; margin-bottom: 3px; letter-spacing: 0.5px;">LEITO</div>
+                <div class="box-value" style="color: #ffffff; font-weight: 700; font-size: 11px; line-height: 1.2;">${identificacaoLeito}</div>
+            </div>
+            
+            <div class="card-box" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 8px; min-height: 45px; display: flex; flex-direction: column; justify-content: center;">
+                <div class="box-label" style="font-size: 9px; color: rgba(255,255,255,0.8); font-weight: 700; text-transform: uppercase; margin-bottom: 3px; letter-spacing: 0.5px;">TIPO</div>
+                <div class="box-value" style="color: #ffffff; font-weight: 700; font-size: 11px; line-height: 1.2;">${formatarTipoTexto(tipo)}</div>
+            </div>
+            
+            <div class="status-badge" style="background: ${COR_RESERVADO_BG}; color: ${COR_RESERVADO_TEXTO}; padding: 12px 6px; border-radius: 6px; font-weight: 800; text-transform: uppercase; text-align: center; font-size: 11px; letter-spacing: 0.5px; min-height: 45px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                <div class="box-label" style="font-size: 9px; font-weight: 700; text-transform: uppercase; margin-bottom: 3px; letter-spacing: 0.5px; color: ${COR_RESERVADO_TEXTO};">STATUS</div>
+                <div class="box-value" style="font-weight: 700; font-size: 11px; line-height: 1.2; color: ${COR_RESERVADO_TEXTO};">Reservado</div>
+            </div>
+        </div>
+
+        <!-- LINHA 2: GENERO | ISOLAMENTO | PREV ALTA (cinza) -->
+        <div class="card-row" style="display: grid; grid-template-columns: 100px 1fr 1fr; gap: 8px; margin-bottom: 10px; font-family: 'Poppins', sans-serif;">
+            <div class="card-box" style="background: ${badgeGenero.cor}; border: 1px solid ${badgeGenero.borda}; border-radius: 6px; padding: 8px; min-height: 45px; display: flex; flex-direction: column; justify-content: center;">
+                <div class="box-label" style="font-size: 9px; color: ${badgeGenero.textoCor}; font-weight: 700; text-transform: uppercase; margin-bottom: 3px; letter-spacing: 0.5px;">GENERO</div>
+                <div class="box-value" style="color: ${badgeGenero.textoCor}; font-weight: 700; font-size: 11px; line-height: 1.2;">${badgeGenero.texto}</div>
+            </div>
+            
+            <div class="card-box" style="background: ${badgeIsolamento.cor}; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; padding: 8px; min-height: 45px; display: flex; flex-direction: column; justify-content: center;">
+                <div class="box-label" style="font-size: 9px; color: ${badgeIsolamento.textoCor}; font-weight: 700; text-transform: uppercase; margin-bottom: 3px; letter-spacing: 0.5px;">ISOLAMENTO</div>
+                <div class="box-value" style="color: ${badgeIsolamento.textoCor}; font-weight: 700; font-size: 11px; line-height: 1.2;">${badgeIsolamento.texto}</div>
+            </div>
+            
+            <div class="card-box prev-alta" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 8px; min-height: 45px; display: flex; flex-direction: column; justify-content: center; opacity: 0.5;">
+                <div class="box-label" style="font-size: 9px; color: rgba(255,255,255,0.5); font-weight: 700; text-transform: uppercase; margin-bottom: 3px; letter-spacing: 0.5px;">PREVISAO ALTA</div>
+                <div class="box-value" style="color: rgba(255,255,255,0.5); font-weight: 700; font-size: 11px; line-height: 1.2;">—</div>
+            </div>
+        </div>
+
+        <!-- LINHA DIVISORIA -->
+        <div class="divider" style="height: 2px; background: ${COR_RESERVADO_BG}; margin: 12px 0;"></div>
+
+        <!-- SECAO PESSOA: CIRCULO AMARELO + 4 CELULAS -->
+        <div class="card-row-pessoa" style="display: grid; grid-template-columns: 100px 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 8px; margin-bottom: 10px; font-family: 'Poppins', sans-serif;">
+            <div class="pessoa-circle" style="grid-row: span 2; grid-column: 1; width: 100px; height: 100px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: ${COR_RESERVADO_BG};">
+                <svg class="pessoa-icon" viewBox="0 0 24 24" fill="none" stroke="${COR_RESERVADO_TEXTO}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 55%; height: 55%;">
+                    <circle cx="12" cy="8" r="4"></circle>
+                    <path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path>
+                </svg>
+            </div>
+
+            <div class="small-cell" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 6px; display: flex; flex-direction: column; justify-content: center; min-height: 46px;">
+                <div class="box-label" style="font-size: 8px; color: rgba(255,255,255,0.8); font-weight: 700; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.5px;">INICIAIS</div>
+                <div class="box-value" style="color: #ffffff; font-weight: 700; font-size: 10px; line-height: 1.2;">${iniciais}</div>
+            </div>
+
+            <div class="small-cell" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 6px; display: flex; flex-direction: column; justify-content: center; min-height: 46px;">
+                <div class="box-label" style="font-size: 8px; color: rgba(255,255,255,0.8); font-weight: 700; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.5px;">MATRICULA</div>
+                <div class="box-value" style="color: #ffffff; font-weight: 700; font-size: 10px; line-height: 1.2;">${matriculaFormatada}</div>
+            </div>
+
+            <div class="small-cell" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 6px; display: flex; flex-direction: column; justify-content: center; min-height: 46px;">
+                <div class="box-label" style="font-size: 8px; color: rgba(255,255,255,0.8); font-weight: 700; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.5px;">IDADE</div>
+                <div class="box-value" style="color: #ffffff; font-weight: 700; font-size: 10px; line-height: 1.2;">${idade ? idade + ' anos' : '—'}</div>
+            </div>
+
+            <div class="small-cell" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 6px; display: flex; flex-direction: column; justify-content: center; min-height: 46px; opacity: 0.5;">
+                <div class="box-label" style="font-size: 8px; color: rgba(255,255,255,0.5); font-weight: 700; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.5px;">REGIAO</div>
+                <div class="box-value" style="color: rgba(255,255,255,0.5); font-weight: 700; font-size: 10px; line-height: 1.2;">—</div>
+            </div>
+        </div>
+
+        <!-- SECAO CLINICA (CINZA - RESERVA) -->
+        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; margin-bottom: 12px; opacity: 0.5;">
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 8px;">
+                <div style="text-align: center;">
+                    <div style="font-size: 8px; color: rgba(255,255,255,0.5); font-weight: 700; text-transform: uppercase; margin-bottom: 2px;">PPS</div>
+                    <div style="color: rgba(255,255,255,0.5); font-weight: 700; font-size: 10px;">—</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 8px; color: rgba(255,255,255,0.5); font-weight: 700; text-transform: uppercase; margin-bottom: 2px;">SPICT-BR</div>
+                    <div style="color: rgba(255,255,255,0.5); font-weight: 700; font-size: 10px;">—</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 8px; color: rgba(255,255,255,0.5); font-weight: 700; text-transform: uppercase; margin-bottom: 2px;">DIRETIVAS</div>
+                    <div style="color: rgba(255,255,255,0.5); font-weight: 700; font-size: 10px;">—</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 8px; color: rgba(255,255,255,0.5); font-weight: 700; text-transform: uppercase; margin-bottom: 2px;">CONCESSOES</div>
+                    <div style="color: rgba(255,255,255,0.5); font-weight: 700; font-size: 10px;">—</div>
+                </div>
+            </div>
+            <div style="text-align: center; font-size: 9px; color: rgba(255,255,255,0.4); font-style: italic;">
+                Reserva - dados completos na admissao
+            </div>
+        </div>
+
+        <!-- FOOTER: BOTOES -->
+        <div class="card-footer" style="display: flex; justify-content: space-between; align-items: center; padding-top: 10px;">
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+                <div class="info-item" style="display: flex; flex-direction: column;">
+                    <div class="info-label" style="font-size: 8px; color: rgba(255,255,255,0.5); font-weight: 600; text-transform: uppercase; margin-bottom: 1px;">STATUS</div>
+                    <div class="info-value" style="color: ${COR_RESERVADO_BG}; font-weight: 700; font-size: 9px;">RESERVADO</div>
+                </div>
+            </div>
+            
+            <button class="btn-action btn-cancelar-reserva" 
+                    data-action="cancelar-reserva" 
+                    data-hospital="${hospitalId}"
+                    data-identificacao="${identificacaoLeito}"
+                    data-matricula="${matricula}"
+                    style="padding: 10px 18px; 
+                           background: #c86420; 
+                           color: #ffffff; 
+                           border: none; 
+                           border-radius: 6px; 
+                           cursor: pointer; 
+                           font-weight: 800; 
+                           text-transform: uppercase; 
+                           font-size: 11px; 
+                           font-family: 'Poppins', sans-serif;
+                           transition: all 0.2s ease; 
+                           letter-spacing: 0.5px; 
+                           white-space: nowrap; 
+                           flex-shrink: 0;">
+                CANCELAR RESERVA
+            </button>
+        </div>
+    `;
+
+    // Event listener para cancelar reserva
+    const cancelarBtn = card.querySelector('[data-action="cancelar-reserva"]');
+    if (cancelarBtn) {
+        cancelarBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            
+            if (!confirm('Deseja cancelar esta reserva?')) return;
+            
+            const hospital = cancelarBtn.dataset.hospital;
+            const identificacao = cancelarBtn.dataset.identificacao;
+            const matriculaReserva = cancelarBtn.dataset.matricula;
+            
+            const originalText = cancelarBtn.innerHTML;
+            showButtonLoading(cancelarBtn, 'CANCELANDO...');
+            
+            try {
+                await window.cancelarReserva(hospital, identificacao, matriculaReserva);
+                hideButtonLoading(cancelarBtn, originalText);
+                showSuccessMessage('Reserva cancelada com sucesso!');
+                await window.refreshAfterAction();
+            } catch (error) {
+                hideButtonLoading(cancelarBtn, originalText);
+                showErrorMessage('Erro ao cancelar reserva: ' + error.message);
+            }
+        });
+    }
+
+    return card;
+}
+
 // =================== CRIAR CARD INDIVIDUAL ===================
 function createCard(leito, hospitalNome, hospitalId, posicaoOcupacao) {
     const card = document.createElement('div');
     card.className = 'card';
     card.style.cssText = 'background: #1a1f2e; border-radius: 12px; padding: 18px; color: #ffffff; box-shadow: 0 4px 6px rgba(0,0,0,0.1); font-family: "Poppins", sans-serif;';
-    
-    // V7.0: Verificar se tem reserva (anexada pelo renderCards)
-    const reserva = leito._reserva || null;
-    const temReserva = !!reserva;
     
     // ADICIONAR BORDA LARANJA SE LEITO EXTRA
     const isExtra = window.isLeitoExtra(hospitalId, posicaoOcupacao);
@@ -628,44 +703,16 @@ function createCard(leito, hospitalNome, hospitalId, posicaoOcupacao) {
 
     const numeroLeito = parseInt(leito.leito);
     
-    // DEBUG - Santa Clara
-    if (hospitalId === 'H4') {
-        console.log('DEBUG H4 - Leito:', numeroLeito);
-        console.log('SANTA_CLARA_IRMAOS existe?', typeof window.SANTA_CLARA_IRMAOS);
-        console.log('SANTA_CLARA_IRMAOS:', window.SANTA_CLARA_IRMAOS);
-        console.log('Leito esta no mapa?', numeroLeito in window.SANTA_CLARA_IRMAOS);
-    }
-    
-    // Verificar diretamente nos mapas de irmaos (sem depender de funcao externa)
     const isCruzAzulEnfermaria = (hospitalId === 'H2') && (numeroLeito in window.CRUZ_AZUL_IRMAOS);
     const isSantaClaraEnfermaria = (hospitalId === 'H4') && (numeroLeito in window.SANTA_CLARA_IRMAOS);
-    
-    // DEBUG - Resultado da verificacao
-    if (hospitalId === 'H4') {
-        console.log('isSantaClaraEnfermaria:', isSantaClaraEnfermaria);
-    }
 
     if ((isCruzAzulEnfermaria || isSantaClaraEnfermaria) && (leito.status === 'Vago' || leito.status === 'vago')) {
-        // Usar mapa correto baseado no hospital
         const mapaIrmaos = isCruzAzulEnfermaria ? window.CRUZ_AZUL_IRMAOS : window.SANTA_CLARA_IRMAOS;
         const leitoIrmao = mapaIrmaos[numeroLeito];
         
-        // DEBUG
-        if (hospitalId === 'H4') {
-            console.log('Leito irmao encontrado:', leitoIrmao);
-        }
-        
         if (leitoIrmao) {
-            // Buscar no hospital correto
             const leitosHospital = window.hospitalData[hospitalId]?.leitos || [];
             const dadosLeitoIrmao = leitosHospital.find(l => l.leito == leitoIrmao);
-            
-            // DEBUG
-            if (hospitalId === 'H4') {
-                console.log('Dados do irmao:', dadosLeitoIrmao);
-                console.log('Status do irmao:', dadosLeitoIrmao?.status);
-                console.log('Genero do irmao:', dadosLeitoIrmao?.genero);
-            }
             
             if (dadosLeitoIrmao && (dadosLeitoIrmao.status === 'Em uso' || dadosLeitoIrmao.status === 'ocupado' || dadosLeitoIrmao.status === 'Ocupado')) {
                 const isolamentoIrmao = dadosLeitoIrmao.isolamento || '';
@@ -673,16 +720,11 @@ function createCard(leito, hospitalNome, hospitalId, posicaoOcupacao) {
                     bloqueadoPorIsolamento = true;
                     const identificacaoIrmao = dadosLeitoIrmao?.identificacaoLeito || 
                                                dadosLeitoIrmao?.identificacao_leito || 
-                                               `Leito ${leitoIrmao}`;
-                    motivoBloqueio = `Isolamento no ${identificacaoIrmao}`;
+                                               'Leito ' + leitoIrmao;
+                    motivoBloqueio = 'Isolamento no ' + identificacaoIrmao;
                 } else if (dadosLeitoIrmao.genero) {
                     bloqueadoPorGenero = true;
                     generoPermitido = dadosLeitoIrmao.genero;
-                    
-                    // DEBUG
-                    if (hospitalId === 'H4') {
-                        console.log('BLOQUEADO POR GENERO! generoPermitido:', generoPermitido);
-                    }
                 }
             }
         }
@@ -705,18 +747,8 @@ function createCard(leito, hospitalNome, hospitalId, posicaoOcupacao) {
         statusTexto = 'Ocupado';
     } else if (leito.status === 'Vago' || leito.status === 'vago') {
         isVago = true;
-        // V7.0: Verificar se tem reserva
-        if (temReserva) {
-            statusBgColor = '#f59a1d'; // Mesmo laranja do ocupado
-            statusTextColor = '#131b2e';
-            statusTexto = 'Reservado';
-        } else if (bloqueadoPorGenero) {
-            statusTexto = `Disp. ${generoPermitido === 'Masculino' ? 'Masc' : 'Fem'}`;
-            
-            // DEBUG
-            if (hospitalId === 'H4') {
-                console.log('STATUS FINAL:', statusTexto);
-            }
+        if (bloqueadoPorGenero) {
+            statusTexto = 'Disp. ' + (generoPermitido === 'Masculino' ? 'Masc' : 'Fem');
         }
     }
     
@@ -756,7 +788,7 @@ function createCard(leito, hospitalNome, hospitalId, posicaoOcupacao) {
     const badgeGenero = getBadgeGenero(sexo);
     const badgeDiretivas = getBadgeDiretivas(diretivas);
     
-    // DESNORMALIZAR CONCESSÕES E LINHAS
+    // DESNORMALIZAR CONCESSOES E LINHAS
     const concessoesRaw = Array.isArray(leito.concessoes) ? leito.concessoes : [];
     const concessoes = concessoesRaw.map(c => window.desnormalizarTexto(c));
     
@@ -770,48 +802,31 @@ function createCard(leito, hospitalNome, hospitalId, posicaoOcupacao) {
     
     const iniciais = isVago ? '—' : (nome ? String(nome).trim() : '—');
     
-    let ppsFormatado = pps ? `${pps}%` : '—';
+    let ppsFormatado = pps ? pps + '%' : '—';
     if (ppsFormatado !== '—' && !ppsFormatado.includes('%')) {
-        ppsFormatado = `${pps}%`;
+        ppsFormatado = pps + '%';
     }
     
-    const spictFormatado = spict === 'elegivel' ? 'Elegível' : 
-                          (spict === 'nao_elegivel' ? 'Não elegível' : '—');
+    const spictFormatado = spict === 'elegivel' ? 'Elegivel' : 
+                          (spict === 'nao_elegivel' ? 'Nao elegivel' : '—');
     
     const idSequencial = String(numeroLeito).padStart(2, '0');
     
     // AJUSTE: Leitos vagos mostram "-" se nao tiver identificacao
     let leitoDisplay;
     if (isVago) {
-        // Se vago E tem identificacao (caso dos irmaos) -> mostra numero
-        // Se vago SEM identificacao -> mostra "-"
         leitoDisplay = (identificacaoLeito && identificacaoLeito.trim()) 
             ? identificacaoLeito.trim().toUpperCase()
-            : '-';
+            : '—';
     } else {
-        // Se ocupado -> mostra identificacao ou "LEITO X"
         leitoDisplay = (identificacaoLeito && identificacaoLeito.trim()) 
             ? identificacaoLeito.trim().toUpperCase()
-            : `LEITO ${numeroLeito}`;
+            : 'LEITO ' + numeroLeito;
     }
     
     // COR DO CIRCULO PESSOA
     const circuloCor = '#60a5fa';
     const circuloStroke = isVago ? '#1a1f2e' : '#ffffff';
-    
-    // V7.0: Info de reserva para card
-    let reservaInfoHTML = '';
-    if (temReserva && reserva) {
-        const reservaIniciais = reserva.iniciais || '';
-        const reservaMatricula = formatarMatriculaExibicao(reserva.matricula || '');
-        const reservaIdade = reserva.idade || '';
-        reservaInfoHTML = `
-            <div style="background: rgba(96,165,250,0.15); border: 1px solid rgba(96,165,250,0.3); border-radius: 6px; padding: 8px; margin-bottom: 10px;">
-                <div style="font-size: 10px; color: #60a5fa; font-weight: 700; text-transform: uppercase; margin-bottom: 4px;">Reservado para:</div>
-                <div style="font-size: 11px; color: #ffffff;">${reservaIniciais} | Mat: ${reservaMatricula}${reservaIdade ? ` | ${reservaIdade} anos` : ''}</div>
-            </div>
-        `;
-    }
     
     // HTML do Card
     card.innerHTML = `
@@ -822,8 +837,6 @@ function createCard(leito, hospitalNome, hospitalId, posicaoOcupacao) {
             ${isHibrido ? '<div style="font-size: 10px; color: rgba(255,255,255,0.6); font-weight: 600; margin-top: 2px;">Leito Hibrido</div>' : ''}
             ${window.renderFlagOcupacao(hospitalId, leito.status, posicaoOcupacao, tipoReal)}
         </div>
-        
-        ${reservaInfoHTML}
 
         <!-- LINHA 1: LEITO | TIPO | STATUS -->
         <div class="card-row" style="display: grid; grid-template-columns: 100px 1fr 1fr; gap: 8px; margin-bottom: 10px; font-family: 'Poppins', sans-serif;">
@@ -840,7 +853,7 @@ function createCard(leito, hospitalNome, hospitalId, posicaoOcupacao) {
             <div class="status-badge" style="background: ${statusBgColor}; color: ${statusTextColor}; padding: 12px 6px; border-radius: 6px; font-weight: 800; text-transform: uppercase; text-align: center; font-size: 11px; letter-spacing: 0.5px; min-height: 45px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
                 <div class="box-label" style="font-size: 9px; font-weight: 700; text-transform: uppercase; margin-bottom: 3px; letter-spacing: 0.5px; color: ${statusTextColor};">STATUS</div>
                 <div class="box-value" style="font-weight: 700; font-size: 11px; line-height: 1.2; color: ${statusTextColor};">${statusTexto}</div>
-                ${motivoBloqueio ? `<div style="font-size: 8px; margin-top: 2px; color: ${statusTextColor};">${motivoBloqueio}</div>` : ''}
+                ${motivoBloqueio ? '<div style="font-size: 8px; margin-top: 2px; color: ' + statusTextColor + ';">' + motivoBloqueio + '</div>' : ''}
             </div>
         </div>
 
@@ -858,14 +871,14 @@ function createCard(leito, hospitalNome, hospitalId, posicaoOcupacao) {
             
             <div class="card-box prev-alta" style="background: #60a5fa; border: 1px solid rgba(96,165,250,0.5); border-radius: 6px; padding: 8px; min-height: 45px; display: flex; flex-direction: column; justify-content: center;">
                 <div class="box-label" style="font-size: 9px; color: #ffffff; font-weight: 700; text-transform: uppercase; margin-bottom: 3px; letter-spacing: 0.5px;">PREVISAO ALTA</div>
-                <div class="box-value" style="color: #ffffff; font-weight: 700; font-size: 11px; line-height: 1.2;">${previsaoAlta || '-'}</div>
+                <div class="box-value" style="color: #ffffff; font-weight: 700; font-size: 11px; line-height: 1.2;">${previsaoAlta || '—'}</div>
             </div>
         </div>
 
         <!-- LINHA DIVISORIA BRANCA SOLIDA -->
         <div class="divider" style="height: 2px; background: #ffffff; margin: 12px 0;"></div>
 
-        <!-- SEÇÃO PESSOA: CÍRCULO + 4 CÉLULAS -->
+        <!-- SECAO PESSOA: CIRCULO + 4 CELULAS -->
         <div class="card-row-pessoa" style="display: grid; grid-template-columns: 100px 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 8px; margin-bottom: 10px; font-family: 'Poppins', sans-serif;">
             <div class="pessoa-circle" style="grid-row: span 2; grid-column: 1; width: 100px; height: 100px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: ${circuloCor};">
                 <svg class="pessoa-icon" viewBox="0 0 24 24" fill="none" stroke="${circuloStroke}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 55%; height: 55%;">
@@ -880,7 +893,7 @@ function createCard(leito, hospitalNome, hospitalId, posicaoOcupacao) {
             </div>
 
             <div class="small-cell" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 6px; display: flex; flex-direction: column; justify-content: center; min-height: 46px;">
-                <div class="box-label" style="font-size: 8px; color: rgba(255,255,255,0.8); font-weight: 700; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.5px;">MATRÍCULA</div>
+                <div class="box-label" style="font-size: 8px; color: rgba(255,255,255,0.8); font-weight: 700; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.5px;">MATRICULA</div>
                 <div class="box-value" style="color: #ffffff; font-weight: 700; font-size: 10px; line-height: 1.2;" data-matricula="${matricula}">${matriculaFormatada}</div>
             </div>
 
@@ -890,120 +903,78 @@ function createCard(leito, hospitalNome, hospitalId, posicaoOcupacao) {
             </div>
 
             <div class="small-cell" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 6px; display: flex; flex-direction: column; justify-content: center; min-height: 46px;">
-                <div class="box-label" style="font-size: 8px; color: rgba(255,255,255,0.8); font-weight: 700; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.5px;">REGIÃO</div>
+                <div class="box-label" style="font-size: 8px; color: rgba(255,255,255,0.8); font-weight: 700; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.5px;">REGIAO</div>
                 <div class="box-value" style="color: #ffffff; font-weight: 700; font-size: 10px; line-height: 1.2;">${regiao || '—'}</div>
             </div>
         </div>
 
-        <!-- LINHA 3: PPS | SPICT-BR | DIRETIVAS -->
-        <div class="card-row" style="display: grid; grid-template-columns: 100px 1fr 1fr; gap: 8px; margin-bottom: 12px; font-family: 'Poppins', sans-serif;">
-            <div class="card-box" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 8px; min-height: 45px; display: flex; flex-direction: column; justify-content: center;">
-                <div class="box-label" style="font-size: 9px; color: rgba(255,255,255,0.8); font-weight: 700; text-transform: uppercase; margin-bottom: 3px; letter-spacing: 0.5px;">PPS</div>
-                <div class="box-value" style="color: #ffffff; font-weight: 700; font-size: 11px; line-height: 1.2;">${ppsFormatado}</div>
-            </div>
-            
-            <div class="card-box" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 8px; min-height: 45px; display: flex; flex-direction: column; justify-content: center;">
-                <div class="box-label" style="font-size: 9px; color: rgba(255,255,255,0.8); font-weight: 700; text-transform: uppercase; margin-bottom: 3px; letter-spacing: 0.5px;">SPICT-BR</div>
-                <div class="box-value" style="color: #ffffff; font-weight: 700; font-size: 11px; line-height: 1.2;">${spictFormatado}</div>
-            </div>
-            
-            <div class="card-box" style="background: ${badgeDiretivas.cor}; border: 1px solid ${badgeDiretivas.borda}; border-radius: 6px; padding: 8px; min-height: 45px; display: flex; flex-direction: column; justify-content: center;">
-                <div class="box-label" style="font-size: 9px; color: ${badgeDiretivas.textoCor}; font-weight: 700; text-transform: uppercase; margin-bottom: 3px; letter-spacing: 0.5px;">DIRETIVAS</div>
-                <div class="box-value" style="color: ${badgeDiretivas.textoCor}; font-weight: 700; font-size: 11px; line-height: 1.2;">${badgeDiretivas.texto}</div>
-            </div>
-        </div>
-
-        <!-- CONCESSÕES -->
-        <div class="card-section" style="margin-bottom: 15px; font-family: 'Poppins', sans-serif;">
-            <div class="section-header" style="background: #60a5fa; color: #ffffff; font-size: 10px; padding: 6px 8px; border-radius: 4px; margin-bottom: 6px; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px;">
-                CONCESSÕES PREVISTAS NA ALTA
-            </div>
-            <div class="chips-container" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); display: flex; flex-wrap: wrap; gap: 4px; min-height: 24px; border-radius: 6px; padding: 8px;">
-                ${(concessoes && concessoes.length > 0) 
-                    ? concessoes.map(concessao => `<span class="chip" style="font-size: 9px; background: rgba(96,165,250,0.2); border: 1px solid rgba(96,165,250,0.4); color: #60a5fa; padding: 3px 8px; border-radius: 10px; font-weight: 700; font-family: 'Poppins', sans-serif;">${concessao}</span>`).join('') 
-                    : '<span style="color: rgba(255,255,255,0.7); font-size: 10px;">Nenhuma</span>'
-                }
-            </div>
-        </div>
-
-        <!-- LINHAS DE CUIDADO -->
-        <div class="card-section" style="margin-bottom: 15px; font-family: 'Poppins', sans-serif;">
-            <div class="section-header" style="background: #60a5fa; color: #ffffff; font-size: 10px; padding: 6px 8px; border-radius: 4px; margin-bottom: 6px; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px;">
-                LINHAS DE CUIDADO
-            </div>
-            <div class="chips-container" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); display: flex; flex-wrap: wrap; gap: 4px; min-height: 24px; border-radius: 6px; padding: 8px;">
-                ${(linhas && linhas.length > 0) 
-                    ? linhas.map(linha => `<span class="chip" style="font-size: 9px; background: rgba(96,165,250,0.2); border: 1px solid rgba(96,165,250,0.4); color: #60a5fa; padding: 3px 8px; border-radius: 10px; font-weight: 700; font-family: 'Poppins', sans-serif;">${linha}</span>`).join('') 
-                    : '<span style="color: rgba(255,255,255,0.7); font-size: 10px;">Nenhuma</span>'
-                }
-            </div>
-        </div>
-
-        <!-- ANOTAÇÕES -->
-        <div class="card-section" style="margin-bottom: 15px; font-family: 'Poppins', sans-serif;">
-            <div class="section-header" style="background: #60a5fa; color: #ffffff; font-size: 10px; padding: 6px 8px; border-radius: 4px; margin-bottom: 6px; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px;">
-                ANOTAÇÕES
-            </div>
-            <div class="anotacoes-container" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 8px; min-height: 40px;">
-                ${(leito.anotacoes && leito.anotacoes.trim()) 
-                    ? `<span style="color: rgba(255,255,255,0.9); font-size: 11px; line-height: 1.6; font-family: 'Poppins', sans-serif; white-space: pre-wrap;">${leito.anotacoes}</span>`
-                    : '<span style="color: rgba(255,255,255,0.5); font-size: 10px; font-style: italic;">Sem anotações</span>'
-                }
-            </div>
-        </div>
-
-        <!-- FOOTER -->
-        <div class="card-footer" style="display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.05); gap: 10px; font-family: 'Poppins', sans-serif;">
-            <div class="card-info" style="display: flex; gap: 8px; flex-wrap: wrap; flex: 1;">
-                ${!isVago && admissao ? `
-                <div class="info-item" style="display: flex; flex-direction: column; opacity: 0.5;">
-                    <div class="info-label" style="font-size: 8px; color: rgba(255,255,255,0.5); font-weight: 600; text-transform: uppercase; margin-bottom: 1px;">ADMISSÃO</div>
-                    <div class="info-value" style="color: rgba(255,255,255,0.6); font-weight: 600; font-size: 9px;">${formatarDataHora(admissao)}</div>
+        <!-- SECAO CLINICA -->
+        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; margin-bottom: 12px;">
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 8px;">
+                <div style="text-align: center;">
+                    <div style="font-size: 8px; color: rgba(255,255,255,0.6); font-weight: 700; text-transform: uppercase; margin-bottom: 2px;">PPS</div>
+                    <div style="color: #ffffff; font-weight: 700; font-size: 10px;">${ppsFormatado}</div>
                 </div>
-                ` : ''}
+                <div style="text-align: center;">
+                    <div style="font-size: 8px; color: rgba(255,255,255,0.6); font-weight: 700; text-transform: uppercase; margin-bottom: 2px;">SPICT-BR</div>
+                    <div style="color: #ffffff; font-weight: 700; font-size: 10px;">${spictFormatado}</div>
+                </div>
+                <div style="text-align: center; border-left: 1px solid rgba(255,255,255,0.1); border-right: 1px solid rgba(255,255,255,0.1);">
+                    <div style="font-size: 8px; color: rgba(255,255,255,0.6); font-weight: 700; text-transform: uppercase; margin-bottom: 2px;">DIRETIVAS</div>
+                    <div style="background: ${badgeDiretivas.cor}; border: 1px solid ${badgeDiretivas.borda}; color: ${badgeDiretivas.textoCor}; padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: 600; display: inline-block;">${badgeDiretivas.texto}</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 8px; color: rgba(255,255,255,0.6); font-weight: 700; text-transform: uppercase; margin-bottom: 2px;">CONCESSOES</div>
+                    <div style="color: #ffffff; font-weight: 700; font-size: 10px;">${concessoes.length > 0 ? concessoes.length : '—'}</div>
+                </div>
+            </div>
+            
+            ${concessoes.length > 0 ? '<div style="font-size: 9px; color: rgba(255,255,255,0.6); margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.1);">' + concessoes.slice(0, 3).join(', ') + (concessoes.length > 3 ? ' (+' + (concessoes.length - 3) + ')' : '') + '</div>' : ''}
+            
+            ${linhas.length > 0 ? '<div style="font-size: 9px; color: #60a5fa; margin-top: 4px;">Linhas: ' + linhas.slice(0, 2).join(', ') + (linhas.length > 2 ? ' (+' + (linhas.length - 2) + ')' : '') + '</div>' : ''}
+        </div>
+
+        <!-- FOOTER: INFO + BOTOES V7.0 -->
+        <div class="card-footer" style="display: flex; justify-content: space-between; align-items: center; padding-top: 10px;">
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+                ${!isVago && admissao ? '<div class="info-item" style="display: flex; flex-direction: column; opacity: 0.5;"><div class="info-label" style="font-size: 8px; color: rgba(255,255,255,0.5); font-weight: 600; text-transform: uppercase; margin-bottom: 1px;">ADMISSAO</div><div class="info-value" style="color: rgba(255,255,255,0.6); font-weight: 600; font-size: 9px;">' + formatarDataHora(admissao) + '</div></div>' : ''}
                 
-                ${!isVago && tempoInternacao ? `
-                <div class="info-item" style="display: flex; flex-direction: column; opacity: 0.5;">
-                    <div class="info-label" style="font-size: 8px; color: rgba(255,255,255,0.5); font-weight: 600; text-transform: uppercase; margin-bottom: 1px;">INTERNADO</div>
-                    <div class="info-value" style="color: rgba(255,255,255,0.6); font-weight: 600; font-size: 9px;">${tempoInternacao}</div>
-                </div>
-                ` : ''}
+                ${!isVago && tempoInternacao ? '<div class="info-item" style="display: flex; flex-direction: column; opacity: 0.5;"><div class="info-label" style="font-size: 8px; color: rgba(255,255,255,0.5); font-weight: 600; text-transform: uppercase; margin-bottom: 1px;">INTERNADO</div><div class="info-value" style="color: rgba(255,255,255,0.6); font-weight: 600; font-size: 9px;">' + tempoInternacao + '</div></div>' : ''}
                 
                 <div class="info-item" style="display: flex; flex-direction: column; opacity: 0.5;">
                     <div class="info-label" style="font-size: 8px; color: rgba(255,255,255,0.5); font-weight: 600; text-transform: uppercase; margin-bottom: 1px;">ID</div>
                     <div class="info-value" style="color: rgba(255,255,255,0.6); font-weight: 600; font-size: 9px;">${idSequencial}</div>
                 </div>
                 
-                ${isVago ? `
-                <div class="info-item" style="display: flex; flex-direction: column;">
-                    <div class="info-label" style="font-size: 8px; color: rgba(255,255,255,0.5); font-weight: 600; text-transform: uppercase; margin-bottom: 1px;">STATUS</div>
-                    <div class="info-value" style="color: #60a5fa; font-weight: 700; font-size: 9px;">${statusTexto}</div>
-                </div>
-                ` : ''}
+                ${isVago ? '<div class="info-item" style="display: flex; flex-direction: column;"><div class="info-label" style="font-size: 8px; color: rgba(255,255,255,0.5); font-weight: 600; text-transform: uppercase; margin-bottom: 1px;">STATUS</div><div class="info-value" style="color: #60a5fa; font-weight: 700; font-size: 9px;">' + statusTexto + '</div></div>' : ''}
             </div>
             
-            <button class="btn-action" 
-                    data-action="${isVago ? 'admitir' : 'atualizar'}" 
-                    data-leito="${numeroLeito}"
-                    data-tem-reserva="${temReserva}"
-                    ${bloqueadoPorIsolamento ? 'disabled' : ''}
-                    style="padding: 10px 18px; 
-                           background: ${bloqueadoPorIsolamento ? '#b2adaa' : (isVago ? '#60a5fa' : 'rgba(156,163,175,0.5)')}; 
-                           color: #ffffff; 
-                           border: none; 
-                           border-radius: 6px; 
-                           cursor: ${bloqueadoPorIsolamento ? 'not-allowed' : 'pointer'}; 
-                           font-weight: 800; 
-                           text-transform: uppercase; 
-                           font-size: 11px; 
-                           font-family: 'Poppins', sans-serif;
-                           transition: all 0.2s ease; 
-                           letter-spacing: 0.5px; 
-                           white-space: nowrap; 
-                           flex-shrink: 0;
-                           opacity: ${bloqueadoPorIsolamento ? '0.5' : '1'};">
-                ${bloqueadoPorIsolamento ? 'BLOQUEADO' : (isVago ? 'ADMITIR' : 'ATUALIZAR')}
-            </button>
+            <!-- V7.0: BOTOES - RESERVAR + ADMITIR (vago) ou ATUALIZAR (ocupado) -->
+            <div style="display: flex; gap: 8px;">
+                ${isVago && !bloqueadoPorIsolamento ? '<button class="btn-action btn-reservar" data-action="reservar" data-leito="' + numeroLeito + '" style="padding: 10px 18px; background: ' + COR_RESERVADO_BG + '; color: ' + COR_RESERVADO_TEXTO + '; border: none; border-radius: 6px; cursor: pointer; font-weight: 800; text-transform: uppercase; font-size: 11px; font-family: Poppins, sans-serif; transition: all 0.2s ease; letter-spacing: 0.5px; white-space: nowrap; flex-shrink: 0;">RESERVAR</button>' : ''}
+                
+                <button class="btn-action" 
+                        data-action="${isVago ? 'admitir' : 'atualizar'}" 
+                        data-leito="${numeroLeito}" 
+                        ${bloqueadoPorIsolamento ? 'disabled' : ''}
+                        style="padding: 10px 18px; 
+                               background: ${bloqueadoPorIsolamento ? '#b2adaa' : (isVago ? '#60a5fa' : 'rgba(156,163,175,0.5)')}; 
+                               color: #ffffff; 
+                               border: none; 
+                               border-radius: 6px; 
+                               cursor: ${bloqueadoPorIsolamento ? 'not-allowed' : 'pointer'}; 
+                               font-weight: 800; 
+                               text-transform: uppercase; 
+                               font-size: 11px; 
+                               font-family: 'Poppins', sans-serif;
+                               transition: all 0.2s ease; 
+                               letter-spacing: 0.5px; 
+                               white-space: nowrap; 
+                               flex-shrink: 0;
+                               opacity: ${bloqueadoPorIsolamento ? '0.5' : '1'};">
+                    ${bloqueadoPorIsolamento ? 'BLOQUEADO' : (isVago ? 'ADMITIR' : 'ATUALIZAR')}
+                </button>
+            </div>
         </div>
     `;
 
@@ -1012,8 +983,7 @@ function createCard(leito, hospitalNome, hospitalId, posicaoOcupacao) {
     if (admitBtn) {
         admitBtn.addEventListener('click', (e) => {
             e.preventDefault();
-            // V7.0: Passar reserva se existir
-            openAdmissaoFlow(numeroLeito, temReserva ? reserva : null);
+            openAdmissaoFlow(numeroLeito);
         });
     }
     
@@ -1024,34 +994,35 @@ function createCard(leito, hospitalNome, hospitalId, posicaoOcupacao) {
             openAtualizacaoFlow(numeroLeito, leito);
         });
     }
+    
+    // V7.0: Event listener para RESERVAR
+    const reservarBtn = card.querySelector('[data-action="reservar"]');
+    if (reservarBtn) {
+        reservarBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            openReservaFlow(numeroLeito, leito);
+        });
+    }
 
     return card;
 }
 
-// =================== FLUXOS DE ADMISSAO E ATUALIZACAO ===================
-function openAdmissaoFlow(leitoNumero, reserva = null) {
-    const button = document.querySelector(`[data-action="admitir"][data-leito="${leitoNumero}"]`);
+// =================== FLUXOS DE ADMISSAO, ATUALIZACAO E RESERVA ===================
+function openAdmissaoFlow(leitoNumero) {
+    const button = document.querySelector('[data-action="admitir"][data-leito="' + leitoNumero + '"]');
     const originalText = button.innerHTML;
     
     showButtonLoading(button, 'ADMITIR');
     
     setTimeout(() => {
         hideButtonLoading(button, originalText);
-        
-        // V7.0: Se tem reserva, perguntar se quer usar
-        if (reserva) {
-            const usarReserva = confirm(`Este leito tem uma reserva para:\n\nIniciais: ${reserva.iniciais || 'N/A'}\nMatricula: ${reserva.matricula || 'N/A'}\nIdade: ${reserva.idade || 'N/A'}\n\nDeseja usar os dados da reserva?`);
-            openAdmissaoModal(leitoNumero, usarReserva ? reserva : null);
-        } else {
-            openAdmissaoModal(leitoNumero, null);
-        }
-        
-        logInfo(`Modal de admissao aberto: ${window.currentHospital} - Leito ${leitoNumero}`);
+        openAdmissaoModal(leitoNumero);
+        logInfo('Modal de admissao aberto: ' + window.currentHospital + ' - Leito ' + leitoNumero);
     }, 800);
 }
 
 function openAtualizacaoFlow(leitoNumero, dadosLeito) {
-    const button = document.querySelector(`[data-action="atualizar"][data-leito="${leitoNumero}"]`);
+    const button = document.querySelector('[data-action="atualizar"][data-leito="' + leitoNumero + '"]');
     const originalText = button.innerHTML;
     
     showButtonLoading(button, 'ATUALIZAR');
@@ -1059,20 +1030,33 @@ function openAtualizacaoFlow(leitoNumero, dadosLeito) {
     setTimeout(() => {
         hideButtonLoading(button, originalText);
         openAtualizacaoModal(leitoNumero, dadosLeito);
-        logInfo(`Modal de atualização aberto: ${window.currentHospital} - Leito ${leitoNumero}`);
+        logInfo('Modal de atualizacao aberto: ' + window.currentHospital + ' - Leito ' + leitoNumero);
+    }, 800);
+}
+
+// V7.0: FLUXO DE RESERVA
+function openReservaFlow(leitoNumero, dadosLeito) {
+    const button = document.querySelector('[data-action="reservar"][data-leito="' + leitoNumero + '"]');
+    const originalText = button.innerHTML;
+    
+    showButtonLoading(button, 'RESERVAR');
+    
+    setTimeout(() => {
+        hideButtonLoading(button, originalText);
+        openReservaModal(leitoNumero, dadosLeito);
+        logInfo('Modal de reserva aberto: ' + window.currentHospital + ' - Leito ' + leitoNumero);
     }, 800);
 }
 
 // =================== MODAIS ===================
-function openAdmissaoModal(leitoNumero, reserva = null) {
+function openAdmissaoModal(leitoNumero) {
     const hospitalId = window.currentHospital;
     const hospitalNome = window.HOSPITAL_MAPPING[hospitalId]?.nome || 'Hospital';
     
     window.selectedLeito = leitoNumero;
     
     const modal = createModalOverlay();
-    // V7.0: Passar reserva para o formulario
-    modal.innerHTML = createAdmissaoForm(hospitalNome, leitoNumero, hospitalId, reserva);
+    modal.innerHTML = createAdmissaoForm(hospitalNome, leitoNumero, hospitalId);
     document.body.appendChild(modal);
     
     setupModalEventListeners(modal, 'admissao');
@@ -1099,25 +1083,34 @@ function openAtualizacaoModal(leitoNumero, dadosLeito) {
     }, 100);
 }
 
+// V7.0: MODAL DE RESERVA
+function openReservaModal(leitoNumero, dadosLeito) {
+    const hospitalId = window.currentHospital;
+    const hospitalNome = window.HOSPITAL_MAPPING[hospitalId]?.nome || 'Hospital';
+    
+    window.selectedLeito = leitoNumero;
+    
+    const modal = createModalOverlay();
+    modal.innerHTML = createReservaForm(hospitalNome, leitoNumero, hospitalId);
+    document.body.appendChild(modal);
+    
+    setupReservaModalEventListeners(modal);
+}
+
 function createModalOverlay() {
     const modal = document.createElement('div');
     modal.className = 'modal-overlay';
-    modal.style.cssText = `
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0,0,0,0.8); display: flex; align-items: center;
-        justify-content: center; z-index: 9999; backdrop-filter: blur(5px);
-        animation: fadeIn 0.3s ease; font-family: 'Poppins', sans-serif;
-    `;
+    modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 9999; backdrop-filter: blur(5px); animation: fadeIn 0.3s ease; font-family: Poppins, sans-serif;';
     return modal;
 }
 
-// FUNÇÃO DE BUSCA DINÂMICA
+// FUNCAO DE BUSCA DINAMICA
 function setupSearchFilter(modal, containerId, searchId) {
-    const searchInput = modal.querySelector(`#${searchId}`);
-    const container = modal.querySelector(`#${containerId}`);
+    const searchInput = modal.querySelector('#' + searchId);
+    const container = modal.querySelector('#' + containerId);
     
     if (!searchInput || !container) {
-        logError(`Elementos não encontrados: ${searchId} ou ${containerId}`);
+        logError('Elementos nao encontrados: ' + searchId + ' ou ' + containerId);
         return;
     }
     
@@ -1128,7 +1121,6 @@ function setupSearchFilter(modal, containerId, searchId) {
         
         labels.forEach(label => {
             const text = label.textContent.toLowerCase();
-            const checkbox = label.querySelector('input[type="checkbox"]');
             
             if (searchTerm === '' || text.includes(searchTerm)) {
                 label.style.display = 'flex';
@@ -1146,7 +1138,7 @@ function setupSearchFilter(modal, containerId, searchId) {
                 msgNoResults = document.createElement('div');
                 msgNoResults.className = 'no-results-message';
                 msgNoResults.style.cssText = 'padding: 10px; text-align: center; color: rgba(255,255,255,0.5); font-size: 12px;';
-                msgNoResults.textContent = `Nenhum resultado para "${searchTerm}"`;
+                msgNoResults.textContent = 'Nenhum resultado para "' + searchTerm + '"';
                 container.appendChild(msgNoResults);
             }
         } else {
@@ -1156,22 +1148,243 @@ function setupSearchFilter(modal, containerId, searchId) {
         }
     });
     
-    logSuccess(`Busca dinâmica configurada: ${searchId}`);
+    logSuccess('Busca dinamica configurada: ' + searchId);
 }
 
-// =================== FORMULÁRIO DE ADMISSÃO ===================
-function createAdmissaoForm(hospitalNome, leitoNumero, hospitalId, reserva = null) {
+// =================== V7.0: FORMULARIO DE RESERVA ===================
+function createReservaForm(hospitalNome, leitoNumero, hospitalId) {
+    const idSequencial = String(leitoNumero).padStart(2, '0');
+    const isHibrido = window.HOSPITAIS_HIBRIDOS.includes(hospitalId);
+    const isCruzAzulEnfermaria = (hospitalId === 'H2') && (window.CRUZ_AZUL_IRMAOS[leitoNumero] !== undefined);
+    const isSantaClaraEnfermaria = (hospitalId === 'H4') && (window.SANTA_CLARA_IRMAOS[leitoNumero] !== undefined);
+    
+    // Determinar opcoes de tipo
+    let tipoOptions = '';
+    if (isHibrido) {
+        tipoOptions = '<option value="">Selecionar...</option><option value="Apartamento">Apartamento</option><option value="Enfermaria">Enfermaria</option>';
+    } else if (isCruzAzulEnfermaria || isSantaClaraEnfermaria) {
+        tipoOptions = '<option value="Enfermaria" selected>Enfermaria</option>';
+    } else {
+        tipoOptions = '<option value="Apartamento" selected>Apartamento</option>';
+    }
+    
+    // Sufixos para leitos irmaos
+    let sufixoOptions = '';
+    if (isCruzAzulEnfermaria) {
+        sufixoOptions = '<option value="">...</option><option value="1">1</option><option value="3">3</option>';
+    } else if (isSantaClaraEnfermaria) {
+        sufixoOptions = '<option value="">...</option><option value="A">A</option><option value="C">C</option>';
+    }
+    
+    return '<div class="modal-content" style="background: #1a1f2e; border-radius: 12px; padding: 30px; max-width: 600px; width: 95%; max-height: 90vh; overflow-y: auto; color: #ffffff; font-family: Poppins, sans-serif; border: 2px solid ' + COR_RESERVADO_BORDA + ';">' +
+        '<h2 style="margin: 0 0 20px 0; text-align: center; color: ' + COR_RESERVADO_BG + '; font-size: 24px; font-weight: 700; text-transform: uppercase;">Reservar Leito</h2>' +
+        
+        '<div style="text-align: center; margin-bottom: 30px; padding: 15px; background: rgba(251,191,36,0.1); border: 1px solid ' + COR_RESERVADO_BORDA + '; border-radius: 8px;">' +
+            '<strong>Hospital:</strong> ' + hospitalNome + ' | <strong>ID:</strong> ' + idSequencial +
+        '</div>' +
+        
+        '<div style="background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.3); padding: 10px; border-radius: 6px; margin-bottom: 20px; text-align: center;">' +
+            '<div style="font-size: 11px; color: ' + COR_RESERVADO_BG + '; font-weight: 600;">Os demais campos serao preenchidos no momento da admissao</div>' +
+        '</div>' +
+        
+        '<!-- LINHA 1: TIPO QUARTO | IDENTIFICACAO -->' +
+        '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">' +
+            '<div>' +
+                '<label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">Tipo de Quarto <span style="color: #c86420;">*</span></label>' +
+                '<select id="resTipoQuarto" required style="width: 100%; padding: 12px; background: #374151 !important; color: #ffffff !important; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: Poppins, sans-serif;">' +
+                    tipoOptions +
+                '</select>' +
+            '</div>' +
+            '<div>' +
+                '<label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">Identificacao do Leito <span style="color: #c86420;">*</span></label>' +
+                ((isCruzAzulEnfermaria || isSantaClaraEnfermaria) 
+                    ? '<div style="display: flex; gap: 8px;"><input id="resIdentificacaoNumero" type="text" placeholder="Numero" maxlength="4" required style="flex: 2; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: Poppins, sans-serif;"><select id="resIdentificacaoSufixo" required style="flex: 1; padding: 12px; background: #374151 !important; color: #ffffff !important; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: Poppins, sans-serif;">' + sufixoOptions + '</select></div>'
+                    : '<input id="resIdentificacaoLeito" type="text" placeholder="Ex: 101, 202-A" maxlength="10" required style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: Poppins, sans-serif;">') +
+            '</div>' +
+        '</div>' +
+        
+        '<!-- LINHA 2: ISOLAMENTO | GENERO -->' +
+        '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">' +
+            '<div>' +
+                '<label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">Isolamento <span style="color: #c86420;">*</span></label>' +
+                '<select id="resIsolamento" required style="width: 100%; padding: 12px; background: #374151 !important; color: #ffffff !important; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: Poppins, sans-serif;">' +
+                    '<option value="">Selecionar...</option>' +
+                    '<option value="Nao Isolamento">Nao Isolamento</option>' +
+                    '<option value="Isolamento de Contato">Isolamento de Contato</option>' +
+                    '<option value="Isolamento Respiratorio">Isolamento Respiratorio</option>' +
+                '</select>' +
+            '</div>' +
+            '<div>' +
+                '<label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">Genero <span style="color: #c86420;">*</span></label>' +
+                '<select id="resGenero" required style="width: 100%; padding: 12px; background: #374151 !important; color: #ffffff !important; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: Poppins, sans-serif;">' +
+                    '<option value="">Selecionar...</option>' +
+                    '<option value="Feminino">Feminino</option>' +
+                    '<option value="Masculino">Masculino</option>' +
+                '</select>' +
+            '</div>' +
+        '</div>' +
+        
+        '<!-- LINHA 3: INICIAIS | MATRICULA | IDADE (opcionais) -->' +
+        '<div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 20px;">' +
+            '<div>' +
+                '<label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">Iniciais</label>' +
+                '<input id="resIniciais" type="text" placeholder="Ex: ADR" maxlength="20" oninput="window.formatarIniciaisAutomatico(this)" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: Poppins, sans-serif; letter-spacing: 2px;">' +
+            '</div>' +
+            '<div>' +
+                '<label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">Matricula</label>' +
+                '<input id="resMatricula" type="text" placeholder="Ex: 123456789-0" maxlength="11" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: Poppins, sans-serif;" oninput="formatarMatriculaInput(this)">' +
+            '</div>' +
+            '<div>' +
+                '<label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">Idade</label>' +
+                '<select id="resIdade" style="width: 100%; padding: 12px; background: #374151 !important; color: #ffffff !important; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: Poppins, sans-serif;">' +
+                    '<option value="">Selecionar...</option>' +
+                    window.IDADE_OPTIONS.map(function(idade) { return '<option value="' + idade + '">' + idade + ' anos</option>'; }).join('') +
+                '</select>' +
+            '</div>' +
+        '</div>' +
+        
+        '<!-- CAMPOS BLOQUEADOS (CINZA) -->' +
+        '<div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 15px; margin-bottom: 20px; opacity: 0.5;">' +
+            '<div style="font-size: 10px; color: rgba(255,255,255,0.5); text-transform: uppercase; font-weight: 700; margin-bottom: 10px;">Campos disponiveis na admissao</div>' +
+            '<div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; font-size: 11px; color: rgba(255,255,255,0.4);">' +
+                '<div>PPS</div>' +
+                '<div>SPICT-BR</div>' +
+                '<div>Diretivas</div>' +
+                '<div>Regiao</div>' +
+                '<div>Prev. Alta</div>' +
+                '<div>Concessoes</div>' +
+                '<div>Linhas</div>' +
+                '<div>Anotacoes</div>' +
+            '</div>' +
+        '</div>' +
+        
+        '<!-- BOTOES -->' +
+        '<div class="modal-buttons" style="display: flex; justify-content: flex-end; gap: 12px; padding: 20px 0 0 0; border-top: 1px solid rgba(255,255,255,0.1);">' +
+            '<button class="btn-cancelar" style="padding: 12px 30px; background: rgba(255,255,255,0.1); color: #ffffff; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; font-weight: 600; text-transform: uppercase; cursor: pointer; font-family: Poppins, sans-serif;">Cancelar</button>' +
+            '<button class="btn-salvar-reserva" style="padding: 12px 30px; background: ' + COR_RESERVADO_BG + '; color: ' + COR_RESERVADO_TEXTO + '; border: none; border-radius: 8px; font-weight: 600; text-transform: uppercase; cursor: pointer; font-family: Poppins, sans-serif;">Reservar</button>' +
+        '</div>' +
+    '</div>';
+}
+
+// V7.0: EVENT LISTENERS DO MODAL DE RESERVA
+function setupReservaModalEventListeners(modal) {
+    const btnCancelar = modal.querySelector('.btn-cancelar');
+    if (btnCancelar) {
+        btnCancelar.addEventListener('click', function(e) {
+            e.preventDefault();
+            closeModal(modal);
+        });
+    }
+    
+    const btnSalvar = modal.querySelector('.btn-salvar-reserva');
+    if (btnSalvar) {
+        btnSalvar.addEventListener('click', async function(e) {
+            e.preventDefault();
+            
+            const hospitalId = window.currentHospital;
+            const leitoNumero = window.selectedLeito;
+            
+            // Validar campos obrigatorios
+            const tipoQuarto = modal.querySelector('#resTipoQuarto')?.value || '';
+            const isolamento = modal.querySelector('#resIsolamento')?.value || '';
+            const genero = modal.querySelector('#resGenero')?.value || '';
+            
+            // Identificacao do leito
+            let identificacaoLeito = '';
+            const identificacaoNumero = modal.querySelector('#resIdentificacaoNumero');
+            const identificacaoSufixo = modal.querySelector('#resIdentificacaoSufixo');
+            const identificacaoSimples = modal.querySelector('#resIdentificacaoLeito');
+            
+            if (identificacaoNumero && identificacaoSufixo) {
+                const numero = identificacaoNumero.value.trim();
+                const sufixo = identificacaoSufixo.value;
+                if (!numero) {
+                    showErrorMessage('Campo "Numero do Leito" e obrigatorio!');
+                    identificacaoNumero.focus();
+                    return;
+                }
+                if (!sufixo) {
+                    showErrorMessage('Campo "Sufixo" e obrigatorio!');
+                    identificacaoSufixo.focus();
+                    return;
+                }
+                identificacaoLeito = numero + '-' + sufixo;
+            } else if (identificacaoSimples) {
+                identificacaoLeito = identificacaoSimples.value.trim();
+                if (!identificacaoLeito) {
+                    showErrorMessage('Campo "Identificacao do Leito" e obrigatorio!');
+                    identificacaoSimples.focus();
+                    return;
+                }
+            }
+            
+            if (!tipoQuarto) {
+                showErrorMessage('Campo "Tipo de Quarto" e obrigatorio!');
+                modal.querySelector('#resTipoQuarto').focus();
+                return;
+            }
+            
+            if (!isolamento) {
+                showErrorMessage('Campo "Isolamento" e obrigatorio!');
+                modal.querySelector('#resIsolamento').focus();
+                return;
+            }
+            
+            if (!genero) {
+                showErrorMessage('Campo "Genero" e obrigatorio!');
+                modal.querySelector('#resGenero').focus();
+                return;
+            }
+            
+            // Dados opcionais
+            const iniciais = modal.querySelector('#resIniciais')?.value?.trim() || '';
+            const matriculaInput = modal.querySelector('#resMatricula')?.value?.trim() || '';
+            const matricula = matriculaInput.replace(/-/g, '');
+            const idade = parseInt(modal.querySelector('#resIdade')?.value) || null;
+            
+            const originalText = this.innerHTML;
+            showButtonLoading(this, 'RESERVANDO...');
+            
+            try {
+                const dadosReserva = {
+                    hospital: hospitalId,
+                    tipo: tipoQuarto,
+                    identificacaoLeito: identificacaoLeito,
+                    isolamento: isolamento,
+                    genero: genero,
+                    iniciais: iniciais,
+                    matricula: matricula,
+                    idade: idade
+                };
+                
+                await window.criarReserva(dadosReserva);
+                
+                hideButtonLoading(this, originalText);
+                showSuccessMessage('Reserva criada com sucesso!');
+                closeModal(modal);
+                
+                await window.refreshAfterAction();
+                
+            } catch (error) {
+                hideButtonLoading(this, originalText);
+                showErrorMessage('Erro ao criar reserva: ' + error.message);
+                logError('Erro ao criar reserva:', error);
+            }
+        });
+    }
+    
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            closeModal(modal);
+        }
+    });
+}
+function createAdmissaoForm(hospitalNome, leitoNumero, hospitalId) {
     const idSequencial = String(leitoNumero).padStart(2, '0');
     const isHibrido = window.HOSPITAIS_HIBRIDOS.includes(hospitalId);
     
-    // V7.0: Extrair dados da reserva se existir
-    const reservaIniciais = reserva?.iniciais || '';
-    const reservaMatricula = reserva?.matricula || '';
-    const reservaIdade = reserva?.idade || '';
-    const reservaGenero = reserva?.genero || '';
-    
-    // APENAS hospitais hibridos puros mostram campo "Tipo de Quarto"
-    // Santa Clara (H4) e Cruz Azul (H2) sao tipos fixos - tipos hardcoded na planilha
+    // APENAS hospitais híbridos puros mostram campo "Tipo de Quarto"
+    // Santa Clara (H4) e Cruz Azul (H2) são tipos fixos - tipos hardcoded na planilha
     const mostrarTipoQuarto = isHibrido;
 
     // CRUZ AZUL: TODAS as enfermarias com irmão (contratuais + extras)
@@ -1185,10 +1398,7 @@ function createAdmissaoForm(hospitalNome, leitoNumero, hospitalId, reserva = nul
     let isolamentoPreDefinido = null;
     let isolamentoDisabled = false;
     
-    // V7.0: Usar genero da reserva se existir e nao houver restricao de leito irmao
-    let generoReserva = reservaGenero || null;
-    
-    // LOGICA DE LEITOS IRMAOS - CRUZ AZUL
+    // LÓGICA DE LEITOS IRMÃOS - CRUZ AZUL
     let numeroBasePreenchido = '';
     let sufixoPreDefinido = '';
     
@@ -1369,15 +1579,15 @@ function createAdmissaoForm(hospitalNome, leitoNumero, hospitalId, reserva = nul
             <div style="margin-bottom: 20px;">
                 <div class="form-grid-3-cols" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
                     <div>
-                        <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">Genero <span style="color: #c86420;">*</span>${generoReserva && !generoPreDefinido ? ' <span style="color: #60a5fa;">(Reserva)</span>' : ''}</label>
+                        <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">Gênero <span style="color: #c86420;">*</span></label>
                         <select id="admSexo" required ${generoDisabled ? 'disabled' : ''} style="width: 100%; padding: 12px; background: ${generoDisabled ? '#1f2937' : '#374151'} !important; color: ${generoDisabled ? '#9ca3af' : '#ffffff'} !important; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
                             ${generoPreDefinido 
                                 ? `<option value="${generoPreDefinido}" selected>${generoPreDefinido}</option>`
                                 : `<option value="">Selecionar...</option>
-                                   ${window.SEXO_OPTIONS.map(sexo => `<option value="${sexo}" ${generoReserva === sexo ? 'selected' : ''}>${sexo}</option>`).join('')}`
+                                   ${window.SEXO_OPTIONS.map(sexo => `<option value="${sexo}">${sexo}</option>`).join('')}`
                             }
                         </select>
-                        ${generoDisabled ? '<div style="font-size: 10px; color: rgba(255,255,255,0.5); margin-top: 3px;">Genero definido pelo leito irmao</div>' : ''}
+                        ${generoDisabled ? '<div style="font-size: 10px; color: rgba(255,255,255,0.5); margin-top: 3px;">Gênero definido pelo leito irmão</div>' : ''}
                     </div>
                     <div>
                         <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">Região <span style="color: #c86420;">*</span></label>
@@ -1395,21 +1605,21 @@ function createAdmissaoForm(hospitalNome, leitoNumero, hospitalId, reserva = nul
                 </div>
             </div>
             
-            <!-- LINHA 3: INICIAIS, MATRICULA, IDADE -->
+            <!-- LINHA 3: INICIAIS, MATRÍCULA, IDADE -->
             <div class="form-grid-3-cols" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 20px;">
                 <div>
-                    <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">Iniciais${reservaIniciais ? ' <span style="color: #60a5fa;">(Reserva)</span>' : ''}</label>
-                    <input id="admNome" type="text" placeholder="Ex: ADR" value="${reservaIniciais}" maxlength="20" oninput="window.formatarIniciaisAutomatico(this)" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif; letter-spacing: 2px;">
+                    <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">Iniciais</label>
+                    <input id="admNome" type="text" placeholder="Ex: ADR" maxlength="20" oninput="window.formatarIniciaisAutomatico(this)" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif; letter-spacing: 2px;">
                 </div>
                 <div>
-                    <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">Matricula${reservaMatricula ? ' <span style="color: #60a5fa;">(Reserva)</span>' : ''}</label>
-                    <input id="admMatricula" type="text" placeholder="Ex: 123456789-0" value="${reservaMatricula}" maxlength="11" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;" oninput="formatarMatriculaInput(this)">
+                    <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">Matrícula</label>
+                    <input id="admMatricula" type="text" placeholder="Ex: 123456789-0" maxlength="11" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;" oninput="formatarMatriculaInput(this)">
                 </div>
                 <div>
-                    <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">Idade${reservaIdade ? ' <span style="color: #60a5fa;">(Reserva)</span>' : ''}</label>
+                    <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">Idade</label>
                     <select id="admIdade" style="width: 100%; padding: 12px; background: #374151 !important; color: #ffffff !important; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
                         <option value="">Selecionar...</option>
-                        ${window.IDADE_OPTIONS.map(idade => `<option value="${idade}" ${reservaIdade == idade ? 'selected' : ''}>${idade} anos</option>`).join('')}
+                        ${window.IDADE_OPTIONS.map(idade => `<option value="${idade}">${idade} anos</option>`).join('')}
                     </select>
                 </div>
             </div>
@@ -1512,7 +1722,6 @@ function createAdmissaoForm(hospitalNome, leitoNumero, hospitalId, reserva = nul
         </div>
     `;
 }
-
 // =================== FORMULÁRIO DE ATUALIZAÇÃO - CORRIGIDO ===================
 function createAtualizacaoForm(hospitalNome, leitoNumero, dadosLeito) {
     const tempoInternacao = dadosLeito?.admAt ? calcularTempoInternacao(dadosLeito.admAt) : '';
@@ -2623,29 +2832,31 @@ if (!document.getElementById('cardsConsolidadoCSS')) {
     document.head.appendChild(style);
 }
 
-// =================== INICIALIZAÇÃO ===================
+// =================== INICIALIZACAO V7.0 ===================
 document.addEventListener('DOMContentLoaded', function() {
-    logSuccess('CARDS.JS V4.3 CORRIGIDO CARREGADO');
+    logSuccess('CARDS.JS V7.0 CARREGADO - FILTRO UTI + SISTEMA RESERVAS');
     
-    if (window.CONCESSOES_LIST.length !== 13) {
-        logError(`ERRO: Esperadas 13 concessões (12 + "Não se aplica"), encontradas ${window.CONCESSOES_LIST.length}`);
-    } else {
-        logSuccess(`✅ ${window.CONCESSOES_LIST.length} concessões confirmadas`);
+    if (window.CONCESSOES_LIST && window.CONCESSOES_LIST.length !== 13) {
+        logError('ERRO: Esperadas 13 concessoes (12 + "Nao se aplica"), encontradas ' + window.CONCESSOES_LIST.length);
+    } else if (window.CONCESSOES_LIST) {
+        logSuccess(window.CONCESSOES_LIST.length + ' concessoes confirmadas');
     }
     
-    if (window.LINHAS_CUIDADO_LIST.length !== 45) {
-        logError(`ERRO: Esperadas 45 linhas, encontradas ${window.LINHAS_CUIDADO_LIST.length}`);
-    } else {
-        logSuccess(`✅ ${window.LINHAS_CUIDADO_LIST.length} linhas de cuidado confirmadas`);
+    if (window.LINHAS_CUIDADO_LIST && window.LINHAS_CUIDADO_LIST.length !== 45) {
+        logError('ERRO: Esperadas 45 linhas, encontradas ' + window.LINHAS_CUIDADO_LIST.length);
+    } else if (window.LINHAS_CUIDADO_LIST) {
+        logSuccess(window.LINHAS_CUIDADO_LIST.length + ' linhas de cuidado confirmadas');
     }
 });
 
-// =================== EXPORTS ===================
+// =================== EXPORTS V7.0 ===================
 window.renderCards = renderCards;
 window.selectHospital = selectHospital;
 window.createCard = createCard;
+window.createCardReservado = createCardReservado;
 window.openAdmissaoModal = openAdmissaoModal;
 window.openAtualizacaoModal = openAtualizacaoModal;
+window.openReservaModal = openReservaModal;
 window.forcarPreMarcacao = forcarPreMarcacao;
 window.coletarDadosFormulario = coletarDadosFormulario;
 window.getBadgeIsolamento = getBadgeIsolamento;
@@ -2655,5 +2866,6 @@ window.formatarMatriculaInput = formatarMatriculaInput;
 window.formatarMatriculaExibicao = formatarMatriculaExibicao;
 window.setupSearchFilter = setupSearchFilter;
 window.searchLeitos = searchLeitos;
+window.getReservasHospital = getReservasHospital;
 
-console.log('✅ CARDS.JS V6.1 COMPLETO - FILTRO INTELIGENTE DE VAGOS ATIVO!');
+console.log('CARDS.JS V7.0 COMPLETO - FILTRO UTI + SISTEMA RESERVAS + NOVA ORDENACAO!');
