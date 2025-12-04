@@ -38,13 +38,20 @@ window.isLeitoReservado = function(hospitalId, leitoNumero) {
 window.cancelarReserva = async function(hospital, identificacaoLeito, matricula) {
     console.log('[V7.0] Cancelando reserva:', hospital, identificacaoLeito);
     try {
-        const response = await fetch(window.API_URL + '?action=cancelarReserva', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ hospital, identificacaoLeito, matricula })
+        // Usar GET com parametros na URL (evita CORS)
+        const params = new URLSearchParams({
+            action: 'cancelarReserva',
+            hospital: hospital,
+            identificacaoLeito: identificacaoLeito || '',
+            matricula: matricula || ''
+        });
+        
+        const response = await fetch(window.API_URL + '?' + params.toString(), {
+            method: 'GET',
+            headers: { 'Accept': 'application/json' }
         });
         const result = await response.json();
-        if (result.success) {
+        if (result.ok || result.success) {
             if (window.reservasData) {
                 window.reservasData = window.reservasData.filter(r => 
                     !(r.hospital === hospital && (r.identificacaoLeito === identificacaoLeito || r.matricula === matricula))
@@ -52,7 +59,7 @@ window.cancelarReserva = async function(hospital, identificacaoLeito, matricula)
             }
             return true;
         }
-        throw new Error(result.message || 'Erro ao cancelar reserva');
+        throw new Error(result.message || result.error || 'Erro ao cancelar reserva');
     } catch (error) {
         console.error('Erro ao cancelar reserva:', error);
         throw error;
@@ -1959,25 +1966,28 @@ function setupReservaModalEventListeners(modal) {
             btnSalvar.disabled = true;
             
             try {
-                const response = await fetch(window.API_URL + '?action=reservar', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        hospital: hospitalId,
-                        leito: leitoNumero,
-                        tipo: tipoQuarto,
-                        identificacaoLeito: identificacaoLeito,
-                        isolamento: isolamento,
-                        genero: genero,
-                        iniciais: iniciais.replace(/\s/g, ''),
-                        matricula: matricula,
-                        idade: idade
-                    })
+                // Usar GET com parametros na URL (evita CORS)
+                const params = new URLSearchParams({
+                    action: 'reservar',
+                    hospital: hospitalId,
+                    leito: leitoNumero,
+                    tipo: tipoQuarto || '',
+                    identificacaoLeito: identificacaoLeito,
+                    isolamento: isolamento,
+                    genero: genero,
+                    iniciais: iniciais.replace(/\s/g, ''),
+                    matricula: matricula,
+                    idade: idade || ''
+                });
+                
+                const response = await fetch(window.API_URL + '?' + params.toString(), {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' }
                 });
                 
                 const result = await response.json();
                 
-                if (result.success) {
+                if (result.ok || result.success) {
                     if (!window.reservasData) window.reservasData = [];
                     window.reservasData.push({
                         hospital: hospitalId,
@@ -1989,14 +1999,14 @@ function setupReservaModalEventListeners(modal) {
                         iniciais: iniciais.replace(/\s/g, ''),
                         matricula: matricula,
                         idade: idade,
-                        linha: result.linha
+                        linha: result.linha || result.data?.linha
                     });
                     
                     modal.remove();
                     showSuccessMessage('Leito reservado com sucesso!');
                     await window.refreshAfterAction();
                 } else {
-                    throw new Error(result.message || 'Erro ao reservar leito');
+                    throw new Error(result.message || result.error || 'Erro ao reservar leito');
                 }
             } catch (error) {
                 btnSalvar.innerHTML = originalText;
