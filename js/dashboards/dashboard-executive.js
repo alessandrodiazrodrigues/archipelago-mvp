@@ -129,9 +129,16 @@ function fecharModalSenhaExec() {
 }
 
 // =================== V7.0: FUNCAO PARA BUSCAR RESERVAS ===================
+// Retorna apenas RESERVAS REAIS (com matricula) - bloqueios de irmao nao sao contados
 function getReservasHospitalExecutivo(hospitalId) {
     if (!window.reservasData || !Array.isArray(window.reservasData)) return [];
-    return window.reservasData.filter(r => r.hospital === hospitalId && r.tipo !== 'UTI');
+    return window.reservasData.filter(r => {
+        if (r.hospital !== hospitalId) return false;
+        if (r.tipo === 'UTI') return false;
+        // V7.0: Apenas reservas COM matricula sao reservas reais
+        const temMatricula = r.matricula && String(r.matricula).trim();
+        return temMatricula;
+    });
 }
 
 // =================== V7.0: FILTRAR LEITOS SEM UTI ===================

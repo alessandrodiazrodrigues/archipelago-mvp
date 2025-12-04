@@ -25,9 +25,35 @@ if (typeof window.desnormalizarTexto === 'undefined') {
 console.log('Dependencias validadas - cards-config.js OK');
 
 // =================== V7.0: FUNCOES DE RESERVA ===================
-window.getReservasHospital = function(hospitalId) {
+
+// Retorna TODAS as reservas do hospital (incluindo bloqueios de irmao)
+window.getTodasReservasHospital = function(hospitalId) {
     const todasReservas = window.reservasData || [];
     return todasReservas.filter(r => r.hospital === hospitalId && r.tipo !== 'UTI');
+};
+
+// Retorna apenas RESERVAS REAIS (com matricula) - para contagem no dashboard
+window.getReservasHospital = function(hospitalId) {
+    const todasReservas = window.reservasData || [];
+    return todasReservas.filter(r => {
+        if (r.hospital !== hospitalId) return false;
+        if (r.tipo === 'UTI') return false;
+        // V7.0: Apenas reservas COM matricula sao reservas reais
+        const temMatricula = r.matricula && String(r.matricula).trim();
+        return temMatricula;
+    });
+};
+
+// Retorna BLOQUEIOS de irmao (sem matricula) - para mostrar cards Disp. Masc/Fem
+window.getBloqueiosHospital = function(hospitalId) {
+    const todasReservas = window.reservasData || [];
+    return todasReservas.filter(r => {
+        if (r.hospital !== hospitalId) return false;
+        if (r.tipo === 'UTI') return false;
+        // V7.0: Bloqueios NAO tem matricula
+        const temMatricula = r.matricula && String(r.matricula).trim();
+        return !temMatricula;
+    });
 };
 
 window.isLeitoReservado = function(hospitalId, leitoNumero) {
@@ -282,9 +308,13 @@ window.renderCards = function() {
         return tipo !== 'UTI';
     });
     
-    // V7.0: Buscar reservas deste hospital
+    // V7.0: Buscar reservas REAIS deste hospital (para contagem)
     const reservasHospital = window.getReservasHospital(hospitalId);
-    console.log('[V7.0] Hospital ' + hospitalId + ': ' + reservasHospital.length + ' reservas');
+    console.log('[V7.0] Hospital ' + hospitalId + ': ' + reservasHospital.length + ' reservas reais');
+    
+    // V7.0: Buscar TODAS as reservas (incluindo bloqueios) para renderizacao
+    const todasReservas = window.getTodasReservasHospital(hospitalId);
+    console.log('[V7.0] Hospital ' + hospitalId + ': ' + todasReservas.length + ' total (reservas + bloqueios)');
     
     // Separar ocupados e vagos (usando leitos filtrados)
     const leitosOcupados = leitosSemUTI.filter(l => 
@@ -414,7 +444,8 @@ window.renderCards = function() {
     }
     
     // V7.0: Renderizar na ordem: OCUPADOS > RESERVADOS > VAGOS
-    console.log('[V7.0] Total: ' + leitosOcupados.length + ' ocupados + ' + reservasHospital.length + ' reservados + ' + vagosParaMostrar.length + ' vagos');
+    const bloqueiosCount = todasReservas.length - reservasHospital.length;
+    console.log('[V7.0] Total: ' + leitosOcupados.length + ' ocupados + ' + reservasHospital.length + ' reservados + ' + bloqueiosCount + ' bloqueios + ' + vagosParaMostrar.length + ' vagos');
     
     // 1. Renderizar OCUPADOS
     leitosOcupados.forEach((leito, index) => {
@@ -438,7 +469,7 @@ window.renderCards = function() {
     // 2. V7.0: Renderizar RESERVADOS
     // - COM matricula = Reserva REAL -> Card "Reservado"
     // - SEM matricula = Bloqueio do irmao -> Card "Disp. Masc/Fem" (vaga restrita)
-    reservasHospital.forEach((reserva) => {
+    todasReservas.forEach((reserva) => {
         const temMatricula = reserva.matricula && String(reserva.matricula).trim();
         
         if (temMatricula) {
@@ -494,8 +525,8 @@ window.renderCards = function() {
         container.appendChild(card);
     });
     
-    const total = leitosOcupados.length + reservasHospital.length + vagosParaMostrar.length;
-    logInfo(total + ' cards renderizados para ' + hospitalNome);
+    const total = leitosOcupados.length + todasReservas.length + vagosParaMostrar.length;
+    logInfo(total + ' cards renderizados para ' + hospitalNome + ' (incluindo ' + bloqueiosCount + ' bloqueios de irmao)');
 };
 
 // =================== FUNÇÃO: BADGE DE ISOLAMENTO ===================
@@ -739,8 +770,17 @@ function createCard(leito, hospitalNome, hospitalId, posicaoOcupacao) {
             
             // PRIMEIRO: Verificar se irmao esta OCUPADO
             if (dadosLeitoIrmao && (dadosLeitoIrmao.status === 'Em uso' || dadosLeitoIrmao.status === 'ocupado' || dadosLeitoIrmao.status === 'Ocupado')) {
-                const isolamentoIrmao = dadosLeitoIrmao.isolamento || '';
-                if (isolamentoIrmao && isolamentoIrmao !== 'Nao Isolamento' && !isolamentoIrmao.includes('Nao Isol')) {
+                const isolamentoIrmao = String(dadosLeitoIrmao.isolamento || '').trim();
+                
+                // V7.0: Verificar se NAO eh isolamento (todas as variacoes)
+                const ehNaoIsolamento = !isolamentoIrmao || 
+                                        isolamentoIrmao === 'Não Isolamento' ||
+                                        isolamentoIrmao === 'Nao Isolamento' ||
+                                        isolamentoIrmao.toLowerCase().includes('nao isol') ||
+                                        isolamentoIrmao.toLowerCase().includes('não isol');
+                
+                if (!ehNaoIsolamento) {
+                    // TEM isolamento real - bloquear
                     bloqueadoPorIsolamento = true;
                     const identificacaoIrmao = String(dadosLeitoIrmao?.identificacaoLeito || 
                                                dadosLeitoIrmao?.identificacao_leito || 
@@ -748,6 +788,7 @@ function createCard(leito, hospitalNome, hospitalId, posicaoOcupacao) {
                     motivoBloqueio = `Isolamento no ${identificacaoIrmao}`;
                     console.log('[V7.0 IRMAO] BLOQUEADO por isolamento do OCUPADO:', motivoBloqueio);
                 } else if (dadosLeitoIrmao.genero) {
+                    // NAO tem isolamento - apenas restringir genero
                     bloqueadoPorGenero = true;
                     generoPermitido = dadosLeitoIrmao.genero;
                     console.log('[V7.0 IRMAO] Restrito por genero do OCUPADO:', generoPermitido);
@@ -755,13 +796,23 @@ function createCard(leito, hospitalNome, hospitalId, posicaoOcupacao) {
             }
             // SEGUNDO: V7.0 - Verificar se irmao tem RESERVA (mesmo que nao esteja ocupado)
             else if (reservaLeitoIrmao) {
-                const isolamentoReserva = reservaLeitoIrmao.isolamento || '';
-                if (isolamentoReserva && isolamentoReserva !== 'Nao Isolamento' && !isolamentoReserva.includes('Nao Isol')) {
+                const isolamentoReserva = String(reservaLeitoIrmao.isolamento || '').trim();
+                
+                // V7.0: Verificar se NAO eh isolamento (todas as variacoes)
+                const ehNaoIsolamentoReserva = !isolamentoReserva || 
+                                               isolamentoReserva === 'Não Isolamento' ||
+                                               isolamentoReserva === 'Nao Isolamento' ||
+                                               isolamentoReserva.toLowerCase().includes('nao isol') ||
+                                               isolamentoReserva.toLowerCase().includes('não isol');
+                
+                if (!ehNaoIsolamentoReserva) {
+                    // TEM isolamento real - bloquear
                     bloqueadoPorIsolamento = true;
                     const identificacaoReserva = String(reservaLeitoIrmao.identificacaoLeito || `Leito ${leitoIrmao}`);
                     motivoBloqueio = `Isolamento na reserva ${identificacaoReserva}`;
                     console.log('[V7.0 IRMAO] BLOQUEADO por isolamento da RESERVA:', motivoBloqueio);
                 } else if (reservaLeitoIrmao.genero) {
+                    // NAO tem isolamento - apenas restringir genero
                     bloqueadoPorGenero = true;
                     generoPermitido = reservaLeitoIrmao.genero;
                     console.log('[V7.0 IRMAO] Restrito por genero da RESERVA:', generoPermitido);
