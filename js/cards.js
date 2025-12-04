@@ -1960,6 +1960,22 @@ function setupReservaModalEventListeners(modal) {
                 return;
             }
             
+            // V7.0: Validar duplicidade de identificacao do leito
+            const validacaoId = validarIdentificacaoDuplicada(hospitalId, identificacaoLeito);
+            if (!validacaoId.valido) {
+                showErrorMessage(validacaoId.mensagem);
+                return;
+            }
+            
+            // V7.0: Validar duplicidade de matricula (se preenchida)
+            if (matricula) {
+                const validacaoMat = validarMatriculaDuplicada(hospitalId, matricula);
+                if (!validacaoMat.valido) {
+                    showErrorMessage(validacaoMat.mensagem);
+                    return;
+                }
+            }
+            
             // Salvar
             const originalText = btnSalvar.innerHTML;
             btnSalvar.innerHTML = 'SALVANDO...';
@@ -1988,8 +2004,14 @@ function setupReservaModalEventListeners(modal) {
                 const result = await response.json();
                 
                 if (result.ok || result.success) {
-                    if (!window.reservasData) window.reservasData = [];
-                    window.reservasData.push({
+                    modal.remove();
+                    showSuccessMessage('Leito reservado com sucesso!');
+                    
+                    // V7.0: Forcar atualizacao completa dos cards
+                    console.log('[V7.0] Reserva salva, forcando atualizacao...');
+                    
+                    // Guardar reserva local antes de recarregar
+                    const reservaLocal = {
                         hospital: hospitalId,
                         leito: leitoNumero,
                         tipo: tipoQuarto,
@@ -2000,11 +2022,26 @@ function setupReservaModalEventListeners(modal) {
                         matricula: matricula,
                         idade: idade,
                         linha: result.linha || result.data?.linha
-                    });
+                    };
                     
-                    modal.remove();
-                    showSuccessMessage('Leito reservado com sucesso!');
-                    await window.refreshAfterAction();
+                    if (window.loadHospitalData) {
+                        await window.loadHospitalData();
+                    }
+                    
+                    // Garantir que reserva local esteja no array (pode ter sido sobrescrita)
+                    if (!window.reservasData) window.reservasData = [];
+                    const jaExiste = window.reservasData.find(r => 
+                        r.hospital === reservaLocal.hospital && 
+                        r.identificacaoLeito === reservaLocal.identificacaoLeito
+                    );
+                    if (!jaExiste) {
+                        window.reservasData.push(reservaLocal);
+                        console.log('[V7.0] Reserva local re-adicionada ao array');
+                    }
+                    
+                    if (window.renderCards && window.currentHospital) {
+                        window.renderCards(window.currentHospital);
+                    }
                 } else {
                     throw new Error(result.message || result.error || 'Erro ao reservar leito');
                 }
@@ -2554,13 +2591,20 @@ function setupModalEventListeners(modal, tipo) {
             
             
             
-            // ✅ VALIDAR DUPLICATAS COM TRY/CATCH
+            // ✅ V7.0: VALIDAR DUPLICATAS E VERIFICAR RESERVAS
             try {
                 const identificacaoNumeroField = modal.querySelector(tipo === 'admissao' ? '#admIdentificacaoNumero' : null);
+                const identificacaoDigitoField = modal.querySelector(tipo === 'admissao' ? '#admIdentificacaoDigito' : null);
                 const identificacaoSufixoField = modal.querySelector(tipo === 'admissao' ? '#admIdentificacaoSufixo' : null);
                 
                 let identificacaoParaValidar = '';
-                if (identificacaoNumeroField && identificacaoSufixoField) {
+                if (identificacaoNumeroField && identificacaoDigitoField) {
+                    // Campo dinamico: numero + digito
+                    const numero = identificacaoNumeroField.value.trim();
+                    const digito = identificacaoDigitoField.value.trim();
+                    identificacaoParaValidar = numero && digito ? `${numero}-${digito}` : numero;
+                } else if (identificacaoNumeroField && identificacaoSufixoField) {
+                    // Campo H2/H4: numero + sufixo
                     const numero = identificacaoNumeroField.value.trim();
                     const sufixo = identificacaoSufixoField.value;
                     identificacaoParaValidar = numero && sufixo ? `${numero}-${sufixo}` : numero;
@@ -2571,8 +2615,40 @@ function setupModalEventListeners(modal, tipo) {
                     }
                 }
                 
+                const matriculaField = modal.querySelector(tipo === 'admissao' ? '#admMatricula' : null);
+                const matriculaParaValidar = matriculaField ? matriculaField.value.trim() : '';
+                
+                // V7.0: Verificar se existe RESERVA com este leito ou matricula
+                if (tipo === 'admissao') {
+                    const reservaEncontrada = buscarReservaParaAdmissao(hospitalId, identificacaoParaValidar, matriculaParaValidar);
+                    
+                    if (reservaEncontrada) {
+                        // Perguntar se quer admitir usando a reserva
+                        const confirma = await mostrarConfirmacaoReserva(reservaEncontrada);
+                        
+                        if (confirma) {
+                            // Cancelar a reserva no backend
+                            try {
+                                await window.cancelarReserva(
+                                    reservaEncontrada.hospital, 
+                                    reservaEncontrada.identificacaoLeito, 
+                                    reservaEncontrada.matricula
+                                );
+                                console.log('[V7.0] Reserva cancelada antes da admissao');
+                            } catch (err) {
+                                console.warn('[V7.0] Erro ao cancelar reserva:', err);
+                            }
+                            // Continuar com a admissao normalmente
+                        } else {
+                            // Usuario cancelou
+                            return;
+                        }
+                    }
+                }
+                
+                // Validar duplicatas em OCUPADOS (reservas ja foram tratadas acima)
                 if (identificacaoParaValidar && window.hospitalData && window.hospitalData[hospitalId]) {
-                    const validacaoId = validarIdentificacaoDuplicada(
+                    const validacaoId = validarIdentificacaoOcupada(
                         hospitalId, 
                         identificacaoParaValidar,
                         tipo === 'atualizacao' ? leitoNumero : null
@@ -2583,19 +2659,15 @@ function setupModalEventListeners(modal, tipo) {
                     }
                 }
                 
-                const matriculaField = modal.querySelector(tipo === 'admissao' ? '#admMatricula' : null);
-                if (matriculaField && tipo === 'admissao' && window.hospitalData && window.hospitalData[hospitalId]) {
-                    const matriculaParaValidar = matriculaField.value.trim();
-                    if (matriculaParaValidar) {
-                        const validacaoMat = validarMatriculaDuplicada(
-                            hospitalId, 
-                            matriculaParaValidar,
-                            null
-                        );
-                        if (!validacaoMat.valido) {
-                            showErrorMessage(validacaoMat.mensagem);
-                            return;
-                        }
+                if (matriculaParaValidar && tipo === 'admissao' && window.hospitalData && window.hospitalData[hospitalId]) {
+                    const validacaoMat = validarMatriculaOcupada(
+                        hospitalId, 
+                        matriculaParaValidar,
+                        null
+                    );
+                    if (!validacaoMat.valido) {
+                        showErrorMessage(validacaoMat.mensagem);
+                        return;
                     }
                 }
             } catch (error) {
@@ -2685,14 +2757,182 @@ function closeModal(modal) {
 
 // =================== COLETAR DADOS DO FORMULÁRIO ===================
 
-// =================== VALIDAÇÕES DE DUPLICATAS ===================
+// =================== V7.0: FUNCOES DE RESERVA NA ADMISSAO ===================
+
+// Buscar reserva para admissao (por leito ou matricula)
+function buscarReservaParaAdmissao(hospitalId, identificacaoLeito, matricula) {
+    const reservas = window.reservasData || [];
+    
+    // Normalizar para comparacao
+    const idNorm = (identificacaoLeito || '').trim().toUpperCase();
+    const matNorm = (matricula || '').replace(/-/g, '').trim();
+    
+    // Buscar por identificacao do leito (mesmo hospital)
+    if (idNorm) {
+        const porLeito = reservas.find(r => {
+            if (r.hospital !== hospitalId) return false;
+            const idReserva = (r.identificacaoLeito || '').trim().toUpperCase();
+            return idReserva === idNorm;
+        });
+        if (porLeito) return porLeito;
+    }
+    
+    // Buscar por matricula (qualquer hospital)
+    if (matNorm) {
+        const porMatricula = reservas.find(r => {
+            const matReserva = (r.matricula || '').replace(/-/g, '').trim();
+            return matReserva === matNorm;
+        });
+        if (porMatricula) return porMatricula;
+    }
+    
+    return null;
+}
+
+// Modal de confirmacao para admitir usando reserva existente
+function mostrarConfirmacaoReserva(reserva) {
+    return new Promise((resolve) => {
+        const overlay = document.createElement('div');
+        overlay.style.cssText = `
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); display: flex; justify-content: center;
+            align-items: center; z-index: 10001;
+        `;
+        
+        const modal = document.createElement('div');
+        modal.style.cssText = `
+            background: #1e293b; border-radius: 12px; padding: 24px;
+            max-width: 400px; width: 90%; border: 1px solid rgba(255,255,255,0.1);
+            font-family: 'Poppins', sans-serif;
+        `;
+        
+        modal.innerHTML = `
+            <div style="text-align: center; margin-bottom: 20px;">
+                <div style="font-size: 48px; margin-bottom: 10px;">&#9888;</div>
+                <h3 style="color: #f59a1d; margin: 0 0 10px 0; font-size: 18px;">Reserva Encontrada</h3>
+            </div>
+            <div style="background: #0f172a; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
+                <p style="color: #9ca3af; margin: 0 0 12px 0; font-size: 14px;">
+                    Existe uma reserva com estes dados:
+                </p>
+                <div style="color: #ffffff; font-size: 13px; line-height: 1.8;">
+                    <div><strong>Leito:</strong> ${reserva.identificacaoLeito || '-'}</div>
+                    <div><strong>Matricula:</strong> ${reserva.matricula || '-'}</div>
+                    <div><strong>Iniciais:</strong> ${reserva.iniciais || '-'}</div>
+                    <div><strong>Genero:</strong> ${reserva.genero || '-'}</div>
+                    <div><strong>Isolamento:</strong> ${reserva.isolamento || '-'}</div>
+                </div>
+            </div>
+            <p style="color: #9ca3af; text-align: center; font-size: 13px; margin-bottom: 20px;">
+                Deseja <strong style="color: #22c55e;">cancelar a reserva</strong> e <strong style="color: #60a5fa;">admitir o paciente</strong>?
+            </p>
+            <div style="display: flex; gap: 12px;">
+                <button id="btnCancelarConfirm" style="
+                    flex: 1; padding: 12px; border-radius: 8px; border: none;
+                    background: rgba(255,255,255,0.1); color: #9ca3af;
+                    font-weight: 600; cursor: pointer; font-family: 'Poppins', sans-serif;
+                ">NAO, VOLTAR</button>
+                <button id="btnConfirmarAdmissao" style="
+                    flex: 1; padding: 12px; border-radius: 8px; border: none;
+                    background: #22c55e; color: #ffffff;
+                    font-weight: 600; cursor: pointer; font-family: 'Poppins', sans-serif;
+                ">SIM, ADMITIR</button>
+            </div>
+        `;
+        
+        overlay.appendChild(modal);
+        document.body.appendChild(overlay);
+        
+        modal.querySelector('#btnCancelarConfirm').addEventListener('click', () => {
+            overlay.remove();
+            resolve(false);
+        });
+        
+        modal.querySelector('#btnConfirmarAdmissao').addEventListener('click', () => {
+            overlay.remove();
+            resolve(true);
+        });
+        
+        // Fechar ao clicar fora
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                overlay.remove();
+                resolve(false);
+            }
+        });
+    });
+}
+
+// Validar se identificacao ja esta em uso em leitos OCUPADOS (sem verificar reservas)
+function validarIdentificacaoOcupada(hospitalId, identificacao, leitoAtual = null) {
+    if (!identificacao || !identificacao.trim()) return { valido: true };
+    
+    const identificacaoNorm = identificacao.trim().toUpperCase();
+    
+    const leitosHospital = window.hospitalData[hospitalId]?.leitos || [];
+    const duplicadoOcupado = leitosHospital.find(l => {
+        const idLeito = l.identificacaoLeito || l.identificacao_leito || '';
+        const statusOcupado = (l.status === 'Ocupado' || l.status === 'ocupado' || l.status === 'Em uso');
+        
+        if (leitoAtual && parseInt(l.leito) === parseInt(leitoAtual)) {
+            return false;
+        }
+        
+        return statusOcupado && idLeito.trim().toUpperCase() === identificacaoNorm;
+    });
+    
+    if (duplicadoOcupado) {
+        const matricula = duplicadoOcupado.matricula || 'sem matricula';
+        return {
+            valido: false,
+            mensagem: `Leito ${identificacao} ja esta OCUPADO (matricula: ${matricula})`
+        };
+    }
+    
+    return { valido: true };
+}
+
+// Validar se matricula ja esta em uso em leitos OCUPADOS (sem verificar reservas)
+function validarMatriculaOcupada(hospitalId, matricula, leitoAtual = null) {
+    if (!matricula || !matricula.trim()) return { valido: true };
+    
+    const matriculaSemHifen = matricula.replace(/-/g, '').trim();
+    if (!matriculaSemHifen) return { valido: true };
+    
+    const leitosHospital = window.hospitalData[hospitalId]?.leitos || [];
+    const duplicadoOcupado = leitosHospital.find(l => {
+        const matLeito = (l.matricula || '').replace(/-/g, '').trim();
+        const statusOcupado = (l.status === 'Ocupado' || l.status === 'ocupado' || l.status === 'Em uso');
+        
+        if (leitoAtual && parseInt(l.leito) === parseInt(leitoAtual)) {
+            return false;
+        }
+        
+        return statusOcupado && matLeito === matriculaSemHifen;
+    });
+    
+    if (duplicadoOcupado) {
+        const numeroLeito = duplicadoOcupado.identificacaoLeito || duplicadoOcupado.identificacao_leito || `Leito ${duplicadoOcupado.leito}`;
+        return {
+            valido: false,
+            mensagem: `Matricula ${matricula} ja esta em uso no leito ${numeroLeito} (OCUPADO)`
+        };
+    }
+    
+    return { valido: true };
+}
+
+// =================== VALIDAÇÕES DE DUPLICATAS (para RESERVA) ===================
 
 // Validar se identificação já está sendo usada no hospital
 function validarIdentificacaoDuplicada(hospitalId, identificacao, leitoAtual = null) {
     if (!identificacao || !identificacao.trim()) return { valido: true };
     
+    const identificacaoNorm = identificacao.trim().toUpperCase();
+    
+    // 1. Verificar em leitos OCUPADOS
     const leitosHospital = window.hospitalData[hospitalId]?.leitos || [];
-    const duplicado = leitosHospital.find(l => {
+    const duplicadoOcupado = leitosHospital.find(l => {
         const idLeito = l.identificacaoLeito || l.identificacao_leito || '';
         const statusOcupado = (l.status === 'Ocupado' || l.status === 'ocupado' || l.status === 'Em uso');
         
@@ -2701,14 +2941,30 @@ function validarIdentificacaoDuplicada(hospitalId, identificacao, leitoAtual = n
             return false;
         }
         
-        return statusOcupado && idLeito.trim().toUpperCase() === identificacao.trim().toUpperCase();
+        return statusOcupado && idLeito.trim().toUpperCase() === identificacaoNorm;
     });
     
-    if (duplicado) {
-        const matricula = duplicado.matricula || 'sem matrícula';
+    if (duplicadoOcupado) {
+        const matricula = duplicadoOcupado.matricula || 'sem matricula';
         return {
             valido: false,
-            mensagem: `Esse número de leito já está sendo usado pelo paciente de matrícula ${matricula}`
+            mensagem: `Leito ${identificacao} ja esta OCUPADO (matricula: ${matricula})`
+        };
+    }
+    
+    // 2. V7.0: Verificar em RESERVAS
+    const reservas = window.reservasData || [];
+    const duplicadoReserva = reservas.find(r => {
+        if (r.hospital !== hospitalId) return false;
+        const idReserva = (r.identificacaoLeito || '').trim().toUpperCase();
+        return idReserva === identificacaoNorm;
+    });
+    
+    if (duplicadoReserva) {
+        const matricula = duplicadoReserva.matricula || 'sem matricula';
+        return {
+            valido: false,
+            mensagem: `Leito ${identificacao} ja esta RESERVADO (matricula: ${matricula})`
         };
     }
     
@@ -2723,8 +2979,9 @@ function validarMatriculaDuplicada(hospitalId, matricula, leitoAtual = null) {
     const matriculaSemHifen = matricula.replace(/-/g, '').trim();
     if (!matriculaSemHifen) return { valido: true };
     
+    // 1. Verificar em leitos OCUPADOS
     const leitosHospital = window.hospitalData[hospitalId]?.leitos || [];
-    const duplicado = leitosHospital.find(l => {
+    const duplicadoOcupado = leitosHospital.find(l => {
         const matLeito = (l.matricula || '').replace(/-/g, '').trim();
         const statusOcupado = (l.status === 'Ocupado' || l.status === 'ocupado' || l.status === 'Em uso');
         
@@ -2736,11 +2993,27 @@ function validarMatriculaDuplicada(hospitalId, matricula, leitoAtual = null) {
         return statusOcupado && matLeito === matriculaSemHifen;
     });
     
-    if (duplicado) {
-        const numeroLeito = duplicado.identificacaoLeito || duplicado.identificacao_leito || `Leito ${duplicado.leito}`;
+    if (duplicadoOcupado) {
+        const numeroLeito = duplicadoOcupado.identificacaoLeito || duplicadoOcupado.identificacao_leito || `Leito ${duplicadoOcupado.leito}`;
         return {
             valido: false,
-            mensagem: `Essa matrícula já está sendo usada por paciente do ${numeroLeito}`
+            mensagem: `Matricula ${matricula} ja esta em uso no leito ${numeroLeito} (OCUPADO)`
+        };
+    }
+    
+    // 2. V7.0: Verificar em RESERVAS (TODOS os hospitais)
+    const reservas = window.reservasData || [];
+    const duplicadoReserva = reservas.find(r => {
+        const matReserva = (r.matricula || '').replace(/-/g, '').trim();
+        return matReserva === matriculaSemHifen;
+    });
+    
+    if (duplicadoReserva) {
+        const numeroLeito = duplicadoReserva.identificacaoLeito || 'desconhecido';
+        const hospitalReserva = duplicadoReserva.hospital || '';
+        return {
+            valido: false,
+            mensagem: `Matricula ${matricula} ja esta RESERVADA no leito ${numeroLeito} (${hospitalReserva})`
         };
     }
     

@@ -186,6 +186,12 @@ window.loadSystemState = function() {
 // =================== V7.0: CARREGAMENTO DE RESERVAS ===================
 window.carregarReservas = async function() {
     try {
+        // V7.0: Se reservas ja foram carregadas pelo api.js, nao sobrescrever
+        if (window.reservasData && window.reservasData.length > 0) {
+            logSuccess('Reservas ja carregadas pelo api.js: ' + window.reservasData.length);
+            return window.reservasData;
+        }
+        
         logInfo('Carregando reservas...');
         
         if (!window.API_URL) {
@@ -201,9 +207,11 @@ window.carregarReservas = async function() {
             const response = await fetch(window.API_URL + '?action=reservas');
             if (response.ok) {
                 const data = await response.json();
-                window.reservasData = data.reservas || [];
-                logSuccess('Reservas carregadas: ' + window.reservasData.length);
-                return window.reservasData;
+                if (data.ok && data.reservas) {
+                    window.reservasData = data.reservas || [];
+                    logSuccess('Reservas carregadas: ' + window.reservasData.length);
+                    return window.reservasData;
+                }
             }
         } catch (fetchError) {
             // Se fetch falhar, tentar JSONP
