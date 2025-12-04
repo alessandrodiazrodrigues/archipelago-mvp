@@ -2712,7 +2712,7 @@ function setupModalEventListeners(modal, tipo) {
             showButtonLoading(this, 'PROCESSANDO ALTA...');
             
             try {
-                await window.darAltaPaciente(window.currentHospital, window.selectedLeito);
+                await window.darAlta(window.currentHospital, window.selectedLeito);
                 
                 hideButtonLoading(this, originalText);
                 showSuccessMessage('Alta processada!');
