@@ -151,39 +151,16 @@
             <div id="cardsContainer" class="cards-grid"></div>
         </section>
         
-        <!-- =================== NOVAS SEÇÕES UTI V7.0 =================== -->
+        <!-- =================== NOVAS SECOES UTI V7.0 =================== -->
         
         <!-- DASHBOARD UTI -->
         <section id="dashUti" class="hidden">
             <div id="dashUtiContent">
-                <div class="uti-placeholder">
-                    <div class="placeholder-icon">🏥</div>
-                    <h2>Dashboard UTI</h2>
-                    <p>63 leitos em 8 hospitais</p>
-                    <p class="placeholder-note">Em desenvolvimento - Fase 2 do V7.0</p>
-                    <div class="uti-stats-preview">
-                        <div class="stat-item">
-                            <span class="stat-value">63</span>
-                            <span class="stat-label">Leitos UTI Total</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-value">39</span>
-                            <span class="stat-label">Contratuais</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-value">24</span>
-                            <span class="stat-label">Extras</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-value">8</span>
-                            <span class="stat-label">Hospitais</span>
-                        </div>
-                    </div>
-                </div>
+                <!-- Conteudo renderizado dinamicamente pelo dashboard-uti.js -->
             </div>
         </section>
         
-        <!-- GESTÃO DE LEITOS UTI -->
+        <!-- GESTAO DE LEITOS UTI -->
         <section id="leitosUtiView" class="section-leitos hidden">
             <div class="leitos-header">
                 <div class="hospital-selector-container uti-theme">
@@ -221,11 +198,7 @@
             
             <!-- CONTAINER DOS CARDS UTI -->
             <div id="cardsContainerUti" class="cards-grid">
-                <div class="uti-placeholder-cards">
-                    <div class="placeholder-icon">🛏️</div>
-                    <h3>Leitos UTI</h3>
-                    <p>Em desenvolvimento - Fase 2 do V7.0</p>
-                </div>
+                <!-- Conteudo renderizado dinamicamente pelo uti.js -->
             </div>
         </section>
         
@@ -270,52 +243,54 @@
     <!-- 3. INTERFACE (Depende de cards-config.js) -->
     <script src="js/cards.js"></script>
     
-    <!-- 4. PATCH UTI V7.0 (Filtra leitos UTI - DEVE vir DEPOIS de cards.js) -->
-    <script src="js/cards-uti-patch.js"></script>
+    <!-- 4. UTI V7.0 (Gestao de Leitos UTI - DEVE vir DEPOIS de cards.js) -->
+    <script src="js/uti.js"></script>
     
     <!-- 5. DASHBOARDS (Dependem de cards-config.js) -->
     <script src="js/dashboards/dashboard-hospital.js"></script>
     <script src="js/dashboards/dashboard-executive.js"></script>
+    <script src="js/dashboards/dashboard-uti.js"></script>
     
     <!-- 6. FUNCIONALIDADES -->
     <script src="js/qrcode.js"></script>
     
-    <!-- 7. INICIALIZAÇÃO (Último a carregar) -->
+    <!-- 7. INICIALIZACAO (Ultimo a carregar) -->
     <script src="js/main.js"></script>
     
-    <!-- =================== FUNÇÕES AUXILIARES MENU V7.0 =================== -->
+    <!-- =================== FUNCOES AUXILIARES MENU V7.0 =================== -->
     <script>
         console.log('Archipelago Dashboard V7.0 - Inicializando...');
         console.log('Dezembro/2025 - Versao V7.0');
         console.log('');
         console.log('NOVIDADES V7.0:');
-        console.log('   • Menu reorganizado: Enfermarias + UTI');
-        console.log('   • Dashboard UTI (placeholder - Fase 2)');
-        console.log('   • Gestao de Leitos UTI (placeholder - Fase 2)');
-        console.log('   • 63 leitos UTI em 8 hospitais');
-        console.log('   • H7 Santa Virginia: SEM UTI');
-        console.log('   • Sistema de Reservas no backend');
+        console.log('   - Menu reorganizado: Enfermarias + UTI');
+        console.log('   - Dashboard UTI funcional');
+        console.log('   - Gestao de Leitos UTI funcional');
+        console.log('   - 63 leitos UTI em 8 hospitais');
+        console.log('   - H7 Santa Virginia: SEM UTI');
+        console.log('   - Sistema de Reservas no backend');
         console.log('');
         console.log('CAPACIDADE:');
-        console.log('   • ENFERMARIA: 293 leitos (9 hospitais)');
-        console.log('   • UTI: 63 leitos (8 hospitais)');
-        console.log('   • TOTAL: 356 leitos');
+        console.log('   - ENFERMARIA: 293 leitos (9 hospitais)');
+        console.log('   - UTI: 63 leitos (8 hospitais)');
+        console.log('   - TOTAL: 356 leitos');
         console.log('');
-        console.log('📦 ORDEM DE CARREGAMENTO DOS SCRIPTS:');
-        console.log('   1. app.js (autenticação)');
-        console.log('   2. api.js (comunicação com backend)');
-        console.log('   3. cards-config.js (configurações globais) V7.0');
-        console.log('   4. cards.js (interface de leitos) V6.1');
-        console.log('   5. cards-uti-patch.js (filtro UTI) V7.0 *NOVO*');
-        console.log('   6. dashboard-hospital.js');
+        console.log('ORDEM DE CARREGAMENTO DOS SCRIPTS:');
+        console.log('   1. app.js (autenticacao)');
+        console.log('   2. api.js (comunicacao com backend)');
+        console.log('   3. cards-config.js (configuracoes globais) V7.0');
+        console.log('   4. cards.js (interface de leitos Enfermaria) V7.0');
+        console.log('   5. uti.js (interface de leitos UTI) V7.0');
+        console.log('   6. dashboard-hospital.js V6.0');
         console.log('   7. dashboard-executive.js');
-        console.log('   8. qrcode.js');
-        console.log('   9. main.js (inicialização)');
+        console.log('   8. dashboard-uti.js V7.0');
+        console.log('   9. qrcode.js');
+        console.log('   10. main.js (inicializacao)');
         console.log('');
         
         /**
-         * Função que combina mudança de aba + fechamento do menu
-         * V7.0: Atualizado para suportar abas UTI
+         * Funcao que combina mudanca de aba + fechamento do menu
+         * V7.0: Atualizado para suportar abas UTI com renderizacao real
          */
         function setActiveTabAndCloseMenu(tabName) {
             // Primeiro fecha o menu
@@ -332,7 +307,7 @@
             
             // V7.0: Suporte para novas abas UTI
             if (tabName === 'dashUti') {
-                // Esconder todas as seções
+                // Esconder todas as secoes
                 document.querySelectorAll('#mainContent > section').forEach(s => s.classList.add('hidden'));
                 // Mostrar Dashboard UTI
                 document.getElementById('dashUti')?.classList.remove('hidden');
@@ -341,16 +316,32 @@
                     item.classList.remove('active');
                     if (item.dataset.tab === 'dashUti') item.classList.add('active');
                 });
+                // V7.0: Renderizar Dashboard UTI
+                if (typeof window.renderDashboardUti === 'function') {
+                    window.renderDashboardUti();
+                } else {
+                    console.warn('renderDashboardUti nao encontrada - dashboard-uti.js carregado?');
+                }
             } else if (tabName === 'leitosUti') {
-                // Esconder todas as seções
+                // Esconder todas as secoes
                 document.querySelectorAll('#mainContent > section').forEach(s => s.classList.add('hidden'));
-                // Mostrar Gestão de Leitos UTI
+                // Mostrar Gestao de Leitos UTI
                 document.getElementById('leitosUtiView')?.classList.remove('hidden');
                 // Atualizar item ativo no menu
                 document.querySelectorAll('.side-menu-item').forEach(item => {
                     item.classList.remove('active');
                     if (item.dataset.tab === 'leitosUti') item.classList.add('active');
                 });
+                // V7.0: Renderizar Cards UTI
+                if (typeof window.renderCardsUti === 'function') {
+                    // Definir hospital padrao se nao existir
+                    if (!window.currentHospitalUti) {
+                        window.currentHospitalUti = 'H2'; // Cruz Azul tem mais UTI
+                    }
+                    window.renderCardsUti();
+                } else {
+                    console.warn('renderCardsUti nao encontrada - uti.js carregado?');
+                }
             } else {
                 // Depois muda a aba (comportamento original)
                 if (typeof setActiveTab === 'function') {
@@ -360,15 +351,19 @@
         }
         
         /**
-         * V7.0: Função para selecionar hospital na UTI
+         * V7.0: Funcao para selecionar hospital na UTI
          */
         function selectHospitalUti(hospitalId) {
             console.log('[UTI] Hospital selecionado:', hospitalId);
-            // TODO: Implementar na Fase 2
+            window.currentHospitalUti = hospitalId;
+            // Renderizar cards UTI para o hospital selecionado
+            if (typeof window.renderCardsUti === 'function') {
+                window.renderCardsUti();
+            }
         }
         
         /**
-         * Função para fechar menu antes de navegar para página externa
+         * Funcao para fechar menu antes de navegar para pagina externa
          */
         function closeMenuBeforeNavigation() {
             const menu = document.getElementById('sideMenu');
@@ -402,7 +397,7 @@
             // Depois abre o simulador em nova aba
             window.open('simulador-qrcode.html', '_blank');
             
-            console.log('🎮 Abrindo Simulador Mobile em nova aba...');
+            console.log('Abrindo Simulador Mobile em nova aba...');
         }
         
         /**
@@ -430,7 +425,7 @@
                 } else if (typeof openQRCodes === 'function') {
                     openQRCodes();
                 } else {
-                    console.error('❌ qrcode.js não carregado!');
+                    console.error('qrcode.js não carregado!');
                 }
             }, 100);
         }
