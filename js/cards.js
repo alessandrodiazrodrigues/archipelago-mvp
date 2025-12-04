@@ -1451,8 +1451,8 @@ function createAdmissaoForm(hospitalNome, leitoNumero, hospitalId) {
                                 <input id="admIdentificacaoLeito" type="text" placeholder="Selecione o Tipo de Quarto" disabled style="width: 100%; padding: 12px; background: #1f2937; color: #9ca3af; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif; cursor: not-allowed;">
                                </div>
                                <div id="admIdentificacaoHint" style="font-size: 10px; color: rgba(255,255,255,0.5); margin-top: 3px;">Primeiro selecione o Tipo de Quarto</div>`
-                            : `<input id="admIdentificacaoLeito" type="text" placeholder="Ex: 1A, 21, 711.1" maxlength="6" required style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
-                               <div style="font-size: 10px; color: rgba(255,255,255,0.5); margin-top: 3px;">Aceita números e letras (1-6)</div>`
+                            : `<input id="admIdentificacaoLeito" type="text" placeholder="Ex: 101, 202" maxlength="6" required oninput="this.value = this.value.replace(/[^0-9]/g, '')" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
+                               <div style="font-size: 10px; color: rgba(255,255,255,0.5); margin-top: 3px;">Apenas numeros</div>`
                         }
                     </div>
                     
@@ -1778,7 +1778,7 @@ function createReservaForm(hospitalNome, leitoNumero, hospitalId, dadosLeito) {
                             ? `<div id="resIdentificacaoContainer">
                                 <input id="resIdentificacaoLeito" type="text" placeholder="Selecione o Tipo de Quarto" disabled style="width: 100%; padding: 12px; ${estiloCampoBloqueado} border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
                                </div>`
-                            : `<input id="resIdentificacaoLeito" type="text" placeholder="Ex: 101, 202" maxlength="6" required style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">`
+                            : `<input id="resIdentificacaoLeito" type="text" placeholder="Ex: 101, 202" maxlength="6" required oninput="this.value = this.value.replace(/[^0-9]/g, '')" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">`
                         }
                     </div>
                     
@@ -1896,10 +1896,10 @@ function setupReservaModalEventListeners(modal) {
                 identificacaoContainer.innerHTML = `
                     <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 8px;">
                         <input id="resIdentificacaoNumero" type="text" placeholder="Numero" maxlength="4" required oninput="this.value = this.value.replace(/[^0-9]/g, '')" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
-                        <input id="resIdentificacaoDigito" type="text" placeholder="Dig" maxlength="1" required oninput="this.value = this.value.toUpperCase()" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif; text-align: center;">
+                        <input id="resIdentificacaoDigito" type="text" placeholder="Dig" maxlength="1" required oninput="this.value = this.value.replace(/[^A-Za-z]/g, '').toUpperCase()" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif; text-align: center;">
                     </div>`;
             } else {
-                identificacaoContainer.innerHTML = `<input id="resIdentificacaoLeito" type="text" placeholder="Numero do quarto" maxlength="6" required style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">`;
+                identificacaoContainer.innerHTML = `<input id="resIdentificacaoLeito" type="text" placeholder="Numero do quarto" maxlength="6" required oninput="this.value = this.value.replace(/[^0-9]/g, '')" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">`;
             }
         });
     }
@@ -2472,18 +2472,19 @@ function setupModalEventListeners(modal, tipo) {
                                oninput="this.value = this.value.replace(/[^0-9]/g, '')"
                                style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
                         <input id="admIdentificacaoDigito" type="text" placeholder="Dig" maxlength="1" required 
-                               oninput="this.value = this.value.toUpperCase()"
+                               oninput="this.value = this.value.replace(/[^A-Za-z]/g, '').toUpperCase()"
                                style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif; text-align: center;">
                     </div>
                 `;
-                if (identificacaoHint) identificacaoHint.textContent = 'Numero + Digito (1 caractere)';
+                if (identificacaoHint) identificacaoHint.textContent = 'Numero + Digito (1 letra)';
             } else {
-                // Apartamento: campo simples
+                // Apartamento: campo simples (apenas numeros)
                 identificacaoContainer.innerHTML = `
                     <input id="admIdentificacaoLeito" type="text" placeholder="Numero do quarto" maxlength="6" required 
+                           oninput="this.value = this.value.replace(/[^0-9]/g, '')"
                            style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
                 `;
-                if (identificacaoHint) identificacaoHint.textContent = 'Numero do quarto';
+                if (identificacaoHint) identificacaoHint.textContent = 'Apenas numeros';
             }
         });
     }
