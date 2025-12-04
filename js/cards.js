@@ -435,26 +435,57 @@ window.renderCards = function() {
         container.appendChild(card);
     });
     
-    // 2. V7.0: Renderizar RESERVADOS (como se fossem ocupados, mas com status Reservado)
+    // 2. V7.0: Renderizar RESERVADOS
+    // - COM matricula = Reserva REAL -> Card "Reservado"
+    // - SEM matricula = Bloqueio do irmao -> Card "Disp. Masc/Fem" (vaga restrita)
     reservasHospital.forEach((reserva) => {
-        const leitoReservado = {
-            leito: reserva.leito,
-            status: 'Reservado',
-            tipo: reserva.tipo || 'Hibrido',
-            identificacaoLeito: String(reserva.identificacaoLeito || ''),
-            identificacao_leito: String(reserva.identificacaoLeito || ''),
-            isolamento: reserva.isolamento || '',
-            genero: reserva.genero || '',
-            nome: reserva.iniciais || '',
-            matricula: String(reserva.matricula || ''),
-            idade: reserva.idade || '',
-            pps: '', spict: '', complexidade: '', prevAlta: '',
-            regiao: '', diretivas: '', anotacoes: '', admAt: '',
-            _isReserva: true,
-            _reservaId: reserva.linha || reserva.id
-        };
-        const card = createCard(leitoReservado, hospitalNome, hospitalId, 0);
-        container.appendChild(card);
+        const temMatricula = reserva.matricula && String(reserva.matricula).trim();
+        
+        if (temMatricula) {
+            // RESERVA REAL - mostrar como Reservado
+            const leitoReservado = {
+                leito: reserva.leito,
+                status: 'Reservado',
+                tipo: reserva.tipo || 'Hibrido',
+                identificacaoLeito: String(reserva.identificacaoLeito || ''),
+                identificacao_leito: String(reserva.identificacaoLeito || ''),
+                isolamento: reserva.isolamento || '',
+                genero: reserva.genero || '',
+                nome: reserva.iniciais || '',
+                matricula: String(reserva.matricula || ''),
+                idade: reserva.idade || '',
+                pps: '', spict: '', complexidade: '', prevAlta: '',
+                regiao: '', diretivas: '', anotacoes: '', admAt: '',
+                _isReserva: true,
+                _reservaId: reserva.linha || reserva.id,
+                _identificacaoIrmao: reserva.identificacaoIrmao || ''
+            };
+            const card = createCard(leitoReservado, hospitalNome, hospitalId, 0);
+            container.appendChild(card);
+        } else {
+            // BLOQUEIO DO IRMAO - mostrar como Disponivel restrito por genero
+            // Nao eh reserva real, eh apenas uma vaga que precisa respeitar o genero do irmao
+            const leitoRestrito = {
+                leito: reserva.leito,
+                status: 'Vago',  // Mostra como vago
+                tipo: reserva.tipo || 'Enfermaria',
+                identificacaoLeito: String(reserva.identificacaoLeito || ''),
+                identificacao_leito: String(reserva.identificacaoLeito || ''),
+                isolamento: 'Nao Isolamento',
+                genero: '',  // Genero nao definido ainda
+                nome: '',
+                matricula: '',
+                idade: '',
+                pps: '', spict: '', complexidade: '', prevAlta: '',
+                regiao: '', diretivas: '', anotacoes: '', admAt: '',
+                _isBloqueioIrmao: true,
+                _generoRestrito: reserva.genero || '',  // Genero que DEVE ser usado
+                _identificacaoIrmao: reserva.identificacaoIrmao || '',
+                _reservaLinhaIrmao: reserva.linha  // Para poder cancelar quando irmao for cancelado
+            };
+            const card = createCard(leitoRestrito, hospitalNome, hospitalId, 0);
+            container.appendChild(card);
+        }
     });
     
     // 3. Renderizar VAGOS
@@ -667,43 +698,73 @@ function createCard(leito, hospitalNome, hospitalId, posicaoOcupacao) {
     }
 
     if ((isCruzAzulEnfermaria || isSantaClaraEnfermaria) && (leito.status === 'Vago' || leito.status === 'vago')) {
-        // ✅ Usar mapa correto baseado no hospital
+        // Usar mapa correto baseado no hospital
         const mapaIrmaos = isCruzAzulEnfermaria ? window.CRUZ_AZUL_IRMAOS : window.SANTA_CLARA_IRMAOS;
         const leitoIrmao = mapaIrmaos[numeroLeito];
         
-        // 🔍 DEBUG
-        if (hospitalId === 'H4') {
-            console.log('🔍 Leito irmão encontrado:', leitoIrmao);
-        }
-        
         if (leitoIrmao) {
-            // ✅ Buscar no hospital correto
+            // Buscar dados do leito irmao OCUPADO
             const leitosHospital = window.hospitalData[hospitalId]?.leitos || [];
             const dadosLeitoIrmao = leitosHospital.find(l => l.leito == leitoIrmao);
             
-            // 🔍 DEBUG
-            if (hospitalId === 'H4') {
-                console.log('🔍 Dados do irmão:', dadosLeitoIrmao);
-                console.log('🔍 Status do irmão:', dadosLeitoIrmao?.status);
-                console.log('🔍 Gênero do irmão:', dadosLeitoIrmao?.genero);
-            }
+            // V7.0: TAMBEM buscar RESERVA do leito irmao
+            const reservasHospital = (window.reservasData || []).filter(r => r.hospital === hospitalId);
+            const reservaLeitoIrmao = reservasHospital.find(r => {
+                // Verificar pelo numero do leito OU pela identificacao do leito
+                const identificacaoReserva = String(r.identificacaoLeito || '').toUpperCase();
+                // Para H2: sufixos 1 e 3 (ex: 100-1 e 100-3)
+                // Para H4: sufixos A e C (ex: 201-A e 201-C)
+                const sufixos = isCruzAzulEnfermaria ? ['1', '3'] : ['A', 'C'];
+                
+                // Extrair base da identificacao (ex: "100" de "100-1")
+                const baseIdentAtual = String(leito.identificacaoLeito || leito.identificacao_leito || '').replace(/-[13AC]$/i, '');
+                const baseIdentReserva = identificacaoReserva.replace(/-[13AC]$/i, '');
+                
+                // Se a reserva tem a mesma base de identificacao mas sufixo diferente, eh o irmao
+                if (baseIdentAtual && baseIdentReserva && baseIdentAtual === baseIdentReserva) {
+                    const sufixoAtual = String(leito.identificacaoLeito || leito.identificacao_leito || '').match(/-([13AC])$/i)?.[1]?.toUpperCase();
+                    const sufixoReserva = identificacaoReserva.match(/-([13AC])$/i)?.[1]?.toUpperCase();
+                    if (sufixoAtual && sufixoReserva && sufixoAtual !== sufixoReserva) {
+                        return true;
+                    }
+                }
+                
+                // Verificar pelo numero do leito na planilha
+                return parseInt(r.leito) === parseInt(leitoIrmao);
+            });
             
+            console.log('[V7.0 IRMAO] Leito:', numeroLeito, 'Irmao:', leitoIrmao);
+            console.log('[V7.0 IRMAO] Irmao ocupado?', dadosLeitoIrmao?.status);
+            console.log('[V7.0 IRMAO] Irmao tem reserva?', reservaLeitoIrmao ? 'SIM' : 'NAO');
+            
+            // PRIMEIRO: Verificar se irmao esta OCUPADO
             if (dadosLeitoIrmao && (dadosLeitoIrmao.status === 'Em uso' || dadosLeitoIrmao.status === 'ocupado' || dadosLeitoIrmao.status === 'Ocupado')) {
                 const isolamentoIrmao = dadosLeitoIrmao.isolamento || '';
-                if (isolamentoIrmao && isolamentoIrmao !== 'Nao Isolamento') {
+                if (isolamentoIrmao && isolamentoIrmao !== 'Nao Isolamento' && !isolamentoIrmao.includes('Nao Isol')) {
                     bloqueadoPorIsolamento = true;
                     const identificacaoIrmao = String(dadosLeitoIrmao?.identificacaoLeito || 
                                                dadosLeitoIrmao?.identificacao_leito || 
                                                `Leito ${leitoIrmao}`);
                     motivoBloqueio = `Isolamento no ${identificacaoIrmao}`;
+                    console.log('[V7.0 IRMAO] BLOQUEADO por isolamento do OCUPADO:', motivoBloqueio);
                 } else if (dadosLeitoIrmao.genero) {
                     bloqueadoPorGenero = true;
                     generoPermitido = dadosLeitoIrmao.genero;
-                    
-                    // 🔍 DEBUG
-                    if (hospitalId === 'H4') {
-                        console.log('✅ BLOQUEADO POR GÊNERO! generoPermitido:', generoPermitido);
-                    }
+                    console.log('[V7.0 IRMAO] Restrito por genero do OCUPADO:', generoPermitido);
+                }
+            }
+            // SEGUNDO: V7.0 - Verificar se irmao tem RESERVA (mesmo que nao esteja ocupado)
+            else if (reservaLeitoIrmao) {
+                const isolamentoReserva = reservaLeitoIrmao.isolamento || '';
+                if (isolamentoReserva && isolamentoReserva !== 'Nao Isolamento' && !isolamentoReserva.includes('Nao Isol')) {
+                    bloqueadoPorIsolamento = true;
+                    const identificacaoReserva = String(reservaLeitoIrmao.identificacaoLeito || `Leito ${leitoIrmao}`);
+                    motivoBloqueio = `Isolamento na reserva ${identificacaoReserva}`;
+                    console.log('[V7.0 IRMAO] BLOQUEADO por isolamento da RESERVA:', motivoBloqueio);
+                } else if (reservaLeitoIrmao.genero) {
+                    bloqueadoPorGenero = true;
+                    generoPermitido = reservaLeitoIrmao.genero;
+                    console.log('[V7.0 IRMAO] Restrito por genero da RESERVA:', generoPermitido);
                 }
             }
         }
@@ -712,11 +773,19 @@ function createCard(leito, hospitalNome, hospitalId, posicaoOcupacao) {
     // Determinar status
     let isVago = false;
     let isReservado = false;
+    let isBloqueioIrmao = leito._isBloqueioIrmao || false;
     let statusBgColor = '#60a5fa';
     let statusTextColor = '#ffffff';
     let statusTexto = 'Disponível';
     
-    if (bloqueadoPorIsolamento) {
+    // V7.0: Se eh bloqueio de irmao (vaga restrita por genero)
+    if (isBloqueioIrmao && leito._generoRestrito) {
+        isVago = true;
+        bloqueadoPorGenero = true;
+        generoPermitido = leito._generoRestrito;
+        statusTexto = `Disp. ${generoPermitido === 'Masculino' ? 'Masc' : 'Fem'}`;
+        console.log('[V7.0 BLOQUEIO IRMAO] Vaga restrita por genero:', generoPermitido);
+    } else if (bloqueadoPorIsolamento) {
         statusBgColor = '#c86420';
         statusTextColor = '#ffffff';
         statusTexto = 'BLOQUEADO';
@@ -736,11 +805,6 @@ function createCard(leito, hospitalNome, hospitalId, posicaoOcupacao) {
         isVago = true;
         if (bloqueadoPorGenero) {
             statusTexto = `Disp. ${generoPermitido === 'Masculino' ? 'Masc' : 'Fem'}`;
-            
-            // DEBUG
-            if (hospitalId === 'H4') {
-                console.log('STATUS FINAL:', statusTexto);
-            }
         }
     }
     
@@ -1018,6 +1082,7 @@ function createCard(leito, hospitalNome, hospitalId, posicaoOcupacao) {
                         style="padding: 10px 16px; background: ${bloqueadoPorIsolamento ? '#b2adaa' : '#60a5fa'}; color: #ffffff; border: none; border-radius: 6px; cursor: ${bloqueadoPorIsolamento ? 'not-allowed' : 'pointer'}; font-weight: 800; text-transform: uppercase; font-size: 10px; font-family: 'Poppins', sans-serif; opacity: ${bloqueadoPorIsolamento ? '0.5' : '1'};">
                     ${bloqueadoPorIsolamento ? 'BLOQUEADO' : 'RESERVAR'}
                 </button>
+                ${isBloqueioIrmao ? '' : `
                 <button class="btn-action" 
                         data-action="admitir" 
                         data-leito="${numeroLeito}" 
@@ -1025,6 +1090,7 @@ function createCard(leito, hospitalNome, hospitalId, posicaoOcupacao) {
                         style="padding: 10px 16px; background: ${bloqueadoPorIsolamento ? '#b2adaa' : '#60a5fa'}; color: #ffffff; border: none; border-radius: 6px; cursor: ${bloqueadoPorIsolamento ? 'not-allowed' : 'pointer'}; font-weight: 800; text-transform: uppercase; font-size: 10px; font-family: 'Poppins', sans-serif; opacity: ${bloqueadoPorIsolamento ? '0.5' : '1'};">
                     ${bloqueadoPorIsolamento ? 'BLOQUEADO' : 'ADMITIR'}
                 </button>
+                `}
             </div>
             ` : `
             <!-- Botao OCUPADO -->
@@ -1319,11 +1385,16 @@ function createAdmissaoForm(hospitalNome, leitoNumero, hospitalId) {
             const leitosHospital = window.hospitalData['H2']?.leitos || [];
             const dadosLeitoIrmao = leitosHospital.find(l => l.leito == leitoIrmao);
             
+            // V7.0: TAMBEM verificar RESERVA do leito irmao
+            const reservasH2 = (window.reservasData || []).filter(r => r.hospital === 'H2');
+            const reservaLeitoIrmao = reservasH2.find(r => parseInt(r.leito) === parseInt(leitoIrmao));
+            
+            // PRIMEIRO: Verificar se irmao esta OCUPADO
             if (dadosLeitoIrmao && (dadosLeitoIrmao.status === 'Em uso' || dadosLeitoIrmao.status === 'ocupado' || dadosLeitoIrmao.status === 'Ocupado')) {
                 const isolamentoIrmao = dadosLeitoIrmao.isolamento || '';
                 
                 // Se irmão NÃO tem isolamento → forçar "Não Isolamento" no leito atual
-                if (!isolamentoIrmao || isolamentoIrmao === 'Não Isolamento') {
+                if (!isolamentoIrmao || isolamentoIrmao === 'Não Isolamento' || isolamentoIrmao === 'Nao Isolamento') {
                     isolamentoPreDefinido = 'Não Isolamento';
                     isolamentoDisabled = true;
                     
@@ -1343,6 +1414,31 @@ function createAdmissaoForm(hospitalNome, leitoNumero, hospitalId) {
                     }
                 }
             }
+            // SEGUNDO: V7.0 - Verificar se irmao tem RESERVA
+            else if (reservaLeitoIrmao) {
+                const isolamentoReserva = reservaLeitoIrmao.isolamento || '';
+                
+                // Se reserva do irmao NÃO tem isolamento → forçar "Não Isolamento" no leito atual
+                if (!isolamentoReserva || isolamentoReserva === 'Não Isolamento' || isolamentoReserva === 'Nao Isolamento' || isolamentoReserva.includes('Nao Isol')) {
+                    isolamentoPreDefinido = 'Não Isolamento';
+                    isolamentoDisabled = true;
+                    
+                    if (reservaLeitoIrmao.genero) {
+                        generoPreDefinido = reservaLeitoIrmao.genero;
+                        generoDisabled = true;
+                        console.log('[V7.0 ADMISSAO IRMAO H2] Genero herdado da reserva do irmao:', generoPreDefinido);
+                    }
+                }
+                
+                // PRE-PREENCHER NUMERO BASE SE IRMAO TEM RESERVA
+                const identificacaoReserva = String(reservaLeitoIrmao.identificacaoLeito || '');
+                if (identificacaoReserva) {
+                    const partes = identificacaoReserva.split('-');
+                    if (partes.length > 0) {
+                        numeroBasePreenchido = partes[0];
+                    }
+                }
+            }
         }
         
         // Definir sufixo padrão baseado no número do leito (par=3, ímpar=1)
@@ -1356,11 +1452,16 @@ function createAdmissaoForm(hospitalNome, leitoNumero, hospitalId) {
             const leitosHospital = window.hospitalData['H4']?.leitos || [];
             const dadosLeitoIrmao = leitosHospital.find(l => l.leito == leitoIrmao);
             
+            // V7.0: TAMBEM verificar RESERVA do leito irmao
+            const reservasH4 = (window.reservasData || []).filter(r => r.hospital === 'H4');
+            const reservaLeitoIrmao = reservasH4.find(r => parseInt(r.leito) === parseInt(leitoIrmao));
+            
+            // PRIMEIRO: Verificar se irmao esta OCUPADO
             if (dadosLeitoIrmao && (dadosLeitoIrmao.status === 'Em uso' || dadosLeitoIrmao.status === 'ocupado' || dadosLeitoIrmao.status === 'Ocupado')) {
                 const isolamentoIrmao = dadosLeitoIrmao.isolamento || '';
                 
                 // Se irmão NÃO tem isolamento → forçar "Não Isolamento" no leito atual
-                if (!isolamentoIrmao || isolamentoIrmao === 'Não Isolamento') {
+                if (!isolamentoIrmao || isolamentoIrmao === 'Não Isolamento' || isolamentoIrmao === 'Nao Isolamento') {
                     isolamentoPreDefinido = 'Não Isolamento';
                     isolamentoDisabled = true;
                     
@@ -1375,6 +1476,31 @@ function createAdmissaoForm(hospitalNome, leitoNumero, hospitalId) {
                 if (identificacaoIrmao) {
                     // Extrair numero base (ex: "201-A" -> "201")
                     const partes = identificacaoIrmao.split('-');
+                    if (partes.length > 0) {
+                        numeroBasePreenchido = partes[0];
+                    }
+                }
+            }
+            // SEGUNDO: V7.0 - Verificar se irmao tem RESERVA
+            else if (reservaLeitoIrmao) {
+                const isolamentoReserva = reservaLeitoIrmao.isolamento || '';
+                
+                // Se reserva do irmao NÃO tem isolamento → forçar "Não Isolamento" no leito atual
+                if (!isolamentoReserva || isolamentoReserva === 'Não Isolamento' || isolamentoReserva === 'Nao Isolamento' || isolamentoReserva.includes('Nao Isol')) {
+                    isolamentoPreDefinido = 'Não Isolamento';
+                    isolamentoDisabled = true;
+                    
+                    if (reservaLeitoIrmao.genero) {
+                        generoPreDefinido = reservaLeitoIrmao.genero;
+                        generoDisabled = true;
+                        console.log('[V7.0 ADMISSAO IRMAO H4] Genero herdado da reserva do irmao:', generoPreDefinido);
+                    }
+                }
+                
+                // PRE-PREENCHER NUMERO BASE SE IRMAO TEM RESERVA
+                const identificacaoReserva = String(reservaLeitoIrmao.identificacaoLeito || '');
+                if (identificacaoReserva) {
+                    const partes = identificacaoReserva.split('-');
                     if (partes.length > 0) {
                         numeroBasePreenchido = partes[0];
                     }
@@ -1655,15 +1781,39 @@ function createReservaForm(hospitalNome, leitoNumero, hospitalId, dadosLeito) {
     let numeroBasePreenchido = '';
     let sufixoPreDefinido = '';
     
+    // V7.0: Se é um bloqueio de irmão (vaga flutuante), já vem com gênero restrito
+    if (dadosLeito && dadosLeito._isBloqueioIrmao && dadosLeito._generoRestrito) {
+        generoPreDefinido = dadosLeito._generoRestrito;
+        generoDisabled = true;
+        isolamentoPreDefinido = 'Não Isolamento';
+        isolamentoDisabled = true;
+        
+        // Pré-preencher identificação se tiver
+        const identificacaoLeito = String(dadosLeito.identificacaoLeito || dadosLeito.identificacao_leito || '');
+        if (identificacaoLeito && identificacaoLeito.includes('-')) {
+            const partes = identificacaoLeito.split('-');
+            numeroBasePreenchido = partes[0];
+            sufixoPreDefinido = partes[1];
+        }
+        
+        console.log('[V7.0 BLOQUEIO IRMAO] Genero restrito no modal de reserva:', generoPreDefinido);
+    }
+    
     // Lógica de leitos irmãos H2
     if (isCruzAzulEnfermaria) {
         const leitoIrmao = window.CRUZ_AZUL_IRMAOS[leitoNumero];
         if (leitoIrmao) {
             const leitosHospital = window.hospitalData['H2']?.leitos || [];
             const dadosLeitoIrmao = leitosHospital.find(l => l.leito == leitoIrmao);
+            
+            // V7.0: TAMBEM verificar RESERVA do leito irmao
+            const reservasH2 = (window.reservasData || []).filter(r => r.hospital === 'H2');
+            const reservaLeitoIrmao = reservasH2.find(r => parseInt(r.leito) === parseInt(leitoIrmao));
+            
+            // PRIMEIRO: Verificar se irmao esta OCUPADO
             if (dadosLeitoIrmao && (dadosLeitoIrmao.status === 'Ocupado' || dadosLeitoIrmao.status === 'ocupado')) {
                 const isolamentoIrmao = dadosLeitoIrmao.isolamento || '';
-                if (!isolamentoIrmao || isolamentoIrmao === 'Não Isolamento') {
+                if (!isolamentoIrmao || isolamentoIrmao === 'Não Isolamento' || isolamentoIrmao === 'Nao Isolamento') {
                     isolamentoPreDefinido = 'Não Isolamento';
                     isolamentoDisabled = true;
                     if (dadosLeitoIrmao.genero) {
@@ -1677,6 +1827,24 @@ function createReservaForm(hospitalNome, leitoNumero, hospitalId, dadosLeito) {
                     if (partes.length > 0) numeroBasePreenchido = partes[0];
                 }
             }
+            // SEGUNDO: V7.0 - Verificar se irmao tem RESERVA
+            else if (reservaLeitoIrmao) {
+                const isolamentoReserva = reservaLeitoIrmao.isolamento || '';
+                if (!isolamentoReserva || isolamentoReserva === 'Não Isolamento' || isolamentoReserva === 'Nao Isolamento' || isolamentoReserva.includes('Nao Isol')) {
+                    isolamentoPreDefinido = 'Não Isolamento';
+                    isolamentoDisabled = true;
+                    if (reservaLeitoIrmao.genero) {
+                        generoPreDefinido = reservaLeitoIrmao.genero;
+                        generoDisabled = true;
+                        console.log('[V7.0 RESERVA IRMAO H2] Genero herdado da reserva do irmao:', generoPreDefinido);
+                    }
+                }
+                const identificacaoReserva = String(reservaLeitoIrmao.identificacaoLeito || '');
+                if (identificacaoReserva) {
+                    const partes = identificacaoReserva.split('-');
+                    if (partes.length > 0) numeroBasePreenchido = partes[0];
+                }
+            }
         }
         sufixoPreDefinido = (leitoNumero % 2 === 0) ? '3' : '1';
     }
@@ -1687,9 +1855,15 @@ function createReservaForm(hospitalNome, leitoNumero, hospitalId, dadosLeito) {
         if (leitoIrmao) {
             const leitosHospital = window.hospitalData['H4']?.leitos || [];
             const dadosLeitoIrmao = leitosHospital.find(l => l.leito == leitoIrmao);
+            
+            // V7.0: TAMBEM verificar RESERVA do leito irmao
+            const reservasH4 = (window.reservasData || []).filter(r => r.hospital === 'H4');
+            const reservaLeitoIrmao = reservasH4.find(r => parseInt(r.leito) === parseInt(leitoIrmao));
+            
+            // PRIMEIRO: Verificar se irmao esta OCUPADO
             if (dadosLeitoIrmao && (dadosLeitoIrmao.status === 'Ocupado' || dadosLeitoIrmao.status === 'ocupado')) {
                 const isolamentoIrmao = dadosLeitoIrmao.isolamento || '';
-                if (!isolamentoIrmao || isolamentoIrmao === 'Nao Isolamento') {
+                if (!isolamentoIrmao || isolamentoIrmao === 'Nao Isolamento' || isolamentoIrmao === 'Não Isolamento') {
                     isolamentoPreDefinido = 'Nao Isolamento';
                     isolamentoDisabled = true;
                     if (dadosLeitoIrmao.genero) {
@@ -1700,6 +1874,24 @@ function createReservaForm(hospitalNome, leitoNumero, hospitalId, dadosLeito) {
                 const identificacaoIrmao2 = String(dadosLeitoIrmao.identificacaoLeito || dadosLeitoIrmao.identificacao_leito || '');
                 if (identificacaoIrmao2) {
                     const partes = identificacaoIrmao2.split('-');
+                    if (partes.length > 0) numeroBasePreenchido = partes[0];
+                }
+            }
+            // SEGUNDO: V7.0 - Verificar se irmao tem RESERVA
+            else if (reservaLeitoIrmao) {
+                const isolamentoReserva = reservaLeitoIrmao.isolamento || '';
+                if (!isolamentoReserva || isolamentoReserva === 'Nao Isolamento' || isolamentoReserva === 'Não Isolamento' || isolamentoReserva.includes('Nao Isol')) {
+                    isolamentoPreDefinido = 'Nao Isolamento';
+                    isolamentoDisabled = true;
+                    if (reservaLeitoIrmao.genero) {
+                        generoPreDefinido = reservaLeitoIrmao.genero;
+                        generoDisabled = true;
+                        console.log('[V7.0 RESERVA IRMAO H4] Genero herdado da reserva do irmao:', generoPreDefinido);
+                    }
+                }
+                const identificacaoReserva = String(reservaLeitoIrmao.identificacaoLeito || '');
+                if (identificacaoReserva) {
+                    const partes = identificacaoReserva.split('-');
                     if (partes.length > 0) numeroBasePreenchido = partes[0];
                 }
             }
@@ -2066,16 +2258,7 @@ function setupReservaModalEventListeners(modal) {
                         await window.loadHospitalData();
                     }
                     
-                    // Garantir que reserva local esteja no array (pode ter sido sobrescrita)
-                    if (!window.reservasData) window.reservasData = [];
-                    const jaExiste = window.reservasData.find(r => 
-                        r.hospital === reservaLocal.hospital && 
-                        r.identificacaoLeito === reservaLocal.identificacaoLeito
-                    );
-                    if (!jaExiste) {
-                        window.reservasData.push(reservaLocal);
-                        console.log('[V7.0 RESERVA] Reserva local re-adicionada ao array');
-                    }
+                    // Nao re-adicionar reserva local - loadHospitalData ja carrega do backend
                     
                     if (window.renderCards && window.currentHospital) {
                         window.renderCards(window.currentHospital);
@@ -3024,10 +3207,17 @@ function validarIdentificacaoDuplicada(hospitalId, identificacao, leitoAtual = n
     });
     
     if (duplicadoReserva) {
-        const matricula = duplicadoReserva.matricula || 'sem matricula';
+        // V7.0: Se a reserva existente for um BLOQUEIO (sem matricula), permitir!
+        // O backend vai atualizar a linha em vez de criar nova
+        const temMatricula = duplicadoReserva.matricula && String(duplicadoReserva.matricula).trim();
+        if (!temMatricula) {
+            console.log('[V7.0 VALIDACAO] Bloqueio existente encontrado para ' + identificacao + ' - permitindo atualizacao');
+            return { valido: true, bloqueioExistente: true };
+        }
+        
         return {
             valido: false,
-            mensagem: `Leito ${identificacao} ja esta RESERVADO (matricula: ${matricula})`
+            mensagem: `Leito ${identificacao} ja esta RESERVADO (matricula: ${duplicadoReserva.matricula})`
         };
     }
     
