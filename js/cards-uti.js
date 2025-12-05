@@ -33,6 +33,9 @@ const ISOLAMENTO_UTI_OPTIONS = ['Nao Isolamento', 'Isolamento de Contato', 'Isol
 const GENERO_UTI_OPTIONS = ['Masculino', 'Feminino'];
 const TIPO_CONVENIO_OPTIONS = ['Apartamento', 'Enfermaria'];
 
+// =================== CAMPOS BLOQUEADOS UTI ===================
+const CAMPOS_BLOQUEADOS_UTI = ['pps', 'spict', 'regiao', 'diretivas', 'concessoes', 'linhas'];
+
 // =================== FUNCOES AUXILIARES ===================
 
 function logInfoUTI(msg) {
@@ -49,7 +52,7 @@ function showSuccessMessageUTI(msg) {
         position: fixed; top: 20px; right: 20px; padding: 15px 25px;
         background: #22c55e; color: white; border-radius: 8px;
         font-family: 'Poppins', sans-serif; font-weight: 600;
-        z-index: 10000; animation: fadeIn 0.3s;
+        z-index: 10000; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     `;
     toast.textContent = msg;
     document.body.appendChild(toast);
@@ -62,99 +65,105 @@ function showErrorMessageUTI(msg) {
         position: fixed; top: 20px; right: 20px; padding: 15px 25px;
         background: #ef4444; color: white; border-radius: 8px;
         font-family: 'Poppins', sans-serif; font-weight: 600;
-        z-index: 10000; animation: fadeIn 0.3s;
+        z-index: 10000; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     `;
     toast.textContent = msg;
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 4000);
 }
 
+// =================== BADGE ISOLAMENTO ===================
+function getBadgeIsolamentoUTI(isolamento) {
+    if (!isolamento || isolamento === 'Nao Isolamento' || isolamento === 'Não Isolamento') {
+        return { cor: '#b2adaa', texto: 'Nao Isol', textoCor: '#ffffff' };
+    } else if (isolamento === 'Isolamento de Contato') {
+        return { cor: '#f59a1d', texto: 'Contato', textoCor: '#131b2e' };
+    } else if (isolamento === 'Isolamento Respiratorio' || isolamento === 'Isolamento Respiratório') {
+        return { cor: '#c86420', texto: 'Respiratorio', textoCor: '#ffffff' };
+    }
+    return { cor: '#b2adaa', texto: 'Nao Isol', textoCor: '#ffffff' };
+}
+
+// =================== BADGE GENERO ===================
+function getBadgeGeneroUTI(sexo) {
+    if (sexo === 'Masculino') {
+        return {
+            cor: 'rgba(96,165,250,0.2)',
+            borda: '#60a5fa',
+            textoCor: '#60a5fa',
+            texto: 'Masculino'
+        };
+    } else if (sexo === 'Feminino') {
+        return {
+            cor: 'rgba(236,72,153,0.2)',
+            borda: '#ec4899',
+            textoCor: '#ec4899',
+            texto: 'Feminino'
+        };
+    }
+    return {
+        cor: 'rgba(255,255,255,0.05)',
+        borda: 'rgba(255,255,255,0.1)',
+        textoCor: '#ffffff',
+        texto: '—'
+    };
+}
+
+// =================== FORMATAR MATRICULA ===================
 function formatarMatriculaUTI(matricula) {
-    if (!matricula) return '';
+    if (!matricula || matricula === '—') return '—';
     const mat = String(matricula).replace(/\D/g, '');
-    if (mat.length <= 5) return mat;
+    if (mat.length === 0) return '—';
+    if (mat.length === 1) return mat;
     return mat.slice(0, -1) + '-' + mat.slice(-1);
 }
 
-function calcularTempoInternacaoUTI(admAt) {
-    if (!admAt) return '';
+// =================== FORMATAR DATA ===================
+function formatarDataHoraUTI(dataStr) {
+    if (!dataStr) return '—';
     try {
-        const admData = new Date(admAt);
+        const data = new Date(dataStr);
+        if (isNaN(data.getTime())) return dataStr;
+        const dia = String(data.getDate()).padStart(2, '0');
+        const mes = String(data.getMonth() + 1).padStart(2, '0');
+        const ano = data.getFullYear();
+        const hora = String(data.getHours()).padStart(2, '0');
+        const min = String(data.getMinutes()).padStart(2, '0');
+        return `${dia}/${mes}/${ano}, ${hora}:${min}`;
+    } catch (e) {
+        return dataStr;
+    }
+}
+
+// =================== CALCULAR TEMPO INTERNACAO ===================
+function calcularTempoInternacaoUTI(admissao) {
+    if (!admissao) return '';
+    try {
+        const admData = new Date(admissao);
         if (isNaN(admData.getTime())) return '';
-        const agora = new Date();
-        const diffMs = agora - admData;
+        const hoje = new Date();
+        const diffMs = hoje - admData;
         const diffDias = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-        if (diffDias < 0 || diffDias > 365) return '';
-        if (diffDias === 0) return 'Hoje';
-        if (diffDias === 1) return '1 dia';
-        return diffDias + ' dias';
+        const diffHoras = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        if (diffDias > 0) {
+            return `${diffDias}d ${diffHoras}h`;
+        }
+        return `${diffHoras}h`;
     } catch (e) {
         return '';
     }
 }
 
-// =================== FUNCOES DE RESERVA UTI ===================
-
-window.getReservasUTIHospital = function(hospitalId) {
-    const todasReservas = window.reservasData || [];
-    return todasReservas.filter(r => r.hospital === hospitalId && r.tipo === 'UTI');
-};
-
-window.isLeitoUTIReservado = function(hospitalId, leitoNumero) {
-    const reservas = window.getReservasUTIHospital(hospitalId);
-    return reservas.find(r => parseInt(r.leito) === parseInt(leitoNumero));
-};
-
-window.cancelarReservaUTI = async function(hospital, identificacaoLeito, matricula) {
-    logInfoUTI('Cancelando reserva UTI: ' + hospital + ' ' + identificacaoLeito);
-    try {
-        const idLeito = String(identificacaoLeito || '');
-        const mat = String(matricula || '');
-        const params = new URLSearchParams({
-            action: 'cancelarReserva',
-            hospital: hospital,
-            identificacaoLeito: idLeito,
-            matricula: mat
-        });
-        
-        const response = await fetch(window.API_URL + '?' + params.toString(), {
-            method: 'GET',
-            headers: { 'Accept': 'application/json' }
-        });
-        const result = await response.json();
-        if (result.ok || result.success) {
-            if (window.reservasData) {
-                window.reservasData = window.reservasData.filter(r => 
-                    !(r.hospital === hospital && (String(r.identificacaoLeito || '') === idLeito || String(r.matricula || '') === mat))
-                );
-            }
-            return true;
-        }
-        throw new Error(result.message || result.error || 'Erro ao cancelar reserva');
-    } catch (error) {
-        logErrorUTI('Erro ao cancelar reserva: ' + error.message);
-        throw error;
-    }
-};
-
-// =================== FILTRAR LEITOS UTI ===================
-
-function filtrarLeitosUTI(hospitalId) {
-    const hospitalData = window.hospitalData?.[hospitalId];
-    if (!hospitalData || !hospitalData.leitos) return [];
-    return hospitalData.leitos.filter(l => l.tipo === 'UTI');
+// =================== VERIFICAR SE LEITO EXTRA ===================
+function isLeitoExtraUTI(hospitalId, posicao) {
+    const config = UTI_CAPACIDADE_CARDS[hospitalId];
+    if (!config) return false;
+    return posicao > config.contratuais;
 }
 
-// =================== RENDER CARDS UTI ===================
-
+// =================== RENDERIZAR CARDS UTI ===================
 window.renderCardsUTI = function(hospitalId) {
     logInfoUTI('Renderizando cards UTI para ' + hospitalId);
-    
-    // Verificar se hospital esta ativo
-    if (!HOSPITAIS_UTI_ATIVOS_CARDS.includes(hospitalId)) {
-        logErrorUTI('Hospital ' + hospitalId + ' nao esta ativo para UTI');
-        return;
-    }
     
     const container = document.getElementById('cardsContainerUTI');
     if (!container) {
@@ -164,85 +173,133 @@ window.renderCardsUTI = function(hospitalId) {
     
     container.innerHTML = '';
     
-    const hospitalConfig = UTI_CAPACIDADE_CARDS[hospitalId];
-    const hospitalNome = hospitalConfig?.nome || hospitalId;
+    // Verificar se hospital esta ativo
+    if (!HOSPITAIS_UTI_ATIVOS_CARDS.includes(hospitalId)) {
+        container.innerHTML = `
+            <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: rgba(255,255,255,0.7);">
+                <div style="font-size: 48px; margin-bottom: 20px;">🏥</div>
+                <h3 style="color: #60a5fa; margin-bottom: 10px;">UTI Inativa</h3>
+                <p>Este hospital ainda nao possui leitos UTI ativos no sistema.</p>
+            </div>
+        `;
+        return;
+    }
     
-    // Buscar leitos UTI
-    const leitosUTI = filtrarLeitosUTI(hospitalId);
-    logInfoUTI('Leitos UTI encontrados: ' + leitosUTI.length);
+    // Sincronizar dropdown
+    const dropdown = document.getElementById('hospitalDropdownUTI');
+    if (dropdown && dropdown.value !== hospitalId) {
+        dropdown.value = hospitalId;
+    }
+    
+    // Guardar hospital atual
+    window.currentHospitalUTI = hospitalId;
+    
+    // Buscar dados do hospital
+    const hospital = window.hospitalData ? window.hospitalData[hospitalId] : null;
+    const config = UTI_CAPACIDADE_CARDS[hospitalId];
+    const hospitalNome = config ? config.nome : hospitalId;
+    
+    if (!hospital || !hospital.leitos) {
+        container.innerHTML = `
+            <div style="grid-column: 1 / -1; text-align: center; padding: 40px;">
+                <p style="color: rgba(255,255,255,0.7);">Carregando dados...</p>
+            </div>
+        `;
+        return;
+    }
+    
+    // Filtrar apenas leitos UTI
+    const leitosUTI = hospital.leitos.filter(l => {
+        const tipo = (l.tipo || '').toUpperCase();
+        return tipo === 'UTI';
+    });
+    
+    logInfoUTI('Total de leitos UTI: ' + leitosUTI.length);
+    
+    if (leitosUTI.length === 0) {
+        container.innerHTML = `
+            <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: rgba(255,255,255,0.7);">
+                <div style="font-size: 48px; margin-bottom: 20px;">🛏️</div>
+                <h3 style="color: #60a5fa; margin-bottom: 10px;">Nenhum Leito UTI</h3>
+                <p>Nao foram encontrados leitos UTI para este hospital.</p>
+            </div>
+        `;
+        return;
+    }
     
     // Separar ocupados e vagos
-    const leitosOcupados = leitosUTI.filter(l => 
-        l.status === 'Ocupado' || l.status === 'ocupado' || l.status === 'Em uso'
+    const ocupados = leitosUTI.filter(l => 
+        l.status === 'Ocupado' || l.status === 'Em uso' || l.status === 'ocupado'
     );
-    const leitosVagos = leitosUTI.filter(l => 
+    const vagos = leitosUTI.filter(l => 
         l.status === 'Vago' || l.status === 'vago'
     );
     
+    // Ordenar por numero do leito
+    ocupados.sort((a, b) => (a.leito || 0) - (b.leito || 0));
+    vagos.sort((a, b) => (a.leito || 0) - (b.leito || 0));
+    
     // Buscar reservas UTI
-    const reservasUTI = window.getReservasUTIHospital(hospitalId);
-    logInfoUTI('Reservas UTI: ' + reservasUTI.length);
+    const reservasUTI = (window.reservasData || []).filter(r => 
+        r.hospital === hospitalId && r.tipo === 'UTI'
+    );
     
-    // Ordenar ocupados por identificacao
-    leitosOcupados.sort((a, b) => {
-        const idA = String(a.identificacaoLeito || a.identificacao_leito || '');
-        const idB = String(b.identificacaoLeito || b.identificacao_leito || '');
-        return idA.localeCompare(idB, undefined, {numeric: true});
-    });
+    logInfoUTI('Ocupados: ' + ocupados.length + ', Vagos: ' + vagos.length + ', Reservas: ' + reservasUTI.length);
     
-    // Ordenar vagos por numero do leito
-    leitosVagos.sort((a, b) => parseInt(a.leito) - parseInt(b.leito));
-    
-    // Mostrar apenas 1 vago (menor ID)
-    const vagosParaMostrar = leitosVagos.slice(0, 1);
-    
-    // 1. Renderizar ocupados
-    leitosOcupados.forEach((leito, index) => {
-        const card = createCardUTI(leito, hospitalNome, hospitalId, index + 1);
+    // Renderizar OCUPADOS
+    ocupados.forEach((leito, index) => {
+        const posicao = index + 1;
+        const card = createCardUTI(leito, hospitalNome, hospitalId, posicao);
         container.appendChild(card);
     });
     
-    // 2. Renderizar reservados
+    // Renderizar RESERVADOS
     reservasUTI.forEach((reserva) => {
-        const leitoReservado = {
-            leito: reserva.leito,
-            status: 'Reservado',
-            tipo: 'UTI',
-            identificacaoLeito: String(reserva.identificacaoLeito || ''),
-            isolamento: reserva.isolamento || '',
-            genero: reserva.genero || '',
-            nome: reserva.iniciais || '',
-            matricula: String(reserva.matricula || ''),
-            idade: reserva.idade || '',
-            prevAlta: '',
-            _isReserva: true,
-            _reservaId: reserva.linha || reserva.id
-        };
-        const card = createCardUTI(leitoReservado, hospitalNome, hospitalId, 0);
-        container.appendChild(card);
+        const temMatricula = reserva.matricula && String(reserva.matricula).trim();
+        if (temMatricula) {
+            const leitoReservado = {
+                leito: reserva.leito,
+                status: 'Reservado',
+                tipo: 'UTI',
+                identificacaoLeito: String(reserva.identificacaoLeito || ''),
+                isolamento: reserva.isolamento || '',
+                genero: reserva.genero || '',
+                nome: reserva.iniciais || '',
+                matricula: String(reserva.matricula || ''),
+                idade: reserva.idade || '',
+                categoriaEscolhida: reserva.categoriaEscolhida || reserva.tipoConvenio || '',
+                prevAlta: '',
+                admAt: '',
+                _isReserva: true,
+                _reservaId: reserva.linha || reserva.id
+            };
+            const card = createCardUTI(leitoReservado, hospitalNome, hospitalId, 0);
+            container.appendChild(card);
+        }
     });
     
-    // 3. Renderizar vagos
-    vagosParaMostrar.forEach((leito) => {
-        const card = createCardUTI(leito, hospitalNome, hospitalId, 0);
+    // Renderizar VAGOS (apenas 1 para UTI)
+    if (vagos.length > 0) {
+        const card = createCardUTI(vagos[0], hospitalNome, hospitalId, 0);
         container.appendChild(card);
-    });
+    }
     
-    const total = leitosOcupados.length + reservasUTI.length + vagosParaMostrar.length;
-    logInfoUTI(total + ' cards UTI renderizados');
-    
-    // Atualizar currentHospitalUTI
-    window.currentHospitalUTI = hospitalId;
+    logInfoUTI('Cards renderizados: ' + container.children.length);
 };
 
 // =================== CRIAR CARD UTI ===================
-
 function createCardUTI(leito, hospitalNome, hospitalId, posicaoOcupacao) {
     const card = document.createElement('div');
-    card.className = 'card-leito card-leito-uti';
+    card.className = 'card';
+    card.style.cssText = 'background: #1a1f2e; border-radius: 12px; padding: 18px; color: #ffffff; box-shadow: 0 4px 6px rgba(0,0,0,0.1); font-family: "Poppins", sans-serif;';
     
-    const numeroLeito = leito.leito;
-    const isReserva = leito._isReserva || false;
+    // Borda laranja se extra
+    const isExtra = isLeitoExtraUTI(hospitalId, posicaoOcupacao);
+    if (isExtra && posicaoOcupacao > 0) {
+        card.style.cssText += ' border: 2px solid #f59a1d !important;';
+    }
+    
+    const numeroLeito = parseInt(leito.leito);
     
     // Determinar status
     let isVago = false;
@@ -251,7 +308,7 @@ function createCardUTI(leito, hospitalNome, hospitalId, posicaoOcupacao) {
     let statusTextColor = '#ffffff';
     let statusTexto = 'Disponivel';
     
-    if (leito.status === 'Ocupado' || leito.status === 'ocupado' || leito.status === 'Em uso') {
+    if (leito.status === 'Em uso' || leito.status === 'ocupado' || leito.status === 'Ocupado') {
         isVago = false;
         statusBgColor = '#f59a1d';
         statusTextColor = '#131b2e';
@@ -273,21 +330,26 @@ function createCardUTI(leito, hospitalNome, hospitalId, posicaoOcupacao) {
     const idade = leito.idade || null;
     const admissao = leito.admAt || '';
     const previsaoAlta = leito.prevAlta || '';
+    const sexo = leito.genero || '';
+    const tipoConvenio = leito.categoriaEscolhida || leito.categoria || '';
     
-    // Isolamento
+    // Normalizar isolamento
     let isolamento = leito.isolamento || 'Nao Isolamento';
+    const isolamentoLower = isolamento.toLowerCase().trim();
+    if (isolamentoLower === 'isolamento de contato' || isolamentoLower === 'isolamento contato') {
+        isolamento = 'Isolamento de Contato';
+    } else if (isolamentoLower === 'isolamento respiratorio' || isolamentoLower === 'isolamento respiratório') {
+        isolamento = 'Isolamento Respiratorio';
+    } else {
+        isolamento = 'Nao Isolamento';
+    }
     
     // Identificacao do leito
     let identificacaoLeito = String(leito.identificacaoLeito || leito.identificacao_leito || '');
     
-    // Genero
-    const sexo = leito.genero || '';
-    
-    // Badges
     const badgeIsolamento = getBadgeIsolamentoUTI(isolamento);
     const badgeGenero = getBadgeGeneroUTI(sexo);
     
-    // Tempo de internacao
     let tempoInternacao = '';
     if (!isVago && admissao) {
         tempoInternacao = calcularTempoInternacaoUTI(admissao);
@@ -297,816 +359,767 @@ function createCardUTI(leito, hospitalNome, hospitalId, posicaoOcupacao) {
     const idSequencial = String(numeroLeito).padStart(2, '0');
     
     // Display do leito
-    let leitoDisplay;
-    if (isVago) {
-        leitoDisplay = identificacaoLeito.trim() ? identificacaoLeito.trim().toUpperCase() : '—';
-    } else {
-        leitoDisplay = identificacaoLeito.trim() ? identificacaoLeito.trim().toUpperCase() : 'LEITO ' + numeroLeito;
+    let leitoDisplay = isVago ? '—' : (identificacaoLeito.trim() || `LEITO ${numeroLeito}`);
+    if (!isVago && identificacaoLeito.trim()) {
+        leitoDisplay = identificacaoLeito.trim().toUpperCase();
     }
     
     // Cor do circulo
     const circuloCor = '#60a5fa';
     const circuloStroke = isVago ? '#1a1f2e' : '#ffffff';
     
-    // HTML do Card UTI
+    // =================== ESTILOS PARA CAMPOS BLOQUEADOS ===================
+    const styleBloqueado = 'background: rgba(100,100,100,0.3); border: 1px solid rgba(100,100,100,0.4); opacity: 0.5;';
+    const styleNormal = 'background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);';
+    
+    // HTML do Card
     card.innerHTML = `
+        <!-- HEADER: HOSPITAL -->
         <div class="card-header" style="text-align: center; margin-bottom: 12px; padding-bottom: 8px; font-family: 'Poppins', sans-serif;">
             <div style="font-size: 9px; color: rgba(255,255,255,0.7); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px;">HOSPITAL</div>
             <div style="font-size: 16px; color: #ffffff; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">${hospitalNome}</div>
-            <div style="font-size: 10px; color: #ef4444; font-weight: 700; margin-top: 2px;">UTI</div>
+            <div style="font-size: 10px; color: #f59a1d; font-weight: 600; margin-top: 2px;">UTI</div>
+            ${posicaoOcupacao > 0 ? `
+            <div style="background: ${isExtra ? '#f59a1d' : '#60a5fa'}; color: ${isExtra ? '#131b2e' : '#ffffff'}; padding: 4px 12px; border-radius: 12px; font-size: 10px; font-weight: 700; margin-top: 8px; display: inline-block;">
+                OCUPACAO ${posicaoOcupacao}/${UTI_CAPACIDADE_CARDS[hospitalId]?.contratuais || 0}
+            </div>
+            ` : ''}
         </div>
-        
-        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px;">
-            <div style="background: rgba(255,255,255,0.05); border-radius: 8px; padding: 8px 6px; text-align: center;">
-                <div style="font-size: 9px; color: rgba(255,255,255,0.6); text-transform: uppercase; margin-bottom: 3px;">Leito</div>
-                <div style="font-size: 15px; color: #ffffff; font-weight: 700;">${leitoDisplay}</div>
+
+        <!-- LINHA 1: LEITO | TIPO | STATUS -->
+        <div class="card-row" style="display: grid; grid-template-columns: 100px 1fr 1fr; gap: 8px; margin-bottom: 10px; font-family: 'Poppins', sans-serif;">
+            <div class="card-box" style="${styleNormal} border-radius: 6px; padding: 8px; min-height: 45px; display: flex; flex-direction: column; justify-content: center;">
+                <div class="box-label" style="font-size: 9px; color: rgba(255,255,255,0.8); font-weight: 700; text-transform: uppercase; margin-bottom: 3px; letter-spacing: 0.5px;">LEITO</div>
+                <div class="box-value" style="color: #ffffff; font-weight: 700; font-size: 11px; line-height: 1.2;" data-leito-numero="${numeroLeito}">${leitoDisplay}</div>
             </div>
-            <div style="background: rgba(255,255,255,0.05); border-radius: 8px; padding: 8px 6px; text-align: center;">
-                <div style="font-size: 9px; color: rgba(255,255,255,0.6); text-transform: uppercase; margin-bottom: 3px;">Tipo</div>
-                <div style="font-size: 12px; color: #ffffff; font-weight: 600;">UTI</div>
+            
+            <div class="card-box" style="${styleNormal} border-radius: 6px; padding: 8px; min-height: 45px; display: flex; flex-direction: column; justify-content: center;">
+                <div class="box-label" style="font-size: 9px; color: rgba(255,255,255,0.8); font-weight: 700; text-transform: uppercase; margin-bottom: 3px; letter-spacing: 0.5px;">TIPO</div>
+                <div class="box-value" style="color: #ffffff; font-weight: 700; font-size: 11px; line-height: 1.2;">UTI</div>
             </div>
-            <div style="background: ${statusBgColor}; border-radius: 8px; padding: 8px 6px; text-align: center;">
-                <div style="font-size: 9px; color: ${statusTextColor}; text-transform: uppercase; margin-bottom: 3px; opacity: 0.8;">Status</div>
-                <div style="font-size: 12px; color: ${statusTextColor}; font-weight: 700;">${statusTexto}</div>
-            </div>
-        </div>
-        
-        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px;">
-            <div style="background: ${badgeGenero.cor}; border-radius: 8px; padding: 8px 6px; text-align: center;">
-                <div style="font-size: 9px; color: ${badgeGenero.textoCor}; text-transform: uppercase; margin-bottom: 3px; opacity: 0.8;">Genero</div>
-                <div style="font-size: 11px; color: ${badgeGenero.textoCor}; font-weight: 600;">${badgeGenero.texto}</div>
-            </div>
-            <div style="background: ${badgeIsolamento.cor}; border-radius: 8px; padding: 8px 6px; text-align: center;">
-                <div style="font-size: 9px; color: ${badgeIsolamento.textoCor}; text-transform: uppercase; margin-bottom: 3px; opacity: 0.8;">Isolamento</div>
-                <div style="font-size: 11px; color: ${badgeIsolamento.textoCor}; font-weight: 600;">${badgeIsolamento.texto}</div>
-            </div>
-            <div style="background: rgba(255,255,255,0.05); border-radius: 8px; padding: 8px 6px; text-align: center;">
-                <div style="font-size: 9px; color: rgba(255,255,255,0.6); text-transform: uppercase; margin-bottom: 3px;">Prev Alta</div>
-                <div style="font-size: 11px; color: #ffffff; font-weight: 600;">${previsaoAlta || '—'}</div>
+            
+            <div class="status-badge" style="background: ${statusBgColor}; color: ${statusTextColor}; padding: 12px 6px; border-radius: 6px; font-weight: 800; text-transform: uppercase; text-align: center; font-size: 11px; letter-spacing: 0.5px; min-height: 45px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                <div class="box-label" style="font-size: 9px; font-weight: 700; text-transform: uppercase; margin-bottom: 3px; letter-spacing: 0.5px; color: ${statusTextColor};">STATUS</div>
+                <div class="box-value" style="font-weight: 700; font-size: 11px; line-height: 1.2; color: ${statusTextColor};">${statusTexto}</div>
             </div>
         </div>
-        
-        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 12px; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 10px;">
-            <div style="width: 60px; height: 60px; border-radius: 50%; background: ${circuloCor}; display: flex; align-items: center; justify-content: center; border: 3px solid ${circuloStroke}; flex-shrink: 0;">
-                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                    <circle cx="12" cy="7" r="4"/>
+
+        <!-- LINHA 2: GENERO | ISOLAMENTO | PREV ALTA -->
+        <div class="card-row" style="display: grid; grid-template-columns: 100px 1fr 1fr; gap: 8px; margin-bottom: 10px; font-family: 'Poppins', sans-serif;">
+            <div class="card-box" style="background: ${badgeGenero.cor}; border: 1px solid ${badgeGenero.borda}; border-radius: 6px; padding: 8px; min-height: 45px; display: flex; flex-direction: column; justify-content: center;">
+                <div class="box-label" style="font-size: 9px; color: ${badgeGenero.textoCor}; font-weight: 700; text-transform: uppercase; margin-bottom: 3px; letter-spacing: 0.5px;">GENERO</div>
+                <div class="box-value" style="color: ${badgeGenero.textoCor}; font-weight: 700; font-size: 11px; line-height: 1.2;">${badgeGenero.texto}</div>
+            </div>
+            
+            <div class="card-box" style="background: ${badgeIsolamento.cor}; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; padding: 8px; min-height: 45px; display: flex; flex-direction: column; justify-content: center;">
+                <div class="box-label" style="font-size: 9px; color: ${badgeIsolamento.textoCor}; font-weight: 700; text-transform: uppercase; margin-bottom: 3px; letter-spacing: 0.5px;">ISOLAMENTO</div>
+                <div class="box-value" style="color: ${badgeIsolamento.textoCor}; font-weight: 700; font-size: 11px; line-height: 1.2;">${badgeIsolamento.texto}</div>
+            </div>
+            
+            <div class="card-box prev-alta" style="background: #60a5fa; border: 1px solid rgba(96,165,250,0.5); border-radius: 6px; padding: 8px; min-height: 45px; display: flex; flex-direction: column; justify-content: center;">
+                <div class="box-label" style="font-size: 9px; color: #ffffff; font-weight: 700; text-transform: uppercase; margin-bottom: 3px; letter-spacing: 0.5px;">PREVISAO ALTA</div>
+                <div class="box-value" style="color: #ffffff; font-weight: 700; font-size: 11px; line-height: 1.2;">${previsaoAlta || '—'}</div>
+            </div>
+        </div>
+
+        <!-- LINHA DIVISORIA -->
+        <div class="divider" style="height: 2px; background: #ffffff; margin: 12px 0;"></div>
+
+        <!-- SECAO PESSOA -->
+        <div class="card-row-pessoa" style="display: grid; grid-template-columns: 100px 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 8px; margin-bottom: 10px; font-family: 'Poppins', sans-serif;">
+            <div class="pessoa-circle" style="grid-row: span 2; grid-column: 1; width: 100px; height: 100px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: ${circuloCor};">
+                <svg class="pessoa-icon" viewBox="0 0 24 24" fill="none" stroke="${circuloStroke}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 55%; height: 55%;">
+                    <circle cx="12" cy="8" r="4"></circle>
+                    <path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path>
                 </svg>
             </div>
-            <div style="flex: 1; min-width: 0;">
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                    <div>
-                        <div style="font-size: 9px; color: rgba(255,255,255,0.5); text-transform: uppercase;">Iniciais</div>
-                        <div style="font-size: 14px; color: #ffffff; font-weight: 700;">${iniciais}</div>
-                    </div>
-                    <div>
-                        <div style="font-size: 9px; color: rgba(255,255,255,0.5); text-transform: uppercase;">Matricula</div>
-                        <div style="font-size: 14px; color: #ffffff; font-weight: 600;">${matriculaFormatada || '—'}</div>
-                    </div>
-                    <div>
-                        <div style="font-size: 9px; color: rgba(255,255,255,0.5); text-transform: uppercase;">Idade</div>
-                        <div style="font-size: 14px; color: #ffffff; font-weight: 600;">${idade ? idade + ' anos' : '—'}</div>
-                    </div>
-                    <div>
-                        <div style="font-size: 9px; color: rgba(255,255,255,0.5); text-transform: uppercase;">Internacao</div>
-                        <div style="font-size: 14px; color: #ffffff; font-weight: 600;">${tempoInternacao || '—'}</div>
-                    </div>
-                </div>
+
+            <div class="small-cell" style="${styleNormal} border-radius: 6px; padding: 6px; display: flex; flex-direction: column; justify-content: center; min-height: 46px;">
+                <div class="box-label" style="font-size: 8px; color: rgba(255,255,255,0.8); font-weight: 700; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.5px;">INICIAIS</div>
+                <div class="box-value" style="color: #ffffff; font-weight: 700; font-size: 10px; line-height: 1.2;">${iniciais}</div>
+            </div>
+
+            <div class="small-cell" style="${styleNormal} border-radius: 6px; padding: 6px; display: flex; flex-direction: column; justify-content: center; min-height: 46px;">
+                <div class="box-label" style="font-size: 8px; color: rgba(255,255,255,0.8); font-weight: 700; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.5px;">MATRICULA</div>
+                <div class="box-value" style="color: #ffffff; font-weight: 700; font-size: 10px; line-height: 1.2;">${matriculaFormatada}</div>
+            </div>
+
+            <div class="small-cell" style="${styleNormal} border-radius: 6px; padding: 6px; display: flex; flex-direction: column; justify-content: center; min-height: 46px;">
+                <div class="box-label" style="font-size: 8px; color: rgba(255,255,255,0.8); font-weight: 700; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.5px;">IDADE</div>
+                <div class="box-value" style="color: #ffffff; font-weight: 700; font-size: 10px; line-height: 1.2;">${idade ? idade + ' anos' : '—'}</div>
+            </div>
+
+            <!-- REGIAO BLOQUEADA -->
+            <div class="small-cell" style="${styleBloqueado} border-radius: 6px; padding: 6px; display: flex; flex-direction: column; justify-content: center; min-height: 46px;">
+                <div class="box-label" style="font-size: 8px; color: rgba(255,255,255,0.5); font-weight: 700; text-transform: uppercase; margin-bottom: 2px; letter-spacing: 0.5px;">REGIAO</div>
+                <div class="box-value" style="color: rgba(255,255,255,0.5); font-weight: 700; font-size: 10px; line-height: 1.2;">—</div>
             </div>
         </div>
-        
-        <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1);">
-            <div style="font-size: 10px; color: rgba(255,255,255,0.4);">
-                <span>ID</span><br>
-                <span>${idSequencial}</span>
+
+        <!-- LINHA 3: PPS | SPICT-BR | DIRETIVAS - TODOS BLOQUEADOS -->
+        <div class="card-row" style="display: grid; grid-template-columns: 100px 1fr 1fr; gap: 8px; margin-bottom: 12px; font-family: 'Poppins', sans-serif;">
+            <div class="card-box" style="${styleBloqueado} border-radius: 6px; padding: 8px; min-height: 45px; display: flex; flex-direction: column; justify-content: center;">
+                <div class="box-label" style="font-size: 9px; color: rgba(255,255,255,0.5); font-weight: 700; text-transform: uppercase; margin-bottom: 3px; letter-spacing: 0.5px;">PPS</div>
+                <div class="box-value" style="color: rgba(255,255,255,0.5); font-weight: 700; font-size: 11px; line-height: 1.2;">—</div>
             </div>
+            
+            <div class="card-box" style="${styleBloqueado} border-radius: 6px; padding: 8px; min-height: 45px; display: flex; flex-direction: column; justify-content: center;">
+                <div class="box-label" style="font-size: 9px; color: rgba(255,255,255,0.5); font-weight: 700; text-transform: uppercase; margin-bottom: 3px; letter-spacing: 0.5px;">SPICT-BR</div>
+                <div class="box-value" style="color: rgba(255,255,255,0.5); font-weight: 700; font-size: 11px; line-height: 1.2;">—</div>
+            </div>
+            
+            <div class="card-box" style="${styleBloqueado} border-radius: 6px; padding: 8px; min-height: 45px; display: flex; flex-direction: column; justify-content: center;">
+                <div class="box-label" style="font-size: 9px; color: rgba(255,255,255,0.5); font-weight: 700; text-transform: uppercase; margin-bottom: 3px; letter-spacing: 0.5px;">DIRETIVAS</div>
+                <div class="box-value" style="color: rgba(255,255,255,0.5); font-weight: 700; font-size: 11px; line-height: 1.2;">—</div>
+            </div>
+        </div>
+
+        <!-- CONCESSOES - BLOQUEADO -->
+        <div class="card-section" style="margin-bottom: 15px; font-family: 'Poppins', sans-serif;">
+            <div class="section-header" style="background: rgba(100,100,100,0.5); color: rgba(255,255,255,0.5); font-size: 10px; padding: 6px 8px; border-radius: 4px; margin-bottom: 6px; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px;">
+                CONCESSOES PREVISTAS NA ALTA
+            </div>
+            <div class="chips-container" style="${styleBloqueado} display: flex; flex-wrap: wrap; gap: 4px; min-height: 24px; border-radius: 6px; padding: 8px;">
+                <span style="color: rgba(255,255,255,0.4); font-size: 10px; font-style: italic;">Campo nao disponivel para UTI</span>
+            </div>
+        </div>
+
+        <!-- LINHAS DE CUIDADO - BLOQUEADO -->
+        <div class="card-section" style="margin-bottom: 15px; font-family: 'Poppins', sans-serif;">
+            <div class="section-header" style="background: rgba(100,100,100,0.5); color: rgba(255,255,255,0.5); font-size: 10px; padding: 6px 8px; border-radius: 4px; margin-bottom: 6px; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px;">
+                LINHAS DE CUIDADO
+            </div>
+            <div class="chips-container" style="${styleBloqueado} display: flex; flex-wrap: wrap; gap: 4px; min-height: 24px; border-radius: 6px; padding: 8px;">
+                <span style="color: rgba(255,255,255,0.4); font-size: 10px; font-style: italic;">Campo nao disponivel para UTI</span>
+            </div>
+        </div>
+
+        <!-- ANOTACOES -->
+        <div class="card-section" style="margin-bottom: 15px; font-family: 'Poppins', sans-serif;">
+            <div class="section-header" style="background: #60a5fa; color: #ffffff; font-size: 10px; padding: 6px 8px; border-radius: 4px; margin-bottom: 6px; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px;">
+                ANOTACOES
+            </div>
+            <div class="anotacoes-container" style="${styleNormal} border-radius: 6px; padding: 8px; min-height: 40px;">
+                ${(leito.anotacoes && leito.anotacoes.trim()) 
+                    ? `<span style="color: rgba(255,255,255,0.9); font-size: 11px; line-height: 1.6; white-space: pre-wrap;">${leito.anotacoes}</span>`
+                    : '<span style="color: rgba(255,255,255,0.5); font-size: 10px; font-style: italic;">Sem anotacoes</span>'
+                }
+            </div>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="card-footer" style="display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.05); gap: 10px; font-family: 'Poppins', sans-serif;">
+            <div class="card-info" style="display: flex; gap: 8px; flex-wrap: wrap; flex: 1;">
+                ${!isVago && admissao ? `
+                <div class="info-item" style="display: flex; flex-direction: column; opacity: 0.5;">
+                    <div class="info-label" style="font-size: 8px; color: rgba(255,255,255,0.5); font-weight: 600; text-transform: uppercase; margin-bottom: 1px;">ADMISSAO</div>
+                    <div class="info-value" style="color: rgba(255,255,255,0.6); font-weight: 600; font-size: 9px;">${formatarDataHoraUTI(admissao)}</div>
+                </div>
+                ` : ''}
+                
+                ${!isVago && tempoInternacao ? `
+                <div class="info-item" style="display: flex; flex-direction: column; opacity: 0.5;">
+                    <div class="info-label" style="font-size: 8px; color: rgba(255,255,255,0.5); font-weight: 600; text-transform: uppercase; margin-bottom: 1px;">INTERNADO</div>
+                    <div class="info-value" style="color: rgba(255,255,255,0.6); font-weight: 600; font-size: 9px;">${tempoInternacao}</div>
+                </div>
+                ` : ''}
+                
+                <div class="info-item" style="display: flex; flex-direction: column; opacity: 0.5;">
+                    <div class="info-label" style="font-size: 8px; color: rgba(255,255,255,0.5); font-weight: 600; text-transform: uppercase; margin-bottom: 1px;">ID</div>
+                    <div class="info-value" style="color: rgba(255,255,255,0.6); font-weight: 600; font-size: 9px;">${idSequencial}</div>
+                </div>
+            </div>
+            
+            ${isReservado ? `
+            <!-- Botoes RESERVADO -->
             <div style="display: flex; gap: 8px;">
-                ${isVago ? `
-                    <button class="btn-reservar-uti" data-leito="${numeroLeito}" data-hospital="${hospitalId}" 
-                            style="padding: 10px 16px; background: #0676bb; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-family: 'Poppins', sans-serif; font-size: 12px;">
-                        RESERVAR
-                    </button>
-                    <button class="btn-admitir-uti" data-leito="${numeroLeito}" data-hospital="${hospitalId}"
-                            style="padding: 10px 16px; background: #f59a1d; color: #131b2e; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-family: 'Poppins', sans-serif; font-size: 12px;">
-                        ADMITIR
-                    </button>
-                ` : isReservado ? `
-                    <button class="btn-cancelar-reserva-uti" data-leito="${numeroLeito}" data-hospital="${hospitalId}" data-identificacao="${identificacaoLeito}" data-matricula="${matricula}"
-                            style="padding: 10px 16px; background: #dc2626; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-family: 'Poppins', sans-serif; font-size: 12px;">
-                        CANCELAR
-                    </button>
-                    <button class="btn-admitir-uti" data-leito="${numeroLeito}" data-hospital="${hospitalId}"
-                            style="padding: 10px 16px; background: #f59a1d; color: #131b2e; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-family: 'Poppins', sans-serif; font-size: 12px;">
-                        ADMITIR
-                    </button>
-                ` : `
-                    <button class="btn-cancelar-uti" 
-                            style="padding: 10px 16px; background: rgba(255,255,255,0.1); color: #9ca3af; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-family: 'Poppins', sans-serif; font-size: 12px;">
-                        CANCELAR
-                    </button>
-                    <button class="btn-editar-uti" data-leito="${numeroLeito}" data-hospital="${hospitalId}"
-                            style="padding: 10px 16px; background: #f59a1d; color: #131b2e; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-family: 'Poppins', sans-serif; font-size: 12px;">
-                        ADMITIR
-                    </button>
-                `}
+                <button class="btn-action btn-cancelar-reserva-uti" 
+                        data-action="cancelar-reserva-uti" 
+                        data-leito="${numeroLeito}"
+                        data-identificacao="${identificacaoLeito}"
+                        data-matricula="${matricula}"
+                        style="padding: 10px 16px; background: #c86420; color: #ffffff; border: none; border-radius: 6px; cursor: pointer; font-weight: 800; text-transform: uppercase; font-size: 10px;">
+                    CANCELAR
+                </button>
+                <button class="btn-action btn-admitir-reserva-uti" 
+                        data-action="admitir-reserva-uti" 
+                        data-leito="${numeroLeito}"
+                        style="padding: 10px 16px; background: #60a5fa; color: #ffffff; border: none; border-radius: 6px; cursor: pointer; font-weight: 800; text-transform: uppercase; font-size: 10px;">
+                    ADMITIR
+                </button>
             </div>
+            ` : isVago ? `
+            <!-- Botoes VAGO -->
+            <div style="display: flex; gap: 8px;">
+                <button class="btn-action btn-reservar-uti" 
+                        data-action="reservar-uti" 
+                        data-leito="${numeroLeito}" 
+                        style="padding: 10px 16px; background: #f59a1d; color: #131b2e; border: none; border-radius: 6px; cursor: pointer; font-weight: 800; text-transform: uppercase; font-size: 10px;">
+                    RESERVAR
+                </button>
+                <button class="btn-action btn-admitir-uti" 
+                        data-action="admitir-uti" 
+                        data-leito="${numeroLeito}" 
+                        style="padding: 10px 16px; background: #60a5fa; color: #ffffff; border: none; border-radius: 6px; cursor: pointer; font-weight: 800; text-transform: uppercase; font-size: 10px;">
+                    ADMITIR
+                </button>
+            </div>
+            ` : `
+            <!-- Botao OCUPADO -->
+            <button class="btn-action btn-atualizar-uti" 
+                    data-action="atualizar-uti" 
+                    data-leito="${numeroLeito}" 
+                    style="padding: 10px 18px; background: rgba(156,163,175,0.5); color: #ffffff; border: none; border-radius: 6px; cursor: pointer; font-weight: 800; text-transform: uppercase; font-size: 11px;">
+                ATUALIZAR
+            </button>
+            `}
         </div>
     `;
     
-    // Adicionar event listeners
-    setTimeout(() => {
-        // Botao Reservar
-        const btnReservar = card.querySelector('.btn-reservar-uti');
-        if (btnReservar) {
-            btnReservar.addEventListener('click', (e) => {
-                e.stopPropagation();
-                abrirModalReservaUTI(hospitalId, numeroLeito);
-            });
-        }
-        
-        // Botao Admitir (vago ou reservado)
-        const btnAdmitir = card.querySelector('.btn-admitir-uti');
-        if (btnAdmitir) {
-            btnAdmitir.addEventListener('click', (e) => {
-                e.stopPropagation();
-                abrirModalAdmissaoUTI(hospitalId, numeroLeito);
-            });
-        }
-        
-        // Botao Editar (ocupado)
-        const btnEditar = card.querySelector('.btn-editar-uti');
-        if (btnEditar) {
-            btnEditar.addEventListener('click', (e) => {
-                e.stopPropagation();
-                abrirModalEdicaoUTI(hospitalId, numeroLeito);
-            });
-        }
-        
-        // Botao Cancelar Reserva
-        const btnCancelarReserva = card.querySelector('.btn-cancelar-reserva-uti');
-        if (btnCancelarReserva) {
-            btnCancelarReserva.addEventListener('click', async (e) => {
-                e.stopPropagation();
-                const identificacao = btnCancelarReserva.dataset.identificacao;
-                const mat = btnCancelarReserva.dataset.matricula;
-                
-                if (confirm('Deseja cancelar esta reserva UTI?')) {
-                    try {
-                        await window.cancelarReservaUTI(hospitalId, identificacao, mat);
-                        showSuccessMessageUTI('Reserva cancelada com sucesso!');
-                        if (window.loadHospitalData) await window.loadHospitalData();
-                        window.renderCardsUTI(hospitalId);
-                    } catch (err) {
-                        showErrorMessageUTI('Erro ao cancelar: ' + err.message);
-                    }
+    // Event listeners
+    const admitirBtn = card.querySelector('[data-action="admitir-uti"]');
+    if (admitirBtn) {
+        admitirBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            openModalAdmissaoUTI(numeroLeito, leito);
+        });
+    }
+    
+    const reservarBtn = card.querySelector('[data-action="reservar-uti"]');
+    if (reservarBtn) {
+        reservarBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            openModalReservaUTI(numeroLeito, leito);
+        });
+    }
+    
+    const atualizarBtn = card.querySelector('[data-action="atualizar-uti"]');
+    if (atualizarBtn) {
+        atualizarBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            openModalAtualizarUTI(numeroLeito, leito);
+        });
+    }
+    
+    const cancelarBtn = card.querySelector('[data-action="cancelar-reserva-uti"]');
+    if (cancelarBtn) {
+        cancelarBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            if (confirm('Deseja cancelar esta reserva UTI?')) {
+                try {
+                    await window.cancelarReserva(hospitalId, cancelarBtn.dataset.identificacao, cancelarBtn.dataset.matricula);
+                    showSuccessMessageUTI('Reserva UTI cancelada!');
+                    setTimeout(() => window.renderCardsUTI(hospitalId), 500);
+                } catch (error) {
+                    showErrorMessageUTI('Erro: ' + error.message);
                 }
-            });
-        }
-        
-        // Botao Cancelar (dar alta)
-        const btnCancelar = card.querySelector('.btn-cancelar-uti');
-        if (btnCancelar && !isVago && !isReservado) {
-            btnCancelar.addEventListener('click', async (e) => {
-                e.stopPropagation();
-                if (confirm('Deseja dar alta neste paciente UTI?')) {
-                    try {
-                        const params = new URLSearchParams({
-                            action: 'daralta',
-                            hospital: hospitalId,
-                            leito: numeroLeito
-                        });
-                        const response = await fetch(window.API_URL + '?' + params.toString());
-                        const result = await response.json();
-                        if (result.ok || result.success) {
-                            showSuccessMessageUTI('Alta realizada com sucesso!');
-                            if (window.loadHospitalData) await window.loadHospitalData();
-                            window.renderCardsUTI(hospitalId);
-                        } else {
-                            throw new Error(result.message || 'Erro ao dar alta');
-                        }
-                    } catch (err) {
-                        showErrorMessageUTI('Erro ao dar alta: ' + err.message);
-                    }
-                }
-            });
-        }
-    }, 100);
+            }
+        });
+    }
+    
+    const admitirReservaBtn = card.querySelector('[data-action="admitir-reserva-uti"]');
+    if (admitirReservaBtn) {
+        admitirReservaBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            openModalAdmissaoUTI(numeroLeito, leito, true);
+        });
+    }
     
     return card;
 }
 
-// =================== BADGES UTI ===================
-
-function getBadgeIsolamentoUTI(isolamento) {
-    if (!isolamento || isolamento === 'Nao Isolamento' || isolamento === 'Não Isolamento') {
-        return { cor: '#b2adaa', texto: 'Nao Isol', textoCor: '#ffffff' };
-    } else if (isolamento.includes('Contato')) {
-        return { cor: '#f59a1d', texto: 'Contato', textoCor: '#131b2e' };
-    } else if (isolamento.includes('Respirat')) {
-        return { cor: '#ef4444', texto: 'Respir', textoCor: '#ffffff' };
-    }
-    return { cor: '#b2adaa', texto: 'Nao Isol', textoCor: '#ffffff' };
-}
-
-function getBadgeGeneroUTI(genero) {
-    if (genero === 'Masculino') {
-        return { cor: '#3b82f6', texto: 'Masculino', textoCor: '#ffffff' };
-    } else if (genero === 'Feminino') {
-        return { cor: '#ec4899', texto: 'Feminino', textoCor: '#ffffff' };
-    }
-    return { cor: 'rgba(255,255,255,0.1)', texto: '—', textoCor: '#9ca3af' };
-}
-
-// =================== MODAL DE RESERVA UTI ===================
-
-function abrirModalReservaUTI(hospitalId, leitoNumero) {
-    logInfoUTI('Abrindo modal de reserva UTI: ' + hospitalId + ' Leito ' + leitoNumero);
-    
-    const hospitalNome = UTI_CAPACIDADE_CARDS[hospitalId]?.nome || hospitalId;
-    
-    // Criar modal
-    const modal = document.createElement('div');
-    modal.className = 'modal-overlay-uti';
-    modal.id = 'modalReservaUTI';
-    modal.style.cssText = `
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0,0,0,0.85); display: flex; justify-content: center;
-        align-items: center; z-index: 9999; padding: 20px; overflow-y: auto;
-    `;
-    
-    modal.innerHTML = `
-        <div style="background: #1e293b; border-radius: 16px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; border: 1px solid rgba(255,255,255,0.1);">
-            <div style="padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.1);">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <h2 style="color: #60a5fa; font-size: 18px; margin: 0; font-family: 'Poppins', sans-serif;">Reservar Leito UTI</h2>
-                        <p style="color: #9ca3af; font-size: 12px; margin: 5px 0 0 0;">${hospitalNome} - Leito ${leitoNumero}</p>
-                    </div>
-                    <button class="btn-fechar-modal-uti" style="background: none; border: none; color: #9ca3af; font-size: 24px; cursor: pointer;">&times;</button>
-                </div>
-            </div>
-            
-            <div style="padding: 20px; display: grid; gap: 15px;">
-                <div>
-                    <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">Tipo de Convenio <span style="color: #c86420;">*</span></label>
-                    <select id="resUTITipoConvenio" required style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
-                        <option value="">Selecione...</option>
-                        ${TIPO_CONVENIO_OPTIONS.map(t => `<option value="${t}">${t}</option>`).join('')}
-                    </select>
-                </div>
-                
-                <div>
-                    <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">Identificacao do Leito <span style="color: #c86420;">*</span></label>
-                    <input id="resUTIIdentificacao" type="text" placeholder="Ex: 101, 202" maxlength="6" required 
-                           oninput="this.value = this.value.replace(/[^0-9]/g, '')"
-                           style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
-                    <div style="font-size: 10px; color: rgba(255,255,255,0.5); margin-top: 3px;">Apenas numeros</div>
-                </div>
-                
-                <div>
-                    <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">Isolamento <span style="color: #c86420;">*</span></label>
-                    <select id="resUTIIsolamento" required style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
-                        <option value="">Selecione...</option>
-                        ${ISOLAMENTO_UTI_OPTIONS.map(i => `<option value="${i}">${i}</option>`).join('')}
-                    </select>
-                </div>
-                
-                <div>
-                    <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">Genero <span style="color: #c86420;">*</span></label>
-                    <select id="resUTIGenero" required style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
-                        <option value="">Selecione...</option>
-                        ${GENERO_UTI_OPTIONS.map(g => `<option value="${g}">${g}</option>`).join('')}
-                    </select>
-                </div>
-                
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <div>
-                        <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">Iniciais</label>
-                        <input id="resUTIIniciais" type="text" placeholder="Ex: J S" maxlength="10"
-                               style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
-                    </div>
-                    <div>
-                        <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">Idade</label>
-                        <input id="resUTIIdade" type="number" placeholder="Ex: 65" min="0" max="150"
-                               style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
-                    </div>
-                </div>
-                
-                <div>
-                    <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">Matricula</label>
-                    <input id="resUTIMatricula" type="text" placeholder="Ex: 123456" maxlength="10"
-                           oninput="this.value = this.value.replace(/[^0-9-]/g, '')"
-                           style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
-                </div>
-            </div>
-            
-            <div style="padding: 20px; border-top: 1px solid rgba(255,255,255,0.1); display: flex; gap: 10px; justify-content: flex-end;">
-                <button class="btn-cancelar-modal-uti" style="padding: 12px 24px; background: rgba(255,255,255,0.1); color: #9ca3af; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-family: 'Poppins', sans-serif;">
-                    Cancelar
-                </button>
-                <button class="btn-salvar-reserva-uti" style="padding: 12px 24px; background: #0676bb; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-family: 'Poppins', sans-serif;">
-                    Salvar Reserva
-                </button>
-            </div>
-        </div>
-    `;
-    
-    document.body.appendChild(modal);
-    
-    // Event listeners
-    const btnFechar = modal.querySelector('.btn-fechar-modal-uti');
-    const btnCancelar = modal.querySelector('.btn-cancelar-modal-uti');
-    const btnSalvar = modal.querySelector('.btn-salvar-reserva-uti');
-    
-    const fecharModal = () => modal.remove();
-    
-    btnFechar.addEventListener('click', fecharModal);
-    btnCancelar.addEventListener('click', fecharModal);
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) fecharModal();
-    });
-    
-    // Salvar reserva
-    btnSalvar.addEventListener('click', async () => {
-        try {
-            const tipoConvenio = modal.querySelector('#resUTITipoConvenio').value;
-            const identificacao = modal.querySelector('#resUTIIdentificacao').value.trim();
-            const isolamento = modal.querySelector('#resUTIIsolamento').value;
-            const genero = modal.querySelector('#resUTIGenero').value;
-            const iniciais = modal.querySelector('#resUTIIniciais').value.trim();
-            const idade = modal.querySelector('#resUTIIdade').value;
-            const matricula = modal.querySelector('#resUTIMatricula').value.trim();
-            
-            // Validacoes
-            if (!tipoConvenio) {
-                showErrorMessageUTI('Selecione o Tipo de Convenio');
-                return;
-            }
-            if (!identificacao) {
-                showErrorMessageUTI('Preencha a Identificacao do Leito');
-                return;
-            }
-            if (!isolamento) {
-                showErrorMessageUTI('Selecione o Isolamento');
-                return;
-            }
-            if (!genero) {
-                showErrorMessageUTI('Selecione o Genero');
-                return;
-            }
-            
-            btnSalvar.innerHTML = 'Salvando...';
-            btnSalvar.disabled = true;
-            
-            // Enviar para API
-            const params = new URLSearchParams({
-                action: 'reservar',
-                hospital: hospitalId,
-                leito: leitoNumero,
-                tipo: 'UTI',
-                identificacaoLeito: identificacao,
-                isolamento: isolamento,
-                genero: genero,
-                iniciais: iniciais.replace(/\s/g, ''),
-                matricula: matricula,
-                idade: idade
-            });
-            
-            logInfoUTI('Enviando reserva UTI: ' + params.toString());
-            
-            const response = await fetch(window.API_URL + '?' + params.toString());
-            const result = await response.json();
-            
-            if (result.ok || result.success) {
-                showSuccessMessageUTI('Reserva UTI salva com sucesso!');
-                fecharModal();
-                if (window.loadHospitalData) await window.loadHospitalData();
-                window.renderCardsUTI(hospitalId);
-            } else {
-                throw new Error(result.message || result.error || 'Erro ao reservar');
-            }
-        } catch (error) {
-            logErrorUTI('Erro ao salvar reserva: ' + error.message);
-            showErrorMessageUTI('Erro: ' + error.message);
-            btnSalvar.innerHTML = 'Salvar Reserva';
-            btnSalvar.disabled = false;
-        }
-    });
-}
-
 // =================== MODAL DE ADMISSAO UTI ===================
-
-function abrirModalAdmissaoUTI(hospitalId, leitoNumero) {
-    logInfoUTI('Abrindo modal de admissao UTI: ' + hospitalId + ' Leito ' + leitoNumero);
+function openModalAdmissaoUTI(leitoNumero, leito, isFromReserva = false) {
+    const hospitalId = window.currentHospitalUTI || 'H2';
+    const config = UTI_CAPACIDADE_CARDS[hospitalId];
+    const hospitalNome = config ? config.nome : hospitalId;
     
-    const hospitalNome = UTI_CAPACIDADE_CARDS[hospitalId]?.nome || hospitalId;
+    // Remover modal anterior se existir
+    const existingModal = document.getElementById('modalAdmissaoUTI');
+    if (existingModal) existingModal.remove();
     
-    // Verificar se tem reserva para este leito
-    const reservaExistente = window.getReservasUTIHospital(hospitalId).find(r => parseInt(r.leito) === parseInt(leitoNumero));
-    
-    // Criar modal
     const modal = document.createElement('div');
-    modal.className = 'modal-overlay-uti';
     modal.id = 'modalAdmissaoUTI';
     modal.style.cssText = `
         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0,0,0,0.85); display: flex; justify-content: center;
-        align-items: center; z-index: 9999; padding: 20px; overflow-y: auto;
+        background: rgba(0,0,0,0.8); display: flex; justify-content: center;
+        align-items: center; z-index: 10000; padding: 20px; box-sizing: border-box;
     `;
     
+    // Pre-preencher com dados da reserva se vier de uma
+    const iniciais = isFromReserva ? (leito.nome || '') : '';
+    const matricula = isFromReserva ? (leito.matricula || '') : '';
+    const idade = isFromReserva ? (leito.idade || '') : '';
+    const genero = isFromReserva ? (leito.genero || '') : '';
+    const isolamento = isFromReserva ? (leito.isolamento || 'Nao Isolamento') : 'Nao Isolamento';
+    const identificacao = isFromReserva ? (leito.identificacaoLeito || '') : '';
+    const tipoConvenio = isFromReserva ? (leito.categoriaEscolhida || '') : '';
+    
     modal.innerHTML = `
-        <div style="background: #1e293b; border-radius: 16px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; border: 1px solid rgba(255,255,255,0.1);">
-            <div style="padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.1);">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <h2 style="color: #f59a1d; font-size: 18px; margin: 0; font-family: 'Poppins', sans-serif;">Admitir Paciente UTI</h2>
-                        <p style="color: #9ca3af; font-size: 12px; margin: 5px 0 0 0;">${hospitalNome} - Leito ${leitoNumero}</p>
-                    </div>
-                    <button class="btn-fechar-modal-uti" style="background: none; border: none; color: #9ca3af; font-size: 24px; cursor: pointer;">&times;</button>
-                </div>
+        <div style="background: #1a1f2e; border-radius: 16px; padding: 30px; max-width: 500px; width: 100%; max-height: 90vh; overflow-y: auto; font-family: 'Poppins', sans-serif;">
+            <div style="text-align: center; margin-bottom: 25px;">
+                <h2 style="color: #60a5fa; margin: 0 0 5px 0; font-size: 22px;">${isFromReserva ? 'CONFIRMAR ADMISSAO' : 'ADMITIR PACIENTE'} - UTI</h2>
+                <p style="color: rgba(255,255,255,0.7); margin: 0; font-size: 14px;">${hospitalNome} - Leito ${leitoNumero}</p>
             </div>
             
-            <div style="padding: 20px; display: grid; gap: 15px;">
+            <form id="formAdmissaoUTI" style="display: flex; flex-direction: column; gap: 15px;">
+                <!-- Tipo de Convenio -->
                 <div>
-                    <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">Tipo de Convenio <span style="color: #c86420;">*</span></label>
-                    <select id="admUTITipoConvenio" required style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
+                    <label style="color: rgba(255,255,255,0.8); font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">TIPO DE CONVENIO *</label>
+                    <select id="utiTipoConvenio" required style="width: 100%; padding: 12px; background: #0f172a; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; font-size: 14px;">
                         <option value="">Selecione...</option>
-                        ${TIPO_CONVENIO_OPTIONS.map(t => `<option value="${t}" ${reservaExistente?.tipo === t ? 'selected' : ''}>${t}</option>`).join('')}
+                        <option value="Apartamento" ${tipoConvenio === 'Apartamento' ? 'selected' : ''}>Apartamento</option>
+                        <option value="Enfermaria" ${tipoConvenio === 'Enfermaria' ? 'selected' : ''}>Enfermaria</option>
                     </select>
                 </div>
                 
+                <!-- Identificacao do Leito -->
                 <div>
-                    <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">Identificacao do Leito <span style="color: #c86420;">*</span></label>
-                    <input id="admUTIIdentificacao" type="text" placeholder="Ex: 101, 202" maxlength="6" required 
-                           value="${reservaExistente ? String(reservaExistente.identificacaoLeito || '') : ''}"
-                           oninput="this.value = this.value.replace(/[^0-9]/g, '')"
-                           style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
+                    <label style="color: rgba(255,255,255,0.8); font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">IDENTIFICACAO DO LEITO *</label>
+                    <input type="text" id="utiIdentificacao" value="${identificacao}" required placeholder="Ex: 101, 201-A" style="width: 100%; padding: 12px; background: #0f172a; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; font-size: 14px; box-sizing: border-box;">
                 </div>
                 
+                <!-- Isolamento -->
                 <div>
-                    <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">Isolamento <span style="color: #c86420;">*</span></label>
-                    <select id="admUTIIsolamento" required style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
-                        <option value="">Selecione...</option>
-                        ${ISOLAMENTO_UTI_OPTIONS.map(i => `<option value="${i}" ${reservaExistente?.isolamento === i ? 'selected' : ''}>${i}</option>`).join('')}
+                    <label style="color: rgba(255,255,255,0.8); font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">ISOLAMENTO *</label>
+                    <select id="utiIsolamento" required style="width: 100%; padding: 12px; background: #0f172a; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; font-size: 14px;">
+                        <option value="Nao Isolamento" ${isolamento === 'Nao Isolamento' ? 'selected' : ''}>Nao Isolamento</option>
+                        <option value="Isolamento de Contato" ${isolamento === 'Isolamento de Contato' ? 'selected' : ''}>Isolamento de Contato</option>
+                        <option value="Isolamento Respiratorio" ${isolamento === 'Isolamento Respiratorio' ? 'selected' : ''}>Isolamento Respiratorio</option>
                     </select>
                 </div>
                 
+                <!-- Genero -->
                 <div>
-                    <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">Genero <span style="color: #c86420;">*</span></label>
-                    <select id="admUTIGenero" required style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
+                    <label style="color: rgba(255,255,255,0.8); font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">GENERO *</label>
+                    <select id="utiGenero" required style="width: 100%; padding: 12px; background: #0f172a; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; font-size: 14px;">
                         <option value="">Selecione...</option>
-                        ${GENERO_UTI_OPTIONS.map(g => `<option value="${g}" ${reservaExistente?.genero === g ? 'selected' : ''}>${g}</option>`).join('')}
+                        <option value="Masculino" ${genero === 'Masculino' ? 'selected' : ''}>Masculino</option>
+                        <option value="Feminino" ${genero === 'Feminino' ? 'selected' : ''}>Feminino</option>
                     </select>
                 </div>
                 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <div>
-                        <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">Iniciais <span style="color: #c86420;">*</span></label>
-                        <input id="admUTIIniciais" type="text" placeholder="Ex: J S" maxlength="10" required
-                               value="${reservaExistente?.iniciais || ''}"
-                               style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
-                    </div>
-                    <div>
-                        <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">Idade <span style="color: #c86420;">*</span></label>
-                        <input id="admUTIIdade" type="number" placeholder="Ex: 65" min="0" max="150" required
-                               value="${reservaExistente?.idade || ''}"
-                               style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
-                    </div>
+                <!-- Iniciais -->
+                <div>
+                    <label style="color: rgba(255,255,255,0.8); font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">INICIAIS DO PACIENTE *</label>
+                    <input type="text" id="utiIniciais" value="${iniciais}" required placeholder="Ex: J S M" maxlength="20" style="width: 100%; padding: 12px; background: #0f172a; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; font-size: 14px; text-transform: uppercase; box-sizing: border-box;">
                 </div>
                 
+                <!-- Matricula -->
                 <div>
-                    <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">Matricula <span style="color: #c86420;">*</span></label>
-                    <input id="admUTIMatricula" type="text" placeholder="Ex: 123456" maxlength="10" required
-                           value="${reservaExistente ? String(reservaExistente.matricula || '') : ''}"
-                           oninput="this.value = this.value.replace(/[^0-9-]/g, '')"
-                           style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
+                    <label style="color: rgba(255,255,255,0.8); font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">MATRICULA *</label>
+                    <input type="text" id="utiMatricula" value="${matricula}" required placeholder="Ex: 1234567-8" maxlength="15" style="width: 100%; padding: 12px; background: #0f172a; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; font-size: 14px; box-sizing: border-box;">
                 </div>
                 
+                <!-- Idade -->
                 <div>
-                    <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">Previsao de Alta</label>
-                    <select id="admUTIPrevAlta" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
+                    <label style="color: rgba(255,255,255,0.8); font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">IDADE *</label>
+                    <input type="number" id="utiIdade" value="${idade}" required min="0" max="150" placeholder="Ex: 65" style="width: 100%; padding: 12px; background: #0f172a; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; font-size: 14px; box-sizing: border-box;">
+                </div>
+                
+                <!-- Previsao de Alta -->
+                <div>
+                    <label style="color: rgba(255,255,255,0.8); font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">PREVISAO DE ALTA</label>
+                    <select id="utiPrevAlta" style="width: 100%; padding: 12px; background: #0f172a; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; font-size: 14px;">
                         <option value="">Selecione...</option>
-                        ${PREV_ALTA_UTI_OPTIONS.map(p => `<option value="${p}">${p}</option>`).join('')}
+                        <option value="Hoje">Hoje</option>
+                        <option value="24h">24h</option>
+                        <option value="48h">48h</option>
+                        <option value="72h">72h</option>
+                        <option value="96h">96h</option>
+                        <option value="Sem Previsao">Sem Previsao</option>
                     </select>
                 </div>
-            </div>
-            
-            <div style="padding: 20px; border-top: 1px solid rgba(255,255,255,0.1); display: flex; gap: 10px; justify-content: flex-end;">
-                <button class="btn-cancelar-modal-uti" style="padding: 12px 24px; background: rgba(255,255,255,0.1); color: #9ca3af; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-family: 'Poppins', sans-serif;">
-                    Cancelar
-                </button>
-                <button class="btn-admitir-paciente-uti" style="padding: 12px 24px; background: #f59a1d; color: #131b2e; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-family: 'Poppins', sans-serif;">
-                    Admitir
-                </button>
-            </div>
+                
+                <!-- Anotacoes -->
+                <div>
+                    <label style="color: rgba(255,255,255,0.8); font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">ANOTACOES</label>
+                    <textarea id="utiAnotacoes" rows="3" maxlength="800" placeholder="Observacoes (max 800 caracteres)" style="width: 100%; padding: 12px; background: #0f172a; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; font-size: 14px; resize: vertical; box-sizing: border-box;"></textarea>
+                </div>
+                
+                <!-- Botoes -->
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                    <button type="button" id="btnCancelarUTI" style="flex: 1; padding: 14px; background: rgba(255,255,255,0.1); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 14px;">
+                        CANCELAR
+                    </button>
+                    <button type="submit" style="flex: 1; padding: 14px; background: #22c55e; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 14px;">
+                        ${isFromReserva ? 'CONFIRMAR' : 'ADMITIR'}
+                    </button>
+                </div>
+            </form>
         </div>
     `;
     
     document.body.appendChild(modal);
     
     // Event listeners
-    const btnFechar = modal.querySelector('.btn-fechar-modal-uti');
-    const btnCancelar = modal.querySelector('.btn-cancelar-modal-uti');
-    const btnAdmitir = modal.querySelector('.btn-admitir-paciente-uti');
+    document.getElementById('btnCancelarUTI').addEventListener('click', () => modal.remove());
+    modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
     
-    const fecharModal = () => modal.remove();
-    
-    btnFechar.addEventListener('click', fecharModal);
-    btnCancelar.addEventListener('click', fecharModal);
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) fecharModal();
-    });
-    
-    // Admitir paciente
-    btnAdmitir.addEventListener('click', async () => {
+    document.getElementById('formAdmissaoUTI').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const dados = {
+            hospital: hospitalId,
+            leito: leitoNumero,
+            tipo: 'UTI',
+            categoriaEscolhida: document.getElementById('utiTipoConvenio').value,
+            identificacaoLeito: document.getElementById('utiIdentificacao').value,
+            isolamento: document.getElementById('utiIsolamento').value,
+            genero: document.getElementById('utiGenero').value,
+            nome: document.getElementById('utiIniciais').value.toUpperCase(),
+            matricula: document.getElementById('utiMatricula').value,
+            idade: document.getElementById('utiIdade').value,
+            prevAlta: document.getElementById('utiPrevAlta').value,
+            anotacoes: document.getElementById('utiAnotacoes').value,
+            // Campos bloqueados UTI - enviar vazios
+            pps: '',
+            spict: '',
+            regiao: '',
+            diretivas: '',
+            concessoes: [],
+            linhas: []
+        };
+        
         try {
-            const tipoConvenio = modal.querySelector('#admUTITipoConvenio').value;
-            const identificacao = modal.querySelector('#admUTIIdentificacao').value.trim();
-            const isolamento = modal.querySelector('#admUTIIsolamento').value;
-            const genero = modal.querySelector('#admUTIGenero').value;
-            const iniciais = modal.querySelector('#admUTIIniciais').value.trim();
-            const idade = modal.querySelector('#admUTIIdade').value;
-            const matricula = modal.querySelector('#admUTIMatricula').value.trim();
-            const prevAlta = modal.querySelector('#admUTIPrevAlta').value;
-            
-            // Validacoes
-            if (!tipoConvenio) { showErrorMessageUTI('Selecione o Tipo de Convenio'); return; }
-            if (!identificacao) { showErrorMessageUTI('Preencha a Identificacao do Leito'); return; }
-            if (!isolamento) { showErrorMessageUTI('Selecione o Isolamento'); return; }
-            if (!genero) { showErrorMessageUTI('Selecione o Genero'); return; }
-            if (!iniciais) { showErrorMessageUTI('Preencha as Iniciais'); return; }
-            if (!idade) { showErrorMessageUTI('Preencha a Idade'); return; }
-            if (!matricula) { showErrorMessageUTI('Preencha a Matricula'); return; }
-            
-            btnAdmitir.innerHTML = 'Admitindo...';
-            btnAdmitir.disabled = true;
-            
-            // Se tinha reserva, cancelar primeiro
-            if (reservaExistente) {
-                try {
-                    await window.cancelarReservaUTI(hospitalId, String(reservaExistente.identificacaoLeito || ''), String(reservaExistente.matricula || ''));
-                    logInfoUTI('Reserva cancelada antes da admissao');
-                } catch (err) {
-                    logErrorUTI('Erro ao cancelar reserva: ' + err.message);
-                }
-            }
-            
-            // Enviar para API
             const params = new URLSearchParams({
                 action: 'admitir',
-                hospital: hospitalId,
-                leito: leitoNumero,
-                nome: iniciais.replace(/\s/g, ''),
-                matricula: matricula,
-                idade: idade,
-                identificacaoLeito: identificacao,
-                isolamento: isolamento,
-                genero: genero,
-                categoriaEscolhida: tipoConvenio,
-                prevAlta: prevAlta
+                ...dados,
+                concessoes: JSON.stringify(dados.concessoes),
+                linhas: JSON.stringify(dados.linhas)
             });
-            
-            logInfoUTI('Enviando admissao UTI: ' + params.toString());
             
             const response = await fetch(window.API_URL + '?' + params.toString());
             const result = await response.json();
             
             if (result.ok || result.success) {
-                showSuccessMessageUTI('Paciente admitido com sucesso!');
-                fecharModal();
-                if (window.loadHospitalData) await window.loadHospitalData();
-                window.renderCardsUTI(hospitalId);
+                // Se veio de reserva, cancelar a reserva
+                if (isFromReserva && leito._isReserva) {
+                    try {
+                        await window.cancelarReserva(hospitalId, leito.identificacaoLeito, leito.matricula);
+                    } catch (err) {
+                        console.log('Reserva ja removida ou erro ao remover:', err);
+                    }
+                }
+                
+                modal.remove();
+                showSuccessMessageUTI('Paciente admitido na UTI!');
+                
+                // Recarregar dados
+                if (window.loadHospitalData) {
+                    await window.loadHospitalData();
+                }
+                setTimeout(() => window.renderCardsUTI(hospitalId), 500);
             } else {
                 throw new Error(result.message || result.error || 'Erro ao admitir');
             }
         } catch (error) {
-            logErrorUTI('Erro ao admitir: ' + error.message);
             showErrorMessageUTI('Erro: ' + error.message);
-            btnAdmitir.innerHTML = 'Admitir';
-            btnAdmitir.disabled = false;
         }
     });
 }
 
-// =================== MODAL DE EDICAO UTI ===================
-
-function abrirModalEdicaoUTI(hospitalId, leitoNumero) {
-    logInfoUTI('Abrindo modal de edicao UTI: ' + hospitalId + ' Leito ' + leitoNumero);
+// =================== MODAL DE RESERVA UTI ===================
+function openModalReservaUTI(leitoNumero, leito) {
+    const hospitalId = window.currentHospitalUTI || 'H2';
+    const config = UTI_CAPACIDADE_CARDS[hospitalId];
+    const hospitalNome = config ? config.nome : hospitalId;
     
-    const hospitalNome = UTI_CAPACIDADE_CARDS[hospitalId]?.nome || hospitalId;
+    const existingModal = document.getElementById('modalReservaUTI');
+    if (existingModal) existingModal.remove();
     
-    // Buscar dados do leito
-    const leitosUTI = filtrarLeitosUTI(hospitalId);
-    const dadosLeito = leitosUTI.find(l => parseInt(l.leito) === parseInt(leitoNumero));
-    
-    if (!dadosLeito) {
-        showErrorMessageUTI('Leito nao encontrado');
-        return;
-    }
-    
-    // Criar modal
     const modal = document.createElement('div');
-    modal.className = 'modal-overlay-uti';
-    modal.id = 'modalEdicaoUTI';
+    modal.id = 'modalReservaUTI';
     modal.style.cssText = `
         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0,0,0,0.85); display: flex; justify-content: center;
-        align-items: center; z-index: 9999; padding: 20px; overflow-y: auto;
+        background: rgba(0,0,0,0.8); display: flex; justify-content: center;
+        align-items: center; z-index: 10000; padding: 20px; box-sizing: border-box;
     `;
     
-    const identificacaoAtual = String(dadosLeito.identificacaoLeito || dadosLeito.identificacao_leito || '');
-    const tipoAtual = dadosLeito.categoriaEscolhida || '';
-    
     modal.innerHTML = `
-        <div style="background: #1e293b; border-radius: 16px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; border: 1px solid rgba(255,255,255,0.1);">
-            <div style="padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.1);">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <h2 style="color: #f59a1d; font-size: 18px; margin: 0; font-family: 'Poppins', sans-serif;">Editar Paciente UTI</h2>
-                        <p style="color: #9ca3af; font-size: 12px; margin: 5px 0 0 0;">${hospitalNome} - Leito ${identificacaoAtual || leitoNumero}</p>
-                    </div>
-                    <button class="btn-fechar-modal-uti" style="background: none; border: none; color: #9ca3af; font-size: 24px; cursor: pointer;">&times;</button>
-                </div>
+        <div style="background: #1a1f2e; border-radius: 16px; padding: 30px; max-width: 500px; width: 100%; max-height: 90vh; overflow-y: auto; font-family: 'Poppins', sans-serif;">
+            <div style="text-align: center; margin-bottom: 25px;">
+                <h2 style="color: #f59a1d; margin: 0 0 5px 0; font-size: 22px;">RESERVAR LEITO UTI</h2>
+                <p style="color: rgba(255,255,255,0.7); margin: 0; font-size: 14px;">${hospitalNome} - Leito ${leitoNumero}</p>
             </div>
             
-            <div style="padding: 20px; display: grid; gap: 15px;">
+            <form id="formReservaUTI" style="display: flex; flex-direction: column; gap: 15px;">
+                <!-- Tipo de Convenio -->
                 <div>
-                    <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">Tipo de Convenio</label>
-                    <select id="editUTITipoConvenio" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
+                    <label style="color: rgba(255,255,255,0.8); font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">TIPO DE CONVENIO *</label>
+                    <select id="reservaUtiTipoConvenio" required style="width: 100%; padding: 12px; background: #0f172a; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; font-size: 14px;">
                         <option value="">Selecione...</option>
-                        ${TIPO_CONVENIO_OPTIONS.map(t => `<option value="${t}" ${tipoAtual === t ? 'selected' : ''}>${t}</option>`).join('')}
+                        <option value="Apartamento">Apartamento</option>
+                        <option value="Enfermaria">Enfermaria</option>
                     </select>
                 </div>
                 
+                <!-- Identificacao do Leito -->
                 <div>
-                    <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">Identificacao do Leito</label>
-                    <input id="editUTIIdentificacao" type="text" value="${identificacaoAtual}" maxlength="6"
-                           oninput="this.value = this.value.replace(/[^0-9]/g, '')"
-                           style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
+                    <label style="color: rgba(255,255,255,0.8); font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">IDENTIFICACAO DO LEITO *</label>
+                    <input type="text" id="reservaUtiIdentificacao" required placeholder="Ex: 101, 201-A" style="width: 100%; padding: 12px; background: #0f172a; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; font-size: 14px; box-sizing: border-box;">
                 </div>
                 
+                <!-- Isolamento -->
                 <div>
-                    <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">Isolamento</label>
-                    <select id="editUTIIsolamento" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
-                        <option value="">Selecione...</option>
-                        ${ISOLAMENTO_UTI_OPTIONS.map(i => `<option value="${i}" ${dadosLeito.isolamento === i ? 'selected' : ''}>${i}</option>`).join('')}
+                    <label style="color: rgba(255,255,255,0.8); font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">ISOLAMENTO *</label>
+                    <select id="reservaUtiIsolamento" required style="width: 100%; padding: 12px; background: #0f172a; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; font-size: 14px;">
+                        <option value="Nao Isolamento">Nao Isolamento</option>
+                        <option value="Isolamento de Contato">Isolamento de Contato</option>
+                        <option value="Isolamento Respiratorio">Isolamento Respiratorio</option>
                     </select>
                 </div>
                 
+                <!-- Genero -->
                 <div>
-                    <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">Genero</label>
-                    <select id="editUTIGenero" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
+                    <label style="color: rgba(255,255,255,0.8); font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">GENERO *</label>
+                    <select id="reservaUtiGenero" required style="width: 100%; padding: 12px; background: #0f172a; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; font-size: 14px;">
                         <option value="">Selecione...</option>
-                        ${GENERO_UTI_OPTIONS.map(g => `<option value="${g}" ${dadosLeito.genero === g ? 'selected' : ''}>${g}</option>`).join('')}
+                        <option value="Masculino">Masculino</option>
+                        <option value="Feminino">Feminino</option>
                     </select>
                 </div>
                 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <div>
-                        <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">Iniciais</label>
-                        <input id="editUTIIniciais" type="text" value="${dadosLeito.nome || ''}" maxlength="10"
-                               style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
-                    </div>
-                    <div>
-                        <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">Idade</label>
-                        <input id="editUTIIdade" type="number" value="${dadosLeito.idade || ''}" min="0" max="150"
-                               style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
-                    </div>
+                <!-- Iniciais -->
+                <div>
+                    <label style="color: rgba(255,255,255,0.8); font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">INICIAIS DO PACIENTE</label>
+                    <input type="text" id="reservaUtiIniciais" placeholder="Ex: J S M" maxlength="20" style="width: 100%; padding: 12px; background: #0f172a; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; font-size: 14px; text-transform: uppercase; box-sizing: border-box;">
                 </div>
                 
+                <!-- Matricula -->
                 <div>
-                    <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">Matricula</label>
-                    <input id="editUTIMatricula" type="text" value="${dadosLeito.matricula || ''}" maxlength="10"
-                           oninput="this.value = this.value.replace(/[^0-9-]/g, '')"
-                           style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
+                    <label style="color: rgba(255,255,255,0.8); font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">MATRICULA</label>
+                    <input type="text" id="reservaUtiMatricula" placeholder="Ex: 1234567-8" maxlength="15" style="width: 100%; padding: 12px; background: #0f172a; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; font-size: 14px; box-sizing: border-box;">
                 </div>
                 
+                <!-- Idade -->
                 <div>
-                    <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">Previsao de Alta</label>
-                    <select id="editUTIPrevAlta" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
-                        <option value="">Selecione...</option>
-                        ${PREV_ALTA_UTI_OPTIONS.map(p => `<option value="${p}" ${dadosLeito.prevAlta === p ? 'selected' : ''}>${p}</option>`).join('')}
-                    </select>
+                    <label style="color: rgba(255,255,255,0.8); font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">IDADE</label>
+                    <input type="number" id="reservaUtiIdade" min="0" max="150" placeholder="Ex: 65" style="width: 100%; padding: 12px; background: #0f172a; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; font-size: 14px; box-sizing: border-box;">
                 </div>
-            </div>
-            
-            <div style="padding: 20px; border-top: 1px solid rgba(255,255,255,0.1); display: flex; gap: 10px; justify-content: space-between;">
-                <button class="btn-alta-uti" style="padding: 12px 24px; background: #dc2626; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-family: 'Poppins', sans-serif;">
-                    Dar Alta
-                </button>
-                <div style="display: flex; gap: 10px;">
-                    <button class="btn-cancelar-modal-uti" style="padding: 12px 24px; background: rgba(255,255,255,0.1); color: #9ca3af; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-family: 'Poppins', sans-serif;">
-                        Cancelar
+                
+                <!-- Botoes -->
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                    <button type="button" id="btnCancelarReservaUTI" style="flex: 1; padding: 14px; background: rgba(255,255,255,0.1); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 14px;">
+                        CANCELAR
                     </button>
-                    <button class="btn-salvar-edicao-uti" style="padding: 12px 24px; background: #22c55e; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-family: 'Poppins', sans-serif;">
-                        Salvar
+                    <button type="submit" style="flex: 1; padding: 14px; background: #f59a1d; color: #131b2e; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 14px;">
+                        RESERVAR
                     </button>
                 </div>
-            </div>
+            </form>
         </div>
     `;
     
     document.body.appendChild(modal);
     
-    // Event listeners
-    const btnFechar = modal.querySelector('.btn-fechar-modal-uti');
-    const btnCancelar = modal.querySelector('.btn-cancelar-modal-uti');
-    const btnSalvar = modal.querySelector('.btn-salvar-edicao-uti');
-    const btnAlta = modal.querySelector('.btn-alta-uti');
+    document.getElementById('btnCancelarReservaUTI').addEventListener('click', () => modal.remove());
+    modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
     
-    const fecharModal = () => modal.remove();
-    
-    btnFechar.addEventListener('click', fecharModal);
-    btnCancelar.addEventListener('click', fecharModal);
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) fecharModal();
-    });
-    
-    // Dar alta
-    btnAlta.addEventListener('click', async () => {
-        if (confirm('Deseja dar alta neste paciente?')) {
-            try {
-                btnAlta.innerHTML = 'Processando...';
-                btnAlta.disabled = true;
-                
-                const params = new URLSearchParams({
-                    action: 'daralta',
-                    hospital: hospitalId,
-                    leito: leitoNumero
-                });
-                
-                const response = await fetch(window.API_URL + '?' + params.toString());
-                const result = await response.json();
-                
-                if (result.ok || result.success) {
-                    showSuccessMessageUTI('Alta realizada com sucesso!');
-                    fecharModal();
-                    if (window.loadHospitalData) await window.loadHospitalData();
-                    window.renderCardsUTI(hospitalId);
-                } else {
-                    throw new Error(result.message || 'Erro ao dar alta');
-                }
-            } catch (error) {
-                showErrorMessageUTI('Erro: ' + error.message);
-                btnAlta.innerHTML = 'Dar Alta';
-                btnAlta.disabled = false;
-            }
-        }
-    });
-    
-    // Salvar edicao
-    btnSalvar.addEventListener('click', async () => {
+    document.getElementById('formReservaUTI').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const dados = {
+            hospital: hospitalId,
+            leito: leitoNumero,
+            tipo: 'UTI',
+            categoriaEscolhida: document.getElementById('reservaUtiTipoConvenio').value,
+            identificacaoLeito: document.getElementById('reservaUtiIdentificacao').value,
+            isolamento: document.getElementById('reservaUtiIsolamento').value,
+            genero: document.getElementById('reservaUtiGenero').value,
+            iniciais: document.getElementById('reservaUtiIniciais').value.toUpperCase(),
+            matricula: document.getElementById('reservaUtiMatricula').value,
+            idade: document.getElementById('reservaUtiIdade').value
+        };
+        
         try {
-            const tipoConvenio = modal.querySelector('#editUTITipoConvenio').value;
-            const identificacao = modal.querySelector('#editUTIIdentificacao').value.trim();
-            const isolamento = modal.querySelector('#editUTIIsolamento').value;
-            const genero = modal.querySelector('#editUTIGenero').value;
-            const iniciais = modal.querySelector('#editUTIIniciais').value.trim();
-            const idade = modal.querySelector('#editUTIIdade').value;
-            const matricula = modal.querySelector('#editUTIMatricula').value.trim();
-            const prevAlta = modal.querySelector('#editUTIPrevAlta').value;
-            
-            btnSalvar.innerHTML = 'Salvando...';
-            btnSalvar.disabled = true;
-            
             const params = new URLSearchParams({
-                action: 'atualizar',
-                hospital: hospitalId,
-                leito: leitoNumero,
-                nome: iniciais.replace(/\s/g, ''),
-                matricula: matricula,
-                idade: idade,
-                identificacaoLeito: identificacao,
-                isolamento: isolamento,
-                genero: genero,
-                categoriaEscolhida: tipoConvenio,
-                prevAlta: prevAlta
+                action: 'reservar',
+                ...dados
             });
-            
-            logInfoUTI('Enviando atualizacao UTI: ' + params.toString());
             
             const response = await fetch(window.API_URL + '?' + params.toString());
             const result = await response.json();
             
             if (result.ok || result.success) {
-                showSuccessMessageUTI('Dados atualizados com sucesso!');
-                fecharModal();
-                if (window.loadHospitalData) await window.loadHospitalData();
-                window.renderCardsUTI(hospitalId);
+                modal.remove();
+                showSuccessMessageUTI('Leito UTI reservado!');
+                
+                if (window.carregarReservas) {
+                    await window.carregarReservas();
+                }
+                setTimeout(() => window.renderCardsUTI(hospitalId), 500);
             } else {
-                throw new Error(result.message || result.error || 'Erro ao atualizar');
+                throw new Error(result.message || result.error || 'Erro ao reservar');
             }
         } catch (error) {
-            logErrorUTI('Erro ao atualizar: ' + error.message);
             showErrorMessageUTI('Erro: ' + error.message);
-            btnSalvar.innerHTML = 'Salvar';
-            btnSalvar.disabled = false;
         }
     });
 }
 
-// =================== INICIALIZACAO ===================
+// =================== MODAL DE ATUALIZAR UTI ===================
+function openModalAtualizarUTI(leitoNumero, leito) {
+    const hospitalId = window.currentHospitalUTI || 'H2';
+    const config = UTI_CAPACIDADE_CARDS[hospitalId];
+    const hospitalNome = config ? config.nome : hospitalId;
+    
+    const existingModal = document.getElementById('modalAtualizarUTI');
+    if (existingModal) existingModal.remove();
+    
+    const modal = document.createElement('div');
+    modal.id = 'modalAtualizarUTI';
+    modal.style.cssText = `
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.8); display: flex; justify-content: center;
+        align-items: center; z-index: 10000; padding: 20px; box-sizing: border-box;
+    `;
+    
+    const identificacao = leito.identificacaoLeito || leito.identificacao_leito || '';
+    const isolamento = leito.isolamento || 'Nao Isolamento';
+    const genero = leito.genero || '';
+    const prevAlta = leito.prevAlta || '';
+    const anotacoes = leito.anotacoes || '';
+    
+    modal.innerHTML = `
+        <div style="background: #1a1f2e; border-radius: 16px; padding: 30px; max-width: 500px; width: 100%; max-height: 90vh; overflow-y: auto; font-family: 'Poppins', sans-serif;">
+            <div style="text-align: center; margin-bottom: 25px;">
+                <h2 style="color: #60a5fa; margin: 0 0 5px 0; font-size: 22px;">ATUALIZAR PACIENTE UTI</h2>
+                <p style="color: rgba(255,255,255,0.7); margin: 0; font-size: 14px;">${hospitalNome} - ${identificacao || 'Leito ' + leitoNumero}</p>
+                <p style="color: #f59a1d; margin: 5px 0 0 0; font-size: 12px;">${leito.nome || ''} - ${formatarMatriculaUTI(leito.matricula)}</p>
+            </div>
+            
+            <form id="formAtualizarUTI" style="display: flex; flex-direction: column; gap: 15px;">
+                <!-- Isolamento -->
+                <div>
+                    <label style="color: rgba(255,255,255,0.8); font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">ISOLAMENTO</label>
+                    <select id="atualizarUtiIsolamento" style="width: 100%; padding: 12px; background: #0f172a; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; font-size: 14px;">
+                        <option value="Nao Isolamento" ${isolamento.includes('Nao') ? 'selected' : ''}>Nao Isolamento</option>
+                        <option value="Isolamento de Contato" ${isolamento === 'Isolamento de Contato' ? 'selected' : ''}>Isolamento de Contato</option>
+                        <option value="Isolamento Respiratorio" ${isolamento.includes('Respirat') ? 'selected' : ''}>Isolamento Respiratorio</option>
+                    </select>
+                </div>
+                
+                <!-- Previsao de Alta -->
+                <div>
+                    <label style="color: rgba(255,255,255,0.8); font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">PREVISAO DE ALTA</label>
+                    <select id="atualizarUtiPrevAlta" style="width: 100%; padding: 12px; background: #0f172a; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; font-size: 14px;">
+                        <option value="">Selecione...</option>
+                        <option value="Hoje" ${prevAlta === 'Hoje' ? 'selected' : ''}>Hoje</option>
+                        <option value="24h" ${prevAlta === '24h' ? 'selected' : ''}>24h</option>
+                        <option value="48h" ${prevAlta === '48h' ? 'selected' : ''}>48h</option>
+                        <option value="72h" ${prevAlta === '72h' ? 'selected' : ''}>72h</option>
+                        <option value="96h" ${prevAlta === '96h' ? 'selected' : ''}>96h</option>
+                        <option value="Sem Previsao" ${prevAlta === 'Sem Previsao' ? 'selected' : ''}>Sem Previsao</option>
+                    </select>
+                </div>
+                
+                <!-- Anotacoes -->
+                <div>
+                    <label style="color: rgba(255,255,255,0.8); font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">ANOTACOES</label>
+                    <textarea id="atualizarUtiAnotacoes" rows="4" maxlength="800" placeholder="Observacoes (max 800 caracteres)" style="width: 100%; padding: 12px; background: #0f172a; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; font-size: 14px; resize: vertical; box-sizing: border-box;">${anotacoes}</textarea>
+                </div>
+                
+                <!-- Botoes -->
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                    <button type="button" id="btnDarAltaUTI" style="flex: 1; padding: 14px; background: #ef4444; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 14px;">
+                        DAR ALTA
+                    </button>
+                    <button type="button" id="btnCancelarAtualizarUTI" style="flex: 1; padding: 14px; background: rgba(255,255,255,0.1); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 14px;">
+                        CANCELAR
+                    </button>
+                    <button type="submit" style="flex: 1; padding: 14px; background: #22c55e; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 14px;">
+                        SALVAR
+                    </button>
+                </div>
+            </form>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    document.getElementById('btnCancelarAtualizarUTI').addEventListener('click', () => modal.remove());
+    modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+    
+    // Dar Alta
+    document.getElementById('btnDarAltaUTI').addEventListener('click', async () => {
+        if (!confirm('Confirma a alta deste paciente UTI?')) return;
+        
+        try {
+            const params = new URLSearchParams({
+                action: 'daralta',
+                hospital: hospitalId,
+                leito: leitoNumero
+            });
+            
+            const response = await fetch(window.API_URL + '?' + params.toString());
+            const result = await response.json();
+            
+            if (result.ok || result.success) {
+                modal.remove();
+                showSuccessMessageUTI('Alta realizada com sucesso!');
+                
+                if (window.loadHospitalData) {
+                    await window.loadHospitalData();
+                }
+                setTimeout(() => window.renderCardsUTI(hospitalId), 500);
+            } else {
+                throw new Error(result.message || result.error || 'Erro ao dar alta');
+            }
+        } catch (error) {
+            showErrorMessageUTI('Erro: ' + error.message);
+        }
+    });
+    
+    // Atualizar
+    document.getElementById('formAtualizarUTI').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const dados = {
+            hospital: hospitalId,
+            leito: leitoNumero,
+            isolamento: document.getElementById('atualizarUtiIsolamento').value,
+            prevAlta: document.getElementById('atualizarUtiPrevAlta').value,
+            anotacoes: document.getElementById('atualizarUtiAnotacoes').value
+        };
+        
+        try {
+            const params = new URLSearchParams({
+                action: 'atualizar',
+                ...dados
+            });
+            
+            const response = await fetch(window.API_URL + '?' + params.toString());
+            const result = await response.json();
+            
+            if (result.ok || result.success) {
+                modal.remove();
+                showSuccessMessageUTI('Dados atualizados!');
+                
+                if (window.loadHospitalData) {
+                    await window.loadHospitalData();
+                }
+                setTimeout(() => window.renderCardsUTI(hospitalId), 500);
+            } else {
+                throw new Error(result.message || result.error || 'Erro ao atualizar');
+            }
+        } catch (error) {
+            showErrorMessageUTI('Erro: ' + error.message);
+        }
+    });
+}
+
+// =================== FUNCAO GLOBAL PARA SELECIONAR HOSPITAL UTI ===================
+window.selectHospitalUTI = function(hospitalId) {
+    logInfoUTI('Selecionando hospital UTI: ' + hospitalId);
+    window.currentHospitalUTI = hospitalId;
+    window.renderCardsUTI(hospitalId);
+};
+
+// =================== EXPORTAR FUNCOES ===================
+window.renderCardsUTI = window.renderCardsUTI;
+window.selectHospitalUTI = window.selectHospitalUTI;
 
 console.log('CARDS-UTI.JS V7.0 - Carregado com sucesso!');
 console.log('Hospitais UTI ativos:', HOSPITAIS_UTI_ATIVOS_CARDS.join(', '));
-console.log('Total de leitos UTI configurados:', Object.values(UTI_CAPACIDADE_CARDS).reduce((sum, h) => sum + h.total, 0));
+console.log('Campos bloqueados UTI:', CAMPOS_BLOQUEADOS_UTI.join(', '));
