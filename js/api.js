@@ -1,9 +1,14 @@
-// =================== API V7.0 - ARCHIPELAGO DASHBOARD ===================
+// =================== API V7.1 - ARCHIPELAGO DASHBOARD ===================
 // Cliente: Guilherme Santoro
 // Desenvolvedor: Alessandro Rodrigues
 // Data: Dezembro/2025
-// Versão: V7.0 (11 HOSPITAIS - 356 LEITOS - 76 COLUNAS + RESERVAS + UTI)
-// ✅ NOVIDADES V7.0:
+// Versão: V7.1 (11 HOSPITAIS - 356 LEITOS - 76 COLUNAS + RESERVAS + UTI)
+// ✅ NOVIDADES V7.1:
+//    - Handlers UTI especificos (admitirUTI, atualizarUTI, daraltaUTI)
+//    - Separacao de dados: window.hospitalData (enfermaria) + window.leitosUTI
+//    - Timeline UTI corrigida: Hoje, 24h, 48h, 72h, 96h, Sem Previsao
+//    - Funcoes especificas: admitirPacienteUTI, atualizarPacienteUTI, darAltaPacienteUTI
+// ✅ MANTIDO V7.0:
 //    - Sistema de UTI (63 leitos em 8 hospitais)
 //    - Sistema de Reservas (nova aba "reservas")
 //    - Endpoints: reservar, cancelarReserva, listarReservas, admitirComReserva
@@ -15,10 +20,10 @@
 //    - Leitos irmãos (Cruz Azul e Santa Clara)
 // ==================================================================================
 
-// =================== URL DA API V7.0 ===================
+// =================== URL DA API V7.1 ===================
 window.API_URL = 'https://script.google.com/macros/s/AKfycbxOVF_MGVY870alxmNQdpGsj8AC20f-hdsHy629hysEQS2L1PV_w2e0SZ0M1YrxUY6ARQ/exec';
 
-// =================== CONFIGURAÇÃO DOS HOSPITAIS V7.0 ===================
+// =================== CONFIGURAÇÃO DOS HOSPITAIS V7.1 ===================
 window.HOSPITAIS_CONFIG = {
     H1: { nome: 'Neomater', leitos: 25 },
     H2: { nome: 'Cruz Azul', leitos: 67 },
@@ -33,13 +38,14 @@ window.HOSPITAIS_CONFIG = {
 };
 
 // =================== VARIÁVEIS GLOBAIS ===================
-window.hospitalData = {};
-window.reservasData = [];  // ✅ NOVO V7.0: Array de reservas ativas
+window.hospitalData = {};      // Leitos de enfermaria (tipo !== 'UTI')
+window.leitosUTI = {};         // ✅ NOVO V7.1: Leitos UTI separados (tipo === 'UTI')
+window.reservasData = [];      // Array de reservas ativas
 window.apiCache = {};
 window.lastAPICall = 0;
 window.API_TIMEOUT = 15000;
 
-// =================== MAPEAMENTO DE COLUNAS V7.0 (76 COLUNAS: A-BX) ===================
+// =================== MAPEAMENTO DE COLUNAS V7.1 (76 COLUNAS: A-BX) ===================
 window.COLUNAS = {
     HOSPITAL: 0, LEITO: 1, TIPO: 2, STATUS: 3, NOME: 4, MATRICULA: 5,
     IDADE: 6, ADM_AT: 7, PPS: 8, SPICT: 9, COMPLEXIDADE: 10, PREV_ALTA: 11,
@@ -73,19 +79,16 @@ window.COLUNAS = {
     ANOTACOES: 75
 };
 
-// =================== TIMELINE (10 OPÇÕES) ===================
+// =================== TIMELINE ENFERMARIA (10 OPÇÕES) ===================
 window.TIMELINE_OPCOES = [
     "Hoje Ouro", "Hoje 2R", "Hoje 3R",
     "24h Ouro", "24h 2R", "24h 3R", 
     "48h", "48H", "72h", "72H", "96h", "96H", "SP"
 ];
 
-// ✅ NOVO V7.0: TIMELINE UTI (sem turnos)
+// ✅ V7.1 CORRIGIDO: TIMELINE UTI (sem turnos - conforme PLANO_CORRECOES)
 window.TIMELINE_UTI_OPCOES = [
-    "Alta para Enfermaria",
-    "Alta Domiciliar",
-    "Transferência Externa",
-    "Sem Previsão"
+    "Hoje", "24h", "48h", "72h", "96h", "Sem Previsão"
 ];
 
 window.ISOLAMENTO_OPCOES = [
@@ -103,7 +106,7 @@ window.GENERO_OPCOES = ["Masculino", "Feminino"];
 window.CATEGORIA_OPCOES = ["Apartamento", "Enfermaria"];
 window.DIRETIVAS_OPCOES = ["Sim", "Não", "Não se aplica"];
 
-// ✅ NOVO V7.0: TIPOS DE RESERVA
+// ✅ TIPOS DE RESERVA
 window.TIPOS_RESERVA = ["APTO", "ENF", "UTI"];
 
 // =================== ✅ LISTAS PARA VALIDAÇÃO - 12 CONCESSÕES (SEM ACENTOS) ===================
@@ -203,15 +206,15 @@ function normalizarTexto(texto) {
 
 // =================== FUNÇÕES AUXILIARES ===================
 function logAPI(message, data = null) {
-    console.log(`[API V7.0] ${message}`, data || '');
+    console.log(`[API V7.1] ${message}`, data || '');
 }
 
 function logAPIError(message, error) {
-    console.error(`[API ERROR V7.0] ${message}`, error);
+    console.error(`[API ERROR V7.1] ${message}`, error);
 }
 
 function logAPISuccess(message, data = null) {
-    console.log(`[API SUCCESS V7.0] ${message}`, data || '');
+    console.log(`[API SUCCESS V7.1] ${message}`, data || '');
 }
 
 // =================== ✅ VALIDAÇÃO QUE PRESERVA ACENTOS ORIGINAIS ===================
@@ -451,44 +454,180 @@ async function apiRequest(action, params = {}, method = 'GET') {
     }
 }
 
-// =================== CARREGAMENTO DE DADOS V7.0 ===================
+// =================== CARREGAMENTO DE DADOS V7.1 (COM SEPARAÇÃO UTI) ===================
 window.loadHospitalData = async function() {
     try {
-        logAPI('Carregando dados V7.0 da planilha (356 leitos + reservas)...');
+        logAPI('Carregando dados V7.1 da planilha (356 leitos + reservas)...');
         
         if (window.showLoading) {
-            window.showLoading(null, 'Sincronizando com Google Apps Script V7.0...');
+            window.showLoading(null, 'Sincronizando com Google Apps Script V7.1...');
         }
         
         const apiResponse = await apiRequest('all', {}, 'GET');
         
         if (!apiResponse || !apiResponse.data || typeof apiResponse.data !== 'object') {
-            throw new Error('API V7.0 retornou dados invalidos');
+            throw new Error('API V7.1 retornou dados invalidos');
         }
         
         const apiData = apiResponse.data;
         
-        window.hospitalData = {};
+        // ✅ V7.1: Inicializar AMBOS os containers
+        window.hospitalData = {};  // Enfermarias
+        window.leitosUTI = {};     // UTIs
+        
+        let todosLeitos = [];
         
         if (apiData.H1 && apiData.H1.leitos) {
-            logAPI('Dados V7.0 recebidos em formato agrupado');
-            window.hospitalData = apiData;
+            logAPI('Dados V7.1 recebidos em formato agrupado');
+            // Extrair todos os leitos para processar
+            Object.keys(apiData).forEach(hospitalId => {
+                if (apiData[hospitalId] && apiData[hospitalId].leitos) {
+                    apiData[hospitalId].leitos.forEach(leito => {
+                        leito.hospital = hospitalId;
+                        todosLeitos.push(leito);
+                    });
+                }
+            });
         } 
         else if (Array.isArray(apiData)) {
-            logAPI('Dados V7.0 recebidos em formato flat - convertendo...');
-            apiData.forEach(leito => {
-                const hospitalId = leito.hospital;
+            logAPI('Dados V7.1 recebidos em formato flat');
+            todosLeitos = apiData;
+        }
+        else {
+            throw new Error('Formato de dados da API V7.1 nao reconhecido');
+        }
+        
+        // ✅ V7.1: Processar e separar leitos por tipo
+        todosLeitos.forEach(leito => {
+            const hospitalId = leito.hospital;
+            const isUTI = (leito.tipo === 'UTI');
+            
+            // Normalizar status
+            if (leito.status === 'Em uso') leito.status = 'ocupado';
+            if (leito.status === 'Ocupado') leito.status = 'ocupado';
+            if (leito.status === 'Vago') leito.status = 'vago';
+            
+            // Marcar se é UTI
+            leito.isUTI = isUTI;
+            
+            // Validar previsão de alta (diferente para UTI)
+            if (leito.prevAlta) {
+                leito.prevAlta = validarTimeline(leito.prevAlta, isUTI);
+            }
+            
+            // Validar concessões e linhas
+            if (leito.concessoes) {
+                leito.concessoes = validarConcessoes(leito.concessoes);
+            }
+            if (leito.linhas) {
+                leito.linhas = validarLinhas(leito.linhas);
+            }
+            
+            // Validar isolamento
+            if (leito.isolamento) {
+                leito.isolamento = validarIsolamento(leito.isolamento);
+            } else {
+                leito.isolamento = 'Não Isolamento';
+            }
+            
+            // Validar identificação do leito
+            if (leito.identificacaoLeito) {
+                try {
+                    leito.identificacaoLeito = validarIdentificacaoLeito(leito.identificacaoLeito);
+                } catch (error) {
+                    logAPIError(`Erro na identificacao do leito ${hospitalId}-${leito.leito}:`, error.message);
+                    leito.identificacaoLeito = '';
+                }
+            } else {
+                leito.identificacaoLeito = '';
+            }
+            
+            // Validar gênero
+            if (leito.genero) {
+                leito.genero = validarGenero(leito.genero);
+            } else {
+                leito.genero = '';
+            }
+            
+            // Validar região
+            if (leito.regiao) {
+                leito.regiao = validarRegiao(leito.regiao);
+            } else {
+                leito.regiao = '';
+            }
+            
+            // Validar categoria escolhida
+            if (leito.categoriaEscolhida) {
+                leito.categoriaEscolhida = validarCategoriaEscolhida(leito.categoriaEscolhida);
+                leito.categoria = leito.categoriaEscolhida;
+            } else {
+                leito.categoriaEscolhida = '';
+                leito.categoria = '';
+            }
+            
+            // Validar diretivas
+            if (leito.diretivas) {
+                leito.diretivas = validarDiretivas(leito.diretivas);
+            } else {
+                leito.diretivas = 'Não se aplica';
+            }
+            
+            // Garantir campo anotações
+            if (!leito.anotacoes) {
+                leito.anotacoes = '';
+            }
+            
+            // Criar objeto paciente se ocupado
+            if (leito.status === 'ocupado' && leito.nome) {
+                leito.paciente = {
+                    nome: leito.nome,
+                    matricula: leito.matricula,
+                    idade: leito.idade,
+                    pps: leito.pps,
+                    spict: leito.spict,
+                    complexidade: leito.complexidade,
+                    prevAlta: leito.prevAlta,
+                    linhas: leito.linhas || [],
+                    concessoes: leito.concessoes || [],
+                    isolamento: leito.isolamento,
+                    identificacaoLeito: leito.identificacaoLeito,
+                    genero: leito.genero,
+                    regiao: leito.regiao,
+                    categoriaEscolhida: leito.categoriaEscolhida,
+                    diretivas: leito.diretivas,
+                    anotacoes: leito.anotacoes
+                };
+            }
+            
+            // ✅ V7.1: Separar em containers diferentes
+            if (isUTI) {
+                // Leito UTI -> window.leitosUTI
+                if (!window.leitosUTI[hospitalId]) {
+                    window.leitosUTI[hospitalId] = { leitos: [] };
+                }
+                window.leitosUTI[hospitalId].leitos.push(leito);
+            } else {
+                // Leito Enfermaria -> window.hospitalData
                 if (!window.hospitalData[hospitalId]) {
                     window.hospitalData[hospitalId] = { leitos: [] };
                 }
                 window.hospitalData[hospitalId].leitos.push(leito);
-            });
-        }
-        else {
-            throw new Error('Formato de dados da API V7.0 nao reconhecido');
-        }
+            }
+        });
         
-        // ✅ NOVO V7.0: Carregar reservas
+        // Ordenar leitos por número em cada container
+        Object.keys(window.hospitalData).forEach(hospitalId => {
+            if (window.hospitalData[hospitalId] && window.hospitalData[hospitalId].leitos) {
+                window.hospitalData[hospitalId].leitos.sort((a, b) => (a.leito || 0) - (b.leito || 0));
+            }
+        });
+        Object.keys(window.leitosUTI).forEach(hospitalId => {
+            if (window.leitosUTI[hospitalId] && window.leitosUTI[hospitalId].leitos) {
+                window.leitosUTI[hospitalId].leitos.sort((a, b) => (a.leito || 0) - (b.leito || 0));
+            }
+        });
+        
+        // ✅ V7.1: Carregar reservas
         if (apiResponse.reservas && Array.isArray(apiResponse.reservas)) {
             window.reservasData = apiResponse.reservas;
             logAPI('Reservas carregadas: ' + window.reservasData.length);
@@ -496,132 +635,17 @@ window.loadHospitalData = async function() {
             window.reservasData = [];
         }
         
-        const totalHospitais = Object.keys(window.hospitalData).length;
-        if (totalHospitais === 0) {
-            throw new Error('Nenhum hospital encontrado nos dados da API V7.0');
-        }
-        
-        if (totalHospitais < 9) {
-            console.warn(`AVISO: Esperados 9+ hospitais, mas foram encontrados ${totalHospitais}`);
-        }
-        
-        // Processar leitos
-        Object.keys(window.hospitalData).forEach(hospitalId => {
-            const hospital = window.hospitalData[hospitalId];
-            if (hospital && hospital.leitos) {
-                hospital.leitos = hospital.leitos.map(leito => {
-                    // Normalizar status
-                    if (leito.status === 'Em uso') leito.status = 'ocupado';
-                    if (leito.status === 'Ocupado') leito.status = 'ocupado';
-                    if (leito.status === 'Vago') leito.status = 'vago';
-                    
-                    // ✅ NOVO V7.0: Marcar se é UTI
-                    leito.isUTI = (leito.tipo === 'UTI');
-                    
-                    // Validar previsão de alta (diferente para UTI)
-                    if (leito.prevAlta) {
-                        leito.prevAlta = validarTimeline(leito.prevAlta, leito.isUTI);
-                    }
-                    
-                    // Validar concessões e linhas
-                    if (leito.concessoes) {
-                        leito.concessoes = validarConcessoes(leito.concessoes);
-                    }
-                    if (leito.linhas) {
-                        leito.linhas = validarLinhas(leito.linhas);
-                    }
-                    
-                    // Validar isolamento
-                    if (leito.isolamento) {
-                        leito.isolamento = validarIsolamento(leito.isolamento);
-                    } else {
-                        leito.isolamento = 'Não Isolamento';
-                    }
-                    
-                    // Validar identificação do leito
-                    if (leito.identificacaoLeito) {
-                        try {
-                            leito.identificacaoLeito = validarIdentificacaoLeito(leito.identificacaoLeito);
-                        } catch (error) {
-                            logAPIError(`Erro na identificacao do leito ${hospitalId}-${leito.leito}:`, error.message);
-                            leito.identificacaoLeito = '';
-                        }
-                    } else {
-                        leito.identificacaoLeito = '';
-                    }
-                    
-                    // Validar gênero
-                    if (leito.genero) {
-                        leito.genero = validarGenero(leito.genero);
-                    } else {
-                        leito.genero = '';
-                    }
-                    
-                    // Validar região
-                    if (leito.regiao) {
-                        leito.regiao = validarRegiao(leito.regiao);
-                    } else {
-                        leito.regiao = '';
-                    }
-                    
-                    // Validar categoria escolhida
-                    if (leito.categoriaEscolhida) {
-                        leito.categoriaEscolhida = validarCategoriaEscolhida(leito.categoriaEscolhida);
-                        leito.categoria = leito.categoriaEscolhida;
-                    } else {
-                        leito.categoriaEscolhida = '';
-                        leito.categoria = '';
-                    }
-                    
-                    // Validar diretivas
-                    if (leito.diretivas) {
-                        leito.diretivas = validarDiretivas(leito.diretivas);
-                    } else {
-                        leito.diretivas = 'Não se aplica';
-                    }
-                    
-                    // Garantir campo anotações
-                    if (!leito.anotacoes) {
-                        leito.anotacoes = '';
-                    }
-                    
-                    // Criar objeto paciente se ocupado
-                    if (leito.status === 'ocupado' && leito.nome) {
-                        leito.paciente = {
-                            nome: leito.nome,
-                            matricula: leito.matricula,
-                            idade: leito.idade,
-                            pps: leito.pps,
-                            spict: leito.spict,
-                            complexidade: leito.complexidade,
-                            prevAlta: leito.prevAlta,
-                            linhas: leito.linhas || [],
-                            concessoes: leito.concessoes || [],
-                            isolamento: leito.isolamento,
-                            identificacaoLeito: leito.identificacaoLeito,
-                            genero: leito.genero,
-                            regiao: leito.regiao,
-                            categoriaEscolhida: leito.categoriaEscolhida,
-                            diretivas: leito.diretivas,
-                            anotacoes: leito.anotacoes
-                        };
-                    }
-                    
-                    return leito;
-                });
-                
-                // Ordenar leitos por número
-                hospital.leitos.sort((a, b) => (a.leito || 0) - (b.leito || 0));
-            }
-        });
-        
         // Estatísticas
-        const totalLeitos = Object.values(window.hospitalData).reduce((acc, h) => acc + (h.leitos ? h.leitos.length : 0), 0);
-        const leitosOcupados = Object.values(window.hospitalData).reduce((acc, h) => 
+        const totalHospitaisEnf = Object.keys(window.hospitalData).length;
+        const totalHospitaisUTI = Object.keys(window.leitosUTI).length;
+        
+        const totalLeitosEnf = Object.values(window.hospitalData).reduce((acc, h) => acc + (h.leitos ? h.leitos.length : 0), 0);
+        const totalLeitosUTI = Object.values(window.leitosUTI).reduce((acc, h) => acc + (h.leitos ? h.leitos.length : 0), 0);
+        
+        const leitosOcupadosEnf = Object.values(window.hospitalData).reduce((acc, h) => 
             acc + (h.leitos ? h.leitos.filter(l => l.status === 'ocupado').length : 0), 0);
-        const leitosUTI = Object.values(window.hospitalData).reduce((acc, h) => 
-            acc + (h.leitos ? h.leitos.filter(l => l.tipo === 'UTI').length : 0), 0);
-        const taxaOcupacao = totalLeitos > 0 ? Math.round((leitosOcupados / totalLeitos) * 100) : 0;
+        const leitosOcupadosUTI = Object.values(window.leitosUTI).reduce((acc, h) => 
+            acc + (h.leitos ? h.leitos.filter(l => l.status === 'ocupado').length : 0), 0);
         
         let totalConcessoes = 0;
         let totalLinhas = 0;
@@ -633,6 +657,7 @@ window.loadHospitalData = async function() {
         let leitosComDiretivas = 0;
         let leitosComAnotacoes = 0;
         
+        // Contar estatísticas de enfermaria
         Object.values(window.hospitalData).forEach(hospital => {
             hospital.leitos?.forEach(leito => {
                 if (leito.status === 'ocupado') {
@@ -663,10 +688,32 @@ window.loadHospitalData = async function() {
             });
         });
         
-        logAPISuccess(`Dados V7.0 carregados da planilha (76 colunas A-BX):`);
-        logAPISuccess(`- ${totalHospitais} hospitais ativos`);
-        logAPISuccess(`- ${totalLeitos} leitos totais (${leitosUTI} UTI)`);
-        logAPISuccess(`- ${leitosOcupados} leitos ocupados (${taxaOcupacao}%)`);
+        // Contar estatísticas de UTI
+        Object.values(window.leitosUTI).forEach(hospital => {
+            hospital.leitos?.forEach(leito => {
+                if (leito.status === 'ocupado') {
+                    totalLinhas += (leito.linhas?.length || 0);
+                }
+                if (leito.isolamento && leito.isolamento !== 'Não Isolamento') {
+                    leitosComIsolamento++;
+                }
+                if (leito.identificacaoLeito) {
+                    leitosComIdentificacao++;
+                }
+                if (leito.genero) {
+                    leitosComGenero++;
+                }
+                if (leito.anotacoes) {
+                    leitosComAnotacoes++;
+                }
+            });
+        });
+        
+        logAPISuccess(`Dados V7.1 carregados da planilha (76 colunas A-BX):`);
+        logAPISuccess(`- ${totalHospitaisEnf} hospitais com enfermaria`);
+        logAPISuccess(`- ${totalHospitaisUTI} hospitais com UTI`);
+        logAPISuccess(`- ${totalLeitosEnf} leitos enfermaria (${leitosOcupadosEnf} ocupados)`);
+        logAPISuccess(`- ${totalLeitosUTI} leitos UTI (${leitosOcupadosUTI} ocupados)`);
         logAPISuccess(`- ${window.reservasData.length} reservas ativas`);
         logAPISuccess(`- ${totalConcessoes} concessoes ativas (12 tipos)`);
         logAPISuccess(`- ${totalLinhas} linhas de cuidado ativas (45 tipos)`);
@@ -687,36 +734,42 @@ window.loadHospitalData = async function() {
         return window.hospitalData;
         
     } catch (error) {
-        logAPIError('ERRO ao carregar dados V7.0:', error.message);
+        logAPIError('ERRO ao carregar dados V7.1:', error.message);
         
         if (window.hideLoading) {
             window.hideLoading();
         }
         
         window.hospitalData = {};
+        window.leitosUTI = {};
         window.reservasData = [];
         
         throw error;
     }
 };
 
-// =================== ✅ ADMITIR PACIENTE V7.0 (COM SUPORTE UTI) ===================
+// =================== ✅ ADMITIR PACIENTE ENFERMARIA V7.1 ===================
 window.admitirPaciente = async function(hospital, leito, dadosPaciente) {
     try {
-        logAPI(`Admitindo paciente V7.0 no ${hospital}-${leito}`);
+        logAPI(`Admitindo paciente ENFERMARIA V7.1 no ${hospital}-${leito}`);
         
-        // Verificar se é UTI
+        // Verificar se é UTI (não deveria usar esta função para UTI)
         const leitoDados = window.hospitalData[hospital]?.leitos?.find(l => l.leito == leito);
         const isUTI = leitoDados?.tipo === 'UTI';
         
-        const concessoesValidas = isUTI ? [] : validarConcessoes(dadosPaciente.concessoes || []);
+        if (isUTI) {
+            logAPI('AVISO: Leito UTI detectado, redirecionando para admitirPacienteUTI...');
+            return await window.admitirPacienteUTI(hospital, dadosPaciente);
+        }
+        
+        const concessoesValidas = validarConcessoes(dadosPaciente.concessoes || []);
         const linhasValidas = validarLinhas(dadosPaciente.linhas || []);
-        const timelineValida = validarTimeline(dadosPaciente.prevAlta || (isUTI ? 'Sem Previsão' : 'SP'), isUTI);
+        const timelineValida = validarTimeline(dadosPaciente.prevAlta || 'SP', false);
         const isolamentoValido = validarIsolamento(dadosPaciente.isolamento || 'Não Isolamento');
         const generoValido = validarGenero(dadosPaciente.genero || '');
         const regiaoValida = validarRegiao(dadosPaciente.regiao || '');
-        const categoriaValida = isUTI ? '' : validarCategoriaEscolhida(dadosPaciente.categoriaEscolhida || '');
-        const diretivasValida = isUTI ? '' : validarDiretivas(dadosPaciente.diretivas || 'Não se aplica');
+        const categoriaValida = validarCategoriaEscolhida(dadosPaciente.categoriaEscolhida || '');
+        const diretivasValida = validarDiretivas(dadosPaciente.diretivas || 'Não se aplica');
         
         let identificacaoValida = '';
         if (dadosPaciente.identificacaoLeito) {
@@ -733,9 +786,9 @@ window.admitirPaciente = async function(hospital, leito, dadosPaciente) {
             nome: dadosPaciente.nome || '',
             matricula: dadosPaciente.matricula || '',
             idade: dadosPaciente.idade || null,
-            pps: isUTI ? null : (dadosPaciente.pps || null),
-            spict: isUTI ? '' : (dadosPaciente.spict || ''),
-            complexidade: isUTI ? '' : (dadosPaciente.complexidade || 'I'),
+            pps: dadosPaciente.pps || null,
+            spict: dadosPaciente.spict || '',
+            complexidade: dadosPaciente.complexidade || 'I',
             prevAlta: timelineValida,
             linhas: linhasValidas,
             concessoes: concessoesValidas,
@@ -748,13 +801,12 @@ window.admitirPaciente = async function(hospital, leito, dadosPaciente) {
             anotacoes: dadosPaciente.anotacoes || ''
         };
         
-        logAPI('Payload V7.0 validado:', {
+        logAPI('Payload ENFERMARIA V7.1 validado:', {
             hospital: payload.hospital,
             leito: payload.leito,
             nome: payload.nome,
             matricula: payload.matricula,
             idade: payload.idade,
-            isUTI: isUTI,
             isolamento: payload.isolamento,
             identificacaoLeito: payload.identificacaoLeito || '(vazio)',
             genero: payload.genero || '(vazio)',
@@ -768,32 +820,107 @@ window.admitirPaciente = async function(hospital, leito, dadosPaciente) {
         
         const result = await apiRequest('admitir', payload, 'POST');
         
-        logAPISuccess('Paciente admitido V7.0', result);
+        logAPISuccess('Paciente ENFERMARIA admitido V7.1', result);
         return result;
         
     } catch (error) {
-        logAPIError('Erro ao admitir paciente V7.0:', error.message);
+        logAPIError('Erro ao admitir paciente ENFERMARIA V7.1:', error.message);
         throw error;
     }
 };
 
-// =================== ✅ ATUALIZAR PACIENTE V7.0 ===================
+// =================== ✅ NOVO V7.1: ADMITIR PACIENTE UTI ===================
+window.admitirPacienteUTI = async function(hospital, dadosPaciente) {
+    try {
+        logAPI(`Admitindo paciente UTI V7.1 no ${hospital}`);
+        
+        // Validar campos permitidos para UTI
+        const linhasValidas = validarLinhas(dadosPaciente.linhas || []);
+        const timelineValida = validarTimeline(dadosPaciente.prevAlta || 'Sem Previsão', true);
+        const isolamentoValido = validarIsolamento(dadosPaciente.isolamento || 'Não Isolamento');
+        const generoValido = validarGenero(dadosPaciente.genero || '');
+        const regiaoValida = validarRegiao(dadosPaciente.regiao || '');
+        const categoriaValida = validarCategoriaEscolhida(dadosPaciente.categoriaEscolhida || '');
+        
+        let identificacaoValida = '';
+        if (dadosPaciente.identificacaoLeito) {
+            try {
+                identificacaoValida = validarIdentificacaoLeito(dadosPaciente.identificacaoLeito);
+            } catch (error) {
+                throw new Error(`Erro na identificacao do leito UTI: ${error.message}`);
+            }
+        }
+        
+        if (!identificacaoValida) {
+            throw new Error('Identificacao do leito UTI e obrigatoria');
+        }
+        
+        // ✅ Payload UTI - SEM campos bloqueados (pps, spict, complexidade, diretivas, concessoes)
+        const payload = {
+            hospital: hospital,
+            identificacaoLeito: identificacaoValida,
+            nome: dadosPaciente.nome || '',
+            matricula: dadosPaciente.matricula || '',
+            idade: dadosPaciente.idade || null,
+            prevAlta: timelineValida,
+            linhas: linhasValidas,
+            isolamento: isolamentoValido,
+            genero: generoValido,
+            regiao: regiaoValida,
+            categoriaEscolhida: categoriaValida,
+            anotacoes: dadosPaciente.anotacoes || ''
+            // NÃO envia: pps, spict, complexidade, diretivas, concessoes
+        };
+        
+        logAPI('Payload UTI V7.1 validado:', {
+            hospital: payload.hospital,
+            identificacaoLeito: payload.identificacaoLeito,
+            nome: payload.nome,
+            matricula: payload.matricula,
+            idade: payload.idade,
+            prevAlta: payload.prevAlta,
+            isolamento: payload.isolamento,
+            genero: payload.genero || '(vazio)',
+            regiao: payload.regiao || '(vazio)',
+            categoria: payload.categoriaEscolhida || '(vazio)',
+            anotacoes: payload.anotacoes ? `${payload.anotacoes.length} chars` : 'vazio',
+            linhas: payload.linhas.length
+        });
+        
+        // ✅ V7.1: Usar action 'admitirUTI' específica
+        const result = await apiRequest('admitirUTI', payload, 'POST');
+        
+        logAPISuccess('Paciente UTI admitido V7.1', result);
+        return result;
+        
+    } catch (error) {
+        logAPIError('Erro ao admitir paciente UTI V7.1:', error.message);
+        throw error;
+    }
+};
+
+// =================== ✅ ATUALIZAR PACIENTE ENFERMARIA V7.1 ===================
 window.atualizarPaciente = async function(hospital, leito, dadosPaciente) {
     try {
-        logAPI(`Atualizando paciente V7.0 no ${hospital}-${leito}`);
+        logAPI(`Atualizando paciente ENFERMARIA V7.1 no ${hospital}-${leito}`);
         
         // Verificar se é UTI
         const leitoDados = window.hospitalData[hospital]?.leitos?.find(l => l.leito == leito);
         const isUTI = leitoDados?.tipo === 'UTI';
         
-        const concessoesValidas = isUTI ? [] : validarConcessoes(dadosPaciente.concessoes || []);
+        if (isUTI) {
+            logAPI('AVISO: Leito UTI detectado, redirecionando para atualizarPacienteUTI...');
+            return await window.atualizarPacienteUTI(hospital, dadosPaciente.identificacaoLeito, dadosPaciente);
+        }
+        
+        const concessoesValidas = validarConcessoes(dadosPaciente.concessoes || []);
         const linhasValidas = validarLinhas(dadosPaciente.linhas || []);
-        const timelineValida = validarTimeline(dadosPaciente.prevAlta || (isUTI ? 'Sem Previsão' : 'SP'), isUTI);
+        const timelineValida = validarTimeline(dadosPaciente.prevAlta || 'SP', false);
         const isolamentoValido = validarIsolamento(dadosPaciente.isolamento || 'Não Isolamento');
         const generoValido = validarGenero(dadosPaciente.genero || '');
         const regiaoValida = validarRegiao(dadosPaciente.regiao || '');
-        const categoriaValida = isUTI ? '' : validarCategoriaEscolhida(dadosPaciente.categoriaEscolhida || '');
-        const diretivasValida = isUTI ? '' : validarDiretivas(dadosPaciente.diretivas || 'Não se aplica');
+        const categoriaValida = validarCategoriaEscolhida(dadosPaciente.categoriaEscolhida || '');
+        const diretivasValida = validarDiretivas(dadosPaciente.diretivas || 'Não se aplica');
         
         let identificacaoValida = '';
         if (dadosPaciente.identificacaoLeito) {
@@ -810,9 +937,9 @@ window.atualizarPaciente = async function(hospital, leito, dadosPaciente) {
             nome: dadosPaciente.nome || '',
             matricula: dadosPaciente.matricula || '',
             idade: dadosPaciente.idade || null,
-            pps: isUTI ? null : (dadosPaciente.pps || null),
-            spict: isUTI ? '' : (dadosPaciente.spict || ''),
-            complexidade: isUTI ? '' : (dadosPaciente.complexidade || ''),
+            pps: dadosPaciente.pps || null,
+            spict: dadosPaciente.spict || '',
+            complexidade: dadosPaciente.complexidade || '',
             prevAlta: timelineValida,
             linhas: linhasValidas,
             concessoes: concessoesValidas,
@@ -825,10 +952,9 @@ window.atualizarPaciente = async function(hospital, leito, dadosPaciente) {
             anotacoes: dadosPaciente.anotacoes !== undefined ? dadosPaciente.anotacoes : ''
         };
         
-        logAPI('Atualizacao V7.0 validada:', {
+        logAPI('Atualizacao ENFERMARIA V7.1 validada:', {
             hospital: payload.hospital,
             leito: payload.leito,
-            isUTI: isUTI,
             anotacoes: payload.anotacoes ? `${payload.anotacoes.length} chars` : 'vazio',
             concessoes: payload.concessoes.length,
             linhas: payload.linhas.length
@@ -836,35 +962,125 @@ window.atualizarPaciente = async function(hospital, leito, dadosPaciente) {
         
         const result = await apiRequest('atualizar', payload, 'POST');
         
-        logAPISuccess('Paciente atualizado V7.0', result);
+        logAPISuccess('Paciente ENFERMARIA atualizado V7.1', result);
         return result;
         
     } catch (error) {
-        logAPIError('Erro ao atualizar paciente V7.0:', error.message);
+        logAPIError('Erro ao atualizar paciente ENFERMARIA V7.1:', error.message);
         throw error;
     }
 };
 
-// =================== ✅ DAR ALTA ===================
+// =================== ✅ NOVO V7.1: ATUALIZAR PACIENTE UTI ===================
+window.atualizarPacienteUTI = async function(hospital, identificacaoLeito, dadosAtualizados) {
+    try {
+        logAPI(`Atualizando paciente UTI V7.1 no ${hospital}, leito ${identificacaoLeito}`);
+        
+        // Validar campos permitidos para UTI
+        const linhasValidas = validarLinhas(dadosAtualizados.linhas || []);
+        const timelineValida = validarTimeline(dadosAtualizados.prevAlta || 'Sem Previsão', true);
+        const isolamentoValido = validarIsolamento(dadosAtualizados.isolamento || 'Não Isolamento');
+        
+        let identificacaoValida = '';
+        if (identificacaoLeito) {
+            try {
+                identificacaoValida = validarIdentificacaoLeito(identificacaoLeito);
+            } catch (error) {
+                throw new Error(`Erro na identificacao do leito UTI: ${error.message}`);
+            }
+        }
+        
+        if (!identificacaoValida) {
+            throw new Error('Identificacao do leito UTI e obrigatoria para atualizacao');
+        }
+        
+        // ✅ Payload UTI - Apenas campos editaveis
+        const payload = {
+            hospital: hospital,
+            identificacaoLeito: identificacaoValida,
+            leito: 0, // Backend busca por identificacao, não por numero
+            prevAlta: timelineValida,
+            linhas: linhasValidas,
+            isolamento: isolamentoValido,
+            anotacoes: dadosAtualizados.anotacoes !== undefined ? dadosAtualizados.anotacoes : ''
+            // NÃO atualiza: nome, matricula, idade, pps, spict, complexidade, diretivas, concessoes
+        };
+        
+        logAPI('Atualizacao UTI V7.1 validada:', {
+            hospital: payload.hospital,
+            identificacaoLeito: payload.identificacaoLeito,
+            prevAlta: payload.prevAlta,
+            isolamento: payload.isolamento,
+            anotacoes: payload.anotacoes ? `${payload.anotacoes.length} chars` : 'vazio',
+            linhas: payload.linhas.length
+        });
+        
+        // ✅ V7.1: Usar action 'atualizarUTI' específica
+        const result = await apiRequest('atualizarUTI', payload, 'POST');
+        
+        logAPISuccess('Paciente UTI atualizado V7.1', result);
+        return result;
+        
+    } catch (error) {
+        logAPIError('Erro ao atualizar paciente UTI V7.1:', error.message);
+        throw error;
+    }
+};
+
+// =================== ✅ DAR ALTA ENFERMARIA V7.1 ===================
 window.darAlta = async function(hospital, leito) {
     try {
-        logAPI(`Dando alta V7.0 no ${hospital}-${leito}`);
+        logAPI(`Dando alta ENFERMARIA V7.1 no ${hospital}-${leito}`);
         
         const result = await apiRequest('daralta', {
             hospital: hospital,
             leito: Number(leito)
         }, 'POST');
         
-        logAPISuccess('Alta processada V7.0', result);
+        logAPISuccess('Alta ENFERMARIA processada V7.1', result);
         return result;
         
     } catch (error) {
-        logAPIError('Erro ao dar alta V7.0:', error.message);
+        logAPIError('Erro ao dar alta ENFERMARIA V7.1:', error.message);
         throw error;
     }
 };
 
-// =================== ✅ NOVO V7.0: FUNÇÕES DE RESERVA ===================
+// =================== ✅ NOVO V7.1: DAR ALTA UTI ===================
+window.darAltaPacienteUTI = async function(hospital, identificacaoLeito, leito) {
+    try {
+        logAPI(`Dando alta UTI V7.1 no ${hospital}, leito ${identificacaoLeito}`);
+        
+        let identificacaoValida = '';
+        if (identificacaoLeito) {
+            try {
+                identificacaoValida = validarIdentificacaoLeito(identificacaoLeito);
+            } catch (error) {
+                throw new Error(`Erro na identificacao do leito UTI: ${error.message}`);
+            }
+        }
+        
+        if (!identificacaoValida) {
+            throw new Error('Identificacao do leito UTI e obrigatoria para dar alta');
+        }
+        
+        // ✅ V7.1: Usar action 'daraltaUTI' específica
+        const result = await apiRequest('daraltaUTI', {
+            hospital: hospital,
+            identificacaoLeito: identificacaoValida,
+            leito: leito || 0
+        }, 'POST');
+        
+        logAPISuccess('Alta UTI processada V7.1', result);
+        return result;
+        
+    } catch (error) {
+        logAPIError('Erro ao dar alta UTI V7.1:', error.message);
+        throw error;
+    }
+};
+
+// =================== ✅ FUNÇÕES DE RESERVA V7.1 ===================
 
 /**
  * Criar uma nova reserva
@@ -873,7 +1089,7 @@ window.darAlta = async function(hospital, leito) {
  */
 window.criarReserva = async function(dadosReserva) {
     try {
-        logAPI('Criando reserva V7.0...');
+        logAPI('Criando reserva V7.1...');
         
         const payload = {
             hospital: dadosReserva.hospital,
@@ -896,11 +1112,11 @@ window.criarReserva = async function(dadosReserva) {
             await window.loadHospitalData();
         }
         
-        logAPISuccess('Reserva criada V7.0', result);
+        logAPISuccess('Reserva criada V7.1', result);
         return result;
         
     } catch (error) {
-        logAPIError('Erro ao criar reserva V7.0:', error.message);
+        logAPIError('Erro ao criar reserva V7.1:', error.message);
         throw error;
     }
 };
@@ -912,7 +1128,7 @@ window.criarReserva = async function(dadosReserva) {
  */
 window.cancelarReserva = async function(params) {
     try {
-        logAPI('Cancelando reserva V7.0...');
+        logAPI('Cancelando reserva V7.1...');
         
         const payload = {
             hospital: params.hospital,
@@ -927,11 +1143,11 @@ window.cancelarReserva = async function(params) {
             await window.loadHospitalData();
         }
         
-        logAPISuccess('Reserva cancelada V7.0', result);
+        logAPISuccess('Reserva cancelada V7.1', result);
         return result;
         
     } catch (error) {
-        logAPIError('Erro ao cancelar reserva V7.0:', error.message);
+        logAPIError('Erro ao cancelar reserva V7.1:', error.message);
         throw error;
     }
 };
@@ -943,7 +1159,7 @@ window.cancelarReserva = async function(params) {
  */
 window.listarReservas = async function(hospital = null) {
     try {
-        logAPI('Listando reservas V7.0...');
+        logAPI('Listando reservas V7.1...');
         
         const params = {};
         if (hospital) {
@@ -952,11 +1168,11 @@ window.listarReservas = async function(hospital = null) {
         
         const result = await apiRequest('listarReservas', params, 'GET');
         
-        logAPISuccess('Reservas listadas V7.0', result);
+        logAPISuccess('Reservas listadas V7.1', result);
         return result;
         
     } catch (error) {
-        logAPIError('Erro ao listar reservas V7.0:', error.message);
+        logAPIError('Erro ao listar reservas V7.1:', error.message);
         throw error;
     }
 };
@@ -971,7 +1187,7 @@ window.listarReservas = async function(hospital = null) {
  */
 window.admitirComReserva = async function(hospital, leito, dadosPaciente, matriculaReserva) {
     try {
-        logAPI(`Admitindo com reserva V7.0: ${hospital}-${leito}, reserva: ${matriculaReserva}`);
+        logAPI(`Admitindo com reserva V7.1: ${hospital}-${leito}, reserva: ${matriculaReserva}`);
         
         // Verificar se é UTI
         const leitoDados = window.hospitalData[hospital]?.leitos?.find(l => l.leito == leito);
@@ -1019,11 +1235,11 @@ window.admitirComReserva = async function(hospital, leito, dadosPaciente, matric
         
         const result = await apiRequest('admitirComReserva', payload, 'POST');
         
-        logAPISuccess('Admissao com reserva V7.0 concluida', result);
+        logAPISuccess('Admissao com reserva V7.1 concluida', result);
         return result;
         
     } catch (error) {
-        logAPIError('Erro ao admitir com reserva V7.0:', error.message);
+        logAPIError('Erro ao admitir com reserva V7.1:', error.message);
         throw error;
     }
 };
@@ -1086,7 +1302,7 @@ window.contarReservasHospital = function(hospital) {
     };
 };
 
-// =================== ✅ PREPARAR DADOS PARA FORMULÁRIO V7.0 ===================
+// =================== ✅ PREPARAR DADOS PARA FORMULÁRIO V7.1 ===================
 window.prepararDadosFormulario = function(dados) {
     const isUTI = dados.isUTI || dados.tipo === 'UTI';
     
@@ -1112,7 +1328,7 @@ window.prepararDadosFormulario = function(dados) {
         isUTI: isUTI
     };
     
-    logAPI('Dados preparados para formulario V7.0:', {
+    logAPI('Dados preparados para formulario V7.1:', {
         hospital: dados.hospital,
         leito: dados.leito,
         isUTI: dados.isUTI,
@@ -1127,7 +1343,7 @@ window.prepararDadosFormulario = function(dados) {
     return dados;
 };
 
-// =================== ✅ PARSE DADOS V7.0 ===================
+// =================== ✅ PARSE DADOS V7.1 ===================
 window.parseLeitoData = function(leito) {
     if (!leito) return null;
     
@@ -1164,14 +1380,14 @@ window.parseLeitoData = function(leito) {
 // =================== REFRESH ===================
 window.refreshAfterAction = async function() {
     try {
-        logAPI('Recarregando dados V7.0 apos acao...');
+        logAPI('Recarregando dados V7.1 apos acao...');
         
         const container = document.getElementById('cardsContainer');
         if (container) {
             container.innerHTML = `
                 <div class="card" style="grid-column: 1 / -1; text-align: center; padding: 40px; background: #1a1f2e; border-radius: 12px;">
                     <div style="color: #60a5fa; margin-bottom: 15px; font-size: 18px;">
-                        Sincronizando V7.0 (356 leitos + reservas)...
+                        Sincronizando V7.1 (356 leitos + reservas)...
                     </div>
                     <div style="color: #9ca3af; font-size: 14px;">
                         Atualizando dados
@@ -1187,12 +1403,12 @@ window.refreshAfterAction = async function() {
         setTimeout(() => {
             if (window.renderCards) {
                 window.renderCards();
-                logAPISuccess('Interface V7.0 atualizada!');
+                logAPISuccess('Interface V7.1 atualizada!');
             }
         }, 500);
         
     } catch (error) {
-        logAPIError('Erro ao refresh V7.0:', error.message);
+        logAPIError('Erro ao refresh V7.1:', error.message);
         
         setTimeout(() => {
             if (window.renderCards) {
@@ -1205,19 +1421,19 @@ window.refreshAfterAction = async function() {
 // =================== FUNÇÕES AUXILIARES ===================
 window.testAPI = async function() {
     try {
-        logAPI('Testando conectividade V7.0...');
+        logAPI('Testando conectividade V7.1...');
         
         const result = await apiRequest('test', {}, 'GET');
         
         if (result) {
-            logAPISuccess('API V7.0 funcionando!', result);
+            logAPISuccess('API V7.1 funcionando!', result);
             return { status: 'ok', data: result };
         } else {
-            throw new Error('API V7.0 nao retornou dados validos');
+            throw new Error('API V7.1 nao retornou dados validos');
         }
         
     } catch (error) {
-        logAPIError('Erro na conectividade V7.0:', error.message);
+        logAPIError('Erro na conectividade V7.1:', error.message);
         return { status: 'error', message: error.message };
     }
 };
@@ -1232,7 +1448,7 @@ window.monitorAPI = function() {
             const timeSinceLastCall = Date.now() - window.lastAPICall;
             
             if (timeSinceLastCall > 240000) {
-                logAPI('Refresh automatico V7.0...');
+                logAPI('Refresh automatico V7.1...');
                 await window.loadHospitalData();
                 
                 if (window.currentView === 'leitos' && window.renderCards) {
@@ -1240,15 +1456,15 @@ window.monitorAPI = function() {
                 }
             }
         } catch (error) {
-            logAPIError('Erro no monitoramento V7.0:', error.message);
+            logAPIError('Erro no monitoramento V7.1:', error.message);
         }
     }, 60000);
     
-    logAPI('Monitoramento V7.0 ativado');
+    logAPI('Monitoramento V7.1 ativado');
 };
 
 window.fetchHospitalData = async function(hospital) {
-    logAPI(`Buscando dados V7.0 do hospital: ${hospital}`);
+    logAPI(`Buscando dados V7.1 do hospital: ${hospital}`);
     
     await window.loadHospitalData();
     
@@ -1266,7 +1482,7 @@ window.fetchLeitoData = async function(hospital, leito) {
         const data = await apiRequest('one', { hospital: hospital, leito: leito }, 'GET');
         return data;
     } catch (error) {
-        logAPIError(`Erro ao buscar leito V7.0 ${hospital}-${leito}:`, error.message);
+        logAPIError(`Erro ao buscar leito V7.1 ${hospital}-${leito}:`, error.message);
         return null;
     }
 };
@@ -1280,11 +1496,11 @@ window.loadColors = async function() {
                     document.documentElement.style.setProperty(property, value);
                 }
             });
-            logAPISuccess('Cores V7.0 carregadas');
+            logAPISuccess('Cores V7.1 carregadas');
             return colors;
         }
     } catch (error) {
-        logAPIError('Erro ao carregar cores V7.0:', error.message);
+        logAPIError('Erro ao carregar cores V7.1:', error.message);
     }
     return null;
 };
@@ -1292,15 +1508,15 @@ window.loadColors = async function() {
 window.saveColors = async function(colors) {
     try {
         const result = await apiRequest('savecolors', { colors: colors }, 'POST');
-        logAPISuccess('Cores V7.0 salvas');
+        logAPISuccess('Cores V7.1 salvas');
         return result;
     } catch (error) {
-        logAPIError('Erro ao salvar cores V7.0:', error.message);
+        logAPIError('Erro ao salvar cores V7.1:', error.message);
         throw error;
     }
 };
 
-// =================== ✅ NOVO V7.0: FUNÇÕES AUXILIARES UTI ===================
+// =================== ✅ FUNÇÕES AUXILIARES UTI V7.1 ===================
 
 /**
  * Filtrar leitos por tipo (UTI ou Enfermaria)
@@ -1309,12 +1525,12 @@ window.saveColors = async function(colors) {
  * @returns {Array} Lista de leitos filtrados
  */
 window.filtrarLeitosPorTipo = function(hospital, apenasUTI = false) {
-    const leitos = window.hospitalData[hospital]?.leitos || [];
-    
     if (apenasUTI) {
-        return leitos.filter(l => l.tipo === 'UTI');
+        // Buscar em window.leitosUTI
+        return window.leitosUTI[hospital]?.leitos || [];
     } else {
-        return leitos.filter(l => l.tipo !== 'UTI');
+        // Buscar em window.hospitalData
+        return window.hospitalData[hospital]?.leitos || [];
     }
 };
 
@@ -1324,7 +1540,7 @@ window.filtrarLeitosPorTipo = function(hospital, apenasUTI = false) {
  * @returns {Object} Estatísticas de UTI
  */
 window.getEstatisticasUTI = function(hospital) {
-    const leitosUTI = window.filtrarLeitosPorTipo(hospital, true);
+    const leitosUTI = window.leitosUTI[hospital]?.leitos || [];
     const ocupados = leitosUTI.filter(l => l.status === 'ocupado');
     const vagos = leitosUTI.filter(l => l.status === 'vago');
     const capacidade = window.UTI_CAPACIDADE ? window.UTI_CAPACIDADE[hospital] : null;
@@ -1345,7 +1561,7 @@ window.getEstatisticasUTI = function(hospital) {
  * @returns {Object} Estatísticas de Enfermaria
  */
 window.getEstatisticasEnfermaria = function(hospital) {
-    const leitosEnf = window.filtrarLeitosPorTipo(hospital, false);
+    const leitosEnf = window.hospitalData[hospital]?.leitos || [];
     const ocupados = leitosEnf.filter(l => l.status === 'ocupado');
     const vagos = leitosEnf.filter(l => l.status === 'vago');
     const capacidade = window.HOSPITAL_CAPACIDADE ? window.HOSPITAL_CAPACIDADE[hospital] : null;
@@ -1360,9 +1576,37 @@ window.getEstatisticasEnfermaria = function(hospital) {
     };
 };
 
+/**
+ * ✅ NOVO V7.1: Obter leitos UTI de um hospital
+ * @param {string} hospital - ID do hospital
+ * @returns {Array} Lista de leitos UTI
+ */
+window.getLeitosUTI = function(hospital) {
+    return window.leitosUTI[hospital]?.leitos || [];
+};
+
+/**
+ * ✅ NOVO V7.1: Obter leitos de enfermaria de um hospital
+ * @param {string} hospital - ID do hospital
+ * @returns {Array} Lista de leitos de enfermaria
+ */
+window.getLeitosEnfermaria = function(hospital) {
+    return window.hospitalData[hospital]?.leitos || [];
+};
+
+/**
+ * ✅ NOVO V7.1: Verificar se hospital tem UTI
+ * @param {string} hospital - ID do hospital
+ * @returns {boolean} True se tem UTI
+ */
+window.hospitalTemUTI = function(hospital) {
+    const leitosUTI = window.leitosUTI[hospital]?.leitos || [];
+    return leitosUTI.length > 0;
+};
+
 // =================== INICIALIZAÇÃO ===================
 window.addEventListener('load', () => {
-    logAPI('API.js V7.0 COMPLETO carregado');
+    logAPI('API.js V7.1 COMPLETO carregado');
     logAPI(`Hospitais: 11 (9 ativos + 2 reservas)`);
     logAPI(`Leitos: 356 totais (293 enfermaria + 63 UTI)`);
     logAPI(`URL: ${window.API_URL}`);
@@ -1370,11 +1614,12 @@ window.addEventListener('load', () => {
     logAPI(`Concessoes: 12 tipos`);
     logAPI(`Linhas: 45 tipos`);
     logAPI(`Timeline Enfermaria: ${window.TIMELINE_OPCOES.length} opcoes`);
-    logAPI(`Timeline UTI: ${window.TIMELINE_UTI_OPCOES.length} opcoes`);
+    logAPI(`Timeline UTI: ${window.TIMELINE_UTI_OPCOES.length} opcoes (Hoje, 24h, 48h, 72h, 96h, Sem Previsao)`);
     logAPI(`Anotacoes: Campo livre 800 chars (BX/75)`);
     logAPI(`Reservas: Sistema ativo`);
+    logAPI(`Separacao de dados: hospitalData (enfermaria) + leitosUTI`);
     
-    logAPISuccess('Hospitais V7.0:');
+    logAPISuccess('Hospitais V7.1:');
     Object.entries(window.HOSPITAIS_CONFIG).forEach(([id, config]) => {
         logAPI(`   ${id}: ${config.nome} (${config.leitos} leitos)`);
     });
@@ -1386,11 +1631,14 @@ window.addEventListener('load', () => {
     }, 10000);
 });
 
-logAPISuccess('API.js V7.0 100% FUNCIONAL');
-logAPISuccess('Nova URL V7.0 configurada');
+logAPISuccess('API.js V7.1 100% FUNCIONAL');
+logAPISuccess('Nova URL V7.1 configurada');
 logAPISuccess('11 hospitais (9 ativos + 2 reservas)');
 logAPISuccess('356 leitos totais (293 enfermaria + 63 UTI)');
 logAPISuccess('76 colunas (A-BX)');
 logAPISuccess('Campo anotacoes implementado');
 logAPISuccess('Sistema de reservas implementado');
 logAPISuccess('Suporte a UTI implementado');
+logAPISuccess('NOVIDADE V7.1: Separacao hospitalData + leitosUTI');
+logAPISuccess('NOVIDADE V7.1: admitirPacienteUTI, atualizarPacienteUTI, darAltaPacienteUTI');
+logAPISuccess('NOVIDADE V7.1: Timeline UTI corrigida (Hoje, 24h, 48h, 72h, 96h, Sem Previsao)');
