@@ -280,6 +280,8 @@ window.refreshAfterAction = async function() {
             window.renderDashboardExecutivo();
         } else if (window.currentView === 'uti' && window.renderDashboardUTI) {
             window.renderDashboardUTI();
+        } else if (window.currentView === 'leitosUTI' && window.renderCardsUTI) { // V7.0: Mapa UTI
+            window.renderCardsUTI(window.currentHospitalUTI || 'H2');
         }
         
         logSuccess('Dados atualizados com sucesso');
@@ -748,6 +750,16 @@ window.forcarRenderizacao = function() {
             // Dashboard UTI pode nao estar carregado ainda
             console.log('Dashboard UTI nao disponivel (esperado se nao estiver na aba)');
         }
+        
+        // V7.0: Mapa de Leitos UTI (Cards)
+        try {
+            if (window.renderCardsUTI && window.currentView === 'leitosUTI') {
+                window.renderCardsUTI(window.currentHospitalUTI || 'H2');
+                logSuccess('Mapa de Leitos UTI forcado');
+            }
+        } catch (error) {
+            console.log('Mapa de Leitos UTI nao disponivel');
+        }
     }, 200);
 };
 
@@ -811,6 +823,8 @@ window.setActiveTab = function(tab) {
             window.renderDashboardExecutivo();
         } else if (tab === 'uti' && window.renderDashboardUTI) { // V7.0: Dashboard UTI
             window.renderDashboardUTI();
+        } else if (tab === 'leitosUTI' && window.renderCardsUTI) { // V7.0: Mapa de Leitos UTI
+            window.renderCardsUTI(window.currentHospitalUTI || 'H2');
         }
     }, 200);
 };
@@ -882,6 +896,12 @@ const observarMudancasTab = () => {
                             window.renderDashboardUTI();
                         }
                     }, 150);
+                } else if (target.id === 'leitosUTIView' && !target.classList.contains('hidden')) { // V7.0: Mapa UTI
+                    setTimeout(() => {
+                        if (window.renderCardsUTI) {
+                            window.renderCardsUTI(window.currentHospitalUTI || 'H2');
+                        }
+                    }, 150);
                 }
             }
         });
@@ -890,10 +910,12 @@ const observarMudancasTab = () => {
     const dash1 = document.getElementById('dash1');
     const dash2 = document.getElementById('dash2');
     const dashUTI = document.getElementById('uti'); // V7.0
+    const leitosUTIView = document.getElementById('leitosUTIView'); // V7.0: Mapa UTI
     
     if (dash1) observer.observe(dash1, { attributes: true });
     if (dash2) observer.observe(dash2, { attributes: true });
     if (dashUTI) observer.observe(dashUTI, { attributes: true }); // V7.0
+    if (leitosUTIView) observer.observe(leitosUTIView, { attributes: true }); // V7.0: Mapa UTI
 };
 
 // =================== INICIALIZACAO AUTOMATICA OTIMIZADA ===================
@@ -931,6 +953,8 @@ setTimeout(() => {
                     window.renderDashboardExecutivo();
                 } else if (window.currentView === 'uti') { // V7.0
                     window.renderDashboardUTI();
+                } else if (window.currentView === 'leitosUTI' && window.renderCardsUTI) { // V7.0: Mapa UTI
+                    window.renderCardsUTI(window.currentHospitalUTI || 'H2');
                 }
             }, 300);
         }).catch(error => {
