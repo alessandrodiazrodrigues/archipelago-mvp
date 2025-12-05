@@ -11,7 +11,8 @@
 console.log('CARDS-UTI.JS V7.0 - Carregando...');
 
 // =================== HOSPITAIS UTI ATIVOS ===================
-const HOSPITAIS_UTI_ATIVOS = ['H2'];
+// Usa a mesma constante do dashboard-uti.js se ja existir
+const HOSPITAIS_UTI_ATIVOS_CARDS = window.HOSPITAIS_UTI_ATIVOS || ['H2'];
 
 // =================== CAPACIDADE UTI ===================
 const UTI_CAPACIDADE_CARDS = {
@@ -150,7 +151,7 @@ window.renderCardsUTI = function(hospitalId) {
     logInfoUTI('Renderizando cards UTI para ' + hospitalId);
     
     // Verificar se hospital esta ativo
-    if (!HOSPITAIS_UTI_ATIVOS.includes(hospitalId)) {
+    if (!HOSPITAIS_UTI_ATIVOS_CARDS.includes(hospitalId)) {
         logErrorUTI('Hospital ' + hospitalId + ' nao esta ativo para UTI');
         return;
     }
@@ -1107,5 +1108,5 @@ function abrirModalEdicaoUTI(hospitalId, leitoNumero) {
 // =================== INICIALIZACAO ===================
 
 console.log('CARDS-UTI.JS V7.0 - Carregado com sucesso!');
-console.log('Hospitais UTI ativos:', HOSPITAIS_UTI_ATIVOS.join(', '));
+console.log('Hospitais UTI ativos:', HOSPITAIS_UTI_ATIVOS_CARDS.join(', '));
 console.log('Total de leitos UTI configurados:', Object.values(UTI_CAPACIDADE_CARDS).reduce((sum, h) => sum + h.total, 0));
