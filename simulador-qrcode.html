@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulador Mobile V6.0 - Archipelago Dashboard</title>
+    <title>Simulador Mobile V7.0 - Archipelago Dashboard</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -52,7 +52,7 @@
             font-weight: 600;
         }
         
-        /* =================== SELEÇÃO DE MODO =================== */
+        /* =================== SELECAO DE MODO =================== */
         .modo-selector {
             background: rgba(255, 255, 255, 0.08);
             padding: 25px;
@@ -82,7 +82,7 @@
             border-radius: 10px;
             cursor: pointer;
             transition: all 0.3s;
-            min-width: 250px;
+            min-width: 220px;
         }
         
         .modo-option:hover {
@@ -95,6 +95,12 @@
             background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
             border-color: #60a5fa;
             box-shadow: 0 4px 16px rgba(96, 165, 250, 0.4);
+        }
+        
+        .modo-option.uti-mode.active {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            border-color: #ef4444;
+            box-shadow: 0 4px 16px rgba(239, 68, 68, 0.4);
         }
         
         .modo-option input[type="radio"] {
@@ -143,7 +149,7 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
-            min-width: 250px;
+            min-width: 220px;
         }
         
         .controle-group label {
@@ -175,6 +181,15 @@
             outline: none;
             border-color: #60a5fa;
             box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
+        }
+        
+        .controle-group select.uti-select {
+            border-color: #ef4444;
+        }
+        
+        .controle-group select.uti-select:focus {
+            border-color: #ef4444;
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
         }
         
         .btn-reload {
@@ -211,6 +226,11 @@
             text-align: center;
         }
         
+        .info-bar.uti-bar {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+        
         .info-bar .url {
             font-size: 13px;
             color: #10b981;
@@ -224,12 +244,21 @@
             word-break: break-all;
         }
         
+        .info-bar.uti-bar .url {
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+        }
+        
         .info-bar .label {
             font-size: 11px;
             color: #6ee7b7;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 1px;
+        }
+        
+        .info-bar.uti-bar .label {
+            color: #fca5a5;
         }
         
         /* =================== CONTAINER PRINCIPAL =================== */
@@ -282,7 +311,7 @@
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
         }
         
-        /* Câmera */
+        /* Camera */
         .device-camera {
             position: absolute;
             top: 10px;
@@ -296,7 +325,7 @@
             z-index: 11;
         }
         
-        /* Botões laterais */
+        /* Botoes laterais */
         .device-button-left {
             position: absolute;
             left: -2px;
@@ -457,37 +486,49 @@
         .alert.success {
             background: rgba(16, 185, 129, 0.95);
         }
+        
+        .alert.uti {
+            background: rgba(239, 68, 68, 0.95);
+        }
     </style>
 </head>
 <body>
     <!-- HEADER -->
     <div class="header">
-        <h1>Simulador Mobile</h1>
-        <p>Teste o Archipelago Dashboard em versão mobile</p>
+        <h1>Simulador Mobile V7.0</h1>
+        <p>Teste o Archipelago Dashboard em versao mobile - Enfermarias + UTI</p>
     </div>
     
-    <!-- SELEÇÃO DE MODO -->
+    <!-- SELECAO DE MODO -->
     <div class="modo-selector">
         <span class="modo-label">Selecione o Modo:</span>
         
         <div class="modo-option active" onclick="selecionarModo('qrcode')">
             <input type="radio" name="modo" id="modoQRCode" value="qrcode" checked>
             <div>
-                <label for="modoQRCode">Modal Médico QR Code</label>
-                <div class="modo-desc">Teste os modais de admissão e atualização</div>
+                <label for="modoQRCode">Enfermarias</label>
+                <div class="modo-desc">293 leitos - Modal de admissao</div>
+            </div>
+        </div>
+        
+        <div class="modo-option uti-mode" onclick="selecionarModo('uti')">
+            <input type="radio" name="modo" id="modoUTI" value="uti">
+            <div>
+                <label for="modoUTI">UTI</label>
+                <div class="modo-desc">63 leitos - Formulario simplificado</div>
             </div>
         </div>
         
         <div class="modo-option" onclick="selecionarModo('dashboard')">
             <input type="radio" name="modo" id="modoDashboard" value="dashboard">
             <div>
-                <label for="modoDashboard">Archipelago Dashboard</label>
-                <div class="modo-desc">Visualize o dashboard completo mobile</div>
+                <label for="modoDashboard">Dashboard</label>
+                <div class="modo-desc">Visualize o dashboard completo</div>
             </div>
         </div>
     </div>
     
-    <!-- SELEÇÃO DE AMBIENTE -->
+    <!-- SELECAO DE AMBIENTE -->
     <div class="ambiente-selector" style="background: rgba(255, 255, 255, 0.05); margin: 15px 20px; padding: 15px; border-radius: 12px; border: 2px solid rgba(96, 165, 250, 0.3);">
         <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
             <span style="color: #60a5fa; font-weight: 600; font-size: 14px;">Ambiente:</span>
@@ -495,7 +536,7 @@
             <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
                 <input type="radio" name="ambiente" value="producao" checked onchange="alterarAmbiente('producao')" style="accent-color: #60a5fa;">
                 <span style="color: #ffffff; font-size: 13px;">
-                    <strong>Produção (Em Uso)</strong>
+                    <strong>Producao</strong>
                     <span style="color: #9ca3af; font-size: 11px; margin-left: 5px;">qrcode-seven-gamma / archipelago-one</span>
                 </span>
             </label>
@@ -518,19 +559,21 @@
         </div>
     </div>
     
-    <!-- CONTROLES (apenas para modo QR Code) -->
+    <!-- CONTROLES ENFERMARIA -->
     <div class="controles" id="controlesQRCode">
         <div class="controle-group">
-            <label>Hospital</label>
+            <label>Hospital (Enfermaria)</label>
             <select id="selectHospital" onchange="atualizarLeitos()">
                 <option value="">Selecione um hospital...</option>
-                <option value="H5">Adventista (13 leitos)</option>
-                <option value="H2">Cruz Azul (36 leitos)</option>
-                <option value="H1">Neomater (10 leitos)</option>
-                <option value="H4">Santa Clara (13 leitos)</option>
-                <option value="H6">Santa Cruz (7 leitos)</option>
-                <option value="H3">Santa Marcelina (7 leitos)</option>
-                <option value="H7">Santa Virgínia (7 leitos)</option>
+                <option value="H5">Adventista (28 leitos)</option>
+                <option value="H2">Cruz Azul (67 leitos)</option>
+                <option value="H1">Neomater (25 leitos)</option>
+                <option value="H4">Santa Clara (57 leitos)</option>
+                <option value="H6">Santa Cruz (22 leitos)</option>
+                <option value="H3">Santa Marcelina (28 leitos)</option>
+                <option value="H7">Santa Virginia (22 leitos)</option>
+                <option value="H8">Sao Camilo Ipiranga (22 leitos)</option>
+                <option value="H9">Sao Camilo Pompeia (22 leitos)</option>
             </select>
         </div>
         
@@ -548,10 +591,41 @@
         </div>
     </div>
     
+    <!-- CONTROLES UTI -->
+    <div class="controles hidden" id="controlesUTI">
+        <div class="controle-group">
+            <label style="color: #fca5a5;">Hospital (UTI)</label>
+            <select id="selectHospitalUTI" class="uti-select" onchange="atualizarLeitosUTI()">
+                <option value="">Selecione um hospital...</option>
+                <option value="H2">Cruz Azul UTI (30 leitos)</option>
+                <option value="H5">Adventista UTI (6 leitos)</option>
+                <option value="H4">Santa Clara UTI (6 leitos)</option>
+                <option value="H1">Neomater UTI (5 leitos)</option>
+                <option value="H6">Santa Cruz UTI (4 leitos)</option>
+                <option value="H3">Santa Marcelina UTI (4 leitos)</option>
+                <option value="H8">Sao Camilo Ipiranga UTI (4 leitos)</option>
+                <option value="H9">Sao Camilo Pompeia UTI (4 leitos)</option>
+            </select>
+        </div>
+        
+        <div class="controle-group">
+            <label style="color: #fca5a5;">Leito UTI</label>
+            <select id="selectLeitoUTI" class="uti-select" disabled>
+                <option value="">Primeiro selecione um hospital</option>
+            </select>
+        </div>
+        
+        <div class="controle-group" style="align-items: center;">
+            <button class="btn-reload" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);" onclick="recarregarIframe()">
+                Recarregar
+            </button>
+        </div>
+    </div>
+    
     <!-- INFO BAR -->
     <div class="info-bar" id="infoBar" style="display: none;">
         <div class="label">URL Atual:</div>
-        <div class="url" id="urlAtual">—</div>
+        <div class="url" id="urlAtual">-</div>
     </div>
     
     <!-- CONTAINER PRINCIPAL -->
@@ -561,7 +635,7 @@
             <div class="device-notch"></div>
             <div class="device-camera"></div>
             
-            <!-- Botões -->
+            <!-- Botoes -->
             <div class="device-button-left"></div>
             <div class="device-button-right"></div>
             
@@ -584,13 +658,13 @@
     
     <!-- FOOTER -->
     <div class="footer">
-        Archipelago Dashboard V4.1 - Simulador Mobile<br>
-        Total Rede: 93 leitos | 7 hospitais<br>
+        Archipelago Dashboard V7.0 - Simulador Mobile<br>
+        Total Rede: 356 leitos (293 enfermaria + 63 UTI) | 9 hospitais<br>
         <a href="#" onclick="abrirAjuda(); return false;">Como usar?</a>
     </div>
     
     <script>
-        // =================== CONFIGURAÇÃO ===================
+        // =================== CONFIGURACAO HOSPITAIS ENFERMARIA ===================
         const HOSPITAIS = {
             H1: { nome: 'Neomater', leitos: 25 },
             H2: { nome: 'Cruz Azul', leitos: 67 },
@@ -598,15 +672,28 @@
             H4: { nome: 'Santa Clara', leitos: 57 },
             H5: { nome: 'Adventista', leitos: 28 },
             H6: { nome: 'Santa Cruz', leitos: 22 },
-            H7: { nome: 'Santa Virgínia', leitos: 22 },
-            H8: { nome: 'São Camilo Ipiranga', leitos: 22 },
-            H9: { nome: 'São Camilo Pompeia', leitos: 22 }
+            H7: { nome: 'Santa Virginia', leitos: 22 },
+            H8: { nome: 'Sao Camilo Ipiranga', leitos: 22 },
+            H9: { nome: 'Sao Camilo Pompeia', leitos: 22 }
         };
         
-        // =================== CONFIGURAÇÃO DE AMBIENTES ===================
+        // =================== CONFIGURACAO UTI (63 LEITOS) ===================
+        const UTI_CAPACIDADE = {
+            H1: { nome: 'Neomater', total: 5 },
+            H2: { nome: 'Cruz Azul', total: 30 },
+            H3: { nome: 'Santa Marcelina', total: 4 },
+            H4: { nome: 'Santa Clara', total: 6 },
+            H5: { nome: 'Adventista', total: 6 },
+            H6: { nome: 'Santa Cruz', total: 4 },
+            H7: { nome: 'Santa Virginia', total: 0 }, // SEM UTI
+            H8: { nome: 'Sao Camilo Ipiranga', total: 4 },
+            H9: { nome: 'Sao Camilo Pompeia', total: 4 }
+        };
+        
+        // =================== CONFIGURACAO DE AMBIENTES ===================
         const AMBIENTES = {
             producao: {
-                nome: 'Produção (Em Uso)',
+                nome: 'Producao',
                 qrcode: 'https://qrcode-seven-gamma.vercel.app',
                 dashboard: 'https://archipelago-one.vercel.app/'
             },
@@ -617,28 +704,26 @@
             }
         };
         
-        let ambienteAtual = 'producao'; // Ambiente padrão
+        let ambienteAtual = 'producao';
         let QRCODE_BASE_URL = AMBIENTES[ambienteAtual].qrcode;
         let DASHBOARD_URL = AMBIENTES[ambienteAtual].dashboard;
         
+        let modoAtual = 'qrcode'; // qrcode, uti, dashboard
         
-        let modoAtual = 'qrcode';
-        
-        // =================== FUNÇÃO PARA ALTERNAR AMBIENTE ===================
+        // =================== FUNCAO PARA ALTERNAR AMBIENTE ===================
         function alterarAmbiente(ambiente) {
             ambienteAtual = ambiente;
             QRCODE_BASE_URL = AMBIENTES[ambiente].qrcode;
             DASHBOARD_URL = AMBIENTES[ambiente].dashboard;
             
-            // Atualizar exibição das URLs ativas
-            const urlsDiv = document.getElementById('urlsAtivas');
-            urlsDiv.innerHTML = `
-                QR Code: <span style="color: #60a5fa; font-weight: 600;">${QRCODE_BASE_URL}</span><br>
-                Dashboard: <span style="color: #60a5fa; font-weight: 600;">${DASHBOARD_URL}</span>
-            `;
+            // Atualizar exibicao das URLs ativas
+            var urlsDiv = document.getElementById('urlsAtivas');
+            urlsDiv.innerHTML = 
+                'QR Code: <span style="color: #60a5fa; font-weight: 600;">' + QRCODE_BASE_URL + '</span><br>' +
+                'Dashboard: <span style="color: #60a5fa; font-weight: 600;">' + DASHBOARD_URL + '</span>';
             
-            // Recarregar iframe se estiver em modo dashboard ou se já tiver URL carregada
-            const iframe = document.getElementById('deviceIframe');
+            // Recarregar iframe se estiver em modo dashboard ou se ja tiver URL carregada
+            var iframe = document.getElementById('deviceIframe');
             if (modoAtual === 'dashboard' || (iframe.src && iframe.src !== 'about:blank')) {
                 if (modoAtual === 'dashboard') {
                     carregarDashboard();
@@ -647,75 +732,83 @@
                 }
             }
             
-            // Mostrar alerta de mudança
-            mostrarAlerta(`Ambiente alterado para: ${AMBIENTES[ambiente].nome}`, 'success');
+            mostrarAlerta('Ambiente alterado para: ' + AMBIENTES[ambiente].nome, 'success');
         }
         
         // =================== SELECIONAR MODO ===================
         function selecionarModo(modo) {
             modoAtual = modo;
             
-            // Atualizar visual dos botões
-            document.querySelectorAll('.modo-option').forEach(el => {
+            // Atualizar visual dos botoes
+            document.querySelectorAll('.modo-option').forEach(function(el) {
                 el.classList.remove('active');
             });
             event.currentTarget.classList.add('active');
             
             // Atualizar radio button
-            document.getElementById(modo === 'qrcode' ? 'modoQRCode' : 'modoDashboard').checked = true;
+            if (modo === 'qrcode') {
+                document.getElementById('modoQRCode').checked = true;
+            } else if (modo === 'uti') {
+                document.getElementById('modoUTI').checked = true;
+            } else {
+                document.getElementById('modoDashboard').checked = true;
+            }
             
             // Mostrar/esconder controles
-            const controlesQRCode = document.getElementById('controlesQRCode');
-            const infoBar = document.getElementById('infoBar');
-            const iframe = document.getElementById('deviceIframe');
+            var controlesQRCode = document.getElementById('controlesQRCode');
+            var controlesUTI = document.getElementById('controlesUTI');
+            var infoBar = document.getElementById('infoBar');
+            var iframe = document.getElementById('deviceIframe');
             
             if (modo === 'dashboard') {
-                // Modo Dashboard: esconder controles e carregar direto
                 controlesQRCode.classList.add('hidden');
+                controlesUTI.classList.add('hidden');
                 carregarDashboard();
+            } else if (modo === 'uti') {
+                controlesQRCode.classList.add('hidden');
+                controlesUTI.classList.remove('hidden');
+                iframe.src = '';
+                infoBar.style.display = 'none';
             } else {
-                // Modo QR Code: mostrar controles e limpar iframe
                 controlesQRCode.classList.remove('hidden');
+                controlesUTI.classList.add('hidden');
                 iframe.src = '';
                 infoBar.style.display = 'none';
             }
             
-            console.log(`Modo alterado para: ${modo}`);
+            console.log('Modo alterado para: ' + modo);
         }
         
         // =================== CARREGAR DASHBOARD ===================
         function carregarDashboard() {
-            const iframe = document.getElementById('deviceIframe');
-            const loadingOverlay = document.getElementById('loadingOverlay');
-            const infoBar = document.getElementById('infoBar');
-            const urlAtual = document.getElementById('urlAtual');
+            var iframe = document.getElementById('deviceIframe');
+            var loadingOverlay = document.getElementById('loadingOverlay');
+            var infoBar = document.getElementById('infoBar');
+            var urlAtual = document.getElementById('urlAtual');
             
-            // Mostrar loading
             loadingOverlay.classList.remove('hidden');
             document.querySelector('.loading-text').textContent = 'Carregando dashboard...';
             
-            // Atualizar info bar
             infoBar.style.display = 'block';
+            infoBar.classList.remove('uti-bar');
             urlAtual.textContent = DASHBOARD_URL;
             
-            // Carregar iframe
             iframe.src = DASHBOARD_URL;
             
-            console.log(`Carregando dashboard: ${DASHBOARD_URL}`);
+            console.log('Carregando dashboard: ' + DASHBOARD_URL);
             
-            // Esconder loading após delay maior (dashboard é mais pesado)
-            setTimeout(() => {
+            setTimeout(function() {
                 loadingOverlay.classList.add('hidden');
             }, 2500);
             
             mostrarAlerta('Dashboard carregado em modo mobile!', 'success');
         }
         
-        // =================== ATUALIZAR LEITOS ===================
+        // =================== ATUALIZAR LEITOS ENFERMARIA ===================
         function atualizarLeitos() {
-            const selectHospital = document.getElementById('selectHospital');
-            const selectLeito = document.getElementById('selectLeito');
-            const hospitalId = selectHospital.value;
+            var selectHospital = document.getElementById('selectHospital');
+            var selectLeito = document.getElementById('selectLeito');
+            var hospitalId = selectHospital.value;
             
             if (!hospitalId) {
                 selectLeito.disabled = true;
@@ -724,67 +817,114 @@
                 return;
             }
             
-            const hospital = HOSPITAIS[hospitalId];
+            var hospital = HOSPITAIS[hospitalId];
             selectLeito.disabled = false;
             selectLeito.innerHTML = '<option value="">Selecione um leito...</option>';
             
-            for (let i = 1; i <= hospital.leitos; i++) {
-                const option = document.createElement('option');
+            for (var i = 1; i <= hospital.leitos; i++) {
+                var option = document.createElement('option');
                 option.value = i;
-                option.textContent = `Leito ${String(i).padStart(2, '0')}`;
+                option.textContent = 'Leito ' + String(i).padStart(2, '0');
                 selectLeito.appendChild(option);
             }
             
-            console.log(`${hospital.leitos} leitos carregados para ${hospital.nome}`);
+            console.log(hospital.leitos + ' leitos carregados para ' + hospital.nome);
+        }
+        
+        // =================== ATUALIZAR LEITOS UTI ===================
+        function atualizarLeitosUTI() {
+            var selectHospital = document.getElementById('selectHospitalUTI');
+            var selectLeito = document.getElementById('selectLeitoUTI');
+            var hospitalId = selectHospital.value;
+            
+            if (!hospitalId) {
+                selectLeito.disabled = true;
+                selectLeito.innerHTML = '<option value="">Primeiro selecione um hospital</option>';
+                document.getElementById('infoBar').style.display = 'none';
+                return;
+            }
+            
+            var hospital = UTI_CAPACIDADE[hospitalId];
+            
+            if (!hospital || hospital.total === 0) {
+                selectLeito.disabled = true;
+                selectLeito.innerHTML = '<option value="">Este hospital nao possui UTI</option>';
+                return;
+            }
+            
+            selectLeito.disabled = false;
+            selectLeito.innerHTML = '<option value="">Selecione um leito UTI...</option>';
+            
+            for (var i = 1; i <= hospital.total; i++) {
+                var option = document.createElement('option');
+                option.value = i;
+                option.textContent = 'UTI Leito ' + String(i).padStart(2, '0');
+                selectLeito.appendChild(option);
+            }
+            
+            console.log(hospital.total + ' leitos UTI carregados para ' + hospital.nome);
         }
         
         // =================== CARREGAR IFRAME QR CODE ===================
         function carregarIframe() {
-            const selectHospital = document.getElementById('selectHospital');
-            const selectLeito = document.getElementById('selectLeito');
-            const iframe = document.getElementById('deviceIframe');
-            const loadingOverlay = document.getElementById('loadingOverlay');
-            const infoBar = document.getElementById('infoBar');
-            const urlAtual = document.getElementById('urlAtual');
+            var iframe = document.getElementById('deviceIframe');
+            var loadingOverlay = document.getElementById('loadingOverlay');
+            var infoBar = document.getElementById('infoBar');
+            var urlAtual = document.getElementById('urlAtual');
             
-            const hospitalId = selectHospital.value;
-            const leitoNum = selectLeito.value;
+            var hospitalId, leitoNum, url;
             
-            if (!hospitalId || !leitoNum) {
-                mostrarAlerta('Selecione hospital e leito!', 'error');
-                return;
+            if (modoAtual === 'uti') {
+                hospitalId = document.getElementById('selectHospitalUTI').value;
+                leitoNum = document.getElementById('selectLeitoUTI').value;
+                
+                if (!hospitalId || !leitoNum) {
+                    mostrarAlerta('Selecione hospital e leito UTI!', 'uti');
+                    return;
+                }
+                
+                // URL com parametro t=UTI
+                url = QRCODE_BASE_URL + '?h=' + hospitalId + '&l=' + leitoNum + '&t=UTI';
+                infoBar.classList.add('uti-bar');
+                
+            } else {
+                hospitalId = document.getElementById('selectHospital').value;
+                leitoNum = document.getElementById('selectLeito').value;
+                
+                if (!hospitalId || !leitoNum) {
+                    mostrarAlerta('Selecione hospital e leito!', 'error');
+                    return;
+                }
+                
+                url = QRCODE_BASE_URL + '?h=' + hospitalId + '&l=' + leitoNum;
+                infoBar.classList.remove('uti-bar');
             }
             
-            // Mostrar loading
             loadingOverlay.classList.remove('hidden');
             document.querySelector('.loading-text').textContent = 'Carregando modal...';
             
-            // Construir URL
-            const url = `${QRCODE_BASE_URL}?h=${hospitalId}&l=${leitoNum}`;
-            
-            // Atualizar info bar
             infoBar.style.display = 'block';
             urlAtual.textContent = url;
             
-            // Carregar iframe
             iframe.src = url;
             
-            console.log(`Carregando: ${url}`);
+            console.log('Carregando: ' + url);
             
-            // Esconder loading após delay
-            setTimeout(() => {
+            setTimeout(function() {
                 loadingOverlay.classList.add('hidden');
             }, 1500);
             
-            mostrarAlerta('Modal carregado com sucesso!', 'success');
+            var msg = modoAtual === 'uti' ? 'Modal UTI carregado!' : 'Modal carregado com sucesso!';
+            var tipo = modoAtual === 'uti' ? 'uti' : 'success';
+            mostrarAlerta(msg, tipo);
         }
         
         // =================== RECARREGAR IFRAME ===================
         function recarregarIframe() {
-            const iframe = document.getElementById('deviceIframe');
-            const loadingOverlay = document.getElementById('loadingOverlay');
+            var iframe = document.getElementById('deviceIframe');
+            var loadingOverlay = document.getElementById('loadingOverlay');
             
-            if (!iframe.src) {
+            if (!iframe.src || iframe.src === 'about:blank') {
                 if (modoAtual === 'dashboard') {
                     carregarDashboard();
                 } else {
@@ -794,73 +934,76 @@
             }
             
             loadingOverlay.classList.remove('hidden');
-            iframe.src = iframe.src; // Recarrega a mesma URL
+            iframe.src = iframe.src;
             
-            setTimeout(() => {
+            setTimeout(function() {
                 loadingOverlay.classList.add('hidden');
             }, modoAtual === 'dashboard' ? 2000 : 1000);
             
             console.log('Iframe recarregado');
-            mostrarAlerta(modoAtual === 'dashboard' ? 'Dashboard recarregado!' : 'Modal recarregado!', 'success');
+            
+            if (modoAtual === 'dashboard') {
+                mostrarAlerta('Dashboard recarregado!', 'success');
+            } else if (modoAtual === 'uti') {
+                mostrarAlerta('Modal UTI recarregado!', 'uti');
+            } else {
+                mostrarAlerta('Modal recarregado!', 'success');
+            }
         }
         
         // =================== MOSTRAR ALERTA ===================
-        function mostrarAlerta(mensagem, tipo = 'error') {
-            const alertaAntigo = document.querySelector('.alert');
+        function mostrarAlerta(mensagem, tipo) {
+            tipo = tipo || 'error';
+            
+            var alertaAntigo = document.querySelector('.alert');
             if (alertaAntigo) alertaAntigo.remove();
             
-            const alerta = document.createElement('div');
-            alerta.className = `alert ${tipo}`;
+            var alerta = document.createElement('div');
+            alerta.className = 'alert ' + tipo;
             alerta.textContent = mensagem;
             document.body.appendChild(alerta);
             
-            setTimeout(() => {
+            setTimeout(function() {
                 alerta.style.animation = 'slideIn 0.3s ease reverse';
-                setTimeout(() => alerta.remove(), 300);
+                setTimeout(function() { alerta.remove(); }, 300);
             }, 3000);
         }
         
         // =================== AJUDA ===================
         function abrirAjuda() {
-            const mensagem = `
-COMO USAR O SIMULADOR:
-
-MODO 1: MODAL MÉDICO QR CODE
-- Selecione um hospital
-- Selecione um leito
-- O modal será carregado automaticamente
-- Teste admissão e atualização
-
-MODO 2: ARCHIPELAGO DASHBOARD
-- Clique em "Archipelago Dashboard"
-- O sistema completo será carregado no celular
-- Navegue normalmente como no desktop
-- Perfeito para testar responsividade
-
-FUNCIONALIDADES:
-- 9 hospitais | 341 leitos
-- iPhone 11 Pro (375x812)
-- Sistema 100% funcional
-- Botão recarregar sempre disponível
-
-DICA:
-Use o modo Dashboard para demonstrar
-ao cliente como fica a versão mobile!
-            `.trim();
+            var mensagem = 
+'COMO USAR O SIMULADOR V7.0:\n\n' +
+'MODO 1: ENFERMARIAS\n' +
+'- 293 leitos em 9 hospitais\n' +
+'- Selecione hospital e leito\n' +
+'- Formulario completo de admissao\n\n' +
+'MODO 2: UTI\n' +
+'- 63 leitos em 8 hospitais (H7 nao tem)\n' +
+'- Formulario simplificado\n' +
+'- URL com parametro t=UTI\n' +
+'- Sem PPS, SPICT, Concessoes, Linhas\n\n' +
+'MODO 3: DASHBOARD\n' +
+'- Sistema completo no celular\n' +
+'- Navegacao normal\n\n' +
+'AMBIENTES:\n' +
+'- Producao: qrcode-seven-gamma\n' +
+'- Teste: qr-code-systelos\n\n' +
+'TOTAL: 356 leitos (293 enf + 63 UTI)';
             
             alert(mensagem);
         }
         
         // =================== EVENT LISTENERS ===================
         document.getElementById('selectLeito').addEventListener('change', carregarIframe);
+        document.getElementById('selectLeitoUTI').addEventListener('change', carregarIframe);
         
-        // =================== INICIALIZAÇÃO ===================
+        // =================== INICIALIZACAO ===================
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('Simulador Mobile V6.0');
-            console.log('2 modos: QR Code + Dashboard');
-            console.log('9 hospitais | 293 leitos');
+            console.log('Simulador Mobile V7.0');
+            console.log('3 modos: Enfermarias + UTI + Dashboard');
+            console.log('9 hospitais | 356 leitos (293 enf + 63 UTI)');
             console.log('Sistema 100% funcional');
-            console.log('URLs atualizadas:');
+            console.log('URLs:');
             console.log('  QR: ' + QRCODE_BASE_URL);
             console.log('  Dashboard: ' + DASHBOARD_URL);
         });
