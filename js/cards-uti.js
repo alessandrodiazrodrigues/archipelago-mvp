@@ -1,9 +1,9 @@
 (function() {
     'use strict';
     
-    // =================== CARDS UTI V7.1 - DEZEMBRO/2025 ===================
-    // IDENTICO ao cards.js com campos bloqueados para UTI
-    console.log('CARDS-UTI.JS V7.1 - Carregando...');
+    // =================== CARDS UTI V7.3 - DEZEMBRO/2025 ===================
+    // V7.3: Modais padronizados (sem headers coloridos) igual cards.js
+    console.log('CARDS-UTI.JS V7.3 - Carregando...');
     
     // =================== CONFIGURACAO UTI ===================
     // V7.1: Todos os hospitais com UTI ativados (H7 nao tem UTI)
@@ -25,7 +25,7 @@
     
     // =================== FUNCOES AUXILIARES ===================
     function logInfoUTI(msg) {
-        console.log('[CARDS-UTI V7.1] ' + msg);
+        console.log('[CARDS-UTI V7.3] ' + msg);
     }
     
     function showSuccessMessageUTI(msg) {
@@ -546,10 +546,11 @@
         var modalHTML = '';
         modalHTML += '<div style="background: #1e293b; border-radius: 16px; max-width: 600px; width: 95%; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);">';
         
-        // HEADER AZUL (igual cards.js)
-        modalHTML += '<div style="background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%); padding: 25px; border-radius: 16px 16px 0 0; text-align: center;">';
-        modalHTML += '<h2 style="color: white; font-size: 22px; font-weight: 700; margin: 0;">RESERVAR LEITO UTI</h2>';
-        modalHTML += '<p style="color: rgba(255,255,255,0.9); font-size: 14px; margin: 8px 0 0 0;">' + hospitalNome + ' - Leito ' + idSequencial + '</p>';
+        // V7.3: HEADER DISCRETO (igual cards.js padrao)
+        modalHTML += '<div style="padding: 25px 25px 0 25px; text-align: center;">';
+        modalHTML += '<h2 style="color: #f59a1d; font-size: 24px; font-weight: 700; margin: 0 0 20px 0; text-transform: uppercase;">Reservar Leito UTI</h2>';
+        modalHTML += '<div style="margin-bottom: 20px; padding: 12px; background: rgba(245,154,29,0.1); border: 1px solid rgba(245,154,29,0.3); border-radius: 8px;"><div style="color: #f59a1d; font-size: 12px;"><strong>Reserva de Leito:</strong> Preencha apenas os campos obrigatorios. Os demais campos serao preenchidos no momento da admissao.</div></div>';
+        modalHTML += '<div style="margin-bottom: 20px; padding: 15px; background: rgba(96,165,250,0.1); border-radius: 8px;"><strong>Hospital:</strong> ' + hospitalNome + ' | <strong>Leito:</strong> ' + idSequencial + ' | <strong>LEITO UTI</strong></div>';
         modalHTML += '</div>';
         
         // FORM
@@ -605,10 +606,10 @@
         modalHTML += '<div style="margin-bottom: 20px;"><label style="display: block; margin-bottom: 8px; color: #6b7280; font-weight: 700; font-size: 13px;">Linhas de Cuidado</label>';
         modalHTML += '<div style="background: #1f2937; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 15px; text-align: center;"><span style="color: #6b7280; font-size: 12px; font-style: italic;">Campo nao disponivel para leitos UTI</span></div></div>';
         
-        // BOTOES - AZUL
+        // BOTOES - V7.3 PADRAO
         modalHTML += '<div style="display: flex; gap: 15px; margin-top: 25px;">';
-        modalHTML += '<button type="button" id="btnCancelarReservaUTI" style="flex: 1; padding: 14px 20px; background: rgba(255,255,255,0.1); color: #e2e8f0; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">CANCELAR</button>';
-        modalHTML += '<button type="submit" style="flex: 1; padding: 14px 20px; background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer;">RESERVAR</button>';
+        modalHTML += '<button type="button" id="btnCancelarReservaUTI" style="flex: 1; padding: 14px 20px; background: rgba(255,255,255,0.1); color: #e2e8f0; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">Cancelar</button>';
+        modalHTML += '<button type="submit" style="flex: 1; padding: 14px 20px; background: #f59a1d; color: #131b2e; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer;">Salvar Reserva</button>';
         modalHTML += '</div>';
         
         modalHTML += '</form></div></div>';
@@ -707,10 +708,10 @@
         var modalHTML = '';
         modalHTML += '<div style="background: #1e293b; border-radius: 16px; max-width: 600px; width: 95%; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);">';
         
-        // HEADER VERDE
-        modalHTML += '<div style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); padding: 25px; border-radius: 16px 16px 0 0; text-align: center;">';
-        modalHTML += '<h2 style="color: white; font-size: 22px; font-weight: 700; margin: 0;">' + (isFromReserva ? 'CONFIRMAR ADMISSAO' : 'ADMITIR PACIENTE') + ' - UTI</h2>';
-        modalHTML += '<p style="color: rgba(255,255,255,0.9); font-size: 14px; margin: 8px 0 0 0;">' + hospitalNome + ' - Leito ' + idSequencial + '</p>';
+        // V7.3: HEADER DISCRETO (igual cards.js padrao)
+        modalHTML += '<div style="padding: 25px 25px 0 25px; text-align: center;">';
+        modalHTML += '<h2 style="color: #60a5fa; font-size: 24px; font-weight: 700; margin: 0 0 20px 0; text-transform: uppercase;">' + (isFromReserva ? 'Confirmar Admissao' : 'Admitir Paciente') + ' - UTI</h2>';
+        modalHTML += '<div style="margin-bottom: 20px; padding: 15px; background: rgba(96,165,250,0.1); border-radius: 8px;"><strong>Hospital:</strong> ' + hospitalNome + ' | <strong>ID:</strong> ' + idSequencial + ' | <strong>LEITO UTI</strong></div>';
         modalHTML += '</div>';
         
         modalHTML += '<div style="padding: 25px;">';
@@ -769,10 +770,10 @@
         modalHTML += '<div style="margin-bottom: 20px;"><label style="display: block; margin-bottom: 8px; color: #e2e8f0; font-weight: 700; font-size: 13px;">Anotacoes</label>';
         modalHTML += '<textarea id="admUtiAnotacoes" rows="3" maxlength="800" placeholder="Observacoes (max 800 caracteres)" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; font-size: 14px; resize: vertical; box-sizing: border-box;"></textarea></div>';
         
-        // BOTOES
+        // BOTOES - V7.3 PADRAO
         modalHTML += '<div style="display: flex; gap: 15px; margin-top: 25px;">';
-        modalHTML += '<button type="button" id="btnCancelarAdmissaoUTI" style="flex: 1; padding: 14px 20px; background: rgba(255,255,255,0.1); color: #e2e8f0; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">CANCELAR</button>';
-        modalHTML += '<button type="submit" style="flex: 1; padding: 14px 20px; background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer;">' + (isFromReserva ? 'CONFIRMAR' : 'ADMITIR') + '</button>';
+        modalHTML += '<button type="button" id="btnCancelarAdmissaoUTI" style="flex: 1; padding: 14px 20px; background: rgba(255,255,255,0.1); color: #e2e8f0; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">CANCELAR</button>';
+        modalHTML += '<button type="submit" style="flex: 1; padding: 14px 20px; background: #0676bb; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer;">' + (isFromReserva ? 'CONFIRMAR' : 'ADMITIR') + '</button>';
         modalHTML += '</div>';
         
         modalHTML += '</form></div></div>';
@@ -868,11 +869,11 @@
         var modalHTML = '';
         modalHTML += '<div style="background: #1e293b; border-radius: 16px; max-width: 500px; width: 95%; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);">';
         
-        // HEADER AZUL
-        modalHTML += '<div style="background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%); padding: 25px; border-radius: 16px 16px 0 0; text-align: center;">';
-        modalHTML += '<h2 style="color: white; font-size: 22px; font-weight: 700; margin: 0;">ATUALIZAR PACIENTE UTI</h2>';
-        modalHTML += '<p style="color: rgba(255,255,255,0.9); font-size: 14px; margin: 8px 0 0 0;">' + hospitalNome + ' - ' + (identificacao || 'Leito ' + leitoNumero) + '</p>';
-        modalHTML += '<p style="color: #f59a1d; font-size: 12px; margin: 5px 0 0 0;">' + (leito.nome || '') + ' - ' + formatarMatriculaUTI(leito.matricula) + '</p>';
+        // V7.3: HEADER DISCRETO (igual cards.js padrao)
+        modalHTML += '<div style="padding: 25px 25px 0 25px; text-align: center;">';
+        modalHTML += '<h2 style="color: #60a5fa; font-size: 24px; font-weight: 700; margin: 0 0 20px 0; text-transform: uppercase;">Atualizar Paciente UTI</h2>';
+        modalHTML += '<div style="margin-bottom: 20px; padding: 15px; background: rgba(96,165,250,0.1); border-radius: 8px;"><strong>Hospital:</strong> ' + hospitalNome + ' | <strong>Leito:</strong> ' + (identificacao || leitoNumero) + '</div>';
+        modalHTML += '<div style="margin-bottom: 15px; color: #f59a1d; font-size: 14px;">' + (leito.nome || '') + ' - ' + formatarMatriculaUTI(leito.matricula) + '</div>';
         modalHTML += '</div>';
         
         modalHTML += '<div style="padding: 25px;">';
@@ -898,11 +899,11 @@
         modalHTML += '<label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600; font-size: 12px;">Anotacoes</label>';
         modalHTML += '<textarea id="updUtiAnotacoes" rows="4" maxlength="800" placeholder="Observacoes" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; font-size: 14px; resize: vertical; box-sizing: border-box;">' + anotacoes + '</textarea></div>';
         
-        // BOTOES
+        // BOTOES - V7.3 PADRAO
         modalHTML += '<div style="display: flex; gap: 10px; margin-top: 25px;">';
         modalHTML += '<button type="button" id="btnDarAltaUTI" style="flex: 1; padding: 14px; background: #ef4444; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 14px;">DAR ALTA</button>';
-        modalHTML += '<button type="button" id="btnCancelarAtualizarUTI" style="flex: 1; padding: 14px; background: rgba(255,255,255,0.1); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px;">CANCELAR</button>';
-        modalHTML += '<button type="submit" style="flex: 1; padding: 14px; background: #22c55e; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 14px;">SALVAR</button>';
+        modalHTML += '<button type="button" id="btnCancelarAtualizarUTI" style="flex: 1; padding: 14px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px;">CANCELAR</button>';
+        modalHTML += '<button type="submit" style="flex: 1; padding: 14px; background: #0676bb; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 14px;">SALVAR</button>';
         modalHTML += '</div>';
         
         modalHTML += '</form></div></div>';
