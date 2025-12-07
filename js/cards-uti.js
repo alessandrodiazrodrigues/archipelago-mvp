@@ -6,7 +6,8 @@
     console.log('CARDS-UTI.JS V7.1 - Carregando...');
     
     // =================== CONFIGURACAO UTI ===================
-    var HOSPITAIS_UTI_ATIVOS_CARDS = window.HOSPITAIS_UTI_ATIVOS || ['H2'];
+    // V7.1: Todos os hospitais com UTI ativados (H7 nao tem UTI)
+    var HOSPITAIS_UTI_ATIVOS_CARDS = window.HOSPITAIS_UTI_ATIVOS || ['H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'H8', 'H9'];
     
     var UTI_CAPACIDADE_CARDS = {
         H1: { contratuais: 3, extras: 2, total: 5, nome: 'Neomater' },
@@ -157,19 +158,27 @@
         
         window.currentHospitalUTI = hospitalId;
         
-        var hospital = window.hospitalData ? window.hospitalData[hospitalId] : null;
         var config = UTI_CAPACIDADE_CARDS[hospitalId];
         var hospitalNome = config ? config.nome : hospitalId;
         
-        if (!hospital || !hospital.leitos) {
+        // V7.1: Buscar em window.leitosUTI primeiro (separado pelo api.js V7.1)
+        var leitosUTI = [];
+        
+        if (window.leitosUTI && window.leitosUTI[hospitalId] && window.leitosUTI[hospitalId].leitos) {
+            // V7.1: Dados separados em window.leitosUTI
+            leitosUTI = window.leitosUTI[hospitalId].leitos;
+            logInfoUTI('Fonte: window.leitosUTI (V7.1) - ' + leitosUTI.length + ' leitos');
+        } else if (window.hospitalData && window.hospitalData[hospitalId] && window.hospitalData[hospitalId].leitos) {
+            // Fallback V7.0: Filtrar UTI de window.hospitalData
+            leitosUTI = window.hospitalData[hospitalId].leitos.filter(function(l) {
+                var tipo = (l.tipo || '').toUpperCase();
+                return tipo === 'UTI';
+            });
+            logInfoUTI('Fonte: window.hospitalData filtrado (V7.0) - ' + leitosUTI.length + ' leitos');
+        } else {
             container.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 40px;"><p style="color: rgba(255,255,255,0.7);">Carregando dados...</p></div>';
             return;
         }
-        
-        var leitosUTI = hospital.leitos.filter(function(l) {
-            var tipo = (l.tipo || '').toUpperCase();
-            return tipo === 'UTI';
-        });
         
         logInfoUTI('Total de leitos UTI encontrados: ' + leitosUTI.length);
         
@@ -179,10 +188,12 @@
         }
         
         var ocupados = leitosUTI.filter(function(l) {
-            return l.status === 'Ocupado' || l.status === 'Em uso' || l.status === 'ocupado';
+            var status = (l.status || '').toLowerCase().trim();
+            return status === 'ocupado' || status === 'em uso';
         });
         var vagos = leitosUTI.filter(function(l) {
-            return l.status === 'Vago' || l.status === 'vago';
+            var status = (l.status || '').toLowerCase().trim();
+            return status === 'vago' || status === '' || status === 'vagos';
         });
         
         ocupados.sort(function(a, b) { return (a.leito || 0) - (b.leito || 0); });
@@ -977,11 +988,8 @@
     
     console.log('CARDS-UTI.JS V7.1 - Carregado com sucesso!');
     console.log('[CARDS-UTI V7.1] Hospitais UTI ativos: ' + HOSPITAIS_UTI_ATIVOS_CARDS.join(', '));
+    console.log('[CARDS-UTI V7.1] Fonte de dados: window.leitosUTI (V7.1) ou window.hospitalData (fallback)');
     console.log('[CARDS-UTI V7.1] Botao RESERVAR = AZUL (#60a5fa)');
     console.log('[CARDS-UTI V7.1] Flag LEITO CONTRATUAL/EXTRA implementada');
-    console.log('[CARDS-UTI V7.1] Idade = DROPDOWN');
-    console.log('[CARDS-UTI V7.1] Identificacao = SO NUMEROS');
-    console.log('[CARDS-UTI V7.1] Iniciais = formatarIniciaisAutomatico() com letter-spacing: 2px');
-    console.log('[CARDS-UTI V7.1] Matricula = formatarMatriculaInput()');
     
 })();
