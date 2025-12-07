@@ -534,15 +534,7 @@
             <span style="color: #60a5fa; font-weight: 600; font-size: 14px;">Ambiente:</span>
             
             <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                <input type="radio" name="ambiente" value="producao" checked onchange="alterarAmbiente('producao')" style="accent-color: #60a5fa;">
-                <span style="color: #ffffff; font-size: 13px;">
-                    <strong>Producao</strong>
-                    <span style="color: #9ca3af; font-size: 11px; margin-left: 5px;">qrcode-seven-gamma / archipelago-one</span>
-                </span>
-            </label>
-            
-            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                <input type="radio" name="ambiente" value="teste" onchange="alterarAmbiente('teste')" style="accent-color: #60a5fa;">
+                <input type="radio" name="ambiente" value="teste" checked onchange="alterarAmbiente('teste')" style="accent-color: #60a5fa;">
                 <span style="color: #ffffff; font-size: 13px;">
                     <strong>Teste</strong>
                     <span style="color: #9ca3af; font-size: 11px; margin-left: 5px;">qr-code-systelos / archipelago-mvp</span>
@@ -553,8 +545,8 @@
         <div style="margin-top: 10px; padding: 10px; background: rgba(96, 165, 250, 0.1); border-radius: 8px; border-left: 3px solid #60a5fa;">
             <div style="font-size: 11px; color: #60a5fa; font-weight: 600; margin-bottom: 5px;">URLs ATIVAS:</div>
             <div style="font-size: 12px; color: #e2e8f0;" id="urlsAtivas">
-                QR Code: <span style="color: #60a5fa; font-weight: 600;">https://qrcode-seven-gamma.vercel.app</span><br>
-                Dashboard: <span style="color: #60a5fa; font-weight: 600;">https://archipelago-one.vercel.app</span>
+                QR Code: <span style="color: #60a5fa; font-weight: 600;">https://qr-code-systelos.vercel.app</span><br>
+                Dashboard: <span style="color: #60a5fa; font-weight: 600;">https://archipelago-mvp.vercel.app/</span>
             </div>
         </div>
     </div>
@@ -692,11 +684,6 @@
         
         // =================== CONFIGURACAO DE AMBIENTES ===================
         const AMBIENTES = {
-            producao: {
-                nome: 'Producao',
-                qrcode: 'https://qrcode-seven-gamma.vercel.app',
-                dashboard: 'https://archipelago-one.vercel.app/'
-            },
             teste: {
                 nome: 'Teste',
                 qrcode: 'https://qr-code-systelos.vercel.app',
@@ -704,7 +691,7 @@
             }
         };
         
-        let ambienteAtual = 'producao';
+        let ambienteAtual = 'teste';
         let QRCODE_BASE_URL = AMBIENTES[ambienteAtual].qrcode;
         let DASHBOARD_URL = AMBIENTES[ambienteAtual].dashboard;
         
@@ -985,9 +972,8 @@
 'MODO 3: DASHBOARD\n' +
 '- Sistema completo no celular\n' +
 '- Navegacao normal\n\n' +
-'AMBIENTES:\n' +
-'- Producao: qrcode-seven-gamma\n' +
-'- Teste: qr-code-systelos\n\n' +
+'AMBIENTE:\n' +
+'- Teste: qr-code-systelos / archipelago-mvp\n\n' +
 'TOTAL: 356 leitos (293 enf + 63 UTI)';
             
             alert(mensagem);
