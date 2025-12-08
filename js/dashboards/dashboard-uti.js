@@ -152,6 +152,12 @@ function processarDadosUTI(hospitalId) {
         return prev.includes('hoje');
     });
     
+    // Lista de previsao de alta com leito e matricula
+    const previsaoAltaLista = previsaoAlta.map(l => ({
+        leito: l.identificacaoLeito || l.leito || '---',
+        matricula: l.matricula || '---'
+    }));
+    
     const previsaoApto = previsaoAlta.filter(l => 
         l.categoriaEscolhida === 'Apartamento'
     ).length;
@@ -253,12 +259,11 @@ function processarDadosUTI(hospitalId) {
         previsao: {
             total: previsaoAlta.length,
             apartamento: previsaoApto,
-            enfermaria: previsaoEnf
+            enfermaria: previsaoEnf,
+            lista: previsaoAltaLista
         },
         disponiveis: {
-            total: disponiveisTotal,
-            apartamento: Math.max(disponiveisTotal - reservadosApto, 0),
-            enfermaria: Math.max(disponiveisTotal - reservadosEnf, 0)
+            total: disponiveisTotal
         },
         tph: {
             medio: tphMedio,
@@ -292,7 +297,7 @@ function copiarParaWhatsAppUTI(hospitalId) {
     texto += `Taxa de Ocupacao: *${dados.taxaOcupacao.toFixed(1)}%*\n`;
     texto += `Leitos Ocupados: *${dados.ocupados.total}/${dados.contratuais}*\n`;
     texto += `Leitos Reservados: *${dados.reservados.total}*\n`;
-    texto += `Leitos Disponiveis: *${dados.disponiveis.total}*\n\n`;
+    texto += `Leitos Disponiveis: *${dados.disponiveis.total}* (${dados.contratuais} - ${dados.ocupados.total} - ${dados.reservados.total})\n\n`;
     
     texto += `*Por Modalidade Contratada:*\n`;
     texto += `━━━━━━━━━━━━━━━━━\n`;
@@ -304,8 +309,12 @@ function copiarParaWhatsAppUTI(hospitalId) {
     texto += `  Enfermaria: ${dados.reservados.enfermaria}\n\n`;
     
     texto += `*Previsao de Alta Hoje:* ${dados.previsao.total}\n`;
-    texto += `  Apartamento: ${dados.previsao.apartamento}\n`;
-    texto += `  Enfermaria: ${dados.previsao.enfermaria}\n\n`;
+    if (dados.previsao.lista && dados.previsao.lista.length > 0) {
+        dados.previsao.lista.forEach(l => {
+            texto += `  ${l.leito} | ${l.matricula}\n`;
+        });
+    }
+    texto += `\n`;
     
     texto += `*TPH Medio:* ${dados.tph.medio} dias\n`;
     
@@ -482,19 +491,26 @@ window.renderDashboardUTI = function(hospitalId) {
                             dados.previsao.total
                         )}
                         
-                        <div class="kpi-subtitle-uti">Total por Modalidade Contratada</div>
-                        <table class="modalidade-table-uti single-column">
-                            <tbody>
-                                <tr>
-                                    <td class="modalidade-label">Apartamento</td>
-                                    <td class="modalidade-valor">${dados.previsao.apartamento}</td>
-                                </tr>
-                                <tr>
-                                    <td class="modalidade-label">Enfermaria</td>
-                                    <td class="modalidade-valor">${dados.previsao.enfermaria}</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <div class="previsao-detalhes-uti">
+                            ${dados.previsao.lista && dados.previsao.lista.length > 0 ? `
+                                <table class="previsao-table-uti">
+                                    <thead>
+                                        <tr>
+                                            <th style="text-align: left;">Leito</th>
+                                            <th style="text-align: right;">Matricula</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${dados.previsao.lista.map(l => `
+                                            <tr>
+                                                <td style="text-align: left;">${l.leito}</td>
+                                                <td style="text-align: right;">${l.matricula}</td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            ` : '<div class="sem-dados-uti">Nenhum Leito com Previsao de Alta Hoje</div>'}
+                        </div>
                     </div>
                 </div>
                 
@@ -509,19 +525,10 @@ window.renderDashboardUTI = function(hospitalId) {
                             dados.disponiveis.total
                         )}
                         
-                        <div class="kpi-subtitle-uti">Capacidade por Modalidade (nao Simultaneo)</div>
-                        <table class="modalidade-table-uti single-column">
-                            <tbody>
-                                <tr>
-                                    <td class="modalidade-label">Apartamento</td>
-                                    <td class="modalidade-valor">ate ${dados.disponiveis.total}</td>
-                                </tr>
-                                <tr>
-                                    <td class="modalidade-label">Enfermaria</td>
-                                    <td class="modalidade-valor">ate ${dados.disponiveis.total}</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <div class="disponiveis-info-uti">
+                            <div class="disponiveis-label-uti">UTIs</div>
+                            <div class="disponiveis-formula-uti">${dados.contratuais} - ${dados.ocupados.total} - ${dados.reservados.total} = ${dados.disponiveis.total}</div>
+                        </div>
                     </div>
                 </div>
                 
@@ -638,10 +645,9 @@ function getUTIDashboardCSS() {
             
             .header-controls-uti {
                 display: flex;
-                gap: 15px;
+                flex-direction: column;
+                gap: 12px;
                 align-items: center;
-                flex-wrap: wrap;
-                justify-content: center;
             }
             
             .hospital-select-uti {
@@ -834,6 +840,52 @@ function getUTIDashboardCSS() {
             
             .mini-gauge-tph-uti {
                 margin-top: 10px;
+            }
+            
+            /* Previsao de Alta - Lista */
+            .previsao-detalhes-uti {
+                width: 100%;
+                margin-top: 15px;
+                padding-top: 15px;
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            
+            .previsao-table-uti {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 11px;
+            }
+            
+            .previsao-table-uti thead th {
+                color: ${CORES_UTI.azulPrincipal};
+                font-weight: 600;
+                padding: 6px 4px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                font-size: 10px;
+            }
+            
+            .previsao-table-uti tbody td {
+                padding: 6px 4px;
+                color: ${CORES_UTI.cinzaClaro};
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            }
+            
+            /* Disponiveis - Info */
+            .disponiveis-info-uti {
+                margin-top: 15px;
+                text-align: center;
+            }
+            
+            .disponiveis-label-uti {
+                font-size: 14px;
+                font-weight: 600;
+                color: ${CORES_UTI.azulPrincipal};
+                margin-bottom: 5px;
+            }
+            
+            .disponiveis-formula-uti {
+                font-size: 12px;
+                color: ${CORES_UTI.cinzaMedio};
             }
             
             /* TPH Detalhes - Lista > 5 dias */
