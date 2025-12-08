@@ -1,7 +1,14 @@
 // =================== CARDS.JS - GESTAO DE LEITOS HOSPITALARES ===================
-// Versao: 7.0 - 04/Dezembro/2025
+// Versao: 7.4 - 08/Dezembro/2025
 // Depende de: cards-config.js (carregar ANTES)
 // 
+// V7.4 - BLOQUEIO ADMISSÃO + AUTO-COMPLETAR MATRÍCULA:
+// 1. Botão ADMITIR bloqueado nos cards (só via QR Code)
+// 2. Botão ADMITIR RESERVA bloqueado (só via QR Code)
+// 3. Botão "Salvar Reserva" alterado para "RESERVAR"
+// 4. Auto-completar zeros à esquerda na matrícula (onblur)
+// 5. Placeholder matrícula: Ex: 0000000123-4
+//
 // V7.0 - SISTEMA DE RESERVAS + CAMPO IDENTIFICACAO DINAMICO:
 // 1. Filtro tipo !== 'UTI' (apenas Enfermarias)
 // 2. Botao RESERVAR nos cards vagos
@@ -9,7 +16,7 @@
 // 4. Ordenacao: Ocupados > Reservados > Vagos
 // 5. Campo Identificacao dinamico para HIBRIDOS (Enfermaria: numero+digito)
 
-console.log('CARDS.JS V7.0 - Carregando com Sistema de Reservas...');
+console.log('CARDS.JS V7.4 - Carregando com Bloqueio Admissão...');
 
 // =================== VALIDAR DEPENDENCIAS ===================
 if (typeof window.CONCESSOES_DISPLAY_MAP === 'undefined') {
@@ -1160,7 +1167,8 @@ function createCard(leito, hospitalNome, hospitalId, posicaoOcupacao) {
     if (admitBtn) {
         admitBtn.addEventListener('click', (e) => {
             e.preventDefault();
-            openAdmissaoFlow(numeroLeito);
+            // V7.4: Admissão só permitida via QR Code
+            alert('Admissão só permitida pelo sistema de admissão via QR Code');
         });
     }
     
@@ -1195,7 +1203,8 @@ function createCard(leito, hospitalNome, hospitalId, posicaoOcupacao) {
     if (admitirReservaBtn) {
         admitirReservaBtn.addEventListener('click', (e) => {
             e.preventDefault();
-            openAdmissaoModalComReserva(numeroLeito, leito);
+            // V7.4: Admissão só permitida via QR Code
+            alert('Admissão só permitida pelo sistema de admissão via QR Code');
         });
     }
     
@@ -1706,7 +1715,7 @@ function createAdmissaoForm(hospitalNome, leitoNumero, hospitalId) {
                 </div>
                 <div>
                     <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">Matrícula</label>
-                    <input id="admMatricula" type="text" placeholder="Ex: 123456789-0" maxlength="11" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;" oninput="formatarMatriculaInput(this)">
+                    <input id="admMatricula" type="text" placeholder="Ex: 0000000123-4" maxlength="12" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;" oninput="formatarMatriculaInput(this)" onblur="autoCompletarMatricula(this)">
                 </div>
                 <div>
                     <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">Idade</label>
@@ -2074,7 +2083,7 @@ function createReservaForm(hospitalNome, leitoNumero, hospitalId, dadosLeito) {
                 </div>
                 <div>
                     <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">Matricula (opcional)</label>
-                    <input id="resMatricula" type="text" placeholder="Ex: 1234567-8" maxlength="11" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;" oninput="formatarMatriculaInput(this)">
+                    <input id="resMatricula" type="text" placeholder="Ex: 0000000123-4" maxlength="12" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;" oninput="formatarMatriculaInput(this)" onblur="autoCompletarMatricula(this)">
                 </div>
                 <div>
                     <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">Idade (opcional)</label>
@@ -2118,7 +2127,7 @@ function createReservaForm(hospitalNome, leitoNumero, hospitalId, dadosLeito) {
             <!-- BOTÕES -->
             <div class="modal-buttons" style="display: flex; justify-content: flex-end; gap: 12px; padding: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
                 <button class="btn-cancelar" style="padding: 12px 30px; background: rgba(255,255,255,0.1); color: #ffffff; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; font-weight: 600; text-transform: uppercase; cursor: pointer; font-family: 'Poppins', sans-serif;">Cancelar</button>
-                <button class="btn-salvar-reserva" style="padding: 12px 30px; background: #f59a1d; color: #131b2e; border: none; border-radius: 8px; font-weight: 600; text-transform: uppercase; cursor: pointer; font-family: 'Poppins', sans-serif;">Salvar Reserva</button>
+                <button class="btn-salvar-reserva" style="padding: 12px 30px; background: #f59a1d; color: #131b2e; border: none; border-radius: 8px; font-weight: 600; text-transform: uppercase; cursor: pointer; font-family: 'Poppins', sans-serif;">RESERVAR</button>
             </div>
         </div>
     `;
@@ -2323,7 +2332,7 @@ function setupReservaModalEventListeners(modal) {
                 console.error('[V7.0 RESERVA] ERRO:', error);
                 const btnSalvarErr = modal.querySelector('.btn-salvar-reserva');
                 if (btnSalvarErr) {
-                    btnSalvarErr.innerHTML = 'Salvar Reserva';
+                    btnSalvarErr.innerHTML = 'RESERVAR';
                     btnSalvarErr.disabled = false;
                 }
                 showErrorMessage('Erro ao reservar: ' + (error.message || 'Erro desconhecido'));
@@ -3435,6 +3444,30 @@ function formatarMatriculaInput(input) {
 }
 
 window.formatarMatriculaInput = formatarMatriculaInput;
+
+// V7.4: AUTO-COMPLETAR ZEROS À ESQUERDA NA MATRÍCULA (10 dígitos + 1 dígito verificador)
+function autoCompletarMatricula(input) {
+    let valor = input.value.replace(/\D/g, ''); // Remove tudo que não é número
+    if (valor.length === 0) return;
+    if (valor.length < 2) return; // Precisa ter pelo menos 2 dígitos para ter número + dígito
+    
+    // Separar número e dígito verificador
+    let digito = valor.slice(-1);
+    let numero = valor.slice(0, -1);
+    
+    // Completar com zeros à esquerda até ter 10 dígitos
+    while (numero.length < 10) {
+        numero = '0' + numero;
+    }
+    
+    // Limitar a 10 dígitos (caso tenha mais)
+    numero = numero.slice(-10);
+    
+    // Formatar com hífen
+    input.value = numero + '-' + digito;
+}
+
+window.autoCompletarMatricula = autoCompletarMatricula;
 
 // =================== FUNÇÕES AUXILIARES ===================
 function showButtonLoading(button, loadingText) {
