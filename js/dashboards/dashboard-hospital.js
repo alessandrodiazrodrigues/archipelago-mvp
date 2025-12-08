@@ -981,7 +981,7 @@ window.processarDadosHospital = function(hospitalId) {
 
 // =================== FUNCOES DE GAUGE E MODALIDADE ===================
 function calcularGaugeOffset_Hosp(porcentagem) {
-    var circunferencia = Math.PI * 55;
+    var circunferencia = Math.PI * 66; // Raio 66 (20% maior que 55)
     var progresso = (porcentagem / 100) * circunferencia;
     return circunferencia - progresso;
 }
@@ -994,18 +994,18 @@ function renderGaugeV5_Hosp(porcentagem, cor, numero) {
     return '\
         <div class="v5-gauge-container">\
             <div style="position: relative;">\
-                <svg class="v5-gauge" viewBox="0 0 140 80">\
-                    <path d="M 15 70 A 55 55 0 0 1 125 70" \
+                <svg class="v5-gauge" viewBox="0 0 168 96">\
+                    <path d="M 18 84 A 66 66 0 0 1 150 84" \
                           fill="none" \
                           stroke="rgba(255,255,255,0.1)" \
-                          stroke-width="14" \
+                          stroke-width="17" \
                           stroke-linecap="round"/>\
-                    <path d="M 15 70 A 55 55 0 0 1 125 70" \
+                    <path d="M 18 84 A 66 66 0 0 1 150 84" \
                           fill="none" \
                           stroke="' + cor + '" \
-                          stroke-width="14" \
+                          stroke-width="17" \
                           stroke-linecap="round"\
-                          stroke-dasharray="172.8"\
+                          stroke-dasharray="207.3"\
                           stroke-dashoffset="' + offset + '"/>\
                 </svg>\
                 <div class="v5-number-inside">' + numero.toString().padStart(2, '0') + '</div>\
@@ -1218,15 +1218,15 @@ function renderHospitalSection(hospitalId, hoje) {
                     <div class="kpi-title">Ocupacao</div>\
                     \
                     <div class="kpi-content">\
-                        <!-- V7.0: Dois gauges lado a lado -->\
+                        <!-- V7.0: Dois gauges lado a lado (Ocupados | Reservados) -->\
                         <div class="dual-gauges-container">\
-                            <div class="gauge-with-label">\
-                                <div class="gauge-label">Reservados</div>\
-                                ' + renderGaugeV5_Hosp(porcentagemReservados, CORES_ARCHIPELAGO.azulPrincipal, dados.reservados.total) + '\
-                            </div>\
                             <div class="gauge-with-label">\
                                 <div class="gauge-label">Ocupados</div>\
                                 ' + renderGaugeV5_Hosp(dados.taxaOcupacao, CORES_ARCHIPELAGO.azulPrincipal, dados.ocupados.total) + '\
+                            </div>\
+                            <div class="gauge-with-label">\
+                                <div class="gauge-label">Reservados</div>\
+                                ' + renderGaugeV5_Hosp(porcentagemReservados, CORES_ARCHIPELAGO.azulPrincipal, dados.reservados.total) + '\
                             </div>\
                         </div>\
                         \
@@ -1875,7 +1875,7 @@ function getHospitalConsolidadoCSS() {
             }\
             \
             .btn-whatsapp-dashboard {\
-                background: linear-gradient(135deg, #25d366, #128c7e);\
+                background: ' + CORES_ARCHIPELAGO.azulPrincipal + ';\
                 color: white;\
                 border: none;\
                 padding: 14px 28px;\
@@ -1885,12 +1885,13 @@ function getHospitalConsolidadoCSS() {
                 cursor: pointer;\
                 transition: all 0.3s ease;\
                 font-family: \'Poppins\', sans-serif;\
-                box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);\
+                box-shadow: 0 4px 15px rgba(96, 165, 250, 0.3);\
             }\
             \
             .btn-whatsapp-dashboard:hover {\
                 transform: translateY(-2px);\
-                box-shadow: 0 6px 20px rgba(37, 211, 102, 0.4);\
+                box-shadow: 0 6px 20px rgba(96, 165, 250, 0.4);\
+                background: #93c5fd;\
             }\
             \
             .hospitais-container {\
@@ -1960,7 +1961,7 @@ function getHospitalConsolidadoCSS() {
             .dual-gauges-container {\
                 display: flex;\
                 justify-content: center;\
-                gap: 20px;\
+                gap: 50px;\
                 width: 100%;\
             }\
             \
@@ -2023,20 +2024,20 @@ function getHospitalConsolidadoCSS() {
                 display: flex;\
                 flex-direction: column;\
                 align-items: center;\
-                min-width: 80px;\
+                min-width: 96px;\
             }\
             \
             .v5-gauge {\
-                width: 80px;\
-                height: 50px;\
+                width: 96px;\
+                height: 60px;\
             }\
             \
             .v5-number-inside {\
                 position: absolute;\
-                bottom: 5px;\
+                bottom: 6px;\
                 left: 50%;\
                 transform: translateX(-50%);\
-                font-size: 22px;\
+                font-size: 26px;\
                 font-weight: 800;\
                 color: #ffffff;\
             }\
