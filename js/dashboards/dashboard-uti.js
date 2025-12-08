@@ -61,7 +61,7 @@ function getReservasUTI(hospitalId) {
     return reservas.filter(r => 
         r.hospital === hospitalId && 
         r.tipo === 'UTI' &&
-        r.matricula && r.matricula.trim() !== ''
+        r.matricula && String(r.matricula).trim() !== ''
     );
 }
 
@@ -147,8 +147,8 @@ function processarDadosUTI(hospitalId) {
     
     // Previsao de Alta (Hoje)
     const previsaoAlta = ocupados.filter(l => {
-        if (!l.prevAlta || l.prevAlta.trim() === '') return false;
-        const prev = l.prevAlta.toLowerCase();
+        if (!l.prevAlta || String(l.prevAlta).trim() === '') return false;
+        const prev = String(l.prevAlta).toLowerCase();
         return prev.includes('hoje');
     });
     
