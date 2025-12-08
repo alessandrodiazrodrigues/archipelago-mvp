@@ -1,9 +1,15 @@
 (function() {
     'use strict';
     
-    // =================== CARDS UTI V7.3 - DEZEMBRO/2025 ===================
-    // V7.3: Modais padronizados (sem headers coloridos) igual cards.js
-    console.log('CARDS-UTI.JS V7.3 - Carregando...');
+    // =================== CARDS UTI V7.4 - DEZEMBRO/2025 ===================
+    // V7.4: 
+    // - Admissão bloqueada nos cards (só via QR Code)
+    // - "Tipo de Convênio" renomeado para "Modalidade Contratada"
+    // - Ordem invertida: Identificação primeiro, Modalidade depois
+    // - Limite 2 dígitos na identificação
+    // - Auto-completar zeros na matrícula (10 dígitos + dígito)
+    // - Botão "Salvar Reserva" alterado para "RESERVAR"
+    console.log('CARDS-UTI.JS V7.4 - Carregando...');
     
     // =================== CONFIGURACAO UTI ===================
     // V7.1: Todos os hospitais com UTI ativados (H7 nao tem UTI)
@@ -25,7 +31,7 @@
     
     // =================== FUNCOES AUXILIARES ===================
     function logInfoUTI(msg) {
-        console.log('[CARDS-UTI V7.3] ' + msg);
+        console.log('[CARDS-UTI V7.4] ' + msg);
     }
     
     function showSuccessMessageUTI(msg) {
@@ -71,6 +77,31 @@
         if (mat.length === 1) return mat;
         return mat.slice(0, -1) + '-' + mat.slice(-1);
     }
+    
+    // V7.4: Auto-completar zeros à esquerda na matrícula (10 dígitos + 1 dígito verificador)
+    function autoCompletarMatriculaUTI(input) {
+        var valor = input.value.replace(/\D/g, ''); // Remove tudo que não é número
+        if (valor.length === 0) return;
+        if (valor.length < 2) return; // Precisa ter pelo menos 2 dígitos para ter número + dígito
+        
+        // Separar número e dígito verificador
+        var digito = valor.slice(-1);
+        var numero = valor.slice(0, -1);
+        
+        // Completar com zeros à esquerda até ter 10 dígitos
+        while (numero.length < 10) {
+            numero = '0' + numero;
+        }
+        
+        // Limitar a 10 dígitos (caso tenha mais)
+        numero = numero.slice(-10);
+        
+        // Formatar com hífen
+        input.value = numero + '-' + digito;
+    }
+    
+    // Expor função globalmente para uso nos modais
+    window.autoCompletarMatriculaUTI = autoCompletarMatriculaUTI;
     
     function formatarDataHoraUTI(dataStr) {
         if (!dataStr) return '-';
@@ -464,7 +495,8 @@
         if (admitirBtn) {
             admitirBtn.addEventListener('click', function(e) {
                 e.preventDefault();
-                openModalAdmissaoUTI(numeroLeito, leito, false);
+                // V7.4: Admissão só permitida via QR Code
+                alert('Admissão só permitida pelo sistema de admissão via QR Code');
             });
         }
         
@@ -507,7 +539,8 @@
         if (admitirReservaBtn) {
             admitirReservaBtn.addEventListener('click', function(e) {
                 e.preventDefault();
-                openModalAdmissaoUTI(numeroLeito, leito, true);
+                // V7.4: Admissão só permitida via QR Code
+                alert('Admissão só permitida pelo sistema de admissão via QR Code');
             });
         }
         
@@ -557,12 +590,12 @@
         modalHTML += '<div style="padding: 25px;">';
         modalHTML += '<form id="formReservaUTI">';
         
-        // LINHA 1: TIPO CONVENIO | IDENTIFICACAO | ISOLAMENTO
+        // LINHA 1: IDENTIFICACAO | MODALIDADE CONTRATADA | ISOLAMENTO
         modalHTML += '<div style="margin-bottom: 20px;"><div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">';
-        modalHTML += '<div><label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600; font-size: 12px;">Tipo de Convenio <span style="color: #c86420;">*</span></label>';
-        modalHTML += '<select id="resUtiTipoConvenio" required style="width: 100%; padding: 12px; background: #374151 !important; color: #ffffff !important; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px;"><option value="">Selecione...</option><option value="Apartamento">Apartamento</option><option value="Enfermaria">Enfermaria</option></select></div>';
         modalHTML += '<div><label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600; font-size: 12px;">Identificacao do Leito <span style="color: #c86420;">*</span></label>';
-        modalHTML += '<input id="resUtiIdentificacao" type="text" placeholder="Ex: 101" maxlength="4" required oninput="this.value = this.value.replace(/[^0-9]/g, \'\')" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; box-sizing: border-box;"></div>';
+        modalHTML += '<input id="resUtiIdentificacao" type="text" placeholder="Ex: 22" maxlength="2" required oninput="this.value = this.value.replace(/[^0-9]/g, \'\')" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; box-sizing: border-box;"></div>';
+        modalHTML += '<div><label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600; font-size: 12px;">Modalidade Contratada <span style="color: #c86420;">*</span></label>';
+        modalHTML += '<select id="resUtiTipoConvenio" required style="width: 100%; padding: 12px; background: #374151 !important; color: #ffffff !important; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px;"><option value="">Selecione...</option><option value="Apartamento">Apartamento</option><option value="Enfermaria">Enfermaria</option></select></div>';
         modalHTML += '<div><label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600; font-size: 12px;">Isolamento <span style="color: #c86420;">*</span></label>';
         modalHTML += '<select id="resUtiIsolamento" required style="width: 100%; padding: 12px; background: #374151 !important; color: #ffffff !important; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px;"><option value="">Selecione...</option><option value="Nao Isolamento">Nao Isolamento</option><option value="Isolamento de Contato">Isolamento de Contato</option><option value="Isolamento Respiratorio">Isolamento Respiratorio</option></select></div>';
         modalHTML += '</div></div>';
@@ -582,7 +615,7 @@
         modalHTML += '<div><label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600; font-size: 12px;">Iniciais (opcional)</label>';
         modalHTML += '<input id="resUtiNome" type="text" placeholder="Ex: A B C" maxlength="20" oninput="if(window.formatarIniciaisAutomatico) window.formatarIniciaisAutomatico(this);" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; letter-spacing: 2px; box-sizing: border-box;"></div>';
         modalHTML += '<div><label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600; font-size: 12px;">Matricula (opcional)</label>';
-        modalHTML += '<input id="resUtiMatricula" type="text" placeholder="Ex: 1234567-8" maxlength="11" oninput="if(window.formatarMatriculaInput) window.formatarMatriculaInput(this);" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; box-sizing: border-box;"></div>';
+        modalHTML += '<input id="resUtiMatricula" type="text" placeholder="Ex: 0000000123-4" maxlength="12" oninput="if(window.formatarMatriculaInput) window.formatarMatriculaInput(this);" onblur="if(window.autoCompletarMatriculaUTI) window.autoCompletarMatriculaUTI(this);" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; box-sizing: border-box;"></div>';
         modalHTML += '<div><label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600; font-size: 12px;">Idade (opcional)</label>';
         modalHTML += '<select id="resUtiIdade" style="width: 100%; padding: 12px; background: #374151 !important; color: #ffffff !important; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px;">';
         modalHTML += '<option value="">Ex: 75</option>' + idadeOptions + '</select></div>';
@@ -609,7 +642,7 @@
         // BOTOES - V7.3 PADRAO
         modalHTML += '<div style="display: flex; gap: 15px; margin-top: 25px;">';
         modalHTML += '<button type="button" id="btnCancelarReservaUTI" style="flex: 1; padding: 14px 20px; background: rgba(255,255,255,0.1); color: #e2e8f0; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">Cancelar</button>';
-        modalHTML += '<button type="submit" style="flex: 1; padding: 14px 20px; background: #f59a1d; color: #131b2e; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer;">Salvar Reserva</button>';
+        modalHTML += '<button type="submit" style="flex: 1; padding: 14px 20px; background: #f59a1d; color: #131b2e; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer;">RESERVAR</button>';
         modalHTML += '</div>';
         
         modalHTML += '</form></div></div>';
@@ -717,12 +750,12 @@
         modalHTML += '<div style="padding: 25px;">';
         modalHTML += '<form id="formAdmissaoUTI">';
         
-        // LINHA 1
+        // LINHA 1: IDENTIFICACAO | MODALIDADE CONTRATADA | ISOLAMENTO
         modalHTML += '<div style="margin-bottom: 20px;"><div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">';
-        modalHTML += '<div><label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600; font-size: 12px;">Tipo de Convenio <span style="color: #c86420;">*</span></label>';
-        modalHTML += '<select id="admUtiTipoConvenio" required style="width: 100%; padding: 12px; background: #374151 !important; color: #ffffff !important; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px;"><option value="">Selecione...</option><option value="Apartamento"' + (tipoConvenio === 'Apartamento' ? ' selected' : '') + '>Apartamento</option><option value="Enfermaria"' + (tipoConvenio === 'Enfermaria' ? ' selected' : '') + '>Enfermaria</option></select></div>';
         modalHTML += '<div><label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600; font-size: 12px;">Identificacao do Leito <span style="color: #c86420;">*</span></label>';
-        modalHTML += '<input id="admUtiIdentificacao" type="text" value="' + identificacao + '" placeholder="Ex: 101" maxlength="4" required oninput="this.value = this.value.replace(/[^0-9]/g, \'\')" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; box-sizing: border-box;"></div>';
+        modalHTML += '<input id="admUtiIdentificacao" type="text" value="' + identificacao + '" placeholder="Ex: 22" maxlength="2" required oninput="this.value = this.value.replace(/[^0-9]/g, \'\')" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; box-sizing: border-box;"></div>';
+        modalHTML += '<div><label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600; font-size: 12px;">Modalidade Contratada <span style="color: #c86420;">*</span></label>';
+        modalHTML += '<select id="admUtiTipoConvenio" required style="width: 100%; padding: 12px; background: #374151 !important; color: #ffffff !important; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px;"><option value="">Selecione...</option><option value="Apartamento"' + (tipoConvenio === 'Apartamento' ? ' selected' : '') + '>Apartamento</option><option value="Enfermaria"' + (tipoConvenio === 'Enfermaria' ? ' selected' : '') + '>Enfermaria</option></select></div>';
         modalHTML += '<div><label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600; font-size: 12px;">Isolamento <span style="color: #c86420;">*</span></label>';
         modalHTML += '<select id="admUtiIsolamento" required style="width: 100%; padding: 12px; background: #374151 !important; color: #ffffff !important; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px;"><option value="">Selecione...</option><option value="Nao Isolamento"' + (isolamento.indexOf('Nao') !== -1 || !isolamento ? ' selected' : '') + '>Nao Isolamento</option><option value="Isolamento de Contato"' + (isolamento === 'Isolamento de Contato' ? ' selected' : '') + '>Isolamento de Contato</option><option value="Isolamento Respiratorio"' + (isolamento.indexOf('Respirat') !== -1 ? ' selected' : '') + '>Isolamento Respiratorio</option></select></div>';
         modalHTML += '</div></div>';
@@ -742,7 +775,7 @@
         modalHTML += '<div><label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600; font-size: 12px;">Iniciais do Paciente <span style="color: #c86420;">*</span></label>';
         modalHTML += '<input id="admUtiNome" type="text" value="' + iniciais + '" placeholder="Ex: A B C" maxlength="20" required oninput="if(window.formatarIniciaisAutomatico) window.formatarIniciaisAutomatico(this);" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; letter-spacing: 2px; box-sizing: border-box;"></div>';
         modalHTML += '<div><label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600; font-size: 12px;">Matricula <span style="color: #c86420;">*</span></label>';
-        modalHTML += '<input id="admUtiMatricula" type="text" value="' + formatarMatriculaUTI(matricula) + '" placeholder="Ex: 1234567-8" maxlength="11" required oninput="if(window.formatarMatriculaInput) window.formatarMatriculaInput(this);" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; box-sizing: border-box;"></div>';
+        modalHTML += '<input id="admUtiMatricula" type="text" value="' + formatarMatriculaUTI(matricula) + '" placeholder="Ex: 0000000123-4" maxlength="12" required oninput="if(window.formatarMatriculaInput) window.formatarMatriculaInput(this);" onblur="if(window.autoCompletarMatriculaUTI) window.autoCompletarMatriculaUTI(this);" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; box-sizing: border-box;"></div>';
         modalHTML += '<div><label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600; font-size: 12px;">Idade <span style="color: #c86420;">*</span></label>';
         modalHTML += '<select id="admUtiIdade" required style="width: 100%; padding: 12px; background: #374151 !important; color: #ffffff !important; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px;">';
         modalHTML += '<option value="">Selecione...</option>' + idadeOptions + '</select></div>';
