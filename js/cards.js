@@ -31,6 +31,26 @@ if (typeof window.desnormalizarTexto === 'undefined') {
 
 console.log('Dependencias validadas - cards-config.js OK');
 
+// =================== V7.4: CONFIGURACAO DE SUFIXOS POR HOSPITAL ===================
+// Sufixos para Enfermaria por hospital (híbridos)
+window.SUFIXOS_ENFERMARIA = {
+    H1: ['A', 'B'],
+    H2: ['1', '3'],  // Tipo fixo
+    H3: ['1', '2'],
+    H4: ['A', 'C'],  // Tipo fixo
+    H5: ['1', '2'],
+    H6: ['1', '2'],
+    H7: ['1', '2'],
+    H8: ['A', 'B'],
+    H9: ['A', 'B']
+};
+
+// Sufixos para Apartamento (alguns hospitais têm sufixo fixo)
+window.SUFIXOS_APARTAMENTO = {
+    H3: ['1'],  // Fixo "-1"
+    H7: ['1']   // Fixo "-1"
+};
+
 // =================== V7.0: FUNCOES DE RESERVA ===================
 
 // Retorna TODAS as reservas do hospital (incluindo bloqueios de irmao)
@@ -1991,9 +2011,37 @@ function createReservaForm(hospitalNome, leitoNumero, hospitalId, dadosLeito) {
                 <strong>Hospital:</strong> ${hospitalNome} | <strong>Leito:</strong> ${idSequencial}${isHibrido ? ' | <strong>LEITO HÍBRIDO</strong>' : ''}
             </div>
             
-            <!-- LINHA 1: TIPO QUARTO | IDENTIFICAÇÃO | ISOLAMENTO -->
+            <!-- LINHA 1: IDENTIFICAÇÃO | TIPO QUARTO | ISOLAMENTO (V7.4: ordem invertida) -->
             <div style="margin-bottom: 20px;">
                 <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+                    <div>
+                        <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600; font-size: 12px;">Identificacao do Leito <span style="color: #c86420;">*</span></label>
+                        ${isCruzAzulEnfermaria 
+                            ? `<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 8px;">
+                                <input id="resIdentificacaoNumero" type="text" value="${numeroBasePreenchido}" placeholder="Numero" maxlength="4" required ${numeroBasePreenchido ? 'readonly' : ''} oninput="this.value = this.value.replace(/[^0-9]/g, '')" style="width: 100%; padding: 12px; background: ${numeroBasePreenchido ? '#1f2937' : '#374151'}; color: ${numeroBasePreenchido ? '#9ca3af' : '#ffffff'}; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
+                                <select id="resIdentificacaoSufixo" required style="width: 100%; padding: 12px; background: #374151 !important; color: #ffffff !important; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
+                                    <option value="1" ${sufixoPreDefinido === '1' ? 'selected' : ''}>1</option>
+                                    <option value="3" ${sufixoPreDefinido === '3' ? 'selected' : ''}>3</option>
+                                </select>
+                               </div>`
+                            : isSantaClaraEnfermaria
+                            ? `<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 8px;">
+                                <input id="resIdentificacaoNumero" type="text" value="${numeroBasePreenchido}" placeholder="Numero" maxlength="4" required ${numeroBasePreenchido ? 'readonly' : ''} oninput="this.value = this.value.replace(/[^0-9]/g, '')" style="width: 100%; padding: 12px; background: ${numeroBasePreenchido ? '#1f2937' : '#374151'}; color: ${numeroBasePreenchido ? '#9ca3af' : '#ffffff'}; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
+                                <select id="resIdentificacaoSufixo" required style="width: 100%; padding: 12px; background: #374151 !important; color: #ffffff !important; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
+                                    <option value="A" ${sufixoPreDefinido === 'A' ? 'selected' : ''}>A</option>
+                                    <option value="C" ${sufixoPreDefinido === 'C' ? 'selected' : ''}>C</option>
+                                </select>
+                               </div>`
+                            : isApartamentoFixo
+                            ? `<input id="resIdentificacaoLeito" type="text" placeholder="Numero do quarto" maxlength="6" required oninput="this.value = this.value.replace(/[^0-9]/g, '')" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">`
+                            : isHibrido
+                            ? `<div id="resIdentificacaoContainer">
+                                <input id="resIdentificacaoLeito" type="text" placeholder="Selecione o Tipo de Quarto" disabled style="width: 100%; padding: 12px; ${estiloCampoBloqueado} border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
+                               </div>`
+                            : `<input id="resIdentificacaoLeito" type="text" placeholder="Numero do quarto" maxlength="6" required oninput="this.value = this.value.replace(/[^0-9]/g, '')" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">`
+                        }
+                    </div>
+                    
                     <div>
                         <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600;">Tipo de Quarto <span style="color: #c86420;">*</span></label>
                         ${isCruzAzulEnfermaria || isSantaClaraEnfermaria || isEnfermariaFixa
@@ -2008,32 +2056,6 @@ function createReservaForm(hospitalNome, leitoNumero, hospitalId, dadosLeito) {
                                 <option value="">Selecionar...</option>
                                 ${window.TIPO_QUARTO_OPTIONS.map(tipo => `<option value="${tipo}">${tipo}</option>`).join('')}
                                </select>`
-                        }
-                    </div>
-                    
-                    <div>
-                        <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600; font-size: 12px;">Identificacao do Leito <span style="color: #c86420;">*</span></label>
-                        ${isCruzAzulEnfermaria 
-                            ? `<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 8px;">
-                                <input id="resIdentificacaoNumero" type="text" value="${numeroBasePreenchido}" placeholder="Ex: 101" maxlength="4" required ${numeroBasePreenchido ? 'readonly' : ''} oninput="this.value = this.value.replace(/[^0-9]/g, '')" style="width: 100%; padding: 12px; background: ${numeroBasePreenchido ? '#1f2937' : '#374151'}; color: ${numeroBasePreenchido ? '#9ca3af' : '#ffffff'}; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
-                                <select id="resIdentificacaoSufixo" required style="width: 100%; padding: 12px; background: #374151 !important; color: #ffffff !important; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
-                                    <option value="1" ${sufixoPreDefinido === '1' ? 'selected' : ''}>1</option>
-                                    <option value="3" ${sufixoPreDefinido === '3' ? 'selected' : ''}>3</option>
-                                </select>
-                               </div>`
-                            : isSantaClaraEnfermaria
-                            ? `<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 8px;">
-                                <input id="resIdentificacaoNumero" type="text" value="${numeroBasePreenchido}" placeholder="Ex: 201" maxlength="4" required ${numeroBasePreenchido ? 'readonly' : ''} oninput="this.value = this.value.replace(/[^0-9]/g, '')" style="width: 100%; padding: 12px; background: ${numeroBasePreenchido ? '#1f2937' : '#374151'}; color: ${numeroBasePreenchido ? '#9ca3af' : '#ffffff'}; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
-                                <select id="resIdentificacaoSufixo" required style="width: 100%; padding: 12px; background: #374151 !important; color: #ffffff !important; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
-                                    <option value="A" ${sufixoPreDefinido === 'A' ? 'selected' : ''}>A</option>
-                                    <option value="C" ${sufixoPreDefinido === 'C' ? 'selected' : ''}>C</option>
-                                </select>
-                               </div>`
-                            : isHibrido
-                            ? `<div id="resIdentificacaoContainer">
-                                <input id="resIdentificacaoLeito" type="text" placeholder="Selecione o Tipo de Quarto" disabled style="width: 100%; padding: 12px; ${estiloCampoBloqueado} border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
-                               </div>`
-                            : `<input id="resIdentificacaoLeito" type="text" placeholder="Ex: 101, 202" maxlength="6" required oninput="this.value = this.value.replace(/[^0-9]/g, '')" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">`
                         }
                     </div>
                     
@@ -2138,23 +2160,41 @@ function setupReservaModalEventListeners(modal) {
     const hospitalId = window.currentHospital;
     const isHibrido = window.HOSPITAIS_HIBRIDOS && window.HOSPITAIS_HIBRIDOS.includes(hospitalId);
     
-    // Campo dinâmico para híbridos
+    // V7.4: Campo dinâmico para híbridos com dropdown de sufixo por hospital
     const tipoQuartoSelect = modal.querySelector('#resTipoQuarto');
     const identificacaoContainer = modal.querySelector('#resIdentificacaoContainer');
     
     if (tipoQuartoSelect && identificacaoContainer && !tipoQuartoSelect.disabled) {
         tipoQuartoSelect.addEventListener('change', function() {
             const tipoSelecionado = this.value;
+            const sufixosEnf = window.SUFIXOS_ENFERMARIA[hospitalId] || ['A', 'B'];
+            const sufixosApto = window.SUFIXOS_APARTAMENTO[hospitalId] || null;
+            
             if (!tipoSelecionado) {
                 identificacaoContainer.innerHTML = `<input id="resIdentificacaoLeito" type="text" placeholder="Selecione o Tipo de Quarto" disabled style="width: 100%; padding: 12px; background: #1f2937; color: #9ca3af; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif; cursor: not-allowed;">`;
             } else if (tipoSelecionado === 'Enfermaria') {
+                // V7.4: Dropdown de sufixo com opções do hospital
+                const sufixoOptions = sufixosEnf.map(s => `<option value="${s}">${s}</option>`).join('');
                 identificacaoContainer.innerHTML = `
                     <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 8px;">
                         <input id="resIdentificacaoNumero" type="text" placeholder="Numero" maxlength="4" required oninput="this.value = this.value.replace(/[^0-9]/g, '')" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
-                        <input id="resIdentificacaoDigito" type="text" placeholder="Dig" maxlength="1" required oninput="this.value = this.value.replace(/[^A-Za-z]/g, '').toUpperCase()" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif; text-align: center;">
+                        <select id="resIdentificacaoSufixo" required style="width: 100%; padding: 12px; background: #374151 !important; color: #ffffff !important; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
+                            ${sufixoOptions}
+                        </select>
                     </div>`;
             } else {
-                identificacaoContainer.innerHTML = `<input id="resIdentificacaoLeito" type="text" placeholder="Numero do quarto" maxlength="6" required oninput="this.value = this.value.replace(/[^0-9]/g, '')" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">`;
+                // Apartamento
+                if (sufixosApto && sufixosApto.length > 0) {
+                    // H3/H7: sufixo fixo "-1"
+                    identificacaoContainer.innerHTML = `
+                        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 8px;">
+                            <input id="resIdentificacaoNumero" type="text" placeholder="Numero" maxlength="4" required oninput="this.value = this.value.replace(/[^0-9]/g, '')" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
+                            <input id="resIdentificacaoSufixoFixo" type="text" value="${sufixosApto[0]}" readonly style="width: 100%; padding: 12px; background: #1f2937; color: #9ca3af; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif; text-align: center;">
+                        </div>`;
+                } else {
+                    // Campo livre para número
+                    identificacaoContainer.innerHTML = `<input id="resIdentificacaoLeito" type="text" placeholder="Numero do quarto" maxlength="6" required oninput="this.value = this.value.replace(/[^0-9]/g, '')" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">`;
+                }
             }
         });
     }
@@ -2205,7 +2245,7 @@ function setupReservaModalEventListeners(modal) {
                 
                 console.log('[V7.0 RESERVA] Dados coletados:', { tipoQuarto, isolamento, genero, iniciais, matricula, idade });
                 
-                // Montar identificacao
+                // V7.4: Montar identificacao com dropdown de sufixo
                 let identificacaoLeito = '';
                 if (isCruzAzulEnfermaria || isSantaClaraEnfermaria) {
                     const numero = modal.querySelector('#resIdentificacaoNumero')?.value?.trim() || '';
@@ -2213,10 +2253,26 @@ function setupReservaModalEventListeners(modal) {
                     identificacaoLeito = numero && sufixo ? `${numero}-${sufixo}` : numero;
                     console.log('[V7.0 RESERVA] Identificacao Cruz Azul/Santa Clara:', numero, sufixo);
                 } else if (isHibrido && tipoQuarto === 'Enfermaria') {
+                    // V7.4: Usar dropdown de sufixo
                     const numero = modal.querySelector('#resIdentificacaoNumero')?.value?.trim() || '';
-                    const digito = modal.querySelector('#resIdentificacaoDigito')?.value?.trim() || '';
-                    identificacaoLeito = numero && digito ? `${numero}-${digito}` : numero;
-                    console.log('[V7.0 RESERVA] Identificacao Hibrido Enfermaria:', numero, digito);
+                    const sufixo = modal.querySelector('#resIdentificacaoSufixo')?.value || '';
+                    identificacaoLeito = numero && sufixo ? `${numero}-${sufixo}` : numero;
+                    console.log('[V7.4 RESERVA] Identificacao Hibrido Enfermaria:', numero, sufixo);
+                } else if (isHibrido && tipoQuarto === 'Apartamento') {
+                    // V7.4: Verificar se tem sufixo fixo (H3/H7)
+                    const numeroEl = modal.querySelector('#resIdentificacaoNumero');
+                    const sufixoFixoEl = modal.querySelector('#resIdentificacaoSufixoFixo');
+                    const leitoEl = modal.querySelector('#resIdentificacaoLeito');
+                    
+                    if (numeroEl && sufixoFixoEl) {
+                        const numero = numeroEl.value?.trim() || '';
+                        const sufixo = sufixoFixoEl.value || '';
+                        identificacaoLeito = numero && sufixo ? `${numero}-${sufixo}` : numero;
+                        console.log('[V7.4 RESERVA] Identificacao Hibrido Apartamento com sufixo:', numero, sufixo);
+                    } else if (leitoEl) {
+                        identificacaoLeito = leitoEl.value?.trim() || '';
+                        console.log('[V7.4 RESERVA] Identificacao Hibrido Apartamento simples:', identificacaoLeito);
+                    }
                 } else {
                     identificacaoLeito = modal.querySelector('#resIdentificacaoLeito')?.value?.trim() || '';
                     console.log('[V7.0 RESERVA] Identificacao simples:', identificacaoLeito);
