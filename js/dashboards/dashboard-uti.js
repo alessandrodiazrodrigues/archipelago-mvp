@@ -194,6 +194,23 @@ function processarDadosUTI(hospitalId) {
         ? (tphValues.reduce((a, b) => a + b, 0) / tphValues.length).toFixed(2)
         : '0.00';
     
+    // Leitos com mais de 5 diarias (>= 120 horas)
+    const leitosMais5Diarias = ocupados.filter(l => {
+        if (!l.admAt) return false;
+        const admData = parseAdmDateUTI(l.admAt);
+        if (!admData) return false;
+        const horas = (hoje - admData) / (1000 * 60 * 60);
+        return horas >= 120; // 5 dias = 120 horas
+    }).map(l => {
+        const admData = parseAdmDateUTI(l.admAt);
+        const dias = Math.floor((hoje - admData) / (1000 * 60 * 60 * 24));
+        return {
+            leito: l.identificacaoLeito || l.leito || '---',
+            matricula: l.matricula || '---',
+            dias: dias
+        };
+    }).sort((a, b) => b.dias - a.dias); // Ordenar por dias decrescente
+    
     // Taxa de ocupacao
     const base = Math.max(capacidade.contratuais, ocupados.length);
     const taxaOcupacao = base > 0 ? Math.min((ocupados.length / base) * 100, 100) : 0;
@@ -244,7 +261,8 @@ function processarDadosUTI(hospitalId) {
             enfermaria: Math.max(disponiveisTotal - reservadosEnf, 0)
         },
         tph: {
-            medio: tphMedio
+            medio: tphMedio,
+            lista: leitosMais5Diarias
         }
     };
 }
@@ -290,6 +308,13 @@ function copiarParaWhatsAppUTI(hospitalId) {
     texto += `  Enfermaria: ${dados.previsao.enfermaria}\n\n`;
     
     texto += `*TPH Medio:* ${dados.tph.medio} dias\n`;
+    
+    if (dados.tph.lista && dados.tph.lista.length > 0) {
+        texto += `\n*Leitos > 5 Diarias:*\n`;
+        dados.tph.lista.forEach(l => {
+            texto += `  ${l.leito} | ${l.matricula} | ${l.dias} dias\n`;
+        });
+    }
     
     navigator.clipboard.writeText(texto).then(() => {
         alert('Texto copiado para a area de transferencia!\n\nCole no WhatsApp e envie.');
@@ -509,6 +534,30 @@ window.renderDashboardUTI = function(hospitalId) {
                             <div class="tph-numero-uti">${dados.tph.medio}</div>
                             <div class="tph-label-uti">dias</div>
                             ${renderMiniGaugeTPHUTI(parseFloat(dados.tph.medio))}
+                        </div>
+                        
+                        <div class="tph-detalhes-uti">
+                            <div class="detalhe-titulo-uti">N Diarias > 5</div>
+                            ${dados.tph.lista && dados.tph.lista.length > 0 ? `
+                                <table class="tph-table-uti">
+                                    <thead>
+                                        <tr>
+                                            <th style="text-align: left;">Leito</th>
+                                            <th style="text-align: center;">Matricula</th>
+                                            <th style="text-align: right;">Dias</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${dados.tph.lista.map(l => `
+                                            <tr>
+                                                <td style="text-align: left;">${l.leito}</td>
+                                                <td style="text-align: center;">${l.matricula}</td>
+                                                <td style="text-align: right;">${l.dias}</td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            ` : '<div class="sem-dados-uti">Nenhum Leito com Mais de 5 Diarias</div>'}
                         </div>
                     </div>
                 </div>
@@ -785,6 +834,50 @@ function getUTIDashboardCSS() {
             
             .mini-gauge-tph-uti {
                 margin-top: 10px;
+            }
+            
+            /* TPH Detalhes - Lista > 5 dias */
+            .tph-detalhes-uti {
+                width: 100%;
+                margin-top: 15px;
+                padding-top: 15px;
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            
+            .detalhe-titulo-uti {
+                font-size: 12px;
+                font-weight: 600;
+                color: ${CORES_UTI.azulPrincipal};
+                text-align: center;
+                margin-bottom: 10px;
+            }
+            
+            .tph-table-uti {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 11px;
+            }
+            
+            .tph-table-uti thead th {
+                color: ${CORES_UTI.azulPrincipal};
+                font-weight: 600;
+                padding: 6px 4px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                font-size: 10px;
+            }
+            
+            .tph-table-uti tbody td {
+                padding: 6px 4px;
+                color: ${CORES_UTI.cinzaClaro};
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            }
+            
+            .sem-dados-uti {
+                text-align: center;
+                color: ${CORES_UTI.cinzaMedio};
+                font-size: 11px;
+                font-style: italic;
+                padding: 10px;
             }
             
             /* Boxes Bloqueados */
