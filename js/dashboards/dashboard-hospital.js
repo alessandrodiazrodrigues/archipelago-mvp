@@ -1628,7 +1628,7 @@ function renderAltasHospital(hospitalId) {
     });
 }
 
-// =================== RENDER CONCESSOES HOSPITAL (COM FILTRO UTI) ===================
+// =================== RENDER CONCESSOES HOSPITAL (COM FILTRO UTI E GRAFICO ROSCA) ===================
 function renderConcessoesHospital(hospitalId) {
     var container = document.getElementById('concessoesBoxes' + hospitalId);
     if (!container) return;
@@ -1639,7 +1639,7 @@ function renderConcessoesHospital(hospitalId) {
     // V7.0: Filtrar UTI
     var leitos = filtrarLeitosSemUTI(hospital.leitos);
     
-    var concessoesTimeline = {
+    var concessoesPorTimeline = {
         'HOJE': {},
         '24H': {},
         '48H': {}
@@ -1651,26 +1651,27 @@ function renderConcessoesHospital(hospitalId) {
             var prevAlta = leito.prevAlta || (leito.paciente && leito.paciente.prevAlta);
             var matricula = leito.matricula || 'S/N';
             
-            if (concessoes && prevAlta) {
+            if (concessoes) {
                 var concessoesList = Array.isArray(concessoes) ? 
                     concessoes : 
                     String(concessoes).split('|');
                 
-                var prev = normStr(prevAlta).replace(/\s+/g, ' ');
                 var timeline = null;
-                
-                if (prev.includes('hoje')) timeline = 'HOJE';
-                else if (prev.includes('24h') || prev.includes('24 h')) timeline = '24H';
-                else if (prev.includes('48h')) timeline = '48H';
+                if (prevAlta) {
+                    var prev = normStr(prevAlta).replace(/\s+/g, ' ');
+                    if (prev.includes('hoje')) timeline = 'HOJE';
+                    else if (prev.includes('24h') || prev.includes('24 h')) timeline = '24H';
+                    else if (prev.includes('48h')) timeline = '48H';
+                }
                 
                 if (timeline) {
                     concessoesList.forEach(function(concessao) {
                         if (concessao && concessao.trim()) {
                             var nome = window.desnormalizarTexto ? window.desnormalizarTexto(concessao.trim()) : concessao.trim();
-                            if (!concessoesTimeline[timeline][nome]) {
-                                concessoesTimeline[timeline][nome] = [];
+                            if (!concessoesPorTimeline[timeline][nome]) {
+                                concessoesPorTimeline[timeline][nome] = [];
                             }
-                            concessoesTimeline[timeline][nome].push(matricula);
+                            concessoesPorTimeline[timeline][nome].push(matricula);
                         }
                     });
                 }
@@ -1678,40 +1679,128 @@ function renderConcessoesHospital(hospitalId) {
         }
     });
     
-    var periodos = ['HOJE', '24H', '48H'];
+    var html = '<div class="timeline-boxes-grid">';
     
-    container.innerHTML = '\
-        <div class="timeline-boxes-grid">\
-            ' + periodos.map(function(periodo) {
-                var concessoes = concessoesTimeline[periodo];
-                var total = Object.values(concessoes).reduce(function(sum, arr) { return sum + arr.length; }, 0);
-                
-                return '\
-                    <div class="timeline-box">\
-                        <div class="timeline-box-header">' + periodo + ' (' + total + ')</div>\
-                        <div class="timeline-box-content">\
-                            ' + (Object.keys(concessoes).length > 0 ? 
-                                Object.entries(concessoes).map(function(entry) {
-                                    var nome = entry[0];
-                                    var mats = entry[1];
-                                    var cor = getCorExata(nome, 'concessao');
-                                    return '\
-                                        <div class="timeline-item" style="border-left-color: ' + cor + ';">\
-                                            <div class="timeline-item-name">' + nome + ' (' + mats.length + ')</div>\
-                                            <div class="timeline-item-mats">' + mats.join(', ') + '</div>\
-                                        </div>\
-                                    ';
-                                }).join('') : 
-                                '<div class="sem-dados">Nenhuma concessao prevista</div>') + '\
-                        </div>\
-                    </div>\
-                ';
-            }).join('') + '\
-        </div>\
-    ';
+    ['HOJE', '24H', '48H'].forEach(function(timeline) {
+        var concessoes = Object.entries(concessoesPorTimeline[timeline])
+            .sort(function(a, b) { return b[1].length - a[1].length; });
+        
+        html += '<div class="timeline-box">';
+        html += '<div class="timeline-box-header">' + timeline + '</div>';
+        
+        html += '<div class="timeline-chart-container">';
+        html += '<canvas id="graficoConcessoes' + hospitalId + '_' + timeline + '" class="timeline-chart"></canvas>';
+        html += '</div>';
+        
+        html += '<div class="timeline-box-content">';
+        
+        if (concessoes.length === 0) {
+            html += '<div style="text-align: center; padding: 20px; color: ' + CORES_ARCHIPELAGO.cinzaMedio + '; font-style: italic; font-size: 12px;">Sem Concessoes</div>';
+        } else {
+            concessoes.forEach(function(entry) {
+                var nome = entry[0];
+                var mats = entry[1];
+                var cor = getCorExata(nome, 'concessao');
+                html += '<div class="timeline-item" style="border-left-color: ' + cor + ';">';
+                html += '<div class="timeline-item-name">' + nome + '</div>';
+                html += '<div class="timeline-item-mats">' + mats.join(', ') + '</div>';
+                html += '</div>';
+            });
+        }
+        
+        html += '</div></div>';
+    });
+    
+    html += '</div>';
+    
+    container.innerHTML = html;
+    
+    setTimeout(function() {
+        ['HOJE', '24H', '48H'].forEach(function(timeline) {
+            renderDoughnutConcessoes(hospitalId, timeline, concessoesPorTimeline[timeline]);
+        });
+    }, 100);
 }
 
-// =================== RENDER LINHAS HOSPITAL (COM FILTRO UTI) ===================
+function renderDoughnutConcessoes(hospitalId, timeline, dados) {
+    var canvas = document.getElementById('graficoConcessoes' + hospitalId + '_' + timeline);
+    if (!canvas || typeof Chart === 'undefined') return;
+    
+    var chartKey = 'concessoes' + hospitalId + '_' + timeline;
+    if (window.chartInstances && window.chartInstances[chartKey]) {
+        window.chartInstances[chartKey].destroy();
+    }
+    
+    if (!window.chartInstances) window.chartInstances = {};
+    
+    var concessoes = Object.entries(dados)
+        .sort(function(a, b) { return b[1].length - a[1].length; });
+    
+    if (concessoes.length === 0) return;
+    
+    var labels = concessoes.map(function(entry) { return entry[0]; });
+    var values = concessoes.map(function(entry) { return entry[1].length; });
+    var colors = labels.map(function(label) { return getCorExata(label, 'concessao'); });
+    
+    var ctx = canvas.getContext('2d');
+    
+    var chartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            },
+            tooltip: {
+                backgroundColor: 'rgba(19, 27, 46, 0.95)',
+                titleColor: '#ffffff',
+                bodyColor: '#ffffff',
+                titleFont: { family: 'Poppins', size: 13, weight: 600 },
+                bodyFont: { family: 'Poppins', size: 12 },
+                callbacks: {
+                    label: function(context) {
+                        var value = context.parsed;
+                        var total = context.dataset.data.reduce(function(a, b) { return a + b; }, 0);
+                        var percent = ((value / total) * 100).toFixed(1);
+                        return context.label + ': ' + value + ' (' + percent + '%)';
+                    }
+                }
+            }
+        }
+    };
+    
+    var chartPlugins = [backgroundPlugin];
+    
+    if (hasDataLabels) {
+        chartOptions.plugins.datalabels = {
+            color: '#ffffff',
+            font: { family: 'Poppins', size: 14, weight: 'bold' },
+            formatter: function(value, context) {
+                var total = context.dataset.data.reduce(function(a, b) { return a + b; }, 0);
+                var porcentagem = ((value / total) * 100).toFixed(0);
+                return value + '\n(' + porcentagem + '%)';
+            }
+        };
+        chartPlugins.push(ChartDataLabels);
+    }
+    
+    window.chartInstances[chartKey] = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: values,
+                backgroundColor: colors,
+                borderWidth: 0,
+                borderColor: 'transparent'
+            }]
+        },
+        options: chartOptions,
+        plugins: chartPlugins
+    });
+}
+
+// =================== RENDER LINHAS HOSPITAL (COM FILTRO UTI E GRAFICO ROSCA) ===================
 function renderLinhasHospital(hospitalId) {
     var container = document.getElementById('linhasBoxes' + hospitalId);
     if (!container) return;
@@ -1722,7 +1811,7 @@ function renderLinhasHospital(hospitalId) {
     // V7.0: Filtrar UTI
     var leitos = filtrarLeitosSemUTI(hospital.leitos);
     
-    var linhasTimeline = {
+    var linhasPorTimeline = {
         'HOJE': {},
         '24H': {},
         '48H': {}
@@ -1730,30 +1819,31 @@ function renderLinhasHospital(hospitalId) {
     
     leitos.forEach(function(leito) {
         if (isOcupado(leito)) {
-            var linhas = leito.linhasCuidado || (leito.paciente && leito.paciente.linhasCuidado);
+            var linhas = leito.linhasCuidado || leito.linhas || (leito.paciente && leito.paciente.linhasCuidado) || (leito.paciente && leito.paciente.linhas);
             var prevAlta = leito.prevAlta || (leito.paciente && leito.paciente.prevAlta);
             var matricula = leito.matricula || 'S/N';
             
-            if (linhas && prevAlta) {
+            if (linhas) {
                 var linhasList = Array.isArray(linhas) ? 
                     linhas : 
                     String(linhas).split('|');
                 
-                var prev = normStr(prevAlta).replace(/\s+/g, ' ');
                 var timeline = null;
-                
-                if (prev.includes('hoje')) timeline = 'HOJE';
-                else if (prev.includes('24h') || prev.includes('24 h')) timeline = '24H';
-                else if (prev.includes('48h')) timeline = '48H';
+                if (prevAlta) {
+                    var prev = normStr(prevAlta).replace(/\s+/g, ' ');
+                    if (prev.includes('hoje')) timeline = 'HOJE';
+                    else if (prev.includes('24h') || prev.includes('24 h')) timeline = '24H';
+                    else if (prev.includes('48h')) timeline = '48H';
+                }
                 
                 if (timeline) {
                     linhasList.forEach(function(linha) {
                         if (linha && linha.trim()) {
                             var nome = window.desnormalizarTexto ? window.desnormalizarTexto(linha.trim()) : linha.trim();
-                            if (!linhasTimeline[timeline][nome]) {
-                                linhasTimeline[timeline][nome] = [];
+                            if (!linhasPorTimeline[timeline][nome]) {
+                                linhasPorTimeline[timeline][nome] = [];
                             }
-                            linhasTimeline[timeline][nome].push(matricula);
+                            linhasPorTimeline[timeline][nome].push(matricula);
                         }
                     });
                 }
@@ -1761,37 +1851,125 @@ function renderLinhasHospital(hospitalId) {
         }
     });
     
-    var periodos = ['HOJE', '24H', '48H'];
+    var html = '<div class="timeline-boxes-grid">';
     
-    container.innerHTML = '\
-        <div class="timeline-boxes-grid">\
-            ' + periodos.map(function(periodo) {
-                var linhas = linhasTimeline[periodo];
-                var total = Object.values(linhas).reduce(function(sum, arr) { return sum + arr.length; }, 0);
-                
-                return '\
-                    <div class="timeline-box">\
-                        <div class="timeline-box-header">' + periodo + ' (' + total + ')</div>\
-                        <div class="timeline-box-content">\
-                            ' + (Object.keys(linhas).length > 0 ? 
-                                Object.entries(linhas).map(function(entry) {
-                                    var nome = entry[0];
-                                    var mats = entry[1];
-                                    var cor = getCorExata(nome, 'linha');
-                                    return '\
-                                        <div class="timeline-item" style="border-left-color: ' + cor + ';">\
-                                            <div class="timeline-item-name">' + nome + ' (' + mats.length + ')</div>\
-                                            <div class="timeline-item-mats">' + mats.join(', ') + '</div>\
-                                        </div>\
-                                    ';
-                                }).join('') : 
-                                '<div class="sem-dados">Nenhuma linha de cuidado prevista</div>') + '\
-                        </div>\
-                    </div>\
-                ';
-            }).join('') + '\
-        </div>\
-    ';
+    ['HOJE', '24H', '48H'].forEach(function(timeline) {
+        var linhas = Object.entries(linhasPorTimeline[timeline])
+            .sort(function(a, b) { return b[1].length - a[1].length; });
+        
+        html += '<div class="timeline-box">';
+        html += '<div class="timeline-box-header">' + timeline + '</div>';
+        
+        html += '<div class="timeline-chart-container">';
+        html += '<canvas id="graficoLinhas' + hospitalId + '_' + timeline + '" class="timeline-chart"></canvas>';
+        html += '</div>';
+        
+        html += '<div class="timeline-box-content">';
+        
+        if (linhas.length === 0) {
+            html += '<div style="text-align: center; padding: 20px; color: ' + CORES_ARCHIPELAGO.cinzaMedio + '; font-style: italic; font-size: 12px;">Sem Linhas de Cuidado</div>';
+        } else {
+            linhas.forEach(function(entry) {
+                var nome = entry[0];
+                var mats = entry[1];
+                var cor = getCorExata(nome, 'linha');
+                html += '<div class="timeline-item" style="border-left-color: ' + cor + ';">';
+                html += '<div class="timeline-item-name">' + nome + '</div>';
+                html += '<div class="timeline-item-mats">' + mats.join(', ') + '</div>';
+                html += '</div>';
+            });
+        }
+        
+        html += '</div></div>';
+    });
+    
+    html += '</div>';
+    
+    container.innerHTML = html;
+    
+    setTimeout(function() {
+        ['HOJE', '24H', '48H'].forEach(function(timeline) {
+            renderDoughnutLinhas(hospitalId, timeline, linhasPorTimeline[timeline]);
+        });
+    }, 100);
+}
+
+function renderDoughnutLinhas(hospitalId, timeline, dados) {
+    var canvas = document.getElementById('graficoLinhas' + hospitalId + '_' + timeline);
+    if (!canvas || typeof Chart === 'undefined') return;
+    
+    var chartKey = 'linhas' + hospitalId + '_' + timeline;
+    if (window.chartInstances && window.chartInstances[chartKey]) {
+        window.chartInstances[chartKey].destroy();
+    }
+    
+    if (!window.chartInstances) window.chartInstances = {};
+    
+    var linhas = Object.entries(dados)
+        .sort(function(a, b) { return b[1].length - a[1].length; });
+    
+    if (linhas.length === 0) return;
+    
+    var labels = linhas.map(function(entry) { return entry[0]; });
+    var values = linhas.map(function(entry) { return entry[1].length; });
+    var colors = labels.map(function(label) { return getCorExata(label, 'linha'); });
+    
+    var ctx = canvas.getContext('2d');
+    
+    var chartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            },
+            tooltip: {
+                backgroundColor: 'rgba(19, 27, 46, 0.95)',
+                titleColor: '#ffffff',
+                bodyColor: '#ffffff',
+                titleFont: { family: 'Poppins', size: 13, weight: 600 },
+                bodyFont: { family: 'Poppins', size: 12 },
+                callbacks: {
+                    label: function(context) {
+                        var value = context.parsed;
+                        var total = context.dataset.data.reduce(function(a, b) { return a + b; }, 0);
+                        var percent = ((value / total) * 100).toFixed(1);
+                        return context.label + ': ' + value + ' (' + percent + '%)';
+                    }
+                }
+            }
+        }
+    };
+    
+    var chartPlugins = [backgroundPlugin];
+    
+    if (hasDataLabels) {
+        chartOptions.plugins.datalabels = {
+            color: '#ffffff',
+            font: { family: 'Poppins', size: 14, weight: 'bold' },
+            formatter: function(value, context) {
+                var total = context.dataset.data.reduce(function(a, b) { return a + b; }, 0);
+                var porcentagem = ((value / total) * 100).toFixed(0);
+                return value + '\n(' + porcentagem + '%)';
+            }
+        };
+        chartPlugins.push(ChartDataLabels);
+    }
+    
+    window.chartInstances[chartKey] = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: values,
+                backgroundColor: colors,
+                borderWidth: 0,
+                borderColor: 'transparent'
+            }]
+        },
+        options: chartOptions,
+        plugins: chartPlugins
+    });
 }
 
 // =================== CSS DO DASHBOARD ENFERMARIAS V7.0 ===================
