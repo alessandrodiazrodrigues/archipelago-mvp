@@ -1,153 +1,17 @@
-// =================== DASHBOARD EXECUTIVO V7.0 - DEZEMBRO/2025 ===================
+// =================== DASHBOARD EXECUTIVO V7.0 - COM RESERVADOS E FILTRO UTI ===================
 // =================== 9 HOSPITAIS | 293 LEITOS (126 CONTRATUAIS) ===================
-// Alteracoes V7.0:
-// - Filtro UTI (leitos UTI nao aparecem neste dashboard)
-// - Sistema de reservas (coluna na tabela)
-// - Senha de acesso 4 digitos (7991) com validade 6 horas
+// =================== V7.0: + Coluna Reservados + Filtro UTI ===================
 
 // =================== CONSTANTES GLOBAIS V7.0 ===================
 const TOTAL_CONTRATUAIS = 126; // 9 hospitais ativos (H1-H9)
 const TOTAL_LEITOS = 293; // 126 contratuais + 167 extras
-
-// V7.0: Senha de acesso ao Dashboard Executivo
-const SENHA_EXECUTIVO = '7991';
-const VALIDADE_SENHA_MS = 6 * 60 * 60 * 1000; // 6 horas em milissegundos
 
 // Estado global para fundo branco (compartilhado com dashboard hospitalar)
 if (typeof window.fundoBranco === 'undefined') {
     window.fundoBranco = false;
 }
 
-// =================== V7.0: SISTEMA DE AUTENTICACAO EXECUTIVO ===================
-function verificarAcessoExecutivo() {
-    const authData = localStorage.getItem('authExec');
-    
-    if (authData) {
-        try {
-            const { timestamp } = JSON.parse(authData);
-            const agora = Date.now();
-            
-            // Verifica se ainda esta dentro das 6 horas
-            if (agora - timestamp < VALIDADE_SENHA_MS) {
-                return true; // Acesso liberado
-            } else {
-                // Expirou, limpar
-                localStorage.removeItem('authExec');
-            }
-        } catch (e) {
-            localStorage.removeItem('authExec');
-        }
-    }
-    
-    return false; // Precisa digitar senha
-}
-
-function mostrarModalSenhaExecutivo(callback) {
-    // Remover modal anterior se existir
-    const existente = document.getElementById('modalSenhaExec');
-    if (existente) existente.remove();
-    
-    const modal = document.createElement('div');
-    modal.className = 'modal-overlay-exec';
-    modal.id = 'modalSenhaExec';
-    modal.innerHTML = `
-        <div class="modal-senha-exec">
-            <div class="modal-header-exec">
-                <h3>Acesso Restrito</h3>
-            </div>
-            <div class="modal-body-exec">
-                <p>Digite a senha para acessar o Dashboard Executivo</p>
-                <input type="password" 
-                       maxlength="4" 
-                       pattern="[0-9]*" 
-                       inputmode="numeric" 
-                       id="inputSenhaExec" 
-                       placeholder="****"
-                       autocomplete="off">
-                <p class="erro-senha-exec" id="erroSenhaExec" style="display: none;">
-                    Senha incorreta
-                </p>
-            </div>
-            <div class="modal-footer-exec">
-                <button class="btn-cancelar-exec" onclick="fecharModalSenhaExec()">
-                    Cancelar
-                </button>
-                <button class="btn-confirmar-exec" onclick="validarSenhaExec()">
-                    Entrar
-                </button>
-            </div>
-        </div>
-    `;
-    document.body.appendChild(modal);
-    
-    // Focus no input
-    setTimeout(() => {
-        const input = document.getElementById('inputSenhaExec');
-        if (input) input.focus();
-    }, 100);
-    
-    // Enter para confirmar
-    document.getElementById('inputSenhaExec').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') validarSenhaExec();
-    });
-    
-    // Guardar callback
-    window.callbackSenhaExec = callback;
-}
-
-function validarSenhaExec() {
-    const input = document.getElementById('inputSenhaExec');
-    const senha = input ? input.value : '';
-    
-    if (senha === SENHA_EXECUTIVO) {
-        // Salvar autenticacao com timestamp
-        localStorage.setItem('authExec', JSON.stringify({
-            timestamp: Date.now()
-        }));
-        
-        // Fechar modal
-        fecharModalSenhaExec();
-        
-        // Executar callback (renderizar dashboard)
-        if (window.callbackSenhaExec) {
-            window.callbackSenhaExec();
-        }
-    } else {
-        // Mostrar erro
-        const erro = document.getElementById('erroSenhaExec');
-        if (erro) erro.style.display = 'block';
-        if (input) {
-            input.value = '';
-            input.focus();
-        }
-    }
-}
-
-function fecharModalSenhaExec() {
-    const modal = document.getElementById('modalSenhaExec');
-    if (modal) modal.remove();
-}
-
-// =================== V7.0: FUNCAO PARA BUSCAR RESERVAS ===================
-// Retorna apenas RESERVAS REAIS (com matricula) - bloqueios de irmao nao sao contados
-function getReservasHospitalExecutivo(hospitalId) {
-    if (!window.reservasData || !Array.isArray(window.reservasData)) return [];
-    return window.reservasData.filter(r => {
-        if (r.hospital !== hospitalId) return false;
-        if (r.tipo === 'UTI') return false;
-        // V7.0: Apenas reservas COM matricula sao reservas reais
-        const temMatricula = r.matricula && String(r.matricula).trim();
-        return temMatricula;
-    });
-}
-
-// =================== V7.0: FILTRAR LEITOS SEM UTI ===================
-function filtrarLeitosSemUTIExecutivo(leitos) {
-    if (!Array.isArray(leitos)) return [];
-    return leitos.filter(l => l.tipo !== 'UTI');
-}
-
-// =================== FUNCAO PARSE DATE CORRIGIDA ===================
+// =================== FUNÇÃO PARSE DATE CORRIGIDA ===================
 function parseAdmDate(admAt) {
     if (!admAt) return null;
     const d = new Date(admAt);
@@ -158,20 +22,20 @@ function parseAdmDate(admAt) {
     return null;
 }
 
-// =================== ORDEM ALFABETICA DOS HOSPITAIS (9 HOSPITAIS) ===================
+// =================== ORDEM ALFABÉTICA DOS HOSPITAIS (9 HOSPITAIS) ===================
 const ORDEM_ALFABETICA_HOSPITAIS = ['H5', 'H2', 'H1', 'H4', 'H6', 'H3', 'H7', 'H8', 'H9'];
 
-// =================== FUNCAO PARA OBTER CORES DO API.JS ===================
+// =================== FUNÇÃO PARA OBTER CORES DO API.JS ===================
 function getCorExataExec(itemName, tipo = 'concessao') {
     if (!itemName || typeof itemName !== 'string') {
-        console.warn('[CORES EXEC] Item invalido:', itemName);
+        console.warn('[CORES EXEC] Item inválido:', itemName);
         return '#6b7280';
     }
     
     const paleta = tipo === 'concessao' ? window.CORES_CONCESSOES : window.CORES_LINHAS;
     
     if (!paleta) {
-        console.error('[CORES EXEC] Paleta', tipo, 'nao encontrada no api.js!');
+        console.error('[CORES EXEC] Paleta', tipo, 'não encontrada no api.js!');
         return '#6b7280';
     }
     
@@ -183,9 +47,9 @@ function getCorExataExec(itemName, tipo = 'concessao') {
     const nomeNormalizado = itemName
         .trim()
         .replace(/\s+/g, ' ')
-        .replace(/[--]/g, '-')
-        .replace(/O2/g, 'O2')
-        .replace(/2/g, '2');
+        .replace(/[–—]/g, '-')
+        .replace(/O₂/g, 'O2')
+        .replace(/²/g, '2');
     
     cor = paleta[nomeNormalizado];
     if (cor) {
@@ -193,7 +57,7 @@ function getCorExataExec(itemName, tipo = 'concessao') {
     }
     
     for (const [chave, valor] of Object.entries(paleta)) {
-        const chaveNormalizada = chave.toLowerCase().replace(/[--]/g, '-');
+        const chaveNormalizada = chave.toLowerCase().replace(/[–—]/g, '-');
         const itemNormalizado = nomeNormalizado.toLowerCase();
         
         if (chaveNormalizada.includes(itemNormalizado) || 
@@ -217,7 +81,7 @@ const backgroundPluginExec = {
     }
 };
 
-// =================== FUNCOES AUXILIARES DE STATUS (EXECUTIVO) ===================
+// =================== FUNÇÕES AUXILIARES DE STATUS (EXECUTIVO) ===================
 function isOcupadoExecutivo(leito) {
     if (!leito || !leito.status) return false;
     const s = (leito.status || '').toString().toLowerCase().trim();
@@ -227,10 +91,27 @@ function isOcupadoExecutivo(leito) {
 function isVagoExecutivo(leito) {
     if (!leito || !leito.status) return false;
     const s = (leito.status || '').toString().toLowerCase().trim();
-    return s === 'vago' || s === 'disponivel' || s === 'disponivel' || s === 'livre';
+    return s === 'vago' || s === 'disponivel' || s === 'disponível' || s === 'livre';
 }
 
-// =================== FUNCAO: RENDER BARRA DE OCUPACAO ===================
+// =================== V7.0: FILTRO UTI ===================
+function filtrarLeitosSemUTI(leitos) {
+    if (!Array.isArray(leitos)) return [];
+    return leitos.filter(l => l.tipo !== 'UTI');
+}
+
+// =================== V7.0: BUSCAR RESERVAS POR HOSPITAL ===================
+function getReservasHospitalExec(hospitalId) {
+    const reservas = window.reservasData || [];
+    // Filtrar por hospital, excluir UTI, e só contar se tiver matricula
+    return reservas.filter(r => 
+        r.hospital === hospitalId && 
+        r.tipo !== 'UTI' &&
+        r.matricula && r.matricula.trim() !== ''
+    );
+}
+
+// =================== FUNÇÃO: RENDER BARRA DE OCUPAÇÃO ===================
 function renderBarraOcupacao(porcentagem) {
     let cor = '#22c55e';
     if (porcentagem >= 85) cor = '#ef4444';
@@ -253,14 +134,14 @@ function renderBarraOcupacao(porcentagem) {
     `;
 }
 
-// =================== FUNCAO: CALCULAR GAUGE OFFSET ===================
+// =================== FUNÇÃO: CALCULAR GAUGE OFFSET ===================
 function calcularGaugeLargoOffset(porcentagem) {
     const circunferencia = Math.PI * 200;
     const progresso = (porcentagem / 100) * circunferencia;
     return circunferencia - progresso;
 }
 
-// =================== FUNCAO: RENDER GAUGE LARGO (EXECUTIVO) ===================
+// =================== FUNÇÃO: RENDER GAUGE LARGO (EXECUTIVO) ===================
 function renderGaugeLargo(porcentagem, numeroTotal) {
     const offset = calcularGaugeLargoOffset(porcentagem);
     
@@ -293,7 +174,7 @@ function renderGaugeLargo(porcentagem, numeroTotal) {
     `;
 }
 
-// =================== FUNCAO: RENDER GAUGE V5 (MEIA ROSCA - NORMAL) ===================
+// =================== FUNÇÃO: RENDER GAUGE V5 (MEIA ROSCA - NORMAL) ===================
 function calcularGaugeOffset(porcentagem) {
     const circunferencia = Math.PI * 55;
     const progresso = (porcentagem / 100) * circunferencia;
@@ -328,12 +209,12 @@ function renderGaugeV5(porcentagem, cor, numero) {
     `;
 }
 
-// =================== FUNCAO: RENDER MODALIDADE CONTRATUAL ===================
+// =================== FUNÇÃO: RENDER MODALIDADE CONTRATUAL ===================
 function renderModalidadeContratual(modalidade) {
     return `
         <div class="lista-simples-compacta">
             <div class="lista-item-compacto">
-                <span class="label">Flexiveis quanto ao Plano</span>
+                <span class="label">Flexíveis quanto ao Plano</span>
                 <span class="valor">${modalidade.flexiveis || 0}</span>
             </div>
             <div class="lista-item-compacto">
@@ -341,7 +222,7 @@ function renderModalidadeContratual(modalidade) {
                 <span class="valor">${modalidade.exclusivo_apto || 0}</span>
             </div>
             <div class="lista-item-compacto">
-                <span class="label">Exclus. Enf sem Restricao</span>
+                <span class="label">Exclus. Enf sem Restrição</span>
                 <span class="valor">${modalidade.exclusivo_enf_sem_restricao || 0}</span>
             </div>
             <div class="lista-item-compacto">
@@ -356,7 +237,7 @@ function renderModalidadeContratual(modalidade) {
     `;
 }
 
-// =================== FUNCAO: RENDER MINI GAUGE TPH (ESCALA 0-10) ===================
+// =================== FUNÇÃO: RENDER MINI GAUGE TPH (ESCALA 0-10) ===================
 function renderMiniGaugeTPH(dias) {
     const maxDias = 10;
     const porcentagem = Math.min((dias / maxDias) * 100, 100);
@@ -383,11 +264,8 @@ function renderMiniGaugeTPH(dias) {
     `;
 }
 
-// =================== FUNCAO: CALCULAR MODALIDADES (COM FILTRO UTI) ===================
+// =================== FUNÇÃO: CALCULAR MODALIDADES ===================
 function calcularModalidadesVagosExecutivo(leitos, hospitalId) {
-    // V7.0: Filtrar UTI
-    const leitosFiltrados = filtrarLeitosSemUTIExecutivo(leitos);
-    
     const modalidade = {
         flexiveis: 0,
         exclusivo_apto: 0,
@@ -396,32 +274,26 @@ function calcularModalidadesVagosExecutivo(leitos, hospitalId) {
         exclusivo_enf_masc: 0
     };
 
-    const vagos = leitosFiltrados.filter(l => isVagoExecutivo(l));
+    const vagos = leitos.filter(l => isVagoExecutivo(l));
 
-    // Hibridos Puros: H1, H3, H5, H6, H7, H8, H9
+    // Híbridos Puros: H1, H3, H5, H6, H7, H8, H9
     if (hospitalId === 'H1' || hospitalId === 'H3' || hospitalId === 'H5' || hospitalId === 'H6' || hospitalId === 'H7' || hospitalId === 'H8' || hospitalId === 'H9') {
-        // V6.0: Usar contratuais (nao conta extras)
+        // V7.0: Usar contratuais (não conta extras)
         const capacidadeInfo = window.HOSPITAL_CAPACIDADE ? window.HOSPITAL_CAPACIDADE[hospitalId] : null;
-        const contratuais = capacidadeInfo ? capacidadeInfo.contratuais : leitosFiltrados.length;
-        const ocupados = leitosFiltrados.filter(l => isOcupadoExecutivo(l)).length;
-        // V7.0: Descontar reservas
-        const reservas = getReservasHospitalExecutivo(hospitalId);
-        modalidade.flexiveis = Math.max(0, contratuais - ocupados - reservas.length);
+        const contratuais = capacidadeInfo ? capacidadeInfo.contratuais : leitos.length;
+        const ocupados = leitos.filter(l => isOcupadoExecutivo(l)).length;
+        modalidade.flexiveis = Math.max(0, contratuais - ocupados);
         return modalidade;
     }
 
     // =================== H2 - CRUZ AZUL ===================
     if (hospitalId === 'H2') {
-        // V7.0: Buscar reservas
-        const reservas = getReservasHospitalExecutivo(hospitalId);
-        const reservadosApto = reservas.filter(r => r.tipo === 'Apartamento').length;
-        
-        // APARTAMENTOS: contratuais - ocupados - reservados
+        // APARTAMENTOS: contratuais - ocupados
         const aptosContratuais = 20;
-        const aptosOcupados = leitosFiltrados.filter(l => 
+        const aptosOcupados = leitos.filter(l => 
             isOcupadoExecutivo(l) && (l.tipo === 'APTO' || l.tipo === 'Apartamento')
         ).length;
-        modalidade.exclusivo_apto = Math.max(0, aptosContratuais - aptosOcupados - reservadosApto);
+        modalidade.exclusivo_apto = Math.max(0, aptosContratuais - aptosOcupados);
         
         // ENFERMARIAS: apenas leitos contratuais (21-36)
         const vagosContratuais = vagos.filter(l => {
@@ -434,7 +306,7 @@ function calcularModalidadesVagosExecutivo(leitos, hospitalId) {
         vagosContratuais.forEach(leitoVago => {
             const numeroLeito = typeof leitoVago.leito === 'number' ? leitoVago.leito : parseInt(leitoVago.leito);
             
-            // Buscar irmao usando CRUZ_AZUL_IRMAOS
+            // Buscar irmão usando CRUZ_AZUL_IRMAOS
             const irmaosMap = window.CRUZ_AZUL_IRMAOS || {};
             const numeroIrmao = irmaosMap[numeroLeito];
             
@@ -443,15 +315,15 @@ function calcularModalidadesVagosExecutivo(leitos, hospitalId) {
                 return;
             }
             
-            const irmao = leitosFiltrados.find(l => {
+            const irmao = leitos.find(l => {
                 const leitoNum = typeof l.leito === 'number' ? l.leito : parseInt(l.leito);
                 return leitoNum === numeroIrmao;
             });
             
             if (!irmao || isVagoExecutivo(irmao)) {
                 modalidade.exclusivo_enf_sem_restricao++;
-            } else if (irmao.isolamento && irmao.isolamento !== 'Nao Isolamento') {
-                // Isolamento: leito nao disponivel (nao conta)
+            } else if (irmao.isolamento && irmao.isolamento !== 'Não Isolamento') {
+                // Isolamento: leito não disponível (não conta)
             } else {
                 if (irmao.genero === 'Feminino') {
                     modalidade.exclusivo_enf_fem++;
@@ -468,16 +340,12 @@ function calcularModalidadesVagosExecutivo(leitos, hospitalId) {
     
     // =================== H4 - SANTA CLARA ===================
     if (hospitalId === 'H4') {
-        // V7.0: Buscar reservas
-        const reservas = getReservasHospitalExecutivo(hospitalId);
-        const reservadosApto = reservas.filter(r => r.tipo === 'Apartamento').length;
-        
-        // APARTAMENTOS: contratuais - ocupados - reservados
+        // APARTAMENTOS: contratuais - ocupados
         const aptosContratuais = 18;
-        const aptosOcupados = leitosFiltrados.filter(l => 
+        const aptosOcupados = leitos.filter(l => 
             isOcupadoExecutivo(l) && (l.tipo === 'APTO' || l.tipo === 'Apartamento')
         ).length;
-        modalidade.exclusivo_apto = Math.max(0, aptosContratuais - aptosOcupados - reservadosApto);
+        modalidade.exclusivo_apto = Math.max(0, aptosContratuais - aptosOcupados);
         
         // ENFERMARIAS: apenas leitos contratuais (10-17)
         const vagosContratuais = vagos.filter(l => {
@@ -490,7 +358,7 @@ function calcularModalidadesVagosExecutivo(leitos, hospitalId) {
         vagosContratuais.forEach(leitoVago => {
             const numeroLeito = typeof leitoVago.leito === 'number' ? leitoVago.leito : parseInt(leitoVago.leito);
             
-            // Determinar irmao usando SANTA_CLARA_IRMAOS
+            // Determinar irmão usando SANTA_CLARA_IRMAOS
             const irmaosMap = window.SANTA_CLARA_IRMAOS || {
                 10: 11, 11: 10,
                 12: 13, 13: 12,
@@ -505,15 +373,15 @@ function calcularModalidadesVagosExecutivo(leitos, hospitalId) {
                 return;
             }
             
-            const irmao = leitosFiltrados.find(l => {
+            const irmao = leitos.find(l => {
                 const leitoNum = typeof l.leito === 'number' ? l.leito : parseInt(l.leito);
                 return leitoNum === numeroIrmao;
             });
             
             if (!irmao || isVagoExecutivo(irmao)) {
                 modalidade.exclusivo_enf_sem_restricao++;
-            } else if (irmao.isolamento && irmao.isolamento !== 'Nao Isolamento') {
-                // Isolamento: leito nao disponivel (nao conta)
+            } else if (irmao.isolamento && irmao.isolamento !== 'Não Isolamento') {
+                // Isolamento: leito não disponível (não conta)
             } else {
                 if (irmao.genero === 'Feminino') {
                     modalidade.exclusivo_enf_fem++;
@@ -532,9 +400,6 @@ function calcularModalidadesVagosExecutivo(leitos, hospitalId) {
 }
 
 function calcularModalidadePorTipoExecutivo(leitos, hospitalId) {
-    // V7.0: Filtrar UTI
-    const leitosFiltrados = filtrarLeitosSemUTIExecutivo(leitos);
-    
     const modalidade = {
         flexiveis: 0,
         exclusivo_apto: 0,
@@ -543,13 +408,13 @@ function calcularModalidadePorTipoExecutivo(leitos, hospitalId) {
         exclusivo_enf_masc: 0
     };
 
-    // Hibridos Puros: H1, H3, H5, H6, H7, H8, H9
+    // Híbridos Puros: H1, H3, H5, H6, H7, H8, H9
     if (hospitalId === 'H1' || hospitalId === 'H3' || hospitalId === 'H5' || hospitalId === 'H6' || hospitalId === 'H7' || hospitalId === 'H8' || hospitalId === 'H9') {
-        modalidade.flexiveis = leitosFiltrados.length;
+        modalidade.flexiveis = leitos.length;
         return modalidade;
     }
 
-    leitosFiltrados.forEach(leito => {
+    leitos.forEach(leito => {
         const catEscolhida = leito.categoriaEscolhida || leito.categoria || '';
         const genero = leito.genero || '';
         
@@ -575,26 +440,26 @@ function calcularModalidadePorTipoExecutivo(leitos, hospitalId) {
     return modalidade;
 }
 
-// =================== FUNCAO: PROCESSAR DADOS DO HOSPITAL (COM FILTRO UTI E RESERVAS) ===================
+// =================== FUNÇÃO: PROCESSAR DADOS DO HOSPITAL (EXECUTIVO) ===================
 function processarDadosHospitalExecutivo(hospitalId) {
     const hospitalObj = window.hospitalData[hospitalId] || {};
     
-    let leitosRaw = hospitalObj.leitos || hospitalObj || [];
-    if (!Array.isArray(leitosRaw)) {
-        leitosRaw = [];
+    let leitos = hospitalObj.leitos || hospitalObj || [];
+    if (!Array.isArray(leitos)) {
+        leitos = [];
     }
     
-    // V7.0: Filtrar leitos UTI
-    const leitos = filtrarLeitosSemUTIExecutivo(leitosRaw);
+    // V7.0: Filtrar UTI dos leitos
+    leitos = filtrarLeitosSemUTI(leitos);
+    
+    // V7.0: Buscar reservas do hospital (excluindo UTI)
+    const reservas = getReservasHospitalExec(hospitalId);
     
     const ocupados = leitos.filter(l => isOcupadoExecutivo(l));
     
-    // V7.0: Buscar reservas do hospital
-    const reservas = getReservasHospitalExecutivo(hospitalId);
-    
     let ocupadosApto, ocupadosEnfFem, ocupadosEnfMasc;
     
-    // Hibridos (H1, H3, H5, H6, H7, H8, H9) usam categoriaEscolhida
+    // Híbridos (H1, H3, H5, H6, H7, H8, H9) usam categoriaEscolhida
     if (hospitalId === 'H1' || hospitalId === 'H3' || hospitalId === 'H5' || hospitalId === 'H6' || hospitalId === 'H7' || hospitalId === 'H8' || hospitalId === 'H9') {
         ocupadosApto = ocupados.filter(l => 
             l.categoriaEscolhida === 'Apartamento'
@@ -653,18 +518,14 @@ function processarDadosHospitalExecutivo(hospitalId) {
     // Buscar capacidade do hospital (DEVE VIR ANTES DE USAR)
     const capacidade = window.HOSPITAL_CAPACIDADE[hospitalId];
     if (!capacidade) {
-        console.error(`[ERRO] Capacidade nao encontrada para ${hospitalId}`);
+        console.error(`[ERRO] Capacidade não encontrada para ${hospitalId}`);
         return null;
     }
     
     let vagosApto, vagosEnfFem, vagosEnfMasc;
     
     if (hospitalId === 'H2' || hospitalId === 'H4') {
-        // =================== LOGICA APENAS PARA CONTRATUAIS ===================
-        // V7.0: Calcular reservas por tipo
-        const reservadosApto = reservas.filter(r => r.tipo === 'Apartamento').length;
-        const reservadosEnfFem = reservas.filter(r => r.tipo === 'Enfermaria' && r.genero === 'Feminino').length;
-        const reservadosEnfMasc = reservas.filter(r => r.tipo === 'Enfermaria' && r.genero === 'Masculino').length;
+        // =================== LÓGICA APENAS PARA CONTRATUAIS ===================
         
         // Definir estrutura de contratuais
         let aptosContratuais, enfsContratuais, rangeMin, rangeMax;
@@ -680,13 +541,13 @@ function processarDadosHospitalExecutivo(hospitalId) {
             rangeMax = 17;
         }
         
-        // APARTAMENTOS: contratuais - ocupados - reservados
+        // APARTAMENTOS: contratuais - ocupados
         const aptosOcupados = leitos.filter(l => 
             isOcupadoExecutivo(l) && (l.tipo === 'APTO' || l.tipo === 'Apartamento')
         ).length;
-        vagosApto = Math.max(0, aptosContratuais - aptosOcupados - reservadosApto);
+        vagosApto = Math.max(0, aptosContratuais - aptosOcupados);
         
-        // ENFERMARIAS: processar apenas contratuais com sistema de irmaos
+        // ENFERMARIAS: processar apenas contratuais com sistema de irmãos
         let irmaosMap;
         if (hospitalId === 'H2') {
             irmaosMap = window.CRUZ_AZUL_IRMAOS || {
@@ -731,15 +592,15 @@ function processarDadosHospitalExecutivo(hospitalId) {
                 return leitoNum === numeroIrmao;
             });
             
-            // Irmao vago: sem restricao
+            // Irmão vago: sem restrição
             if (!irmao || isVagoExecutivo(irmao)) {
                 vagosEnfSemRestricao++;
             }
-            // Irmao com isolamento: NAO conta (leito bloqueado)
-            else if (irmao.isolamento && irmao.isolamento !== 'Nao Isolamento') {
-                // Nao conta nada - leito bloqueado
+            // Irmão com isolamento: NÃO conta (leito bloqueado)
+            else if (irmao.isolamento && irmao.isolamento !== 'Não Isolamento') {
+                // Não conta nada - leito bloqueado
             }
-            // Irmao ocupado: contar por genero
+            // Irmão ocupado: contar por gênero
             else {
                 if (irmao.genero === 'Feminino') {
                     vagosEnfFemRestrita++;
@@ -751,11 +612,11 @@ function processarDadosHospitalExecutivo(hospitalId) {
             }
         });
         
-        // CAPACIDADE TOTAL: somar todas as possibilidades e descontar reservas
-        vagosEnfFem = Math.max(0, vagosEnfSemRestricao + vagosEnfFemRestrita - reservadosEnfFem);
-        vagosEnfMasc = Math.max(0, vagosEnfSemRestricao + vagosEnfMascRestrita - reservadosEnfMasc);
+        // CAPACIDADE TOTAL: somar todas as possibilidades
+        vagosEnfFem = vagosEnfSemRestricao + vagosEnfFemRestrita;
+        vagosEnfMasc = vagosEnfSemRestricao + vagosEnfMascRestrita;
     } else {
-        // Hibridos: nao usa essa logica (sera substituido abaixo)
+        // Híbridos: não usa essa lógica (será substituído abaixo)
         vagosApto = 0;
         vagosEnfFem = 0;
         vagosEnfMasc = 0;
@@ -765,9 +626,9 @@ function processarDadosHospitalExecutivo(hospitalId) {
     let vagosEnfFemFinal = vagosEnfFem;
     let vagosEnfMascFinal = vagosEnfMasc;
     
-    // Hibridos Puros: usar vagos CONTRATUAIS (nao incluir extras) - V7.0: descontar reservas
+    // Híbridos Puros: usar vagos CONTRATUAIS (não incluir extras)
     if (hospitalId === 'H1' || hospitalId === 'H3' || hospitalId === 'H5' || hospitalId === 'H6' || hospitalId === 'H7' || hospitalId === 'H8' || hospitalId === 'H9') {
-        const vagosContratuais = Math.max(capacidade.contratuais - ocupados.length - reservas.length, 0);
+        const vagosContratuais = Math.max(capacidade.contratuais - ocupados.length, 0);
         vagosAptoFinal = vagosContratuais;
         vagosEnfFemFinal = vagosContratuais;
         vagosEnfMascFinal = vagosContratuais;
@@ -800,10 +661,10 @@ function processarDadosHospitalExecutivo(hospitalId) {
         l.spict && l.spict.toLowerCase() === 'elegivel'
     );
     
-    // =================== DIRETIVAS CORRIGIDA: SO "Nao" ===================
+    // =================== DIRETIVAS CORRIGIDA: SÓ "Não" ===================
     const diretivasPendentes = ocupados.filter(l => 
         l.spict && l.spict.toLowerCase() === 'elegivel' && 
-        l.diretivas === 'Nao'
+        l.diretivas === 'Não'
     );
     
     const totalLeitos = leitos.length;
@@ -814,6 +675,26 @@ function processarDadosHospitalExecutivo(hospitalId) {
     const modalidadePrevisao = calcularModalidadePorTipoExecutivo(previsaoAlta, hospitalId);
     const modalidadeDisponiveis = calcularModalidadesVagosExecutivo(leitos, hospitalId);
     
+    // =================== V7.0: CALCULAR RESERVADOS POR TIPO ===================
+    let reservadosApto = 0;
+    let reservadosEnfFem = 0;
+    let reservadosEnfMasc = 0;
+    
+    reservas.forEach(r => {
+        const tipo = (r.tipo || '').toLowerCase();
+        const genero = r.genero || '';
+        
+        if (tipo === 'apartamento' || tipo === 'apto') {
+            reservadosApto++;
+        } else if (tipo === 'enfermaria' || tipo === 'enf') {
+            if (genero === 'Feminino') {
+                reservadosEnfFem++;
+            } else if (genero === 'Masculino') {
+                reservadosEnfMasc++;
+            }
+        }
+    });
+    
     const nomeHospital = window.HOSPITAL_MAPPING?.[hospitalId]?.nome || 
                         (hospitalId === 'H1' ? 'Neomater' :
                          hospitalId === 'H2' ? 'Cruz Azul' :
@@ -821,10 +702,10 @@ function processarDadosHospitalExecutivo(hospitalId) {
                          hospitalId === 'H4' ? 'Santa Clara' :
                          hospitalId === 'H5' ? 'Adventista' :
                          hospitalId === 'H6' ? 'Santa Cruz' :
-                         hospitalId === 'H7' ? 'Santa Virginia' :
-                         hospitalId === 'H8' ? 'Sao Camilo Ipiranga' :
-                         hospitalId === 'H9' ? 'Sao Camilo Pompeia' :
-                         'Hospital');
+                         'Santa Virgínia');
+    
+    // V7.0: Disponíveis = contratuais - ocupados - reservados
+    const disponiveisTotal = Math.max(capacidade.contratuais - ocupados.length - reservas.length, 0);
     
     return {
         id: hospitalId,
@@ -839,8 +720,13 @@ function processarDadosHospitalExecutivo(hospitalId) {
             enf_masculina: ocupadosEnfMasc,
             modalidade: modalidadeOcupados
         },
-        // V7.0: Novo objeto de reservados
-        reservados: reservas.length,
+        // V7.0: Adicionar reservados
+        reservados: {
+            total: reservas.length,
+            apartamento: reservadosApto,
+            enf_feminina: reservadosEnfFem,
+            enf_masculina: reservadosEnfMasc
+        },
         previsao: {
             total: previsaoAlta.length,
             apartamento: previsaoApto,
@@ -849,11 +735,10 @@ function processarDadosHospitalExecutivo(hospitalId) {
             modalidade: modalidadePrevisao
         },
         disponiveis: {
-            // V7.0: Disponiveis = Contratuais - Ocupados - Reservados
-            total: Math.max(capacidade.contratuais - ocupados.length - reservas.length, 0),
-            apartamento: vagosAptoFinal,
-            enf_feminina: vagosEnfFemFinal,
-            enf_masculina: vagosEnfMascFinal,
+            total: disponiveisTotal,
+            apartamento: Math.max(vagosAptoFinal - reservadosApto, 0),
+            enf_feminina: Math.max(vagosEnfFemFinal - reservadosEnfFem, 0),
+            enf_masculina: Math.max(vagosEnfMascFinal - reservadosEnfMasc, 0),
             modalidade: modalidadeDisponiveis
         },
         tph: {
@@ -870,14 +755,13 @@ function processarDadosHospitalExecutivo(hospitalId) {
     };
 }
 
-// =================== FUNCAO: COPIAR PARA WHATSAPP (COM RESERVAS) ===================
+// =================== FUNÇÃO: COPIAR PARA WHATSAPP ===================
 function copiarParaWhatsAppExecutivo() {
     const hospitais = ORDEM_ALFABETICA_HOSPITAIS.map(processarDadosHospitalExecutivo);
     
     const totalLeitos = hospitais.reduce((sum, h) => sum + h.totalLeitos, 0);
     const totalOcupados = hospitais.reduce((sum, h) => sum + h.ocupados.total, 0);
-    // V7.0: Total de reservados
-    const totalReservados = hospitais.reduce((sum, h) => sum + h.reservados, 0);
+    const totalReservados = hospitais.reduce((sum, h) => sum + h.reservados.total, 0);
     const baseGeral = Math.max(TOTAL_CONTRATUAIS, totalOcupados);
     const taxaOcupacao = Math.min((totalOcupados / baseGeral) * 100, 100);
     
@@ -895,30 +779,23 @@ function copiarParaWhatsAppExecutivo() {
     texto += `━━━━━━━━━━━━━━━━━\n`;
     texto += `*REDE EXTERNA (9 HOSPITAIS)*\n`;
     texto += `━━━━━━━━━━━━━━━━━\n`;
-    texto += `Taxa de Ocupacao: *${taxaOcupacao.toFixed(1)}%*\n`;
+    texto += `Taxa de Ocupação: *${taxaOcupacao.toFixed(1)}%*\n`;
     texto += `Leitos Ocupados: *${totalOcupados}/${totalLeitos}*\n`;
-    // V7.0: Adicionar reservados
-    if (totalReservados > 0) {
-        texto += `Leitos Reservados: *${totalReservados}*\n`;
-    }
-    texto += `\n`;
+    texto += `Leitos Reservados: *${totalReservados}*\n\n`;
     
     hospitais.forEach((h, index) => {
         texto += `*${index + 1}. ${h.nome}*\n`;
         texto += `━━━━━━━━━━━━━━━━━\n`;
-        texto += `- Taxa: ${h.taxaOcupacao.toFixed(1)}%\n`;
-        texto += `- Ocupados: ${h.ocupados.total}/${h.totalLeitos}\n`;
-        // V7.0: Mostrar reservados por hospital
-        if (h.reservados > 0) {
-            texto += `- Reservados: ${h.reservados}\n`;
-        }
-        texto += `- Previsao Alta: ${h.previsao.total}\n`;
-        texto += `- Disponiveis: ${h.disponiveis.total}\n`;
-        texto += `- TPH: ${h.tph.medio} dias\n`;
-        texto += `- PPS Medio: ${h.pps.medio}\n`;
-        texto += `- SPICT: ${h.spict.elegiveis} | Diretivas: ${h.spict.diretivas}\n\n`;
-        texto += `_Modalidades Disponiveis:_\n`;
-        texto += `  Flexiveis: ${h.disponiveis.modalidade.flexiveis}\n`;
+        texto += `• Taxa: ${h.taxaOcupacao.toFixed(1)}%\n`;
+        texto += `• Ocupados: ${h.ocupados.total}/${h.totalLeitos}\n`;
+        texto += `• Reservados: ${h.reservados.total}\n`;
+        texto += `• Previsão Alta: ${h.previsao.total}\n`;
+        texto += `• Disponíveis: ${h.disponiveis.total}\n`;
+        texto += `• TPH: ${h.tph.medio} dias\n`;
+        texto += `• PPS Médio: ${h.pps.medio}\n`;
+        texto += `• SPICT: ${h.spict.elegiveis} | Diretivas: ${h.spict.diretivas}\n\n`;
+        texto += `_Modalidades Disponíveis:_\n`;
+        texto += `  Flexíveis: ${h.disponiveis.modalidade.flexiveis}\n`;
         texto += `  Exclus. Apto: ${h.disponiveis.modalidade.exclusivo_apto}\n`;
         texto += `  Exclus. Enf s/ Restr: ${h.disponiveis.modalidade.exclusivo_enf_sem_restricao}\n`;
         texto += `  Exclus. Enf Fem: ${h.disponiveis.modalidade.exclusivo_enf_fem}\n`;
@@ -930,41 +807,16 @@ function copiarParaWhatsAppExecutivo() {
     });
     
     navigator.clipboard.writeText(texto).then(() => {
-        alert('Texto copiado para a area de transferencia!\n\nCole no WhatsApp e envie.');
+        alert('Texto copiado para a área de transferência!\n\nCole no WhatsApp e envie.');
     }).catch(err => {
         console.error('Erro ao copiar:', err);
         alert('Erro ao copiar. Tente novamente.');
     });
 }
 
-// =================== V7.0: FUNCAO NAVEGACAO COM SENHA ===================
-window.navegarParaExecutivo = function() {
-    if (verificarAcessoExecutivo()) {
-        // Acesso ja liberado (dentro das 6 horas)
-        window.renderDashboardExecutivoInterno();
-    } else {
-        // Pedir senha
-        mostrarModalSenhaExecutivo(() => {
-            window.renderDashboardExecutivoInterno();
-        });
-    }
-};
-
-// =================== FUNCAO PRINCIPAL: RENDER DASHBOARD (COM VERIFICACAO DE SENHA) ===================
+// =================== FUNÇÃO PRINCIPAL: RENDER DASHBOARD ===================
 window.renderDashboardExecutivo = function() {
-    // V7.0: Verificar acesso antes de renderizar
-    if (!verificarAcessoExecutivo()) {
-        mostrarModalSenhaExecutivo(() => {
-            window.renderDashboardExecutivoInterno();
-        });
-        return;
-    }
-    
-    window.renderDashboardExecutivoInterno();
-};
-
-window.renderDashboardExecutivoInterno = function() {
-    logInfo('Renderizando Dashboard Executivo V7.0: REDE HOSPITALAR EXTERNA (9 HOSPITAIS - 293 LEITOS (126 CONTRATUAIS))');
+    logInfo('Renderizando Dashboard Executivo: REDE HOSPITALAR EXTERNA (9 HOSPITAIS - 293 LEITOS (126 CONTRATUAIS))');
     
     let container = document.getElementById('dashExecutivoContent');
     if (!container) {
@@ -989,8 +841,8 @@ window.renderDashboardExecutivoInterno = function() {
         container.innerHTML = `
             <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 400px; text-align: center; color: white; background: linear-gradient(135deg, #1a1f2e 0%, #2d3748 100%); border-radius: 12px; margin: 20px; padding: 40px;">
                 <div style="width: 60px; height: 60px; border: 3px solid #ef4444; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px;"></div>
-                <h2 style="color: #ef4444; margin-bottom: 10px; font-size: 20px;">Dados nao disponiveis</h2>
-                <p style="color: #9ca3af; font-size: 14px;">Aguardando sincronizacao com a planilha</p>
+                <h2 style="color: #ef4444; margin-bottom: 10px; font-size: 20px;">Dados não disponíveis</h2>
+                <p style="color: #9ca3af; font-size: 14px;">Aguardando sincronização com a planilha</p>
                 <button onclick="window.location.reload()" style="margin-top: 20px; padding: 12px 24px; background: #3b82f6; color: white; border: none; border-radius: 8px; cursor: pointer;">Recarregar</button>
                 <style>
                     @keyframes spin {
@@ -1006,10 +858,7 @@ window.renderDashboardExecutivoInterno = function() {
     const hospitaisValidos = ORDEM_ALFABETICA_HOSPITAIS;
     const hospitaisComDados = hospitaisValidos.filter(hospitalId => {
         const hospital = window.hospitalData[hospitalId];
-        if (!hospital || !hospital.leitos) return false;
-        // V7.0: Filtrar UTI antes de verificar
-        const leitosSemUTI = filtrarLeitosSemUTIExecutivo(hospital.leitos);
-        return leitosSemUTI.length > 0;
+        return hospital && hospital.leitos && hospital.leitos.length > 0;
     });
     
     if (hospitaisComDados.length === 0) {
@@ -1017,7 +866,7 @@ window.renderDashboardExecutivoInterno = function() {
             <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 400px; text-align: center; color: white; background: linear-gradient(135deg, #1a1f2e 0%, #2d3748 100%); border-radius: 12px; margin: 20px; padding: 40px;">
                 <div style="width: 60px; height: 60px; border: 3px solid #f59e0b; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px;"></div>
                 <h2 style="color: #f59e0b; margin-bottom: 10px; font-size: 20px;">Nenhum hospital com dados</h2>
-                <p style="color: #9ca3af; font-size: 14px;">Verifique a conexao com a planilha</p>
+                <p style="color: #9ca3af; font-size: 14px;">Verifique a conexão com a planilha</p>
                 <button onclick="window.location.reload()" style="margin-top: 20px; padding: 12px 24px; background: #3b82f6; color: white; border: none; border-radius: 8px; cursor: pointer;">Tentar novamente</button>
                 <style>
                     @keyframes spin {
@@ -1035,9 +884,9 @@ window.renderDashboardExecutivoInterno = function() {
     const totalLeitos = hospitais.reduce((sum, h) => sum + h.totalLeitos, 0);
     const totalOcupados = hospitais.reduce((sum, h) => sum + h.ocupados.total, 0);
     const totalPrevisao = hospitais.reduce((sum, h) => sum + h.previsao.total, 0);
-    // V7.0: Total de reservados
-    const totalReservados = hospitais.reduce((sum, h) => sum + h.reservados, 0);
-    // V7.0: Disponiveis descontando reservados
+    // V7.0: Calcular total de reservados
+    const totalReservados = hospitais.reduce((sum, h) => sum + h.reservados.total, 0);
+    // V7.0: Disponíveis = soma dos disponíveis (já descontam reservados)
     const totalDisponiveis = hospitais.reduce((sum, h) => sum + h.disponiveis.total, 0);
     const baseGeral = Math.max(TOTAL_CONTRATUAIS, totalOcupados);
     const taxaOcupacao = Math.min((totalOcupados / baseGeral) * 100, 100);
@@ -1046,34 +895,38 @@ window.renderDashboardExecutivoInterno = function() {
     const previsaoEnfFem = hospitais.reduce((sum, h) => sum + h.previsao.enf_feminina, 0);
     const previsaoEnfMasc = hospitais.reduce((sum, h) => sum + h.previsao.enf_masculina, 0);
     
-    // Calcular capacidade de apartamentos corretamente
+    // V7.0: Calcular reservados por tipo
+    const reservadosApto = hospitais.reduce((sum, h) => sum + h.reservados.apartamento, 0);
+    const reservadosEnfFem = hospitais.reduce((sum, h) => sum + h.reservados.enf_feminina, 0);
+    const reservadosEnfMasc = hospitais.reduce((sum, h) => sum + h.reservados.enf_masculina, 0);
+    
+    // Calcular capacidade de apartamentos corretamente (V7.0: desconta reservados)
     let disponiveisApto = 0;
     hospitais.forEach(h => {
         const hospitalId = h.id;
         if (hospitalId === 'H1' || hospitalId === 'H3' || hospitalId === 'H5' || hospitalId === 'H6' || hospitalId === 'H7' || hospitalId === 'H8' || hospitalId === 'H9') {
-            // Hibridos: cada vago PODE ser apartamento
-            disponiveisApto += Math.max(0, h.contratuais - h.ocupados.total - h.reservados);
+            // Híbridos: cada vago PODE ser apartamento (já desconta reservados no h.disponiveis)
+            disponiveisApto += h.disponiveis.apartamento;
         } else if (hospitalId === 'H2') {
-            // Cruz Azul: apartamentos contratuais - ocupados
-            disponiveisApto += Math.max(0, 20 - h.ocupados.apartamento);
+            // Cruz Azul: apartamentos contratuais - ocupados - reservados
+            disponiveisApto += Math.max(0, 20 - h.ocupados.apartamento - h.reservados.apartamento);
         } else if (hospitalId === 'H4') {
-            // Santa Clara: apartamentos contratuais - ocupados
-            disponiveisApto += Math.max(0, 18 - h.ocupados.apartamento);
+            // Santa Clara: apartamentos contratuais - ocupados - reservados
+            disponiveisApto += Math.max(0, 18 - h.ocupados.apartamento - h.reservados.apartamento);
         }
     });
-    // Calcular capacidade de enfermarias corretamente
+    // Calcular capacidade de enfermarias corretamente (V7.0: desconta reservados)
     let disponiveisEnfFem = 0;
     let disponiveisEnfMasc = 0;
     
     hospitais.forEach(h => {
         const hospitalId = h.id;
         if (hospitalId === 'H1' || hospitalId === 'H3' || hospitalId === 'H5' || hospitalId === 'H6' || hospitalId === 'H7' || hospitalId === 'H8' || hospitalId === 'H9') {
-            // Hibridos: cada vago PODE ser enfermaria (qualquer genero)
-            const vagosContratuais = Math.max(0, h.contratuais - h.ocupados.total - h.reservados);
-            disponiveisEnfFem += vagosContratuais;
-            disponiveisEnfMasc += vagosContratuais;
+            // Híbridos: usa valores já calculados (descontam reservados)
+            disponiveisEnfFem += h.disponiveis.enf_feminina;
+            disponiveisEnfMasc += h.disponiveis.enf_masculina;
         } else {
-            // H2 e H4: somar todas as possibilidades
+            // H2 e H4: somar todas as possibilidades (já descontam reservados)
             disponiveisEnfFem += h.disponiveis.enf_feminina;
             disponiveisEnfMasc += h.disponiveis.enf_masculina;
         }
@@ -1087,7 +940,7 @@ window.renderDashboardExecutivoInterno = function() {
         exclusivo_enf_masc: hospitais.reduce((sum, h) => sum + h.previsao.modalidade.exclusivo_enf_masc, 0)
     };
     
-    // Calcular modalidade contratual corretamente
+    // Calcular modalidade contratual corretamente (V7.0: desconta reservados)
     const modalidadeDisponiveis = {
         flexiveis: 0,
         exclusivo_apto: 0,
@@ -1100,8 +953,8 @@ window.renderDashboardExecutivoInterno = function() {
         const hospitalId = h.id;
         
         if (hospitalId === 'H1' || hospitalId === 'H3' || hospitalId === 'H5' || hospitalId === 'H6' || hospitalId === 'H7' || hospitalId === 'H8' || hospitalId === 'H9') {
-            // Hibridos: apenas flexiveis (contratuais - ocupados - reservados)
-            modalidadeDisponiveis.flexiveis += Math.max(0, h.contratuais - h.ocupados.total - h.reservados);
+            // Híbridos: apenas flexíveis (contratuais - ocupados - reservados)
+            modalidadeDisponiveis.flexiveis += Math.max(0, h.contratuais - h.ocupados.total - h.reservados.total);
         } else if (hospitalId === 'H2' || hospitalId === 'H4') {
             // H2 e H4: somar cada categoria
             modalidadeDisponiveis.exclusivo_apto += h.disponiveis.modalidade.exclusivo_apto || 0;
@@ -1111,7 +964,7 @@ window.renderDashboardExecutivoInterno = function() {
         }
     });
     
-    // =================== TPH MEDIO GERAL CORRIGIDO (MEDIA PONDERADA) ===================
+    // =================== TPH MÉDIO GERAL CORRIGIDO (MÉDIA PONDERADA) ===================
     let totalDiasPonderado = 0;
     let totalPacientesPonderado = 0;
     
@@ -1119,7 +972,7 @@ window.renderDashboardExecutivoInterno = function() {
         const hospital = window.hospitalData[hospitalId];
         if (hospital && hospital.leitos) {
             // V7.0: Filtrar UTI
-            const leitosSemUTI = filtrarLeitosSemUTIExecutivo(hospital.leitos);
+            const leitosSemUTI = filtrarLeitosSemUTI(hospital.leitos);
             leitosSemUTI.forEach(l => {
                 if (isOcupadoExecutivo(l) && l.admAt) {
                     const admData = parseAdmDate(l.admAt);
@@ -1154,27 +1007,25 @@ window.renderDashboardExecutivoInterno = function() {
     
     const CONFIG = {
         HOSPITAIS: {
-            H1: { nome: 'Neomater' },
-            H2: { nome: 'Cruz Azul' },
-            H3: { nome: 'Santa Marcelina' },
-            H4: { nome: 'Santa Clara' },
-            H5: { nome: 'Adventista' },
-            H6: { nome: 'Santa Cruz' },
-            H7: { nome: 'Santa Virginia' },
-            H8: { nome: 'Sao Camilo Ipiranga' },
-            H9: { nome: 'Sao Camilo Pompeia' }
+            H1: { nome: 'Neomater', cor: '#10b981' },
+            H2: { nome: 'Cruz Azul', cor: '#3b82f6' },
+            H3: { nome: 'Santa Marcelina', cor: '#8b5cf6' },
+            H4: { nome: 'Santa Clara', cor: '#ec4899' },
+            H5: { nome: 'Adventista', cor: '#f59e0b' },
+            H6: { nome: 'Santa Cruz', cor: '#06b6d4' },
+            H7: { nome: 'Santa Virgínia', cor: '#f43f5e' }
         }
     };
-
+    
     container.innerHTML = `
-        <div style="background: linear-gradient(135deg, #131b2e 0%, #1e293b 100%); min-height: 100vh; padding: 20px; color: white; font-family: 'Poppins', sans-serif;">
+        <div style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); min-height: 100vh; padding: 20px; color: white;">
             
-            <div class="dashboard-header-exec" style="margin-bottom: 30px;">
+            <div class="dashboard-header-exec" style="margin-bottom: 30px; padding: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.8); border-top: 3px solid #ffffff;">
                 <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 10px;">
                     <h2 style="margin: 0; color: #60a5fa; font-size: 24px; font-weight: 700; text-align: center; text-transform: none !important;">Rede Hospitalar Externa - Dashboard Geral</h2>
                 </div>
                 <div style="display: flex; justify-content: center; gap: 15px; flex-wrap: wrap;">
-                    <button id="btnWhatsAppExec" style="padding: 8px 16px; background: #25D366; border: 1px solid #25D366; border-radius: 8px; color: white; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 8px; text-transform: none !important;">
+                    <button id="btnWhatsAppExec" style="padding: 8px 16px; background: #60a5fa; border: 1px solid #60a5fa; border-radius: 8px; color: white; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 8px; text-transform: none !important;">
                         Copiar para WhatsApp
                     </button>
                     <button id="toggleFundoBtnExec" class="toggle-fundo-btn" style="padding: 8px 16px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; color: #e2e8f0; font-size: 14px; cursor: pointer; transition: all 0.3s ease; display: none; align-items: center; gap: 8px; text-transform: none !important;">
@@ -1186,7 +1037,7 @@ window.renderDashboardExecutivoInterno = function() {
             <div class="kpis-grid-executivo">
                 
                 <div class="kpi-box box-ocupacao-geral">
-                    <div class="kpi-title">Ocupacao Geral - Rede Externa</div>
+                    <div class="kpi-title">Ocupação Geral - Rede Externa</div>
                     
                     <div class="kpi-content">
                         ${renderGaugeLargo(taxaOcupacao, totalOcupados)}
@@ -1199,8 +1050,8 @@ window.renderDashboardExecutivoInterno = function() {
                                     <th></th>
                                     <th>Leitos Fixos</th>
                                     <th>Leitos Ocupados</th>
-                                    <th style="color: #fbbf24;">Reservados</th>
-                                    <th>Taxa Ocupacao</th>
+                                    <th style="color: #60a5fa;">Reservados</th>
+                                    <th>Taxa Ocupação</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -1209,7 +1060,7 @@ window.renderDashboardExecutivoInterno = function() {
                                         <td><strong>${h.nome}</strong></td>
                                         <td>${window.HOSPITAL_CAPACIDADE[h.id]?.contratuais || h.totalLeitos}</td>
                                         <td>${h.ocupados.total}</td>
-                                        <td style="color: #fbbf24; font-weight: 600;">${h.reservados}</td>
+                                        <td>${h.reservados.total}</td>
                                         <td>${h.taxaOcupacao.toFixed(1)}%</td>
                                     </tr>
                                     <tr class="regua-row">
@@ -1224,10 +1075,10 @@ window.renderDashboardExecutivoInterno = function() {
                 </div>
 
                 <div class="kpi-box box-previsao">
-                    <div class="kpi-title">Leitos em Previsao de Alta</div>
+                    <div class="kpi-title">Leitos em Previsão de Alta</div>
                     
                     <div class="kpi-content">
-                        ${renderGaugeV5((totalPrevisao / totalOcupados * 100) || 0, CORES_ARCHIPELAGO.azulPrincipal, totalPrevisao)}
+                        ${renderGaugeV5((totalPrevisao / totalOcupados * 100), CORES_ARCHIPELAGO.azulPrincipal, totalPrevisao)}
                         
                         <div class="kpi-items-lista">
                             <div class="kpi-subtitle">Total de Leitos com Alta na Data de Hoje</div>
@@ -1253,24 +1104,24 @@ window.renderDashboardExecutivoInterno = function() {
                 </div>
 
                 <div class="kpi-box box-disponiveis">
-                    <div class="kpi-title">Leitos Disponiveis</div>
+                    <div class="kpi-title">Leitos Disponíveis</div>
                     
                     <div class="kpi-content">
-                        ${renderGaugeV5((totalDisponiveis / TOTAL_CONTRATUAIS * 100) || 0, '#3b82f6', totalDisponiveis)}
+                        ${renderGaugeV5((totalDisponiveis / TOTAL_CONTRATUAIS * 100), '#3b82f6', totalDisponiveis)}
                         
                         <div class="kpi-items-lista">
-                            <div class="kpi-subtitle">Capacidade por Tipo de Leito (nao Simultaneo)</div>
+                            <div class="kpi-subtitle">Capacidade por Tipo de Leito (não Simultâneo)</div>
                             <div class="item-lista">
                                 <span class="label">Apartamento</span>
-                                <span class="valor">ate ${disponiveisApto}</span>
+                                <span class="valor">até ${disponiveisApto}</span>
                             </div>
                             <div class="item-lista">
                                 <span class="label">Enfermaria Feminina</span>
-                                <span class="valor">ate ${disponiveisEnfFem}</span>
+                                <span class="valor">até ${disponiveisEnfFem}</span>
                             </div>
                             <div class="item-lista">
                                 <span class="label">Enfermaria Masculina</span>
-                                <span class="valor">ate ${disponiveisEnfMasc}</span>
+                                <span class="valor">até ${disponiveisEnfMasc}</span>
                             </div>
                         </div>
                         
@@ -1282,7 +1133,7 @@ window.renderDashboardExecutivoInterno = function() {
                 </div>
 
                 <div class="kpi-box box-tph">
-                    <div class="kpi-title">TPH Medio</div>
+                    <div class="kpi-title">TPH Médio</div>
                     
                     <div class="kpi-tph-container">
                         <div class="kpi-tph-numero">${tphMedioGeral}</div>
@@ -1317,7 +1168,7 @@ window.renderDashboardExecutivoInterno = function() {
                     <div class="kpi-valores-duplos-divididos">
                         <div class="kpi-valor-metade">
                             <div class="valor">${ppsMedioGeral}</div>
-                            <div class="label">PPS Medio</div>
+                            <div class="label">PPS Médio</div>
                         </div>
                         <div class="divisor-vertical"></div>
                         <div class="kpi-valor-metade">
@@ -1389,16 +1240,16 @@ window.renderDashboardExecutivoInterno = function() {
                 
                 <div class="executivo-grafico-card">
                     <div class="chart-header-centralizado">
-                        <h3>Analise Geral - Preditiva de Concessoes em ${hoje}</h3>
-                        <p>Previsao por Hospital e Periodo - Heatmap Temporal</p>
+                        <h3>Análise Geral - Preditiva de Concessões em ${hoje}</h3>
+                        <p>Previsão por Hospital e Período - Heatmap Temporal</p>
                     </div>
                     <div id="heatmapConcessoesContainer"></div>
                 </div>
                 
                 <div class="executivo-grafico-card">
                     <div class="chart-header-centralizado">
-                        <h3>Analise Geral - Linha de Cuidados em ${hoje}</h3>
-                        <p>Previsao por Hospital e Periodo - Heatmap Temporal</p>
+                        <h3>Análise Geral - Linha de Cuidados em ${hoje}</h3>
+                        <p>Previsão por Hospital e Período - Heatmap Temporal</p>
                     </div>
                     <div id="heatmapLinhasContainer"></div>
                 </div>
@@ -1451,14 +1302,14 @@ window.renderDashboardExecutivoInterno = function() {
             renderHeatmapConcessoes();
             renderHeatmapLinhas();
             
-            logSuccess('Dashboard Executivo V7.0 renderizado com dados atualizados');
+            logSuccess('Dashboard Executivo renderizado com dados atualizados (7 hospitais - 93 leitos)');
         }, 200);
     };
     
     aguardarChartJS();
 };
 
-// =================== FUNCAO PARA OBTER COR POR VALOR ===================
+// =================== FUNÇÃO PARA OBTER COR POR VALOR ===================
 function getCorPorValor(valor) {
     if (valor === 0) return window.fundoBranco ? '#f8f9fa' : '#2d3748';
     if (valor <= 2) return '#E5E5E5';
@@ -1473,7 +1324,7 @@ function getCorTexto(valor) {
     return '#ffffff';
 }
 
-// =================== HEATMAP CONCESSOES (COM FILTRO UTI) ===================
+// =================== HEATMAP CONCESSÕES (COM DESNORMALIZAÇÃO) ===================
 function renderHeatmapConcessoes() {
     const container = document.getElementById('heatmapConcessoesContainer');
     if (!container) return;
@@ -1481,14 +1332,11 @@ function renderHeatmapConcessoes() {
     const hospitaisValidos = ORDEM_ALFABETICA_HOSPITAIS;
     const hospitaisComDados = hospitaisValidos.filter(hospitalId => {
         const hospital = window.hospitalData[hospitalId];
-        if (!hospital || !hospital.leitos) return false;
-        // V7.0: Filtrar UTI
-        const leitosSemUTI = filtrarLeitosSemUTIExecutivo(hospital.leitos);
-        return leitosSemUTI.length > 0;
+        return hospital && hospital.leitos && hospital.leitos.length > 0;
     });
     
     if (hospitaisComDados.length === 0) {
-        container.innerHTML = '<p style="color: #9ca3af; text-align: center; padding: 40px;">Nenhum dado disponivel</p>';
+        container.innerHTML = '<p style="color: #9ca3af; text-align: center; padding: 40px;">Nenhum dado disponível</p>';
         return;
     }
     
@@ -1503,9 +1351,9 @@ function renderHeatmapConcessoes() {
             H4: { nome: 'Santa Clara', cor: '#2d3748' },
             H5: { nome: 'Adventista', cor: '#2d3748' },
             H6: { nome: 'Santa Cruz', cor: '#2d3748' },
-            H7: { nome: 'Santa Virginia', cor: '#2d3748' },
-            H8: { nome: 'Sao Camilo Ipiranga', cor: '#2d3748' },
-            H9: { nome: 'Sao Camilo Pompeia', cor: '#2d3748' }
+            H7: { nome: 'Santa Virgínia', cor: '#2d3748' },
+            H8: { nome: 'São Camilo Ipiranga', cor: '#2d3748' },
+            H9: { nome: 'São Camilo Pompeia', cor: '#2d3748' }
         }
     };
     
@@ -1534,7 +1382,7 @@ function renderHeatmapConcessoes() {
             <table class="heatmap-table">
                 <thead>
                     <tr>
-                        <th class="concessao-label" style="background: ${window.fundoBranco ? '#f3f4f6' : '#1e293b'}; color: ${window.fundoBranco ? '#000' : '#fff'}; min-width: 200px;">Concessao</th>
+                        <th class="concessao-label" style="background: ${window.fundoBranco ? '#f3f4f6' : '#1e293b'}; color: ${window.fundoBranco ? '#000' : '#fff'}; min-width: 200px;">Concessão</th>
     `;
     
     hospitaisComDados.forEach(hospitalId => {
@@ -1562,7 +1410,7 @@ function renderHeatmapConcessoes() {
                 const cor = getCorPorValor(valor);
                 const corTexto = getCorTexto(valor);
                 
-                html += '<td class="heatmap-cell" style="background: ' + cor + '; color: ' + corTexto + '; ' + (pIdx === 0 ? 'border-left: 3px solid rgba(255,255,255,0.5);' : '') + '" title="' + concessao + ' - ' + CONFIG.HOSPITAIS[hospitalId].nome + ' - ' + periodo + ': ' + valor + ' casos">' + (valor > 0 ? valor : '-') + '</td>';
+                html += '<td class="heatmap-cell" style="background: ' + cor + '; color: ' + corTexto + '; ' + (pIdx === 0 ? 'border-left: 3px solid rgba(255,255,255,0.5);' : '') + '" title="' + concessao + ' - ' + CONFIG.HOSPITAIS[hospitalId].nome + ' - ' + periodo + ': ' + valor + ' casos">' + (valor > 0 ? valor : '—') + '</td>';
             });
         });
         
@@ -1574,7 +1422,7 @@ function renderHeatmapConcessoes() {
     container.innerHTML = html;
 }
 
-// =================== HEATMAP LINHAS (COM FILTRO UTI) ===================
+// =================== HEATMAP LINHAS (COM DESNORMALIZAÇÃO) ===================
 function renderHeatmapLinhas() {
     const container = document.getElementById('heatmapLinhasContainer');
     if (!container) return;
@@ -1582,14 +1430,11 @@ function renderHeatmapLinhas() {
     const hospitaisValidos = ORDEM_ALFABETICA_HOSPITAIS;
     const hospitaisComDados = hospitaisValidos.filter(hospitalId => {
         const hospital = window.hospitalData[hospitalId];
-        if (!hospital || !hospital.leitos) return false;
-        // V7.0: Filtrar UTI
-        const leitosSemUTI = filtrarLeitosSemUTIExecutivo(hospital.leitos);
-        return leitosSemUTI.length > 0;
+        return hospital && hospital.leitos && hospital.leitos.length > 0;
     });
     
     if (hospitaisComDados.length === 0) {
-        container.innerHTML = '<p style="color: #9ca3af; text-align: center; padding: 40px;">Nenhum dado disponivel</p>';
+        container.innerHTML = '<p style="color: #9ca3af; text-align: center; padding: 40px;">Nenhum dado disponível</p>';
         return;
     }
     
@@ -1604,9 +1449,9 @@ function renderHeatmapLinhas() {
             H4: { nome: 'Santa Clara', cor: '#2d3748' },
             H5: { nome: 'Adventista', cor: '#2d3748' },
             H6: { nome: 'Santa Cruz', cor: '#2d3748' },
-            H7: { nome: 'Santa Virginia', cor: '#2d3748' },
-            H8: { nome: 'Sao Camilo Ipiranga', cor: '#2d3748' },
-            H9: { nome: 'Sao Camilo Pompeia', cor: '#2d3748' }
+            H7: { nome: 'Santa Virgínia', cor: '#2d3748' },
+            H8: { nome: 'São Camilo Ipiranga', cor: '#2d3748' },
+            H9: { nome: 'São Camilo Pompeia', cor: '#2d3748' }
         }
     };
     
@@ -1663,7 +1508,7 @@ function renderHeatmapLinhas() {
                 const cor = getCorPorValor(valor);
                 const corTexto = getCorTexto(valor);
                 
-                html += '<td class="heatmap-cell" style="background: ' + cor + '; color: ' + corTexto + '; ' + (pIdx === 0 ? 'border-left: 3px solid rgba(255,255,255,0.5);' : '') + '" title="' + linha + ' - ' + CONFIG.HOSPITAIS[hospitalId].nome + ' - ' + periodo + ': ' + valor + ' casos">' + (valor > 0 ? valor : '-') + '</td>';
+                html += '<td class="heatmap-cell" style="background: ' + cor + '; color: ' + corTexto + '; ' + (pIdx === 0 ? 'border-left: 3px solid rgba(255,255,255,0.5);' : '') + '" title="' + linha + ' - ' + CONFIG.HOSPITAIS[hospitalId].nome + ' - ' + periodo + ': ' + valor + ' casos">' + (valor > 0 ? valor : '—') + '</td>';
             });
         });
         
@@ -1675,7 +1520,7 @@ function renderHeatmapLinhas() {
     container.innerHTML = html;
 }
 
-// =================== CALCULAR DADOS CONCESSOES (COM FILTRO UTI) ===================
+// =================== CALCULAR DADOS CONCESSÕES (COM DESNORMALIZAÇÃO E FILTRO UTI) ===================
 function calcularDadosConcessoesReais(hospitaisComDados) {
     const concessoesPorItem = {};
     
@@ -1684,7 +1529,7 @@ function calcularDadosConcessoesReais(hospitaisComDados) {
         if (!hospital || !hospital.leitos) return;
         
         // V7.0: Filtrar UTI
-        const leitosSemUTI = filtrarLeitosSemUTIExecutivo(hospital.leitos);
+        const leitosSemUTI = filtrarLeitosSemUTI(hospital.leitos);
         
         leitosSemUTI.forEach(leito => {
             if (!isOcupadoExecutivo(leito)) return;
@@ -1730,7 +1575,7 @@ function calcularDadosConcessoesReais(hospitaisComDados) {
     return concessoesPorItem;
 }
 
-// =================== CALCULAR DADOS LINHAS (COM FILTRO UTI) ===================
+// =================== CALCULAR DADOS LINHAS (COM DESNORMALIZAÇÃO E FILTRO UTI) ===================
 function calcularDadosLinhasReais(hospitaisComDados) {
     const linhasPorItem = {};
     
@@ -1739,7 +1584,7 @@ function calcularDadosLinhasReais(hospitaisComDados) {
         if (!hospital || !hospital.leitos) return;
         
         // V7.0: Filtrar UTI
-        const leitosSemUTI = filtrarLeitosSemUTIExecutivo(hospital.leitos);
+        const leitosSemUTI = filtrarLeitosSemUTI(hospital.leitos);
         
         leitosSemUTI.forEach(leito => {
             if (!isOcupadoExecutivo(leito)) return;
@@ -1785,7 +1630,7 @@ function calcularDadosLinhasReais(hospitaisComDados) {
     return linhasPorItem;
 }
 
-// =================== CSS COM MODAL DE SENHA V7.0 ===================
+// CSS COM text-transform: none !important E BORDAS BRANCAS FIXAS
 function getExecutiveCSS() {
     return `
         <style id="executiveCSS">
@@ -1793,114 +1638,6 @@ function getExecutiveCSS() {
                 text-transform: none !important;
             }
             
-            /* =================== V7.0: MODAL DE SENHA =================== */
-            .modal-overlay-exec {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0, 0, 0, 0.8);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                z-index: 99999;
-            }
-            
-            .modal-senha-exec {
-                background: #1e293b;
-                border-radius: 12px;
-                padding: 30px;
-                width: 320px;
-                border: 1px solid rgba(255, 255, 255, 0.1);
-                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-            }
-            
-            .modal-header-exec h3 {
-                color: #60a5fa;
-                text-align: center;
-                margin: 0 0 20px 0;
-                font-size: 20px;
-                font-weight: 700;
-            }
-            
-            .modal-body-exec {
-                text-align: center;
-            }
-            
-            .modal-body-exec p {
-                color: #9ca3af;
-                font-size: 14px;
-                margin-bottom: 20px;
-            }
-            
-            .modal-body-exec input {
-                width: 100%;
-                padding: 15px;
-                font-size: 24px;
-                text-align: center;
-                letter-spacing: 10px;
-                background: #0f172a;
-                border: 1px solid rgba(255, 255, 255, 0.2);
-                border-radius: 8px;
-                color: white;
-                margin-bottom: 10px;
-                box-sizing: border-box;
-            }
-            
-            .modal-body-exec input:focus {
-                outline: none;
-                border-color: #60a5fa;
-                box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
-            }
-            
-            .modal-body-exec input::placeholder {
-                color: #4b5563;
-                letter-spacing: 5px;
-            }
-            
-            .erro-senha-exec {
-                color: #ef4444 !important;
-                font-size: 12px !important;
-                margin-top: 5px !important;
-            }
-            
-            .modal-footer-exec {
-                display: flex;
-                gap: 10px;
-                margin-top: 20px;
-            }
-            
-            .modal-footer-exec button {
-                flex: 1;
-                padding: 12px;
-                border-radius: 8px;
-                font-weight: 600;
-                cursor: pointer;
-                border: none;
-                font-size: 14px;
-                transition: all 0.3s ease;
-            }
-            
-            .btn-cancelar-exec {
-                background: rgba(255, 255, 255, 0.1);
-                color: #9ca3af;
-            }
-            
-            .btn-cancelar-exec:hover {
-                background: rgba(255, 255, 255, 0.15);
-            }
-            
-            .btn-confirmar-exec {
-                background: #0676bb;
-                color: white;
-            }
-            
-            .btn-confirmar-exec:hover {
-                background: #0589d6;
-            }
-            
-            /* =================== GRID E BOXES =================== */
             .kpis-grid-executivo {
                 display: grid;
                 grid-template-columns: repeat(3, 1fr);
@@ -2039,54 +1776,37 @@ function getExecutiveCSS() {
                 border-color: #22c55e;
             }
             
-            .v5-badge-below.blue {
-                background: rgba(59, 130, 246, 0.2);
-                color: #60a5fa;
-                border-color: #60a5fa;
+            .v5-badge-below.orange {
+                background: rgba(249, 115, 22, 0.2);
+                color: #f97316;
+                border-color: #f97316;
             }
             
-            .v5-badge-below.orange {
-                background: rgba(245, 158, 11, 0.2);
-                color: #f59e0b;
-                border-color: #f59e0b;
+            .v5-badge-below.blue {
+                background: rgba(59, 130, 246, 0.2);
+                color: #3b82f6;
+                border-color: #3b82f6;
             }
             
             .kpi-content {
-                flex: 1;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 20px;
+                margin-bottom: 20px;
             }
             
             .kpi-items-lista {
-                margin-top: 15px;
-            }
-            
-            .kpi-subtitle {
-                font-size: 11px;
-                color: #6b7280;
-                margin-bottom: 12px;
-                text-transform: none !important;
-            }
-            
-            .item-lista {
+                width: 100%;
                 display: flex;
-                justify-content: space-between;
-                padding: 8px 12px;
-                background: rgba(255, 255, 255, 0.02);
-                border-radius: 6px;
-                margin-bottom: 6px;
-            }
-            
-            .item-lista .label {
-                color: #9ca3af;
-                font-size: 13px;
-            }
-            
-            .item-lista .valor {
-                color: white;
-                font-weight: 600;
-                font-size: 14px;
+                flex-direction: column;
+                gap: 8px;
+                padding-top: 15px;
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
             }
             
             .kpi-modalidade-section {
+                width: 100%;
                 margin-top: 20px;
                 padding-top: 15px;
                 border-top: 1px solid rgba(255, 255, 255, 0.1);
@@ -2094,9 +1814,62 @@ function getExecutiveCSS() {
             
             .modalidade-titulo {
                 font-size: 11px;
-                color: #6b7280;
-                margin-bottom: 12px;
+                font-weight: 600;
+                color: #60a5fa;
                 text-transform: none !important;
+                letter-spacing: 0.5px;
+                margin-bottom: 10px;
+                text-align: left;
+            }
+            
+            .item-lista {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 8px 12px;
+                border-radius: 6px;
+                background: rgba(255, 255, 255, 0.02);
+                transition: background 0.2s ease;
+            }
+            
+            .item-lista:hover {
+                background: rgba(255, 255, 255, 0.05);
+            }
+            
+            .item-lista .label {
+                font-size: 14px;
+                color: #9ca3af;
+                text-transform: none !important;
+            }
+            
+            .item-lista .valor {
+                font-size: 16px;
+                font-weight: 600;
+                color: #ffffff;
+                text-transform: none !important;
+            }
+            
+            .kpi-subtitle {
+                font-size: 11px;
+                color: #6b7280;
+                font-style: italic;
+                text-align: center;
+                margin-bottom: 10px;
+                text-transform: none !important;
+            }
+            
+            .kpi-detalhes {
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+                padding-top: 15px;
+            }
+            
+            .detalhe-titulo {
+                font-size: 11px;
+                font-weight: 600;
+                color: #60a5fa;
+                text-transform: none !important;
+                letter-spacing: 0.5px;
+                margin-bottom: 10px;
             }
             
             .lista-simples-compacta {
@@ -2108,40 +1881,71 @@ function getExecutiveCSS() {
             .lista-item-compacto {
                 display: flex;
                 justify-content: space-between;
-                padding: 4px 10px;
-                font-size: 12px;
+                align-items: center;
+                padding: 3px 10px;
+                border-radius: 6px;
+                background: rgba(255, 255, 255, 0.02);
+                transition: background 0.2s ease;
+            }
+            
+            .lista-item-compacto:hover {
+                background: rgba(255, 255, 255, 0.05);
             }
             
             .lista-item-compacto .label {
+                font-size: 13px;
                 color: #9ca3af;
+                text-transform: none !important;
             }
             
             .lista-item-compacto .valor {
-                color: white;
+                font-size: 13px;
                 font-weight: 600;
-            }
-            
-            .kpi-detalhes {
-                margin-top: auto;
-                padding-top: 15px;
-                border-top: 1px solid rgba(255, 255, 255, 0.1);
-            }
-            
-            .detalhe-titulo {
-                font-size: 11px;
-                color: #6b7280;
-                margin-bottom: 12px;
-                text-align: center;
+                color: #ffffff;
                 text-transform: none !important;
+            }
+            
+            .kpi-valores-duplos-divididos {
+                display: flex;
+                align-items: center;
+                gap: 25px;
+                margin-bottom: 20px;
+            }
+            
+            .kpi-valor-metade {
+                flex: 1;
+                text-align: center;
+            }
+            
+            .kpi-valor-metade .valor {
+                font-size: 43px;
+                font-weight: 700;
+                color: white;
+                line-height: 1;
+                margin-bottom: 8px;
+                text-transform: none !important;
+            }
+            
+            .kpi-valor-metade .label {
+                font-size: 13px;
+                color: #9ca3af;
+                text-transform: none !important;
+                letter-spacing: 0.5px;
+            }
+            
+            .divisor-vertical {
+                width: 1px;
+                height: 80px;
+                background: rgba(255, 255, 255, 0.2);
             }
             
             .kpi-tph-container {
                 text-align: center;
-                padding: 20px 0;
+                margin-bottom: 20px;
             }
             
             .kpi-tph-numero {
-                font-size: 48px;
+                font-size: 43px;
                 font-weight: 700;
                 color: white;
                 line-height: 1;
@@ -2149,151 +1953,200 @@ function getExecutiveCSS() {
             }
             
             .kpi-tph-label {
-                font-size: 14px;
+                font-size: 16px;
                 color: #9ca3af;
-                margin-top: 5px;
+                margin-top: 8px;
                 text-transform: none !important;
             }
             
             .tph-mini-gauge {
-                margin-top: 15px;
                 display: flex;
-                flex-direction: column;
                 align-items: center;
-                gap: 8px;
+                justify-content: center;
+                gap: 10px;
+                margin-top: 15px;
             }
             
             .tph-gauge-bar {
                 display: flex;
+                align-items: center;
                 gap: 2px;
+                height: 20px;
             }
             
             .tph-gauge-block {
                 width: 8px;
                 height: 20px;
                 border-radius: 2px;
+                transition: all 0.3s ease;
+            }
+            
+            .tph-gauge-block.filled {
+                background: currentColor;
+            }
+            
+            .tph-gauge-block.empty {
                 background: rgba(255, 255, 255, 0.1);
             }
             
-            .tph-gauge-bar.green .tph-gauge-block.filled {
-                background: #22c55e;
-            }
-            
-            .tph-gauge-bar.yellow .tph-gauge-block.filled {
-                background: #f59e0b;
-            }
-            
-            .tph-gauge-bar.red .tph-gauge-block.filled {
-                background: #ef4444;
-            }
-            
             .tph-gauge-label {
-                font-size: 12px;
-                color: #6b7280;
-            }
-            
-            .kpi-valores-duplos-divididos {
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                gap: 30px;
-                padding: 20px 0;
-            }
-            
-            .kpi-valor-metade {
-                text-align: center;
-            }
-            
-            .kpi-valor-metade .valor {
-                font-size: 36px;
-                font-weight: 700;
-                color: white;
-                line-height: 1;
-                text-transform: none !important;
-            }
-            
-            .kpi-valor-metade .label {
-                font-size: 12px;
+                font-size: 13px;
+                font-weight: 600;
                 color: #9ca3af;
-                margin-top: 8px;
                 text-transform: none !important;
             }
             
-            .divisor-vertical {
-                width: 1px;
-                height: 60px;
-                background: rgba(255, 255, 255, 0.2);
+            .tph-gauge-bar.green { color: #22c55e; }
+            .tph-gauge-bar.yellow { color: #f59e0b; }
+            .tph-gauge-bar.red { color: #ef4444; }
+            
+            .hospitais-table {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 13px;
             }
             
-            /* =================== TABELAS =================== */
-            .hospitais-table-ocupacao,
-            .hospitais-table,
+            .hospitais-table thead {
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            
+            .hospitais-table th {
+                text-align: left;
+                padding: 8px;
+                color: #60a5fa;
+                font-weight: 600;
+                text-transform: none !important;
+                font-size: 11px;
+                letter-spacing: 0.5px;
+            }
+            
+            .hospitais-table td {
+                padding: 8px;
+                color: #e5e7eb;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+                text-transform: none !important;
+            }
+            
+            .hospitais-table tbody tr:last-child td {
+                border-bottom: none;
+            }
+            
+            .hospitais-table tbody tr:hover {
+                background: rgba(255, 255, 255, 0.03);
+            }
+            
             .hospitais-table-alinhada {
                 width: 100%;
                 border-collapse: collapse;
-                font-size: 12px;
+                font-size: 13px;
             }
             
-            .hospitais-table-ocupacao th,
-            .hospitais-table th,
+            .hospitais-table-alinhada thead {
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            
             .hospitais-table-alinhada th {
+                padding: 8px;
                 color: #60a5fa;
                 font-weight: 600;
-                padding: 10px 8px;
-                text-align: center;
-                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                text-transform: none !important;
+                font-size: 11px;
+                letter-spacing: 0.5px;
+            }
+            
+            .hospitais-table-alinhada td {
+                padding: 8px;
+                color: #e5e7eb;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
                 text-transform: none !important;
             }
             
-            .hospitais-table-ocupacao td,
-            .hospitais-table td,
-            .hospitais-table-alinhada td {
-                color: white;
-                padding: 10px 8px;
-                text-align: center;
-                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            .hospitais-table-alinhada tbody tr:last-child td {
+                border-bottom: none;
             }
             
-            .hospitais-table-ocupacao tbody tr:hover,
-            .hospitais-table tbody tr:hover,
             .hospitais-table-alinhada tbody tr:hover {
                 background: rgba(255, 255, 255, 0.03);
             }
             
-            .regua-row {
-                background: transparent !important;
+            .hospitais-table-ocupacao {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 13px;
             }
             
-            .regua-row:hover {
-                background: transparent !important;
+            .hospitais-table-ocupacao thead {
+                border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+            }
+            
+            .hospitais-table-ocupacao th {
+                text-align: left;
+                padding: 10px 8px;
+                color: #60a5fa;
+                font-weight: 600;
+                text-transform: none !important;
+                font-size: 11px;
+                letter-spacing: 0.5px;
+            }
+            
+            .hospitais-table-ocupacao th:nth-child(2),
+            .hospitais-table-ocupacao th:nth-child(3),
+            .hospitais-table-ocupacao th:nth-child(4) {
+                text-align: center;
+            }
+            
+            .hospitais-table-ocupacao tbody tr:not(.regua-row) td {
+                padding: 10px 8px;
+                color: #e5e7eb;
+                border-bottom: none;
+                text-transform: none !important;
+            }
+            
+            .hospitais-table-ocupacao tbody tr:not(.regua-row) td:nth-child(2),
+            .hospitais-table-ocupacao tbody tr:not(.regua-row) td:nth-child(3),
+            .hospitais-table-ocupacao tbody tr:not(.regua-row) td:nth-child(4) {
+                text-align: center;
+            }
+            
+            .hospitais-table-ocupacao tbody tr.regua-row td {
+                padding: 4px 8px 12px 8px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            }
+            
+            .hospitais-table-ocupacao tbody tr:not(.regua-row):hover {
+                background: rgba(255, 255, 255, 0.03);
             }
             
             .ocupacao-mini-gauge {
-                display: flex;
-                justify-content: center;
+                width: 100%;
             }
             
             .ocupacao-gauge-bar {
                 display: flex;
+                align-items: center;
                 gap: 2px;
+                height: 8px;
             }
             
             .ocupacao-gauge-block {
-                width: 10px;
-                height: 8px;
-                border-radius: 2px;
-                background: rgba(255, 255, 255, 0.1);
+                flex: 1;
+                height: 100%;
+                border-radius: 1px;
+                transition: all 0.3s ease;
             }
             
             .ocupacao-gauge-block.filled {
                 background: currentColor;
             }
             
-            /* =================== GRAFICOS =================== */
+            .ocupacao-gauge-block.empty {
+                background: rgba(255, 255, 255, 0.1);
+            }
+            
             .executivo-graficos {
                 display: flex;
                 flex-direction: column;
-                gap: 30px;
+                gap: 25px;
             }
             
             .executivo-grafico-card {
@@ -2301,7 +2154,34 @@ function getExecutiveCSS() {
                 border-radius: 12px;
                 padding: 25px;
                 border: 1px solid rgba(255, 255, 255, 0.8);
-                border-top: 3px solid #ffffff !important;
+                border-top: 3px solid #ffffff;
+                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+                color: white;
+            }
+            
+            .chart-header {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                margin-bottom: 20px;
+                flex-wrap: wrap;
+                gap: 15px;
+            }
+            
+            .chart-header h3 {
+                margin: 0 0 5px 0;
+                color: white;
+                font-size: 18px;
+                font-weight: 600;
+                text-align: center;
+                text-transform: none !important;
+            }
+            
+            .chart-header p {
+                margin: 0;
+                color: #9ca3af;
+                font-size: 14px;
+                text-transform: none !important;
             }
             
             .chart-header-centralizado {
@@ -2310,28 +2190,73 @@ function getExecutiveCSS() {
             }
             
             .chart-header-centralizado h3 {
+                margin: 0 0 5px 0;
                 color: white;
                 font-size: 18px;
-                font-weight: 700;
-                margin: 0 0 8px 0;
+                font-weight: 600;
                 text-transform: none !important;
             }
             
             .chart-header-centralizado p {
-                color: #9ca3af;
-                font-size: 13px;
                 margin: 0;
+                color: #9ca3af;
+                font-size: 14px;
                 text-transform: none !important;
             }
             
-            /* =================== HEATMAP =================== */
+            .heatmap-container {
+                overflow-x: auto;
+                margin: 20px 0;
+            }
+            
+            .heatmap-table {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 12px;
+            }
+            
+            .heatmap-table th,
+            .heatmap-table td {
+                padding: 12px;
+                text-align: center;
+                border: 2px solid rgba(15, 23, 42, 0.3);
+                text-transform: none !important;
+            }
+            
+            .heatmap-table th {
+                background: rgba(255, 255, 255, 0.1);
+                font-weight: 700;
+                text-transform: none !important;
+            }
+            
+            .heatmap-cell {
+                font-weight: 700;
+                transition: all 0.2s ease;
+                cursor: pointer;
+                text-transform: none !important;
+            }
+            
+            .heatmap-cell:hover {
+                transform: scale(1.15);
+                z-index: 20;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            }
+            
+            .concessao-label {
+                text-align: left !important;
+                font-weight: 600;
+                position: sticky;
+                left: 0;
+                z-index: 5;
+                text-transform: none !important;
+            }
+            
             .heatmap-legenda {
                 display: flex;
-                align-items: center;
                 gap: 15px;
-                margin-bottom: 15px;
+                margin-bottom: 20px;
                 font-size: 12px;
-                color: #9ca3af;
+                align-items: center;
                 flex-wrap: wrap;
             }
             
@@ -2345,69 +2270,197 @@ function getExecutiveCSS() {
                 width: 20px;
                 height: 20px;
                 border-radius: 4px;
+                border: 1px solid rgba(0, 0, 0, 0.2);
             }
             
-            .heatmap-container {
-                overflow-x: auto;
+            .toggle-fundo-btn:hover {
+                background: rgba(255, 255, 255, 0.2) !important;
+                transform: translateY(-1px);
             }
             
-            .heatmap-table {
-                width: 100%;
-                border-collapse: collapse;
-                font-size: 11px;
+            .toggle-fundo-btn.active {
+                background: #f59e0b !important;
+                border-color: #f59e0b !important;
+                color: #000000 !important;
+            }
+
+            #btnWhatsAppExec:hover {
+                background: #1da851 !important;
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);
             }
             
-            .heatmap-table th,
-            .heatmap-table td {
-                padding: 10px 6px;
-                text-align: center;
-                border: 1px solid rgba(255, 255, 255, 0.1);
+            @media (min-width: 768px) and (max-width: 1024px) {
+                .gauge-largo-info {
+                    top: 52% !important;
+                    transform: translate(-50%, -42%) !important;
+                }
+                
+                .gauge-largo-number {
+                    font-size: 32px !important;
+                    margin-top: 20px !important;
+                    margin-bottom: 15px !important;
+                }
+                
+                .gauge-largo-percentage {
+                    font-size: 55px !important;
+                }
             }
             
-            .concessao-label {
-                text-align: left !important;
-                font-weight: 600;
-                min-width: 180px;
-                text-transform: none !important;
-            }
-            
-            .heatmap-cell {
-                font-weight: 600;
-                transition: all 0.2s ease;
-            }
-            
-            .heatmap-cell:hover {
-                transform: scale(1.1);
-                z-index: 10;
-            }
-            
-            /* =================== RESPONSIVIDADE =================== */
             @media (max-width: 1200px) {
                 .kpis-grid-executivo {
                     grid-template-columns: repeat(2, 1fr);
+                    gap: 15px;
                 }
             }
             
             @media (max-width: 768px) {
                 .kpis-grid-executivo {
-                    grid-template-columns: 1fr;
+                    display: flex !important;
+                    flex-direction: column !important;
+                    gap: 20px !important;
+                    width: 100% !important;
+                    padding: 0 !important;
                 }
                 
                 .kpi-box {
-                    min-height: auto;
-                    padding: 20px;
+                    min-height: auto !important;
+                    padding: 20px 15px !important;
+                    width: 100% !important;
+                    max-width: none !important;
+                    margin: 0 0 20px 0 !important;
+                    box-sizing: border-box !important;
+                }
+                
+                .dashboard-header-exec {
+                    padding: 15px !important;
+                    margin-bottom: 20px !important;
+                }
+                
+                .dashboard-header-exec h2 {
+                    font-size: 16px !important;
+                    margin-bottom: 15px !important;
+                    text-align: center !important;
+                }
+                
+                .dashboard-header-exec > div:last-child {
+                    flex-direction: column !important;
+                    width: 100% !important;
+                    gap: 10px !important;
+                }
+                
+                #btnWhatsAppExec,
+                #toggleFundoBtnExec {
+                    width: 100% !important;
+                    justify-content: center !important;
                 }
                 
                 .gauge-largo-container {
-                    height: 220px;
+                    width: 100% !important;
+                    height: 250px !important;
+                    padding: 10px !important;
+                    position: relative !important;
+                    min-height: 250px !important;
+                }
+                
+                .gauge-largo-container svg {
+                    width: 100% !important;
+                    height: auto !important;
+                    max-width: 300px !important;
+                    margin: 0 auto !important;
+                }
+                
+                .gauge-largo-info {
+                    position: absolute !important;
+                    top: 45% !important;
+                    left: 50% !important;
+                    transform: translate(-50%, -50%) !important;
+                    width: 100% !important;
+                    padding: 0 10px !important;
+                    pointer-events: none !important;
+                    z-index: 10 !important;
                 }
                 
                 .gauge-largo-number {
-                    font-size: 28px;
+                    font-size: 28px !important;
+                    margin-bottom: 8px !important;
+                    margin-top: 20px !important;
+                }
+                
+                .gauge-largo-label {
+                    font-size: 9px !important;
+                    margin-bottom: 5px !important;
                 }
                 
                 .gauge-largo-percentage {
-                    font-size: 40px;
+                    font-size: 40px !important;
+                    padding: 4px 12px !important;
+                    margin-top: 5px !important;
+                }
+                
+                .gauge-largo-subtitle {
+                    font-size: 9px !important;
+                    margin-top: 5px !important;
+                    white-space: normal !important;
+                    line-height: 1.2 !important;
+                }
+                
+                .v5-gauge-container {
+                    margin: 15px 0 !important;
+                }
+                
+                .v5-gauge {
+                    width: 100px !important;
+                    height: 60px !important;
+                }
+                
+                .v5-number-inside {
+                    font-size: 28px !important;
+                    margin-top: 5px !important;
+                }
+                
+                .v5-badge-below {
+                    font-size: 12px !important;
+                    padding: 3px 10px !important;
+                }
+                
+                .kpi-valores-duplos-divididos {
+                    gap: 15px !important;
+                }
+                
+                .kpi-valor-metade .valor {
+                    font-size: 28px !important;
+                }
+                
+                .kpi-valor-metade .label {
+                    font-size: 11px !important;
+                }
+                
+                .divisor-vertical {
+                    height: 60px !important;
+                }
+                
+                .kpi-tph-numero {
+                    font-size: 28px !important;
+                }
+                
+                .kpi-tph-label {
+                    font-size: 14px !important;
+                }
+                
+                .tph-gauge-block {
+                    width: 6px !important;
+                    height: 16px !important;
+                }
+                
+                .ocupacao-gauge-block {
+                    height: 6px !important;
+                }
+                
+                .hospitais-table-ocupacao,
+                .hospitais-table,
+                .hospitais-table-alinhada {
+                    font-size: 11px !important;
                 }
                 
                 .hospitais-table-ocupacao th,
@@ -2531,12 +2584,6 @@ function getExecutiveCSS() {
                 body > div[style*="background: linear-gradient"] {
                     padding: 10px !important;
                 }
-                
-                .modal-senha-exec {
-                    width: 90% !important;
-                    max-width: 320px !important;
-                    padding: 20px !important;
-                }
             }
             
             @media (max-width: 480px) {
@@ -2604,7 +2651,6 @@ function getExecutiveCSS() {
     `;
 }
 
-// =================== FUNCOES DE LOG ===================
 function logInfo(message) {
     console.log('[DASHBOARD EXECUTIVO V7.0] ' + message);
 }
@@ -2617,17 +2663,19 @@ function logError(message) {
     console.error('[DASHBOARD EXECUTIVO V7.0] ' + message);
 }
 
-// =================== EXPORTS V7.0 ===================
-window.getReservasHospitalExecutivo = getReservasHospitalExecutivo;
-window.filtrarLeitosSemUTIExecutivo = filtrarLeitosSemUTIExecutivo;
-window.verificarAcessoExecutivo = verificarAcessoExecutivo;
-window.mostrarModalSenhaExecutivo = mostrarModalSenhaExecutivo;
-window.validarSenhaExec = validarSenhaExec;
-window.fecharModalSenhaExec = fecharModalSenhaExec;
-
-console.log('Dashboard Executivo V7.0 - CARREGADO COM SUCESSO');
-console.log('V7.0 - 9 Hospitais (H1-H9) | 293 Leitos (126 Contratuais + 167 Extras)');
-console.log('V7.0 - Filtro UTI aplicado em todos os calculos');
-console.log('V7.0 - Sistema de reservas integrado (coluna na tabela)');
-console.log('V7.0 - Senha de acesso: 4 digitos com validade de 6 horas');
-console.log('V7.0 - Disponiveis descontam reservas automaticamente');
+console.log('Dashboard Executivo V7.0 - CORRIGIDO COMPLETO + RESERVADOS + FILTRO UTI');
+console.log('V7.0 9 Hospitais (H1-H9) | 293 Leitos (126 Contratuais + 167 Extras)');
+console.log('V7.0 Coluna Reservados adicionada na tabela de ocupacao');
+console.log('V7.0 Filtro UTI aplicado em todos os calculos');
+console.log('V7.0 Disponíveis = contratuais - ocupados - reservados');
+console.log('V7.0 Diretivas: SPICT elegível + Diretivas = "Não"');
+console.log('V7.0 text-transform: none !important em TUDO');
+console.log('V7.0 Bordas brancas sempre visíveis');
+console.log('V7.0 Ordem alfabética: Adventista → Sao Camilo Pompeia');
+console.log('V7.0 Gauge Leitos Disponíveis fixo em azul (#3b82f6)');
+console.log('V7.0 Tabelas TPH, PPS e SPICT com títulos centralizados');
+console.log('V7.0 Linhas de Cuidado reativadas com borda branca');
+console.log('V7.0 Títulos e subtítulos centralizados nos heatmaps');
+console.log('V7.0 CORREÇÃO UTF-8: Acentos (ç, ~, ^, ´) aplicados nos heatmaps');
+console.log('V7.0 Taxa de ocupação máxima: 100% (base dinâmica)');
+console.log('V7.0 Disponíveis baseados em contratuais (não total)');

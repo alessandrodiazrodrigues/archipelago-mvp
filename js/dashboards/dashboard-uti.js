@@ -1,263 +1,182 @@
-// =================== DASHBOARD UTI V7.0 - DEZEMBRO/2025 ===================
-// =================== ARCHIPELAGO - GESTAO DE LEITOS UTI ===================
-// 
-// CONFIGURACAO ATUAL:
-// - Apenas H2 (Cruz Azul) ATIVO com 30 leitos UTI
-// - Demais hospitais DESLIGADOS (configuracao pronta para ativacao futura)
-//
-// PARA ATIVAR OUTROS HOSPITAIS:
-// 1. Adicione o ID do hospital no array HOSPITAIS_UTI_ATIVOS (linha ~25)
-// 2. Certifique-se que os leitos UTI estao cadastrados na planilha
-//
-// CAPACIDADE UTI COMPLETA (quando todos ativos):
-// H1: 3 contratuais + 2 extras = 5 total
-// H2: 20 contratuais + 10 extras = 30 total (ATIVO)
-// H3: 2 contratuais + 2 extras = 4 total
-// H4: 4 contratuais + 2 extras = 6 total
-// H5: 4 contratuais + 2 extras = 6 total
-// H6: 2 contratuais + 2 extras = 4 total
-// H7: 0 (nao possui UTI)
-// H8: 2 contratuais + 2 extras = 4 total
-// H9: 2 contratuais + 2 extras = 4 total
-// TOTAL GERAL: 39 contratuais + 24 extras = 63 leitos
-// ===================
+// =================== DASHBOARD UTI V7.0 ===================
+// =================== LEITOS UTI - INICIAL: H2 CRUZ AZUL ===================
+// =================== 20 CONTRATUAIS + 10 EXTRAS = 30 TOTAL ===================
 
-// =================== HOSPITAIS UTI ATIVOS ===================
-// Para ativar mais hospitais, adicione o ID aqui
-const HOSPITAIS_UTI_ATIVOS = ['H2']; // Apenas Cruz Azul ativo no momento
+console.log('Dashboard UTI V7.0 - Carregando...');
 
-// =================== CAPACIDADE UTI POR HOSPITAL ===================
+// =================== CONFIGURACAO UTI POR HOSPITAL ===================
 const UTI_CAPACIDADE = {
-    H1: { contratuais: 3, extras: 2, total: 5, nome: 'Neomater', ativo: false },
-    H2: { contratuais: 20, extras: 10, total: 30, nome: 'Cruz Azul', ativo: true },
-    H3: { contratuais: 2, extras: 2, total: 4, nome: 'Santa Marcelina', ativo: false },
-    H4: { contratuais: 4, extras: 2, total: 6, nome: 'Santa Clara', ativo: false },
-    H5: { contratuais: 4, extras: 2, total: 6, nome: 'Adventista', ativo: false },
-    H6: { contratuais: 2, extras: 2, total: 4, nome: 'Santa Cruz', ativo: false },
-    H7: { contratuais: 0, extras: 0, total: 0, nome: 'Santa Virginia', ativo: false }, // Nao possui UTI
-    H8: { contratuais: 2, extras: 2, total: 4, nome: 'Sao Camilo Ipiranga', ativo: false },
-    H9: { contratuais: 2, extras: 2, total: 4, nome: 'Sao Camilo Pompeia', ativo: false }
+    H1: { contratuais: 3, extras: 2, total: 5 },
+    H2: { contratuais: 20, extras: 10, total: 30 },
+    H3: { contratuais: 2, extras: 2, total: 4 },
+    H4: { contratuais: 4, extras: 2, total: 6 },
+    H5: { contratuais: 4, extras: 2, total: 6 },
+    H6: { contratuais: 2, extras: 2, total: 4 },
+    H7: { contratuais: 0, extras: 0, total: 0 },
+    H8: { contratuais: 2, extras: 2, total: 4 },
+    H9: { contratuais: 2, extras: 2, total: 4 }
 };
 
-// Exportar para uso global
-window.UTI_CAPACIDADE = UTI_CAPACIDADE;
+// Hospitais com UTI (para dropdown)
+const HOSPITAIS_COM_UTI = ['H2']; // Por enquanto so H2
 
-// =================== OPCOES DE PREV ALTA UTI (SEM TURNOS) ===================
-const PREV_ALTA_UTI = ['Hoje', '24h', '48h', '72h', '96h', 'Sem Previsao'];
-window.PREV_ALTA_UTI = PREV_ALTA_UTI;
-
-// =================== CAMPOS BLOQUEADOS NA UTI ===================
-const CAMPOS_BLOQUEADOS_UTI = ['pps', 'spict', 'regiao', 'diretivas', 'concessoes', 'linhasCuidado'];
-window.CAMPOS_BLOQUEADOS_UTI = CAMPOS_BLOQUEADOS_UTI;
-
-// =================== CORES ===================
+// Cores do sistema
 const CORES_UTI = {
-    ocupados: '#22c55e',      // Verde
-    reservados: '#fbbf24',    // Amarelo
-    disponiveis: '#3b82f6',   // Azul
-    titulo: '#60a5fa',        // Azul claro
-    fundo: '#131b2e',
-    card: 'rgba(255, 255, 255, 0.03)'
+    azulMarinhoEscuro: '#131b2e',
+    azulEscuro: '#172945',
+    azulMedio: '#1c5083',
+    azulPrincipal: '#60a5fa',
+    azulAcinzentado: '#577a97',
+    azulClaro: '#a9c0d2',
+    cinzaEscuro: '#3c3a3e',
+    cinzaMedio: '#9ca3af',
+    cinzaClaro: '#e9e5e2',
+    cinzaBloqueado: '#4b5563',
+    bloqueadoFundo: 'rgba(75, 85, 99, 0.3)'
 };
 
 // =================== FUNCOES AUXILIARES ===================
-
-function normStrUTI(s) {
-    if (!s) return '';
-    return String(s).toLowerCase().trim()
-        .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-}
-
-function parseAdmDateUTI(admAt) {
-    if (!admAt) return null;
-    try {
-        const d = new Date(admAt);
-        if (!isNaN(d.getTime())) {
-            const agora = new Date();
-            const diffDias = Math.floor((agora - d) / (1000 * 60 * 60 * 24));
-            if (diffDias >= 0 && diffDias <= 365) {
-                return d;
-            }
-        }
-    } catch (e) {}
-    return null;
-}
-
 function isOcupadoUTI(leito) {
     if (!leito || !leito.status) return false;
-    const s = normStrUTI(leito.status);
+    const s = (leito.status || '').toString().toLowerCase().trim();
     return s === 'ocupado' || s === 'em uso' || s === 'ocupada';
 }
 
 function isVagoUTI(leito) {
     if (!leito || !leito.status) return false;
-    const s = normStrUTI(leito.status);
-    return s === 'vago' || s === 'disponivel' || s === 'livre';
+    const s = (leito.status || '').toString().toLowerCase().trim();
+    return s === 'vago' || s === 'disponivel' || s === 'disponível' || s === 'livre';
 }
 
-// =================== FILTRAR APENAS LEITOS UTI ===================
+// Filtrar APENAS leitos UTI
 function filtrarLeitosUTI(leitos) {
     if (!Array.isArray(leitos)) return [];
     return leitos.filter(l => l.tipo === 'UTI');
 }
 
-// =================== BUSCAR RESERVAS UTI ===================
+// Buscar reservas UTI por hospital
 function getReservasUTI(hospitalId) {
-    if (!window.reservasData || !Array.isArray(window.reservasData)) return [];
-    return window.reservasData.filter(r => r.hospital === hospitalId && r.tipo === 'UTI');
+    const reservas = window.reservasData || [];
+    return reservas.filter(r => 
+        r.hospital === hospitalId && 
+        r.tipo === 'UTI' &&
+        r.matricula && r.matricula.trim() !== ''
+    );
 }
 
-// =================== VERIFICAR SE HOSPITAL ESTA ATIVO ===================
-function isHospitalUTIAtivo(hospitalId) {
-    return HOSPITAIS_UTI_ATIVOS.includes(hospitalId);
+// Parse data de admissao
+function parseAdmDateUTI(admAt) {
+    if (!admAt) return null;
+    const d = new Date(admAt);
+    if (!isNaN(d)) {
+        const dias = Math.floor((new Date() - d) / (1000 * 60 * 60 * 24));
+        if (dias >= 0 && dias <= 365) return d;
+    }
+    return null;
 }
 
-// =================== OBTER HOSPITAIS COM UTI ATIVOS ===================
-function getHospitaisUTIAtivos() {
-    return Object.entries(UTI_CAPACIDADE)
-        .filter(([id, config]) => config.ativo && config.total > 0 && HOSPITAIS_UTI_ATIVOS.includes(id))
-        .map(([id, config]) => ({ id, ...config }));
-}
-
-// =================== CALCULAR OFFSET DO GAUGE ===================
+// =================== CALCULAR GAUGE OFFSET ===================
 function calcularGaugeOffsetUTI(porcentagem) {
-    const circunferencia = Math.PI * 55;
-    const progresso = (porcentagem / 100) * circunferencia;
+    var circunferencia = Math.PI * 66;
+    var progresso = (porcentagem / 100) * circunferencia;
     return circunferencia - progresso;
 }
 
-// =================== RENDER GAUGE OCUPADOS (VERDE) ===================
-function renderGaugeOcupadosUTI(porcentagem, numero) {
-    const offset = calcularGaugeOffsetUTI(porcentagem);
-    const cor = CORES_UTI.ocupados;
+// =================== RENDER GAUGE V5 UTI ===================
+function renderGaugeUTI(porcentagem, cor, numero) {
+    var offset = calcularGaugeOffsetUTI(porcentagem);
     
-    return `
-        <div class="uti-gauge-container">
-            <div class="uti-gauge-titulo">Ocupados</div>
-            <div style="position: relative;">
-                <svg class="uti-gauge" viewBox="0 0 140 80">
-                    <path d="M 15 70 A 55 55 0 0 1 125 70" 
-                          fill="none" 
-                          stroke="rgba(255,255,255,0.1)" 
-                          stroke-width="14" 
-                          stroke-linecap="round"/>
-                    <path d="M 15 70 A 55 55 0 0 1 125 70" 
-                          fill="none" 
-                          stroke="${cor}" 
-                          stroke-width="14" 
-                          stroke-linecap="round"
-                          stroke-dasharray="172.8"
-                          stroke-dashoffset="${offset}"/>
-                </svg>
-                <div class="uti-number-inside">${numero.toString().padStart(2, '0')}</div>
-            </div>
-            <div class="uti-badge-below ocupados">${porcentagem.toFixed(0)}%</div>
-        </div>
-    `;
+    return '\
+        <div class="v5-gauge-container-uti">\
+            <div style="position: relative;">\
+                <svg class="v5-gauge-uti" viewBox="0 0 168 96">\
+                    <path d="M 18 84 A 66 66 0 0 1 150 84" \
+                          fill="none" \
+                          stroke="rgba(255,255,255,0.1)" \
+                          stroke-width="17" \
+                          stroke-linecap="round"/>\
+                    <path d="M 18 84 A 66 66 0 0 1 150 84" \
+                          fill="none" \
+                          stroke="' + cor + '" \
+                          stroke-width="17" \
+                          stroke-linecap="round"\
+                          stroke-dasharray="207.3"\
+                          stroke-dashoffset="' + offset + '"/>\
+                </svg>\
+                <div class="v5-number-inside-uti">' + numero.toString().padStart(2, '0') + '</div>\
+            </div>\
+            <div class="v5-badge-below-uti">' + porcentagem.toFixed(0) + '%</div>\
+        </div>\
+    ';
 }
 
-// =================== RENDER GAUGE RESERVADOS (AMARELO) ===================
-function renderGaugeReservadosUTI(porcentagem, numero) {
-    const offset = calcularGaugeOffsetUTI(porcentagem);
-    const cor = CORES_UTI.reservados;
-    
-    return `
-        <div class="uti-gauge-container">
-            <div class="uti-gauge-titulo">Reservados</div>
-            <div style="position: relative;">
-                <svg class="uti-gauge" viewBox="0 0 140 80">
-                    <path d="M 15 70 A 55 55 0 0 1 125 70" 
-                          fill="none" 
-                          stroke="rgba(255,255,255,0.1)" 
-                          stroke-width="14" 
-                          stroke-linecap="round"/>
-                    <path d="M 15 70 A 55 55 0 0 1 125 70" 
-                          fill="none" 
-                          stroke="${cor}" 
-                          stroke-width="14" 
-                          stroke-linecap="round"
-                          stroke-dasharray="172.8"
-                          stroke-dashoffset="${offset}"/>
-                </svg>
-                <div class="uti-number-inside">${numero.toString().padStart(2, '0')}</div>
-            </div>
-            <div class="uti-badge-below reservados">${porcentagem.toFixed(0)}%</div>
-        </div>
-    `;
-}
-
-// =================== RENDER GAUGE DISPONIVEIS (AZUL) ===================
-function renderGaugeDisponiveisUTI(porcentagem, numero) {
-    const offset = calcularGaugeOffsetUTI(porcentagem);
-    const cor = CORES_UTI.disponiveis;
-    
-    return `
-        <div class="uti-gauge-container">
-            <div style="position: relative;">
-                <svg class="uti-gauge" viewBox="0 0 140 80">
-                    <path d="M 15 70 A 55 55 0 0 1 125 70" 
-                          fill="none" 
-                          stroke="rgba(255,255,255,0.1)" 
-                          stroke-width="14" 
-                          stroke-linecap="round"/>
-                    <path d="M 15 70 A 55 55 0 0 1 125 70" 
-                          fill="none" 
-                          stroke="${cor}" 
-                          stroke-width="14" 
-                          stroke-linecap="round"
-                          stroke-dasharray="172.8"
-                          stroke-dashoffset="${offset}"/>
-                </svg>
-                <div class="uti-number-inside">${numero.toString().padStart(2, '0')}</div>
-            </div>
-            <div class="uti-badge-below disponiveis">${porcentagem.toFixed(0)}%</div>
-        </div>
-    `;
-}
-
-// =================== PROCESSAR DADOS UTI DO HOSPITAL ===================
+// =================== PROCESSAR DADOS HOSPITAL UTI ===================
 function processarDadosUTI(hospitalId) {
     const hospitalObj = window.hospitalData[hospitalId] || {};
-    let leitosRaw = hospitalObj.leitos || hospitalObj || [];
+    let leitos = hospitalObj.leitos || hospitalObj || [];
     
-    if (!Array.isArray(leitosRaw)) {
-        leitosRaw = [];
+    if (!Array.isArray(leitos)) {
+        leitos = [];
     }
     
-    // Filtrar apenas leitos UTI
-    const leitos = filtrarLeitosUTI(leitosRaw);
+    // Filtrar APENAS leitos UTI
+    leitos = filtrarLeitosUTI(leitos);
     
-    // Buscar configuracao de capacidade
+    // Buscar capacidade UTI
     const capacidade = UTI_CAPACIDADE[hospitalId];
     if (!capacidade) {
-        console.error('[UTI] Capacidade nao encontrada para', hospitalId);
+        console.error('[UTI] Capacidade nao encontrada para ' + hospitalId);
         return null;
     }
-    
-    // Contar ocupados
-    const ocupados = leitos.filter(l => isOcupadoUTI(l));
     
     // Buscar reservas UTI
     const reservas = getReservasUTI(hospitalId);
     
-    // Contar por tipo de convenio (Apartamento/Enfermaria escolhido na admissao)
-    const ocupadosApto = ocupados.filter(l => l.categoriaEscolhida === 'Apartamento').length;
-    const ocupadosEnf = ocupados.filter(l => l.categoriaEscolhida === 'Enfermaria').length;
+    // Ocupados
+    const ocupados = leitos.filter(l => isOcupadoUTI(l));
     
-    const reservadosApto = reservas.filter(r => r.tipoConvenio === 'Apartamento' || r.categoriaEscolhida === 'Apartamento').length;
-    const reservadosEnf = reservas.filter(r => r.tipoConvenio === 'Enfermaria' || r.categoriaEscolhida === 'Enfermaria').length;
+    // Ocupados por Modalidade Contratada (categoriaEscolhida)
+    const ocupadosApto = ocupados.filter(l => 
+        l.categoriaEscolhida === 'Apartamento'
+    ).length;
+    const ocupadosEnf = ocupados.filter(l => 
+        l.categoriaEscolhida === 'Enfermaria'
+    ).length;
     
-    // Calcular vagos
+    // Previsao de Alta (Hoje)
+    const previsaoAlta = ocupados.filter(l => {
+        if (!l.prevAlta || l.prevAlta.trim() === '') return false;
+        const prev = l.prevAlta.toLowerCase();
+        return prev.includes('hoje');
+    });
+    
+    const previsaoApto = previsaoAlta.filter(l => 
+        l.categoriaEscolhida === 'Apartamento'
+    ).length;
+    const previsaoEnf = previsaoAlta.filter(l => 
+        l.categoriaEscolhida === 'Enfermaria'
+    ).length;
+    
+    // Reservados por Modalidade
+    let reservadosApto = 0;
+    let reservadosEnf = 0;
+    
+    reservas.forEach(r => {
+        const cat = (r.categoriaEscolhida || r.tipo || '').toLowerCase();
+        if (cat === 'apartamento' || cat === 'apto') {
+            reservadosApto++;
+        } else if (cat === 'enfermaria' || cat === 'enf') {
+            reservadosEnf++;
+        }
+    });
+    
+    // Vagos
     const vagos = leitos.filter(l => isVagoUTI(l));
     
-    // Calcular disponiveis (descontando reservas)
-    const disponiveis = Math.max(0, capacidade.contratuais - ocupados.length - reservas.length);
+    // Disponiveis = contratuais - ocupados - reservados
+    const disponiveisTotal = Math.max(capacidade.contratuais - ocupados.length - reservas.length, 0);
     
-    // Calcular taxa de ocupacao
-    const base = Math.max(capacidade.contratuais, ocupados.length);
-    const taxaOcupacao = base > 0 ? Math.min((ocupados.length / base) * 100, 100) : 0;
-    
-    // Calcular TPH
+    // TPH
     const hoje = new Date();
     const tphValues = ocupados
         .map(l => {
@@ -273,38 +192,54 @@ function processarDadosUTI(hospitalId) {
         ? (tphValues.reduce((a, b) => a + b, 0) / tphValues.length).toFixed(2)
         : '0.00';
     
-    // Previsao de alta (para hoje)
-    const previsaoAlta = ocupados.filter(l => {
-        if (!l.prevAlta) return false;
-        const prev = l.prevAlta.toLowerCase();
-        return prev.includes('hoje');
-    });
+    // Taxa de ocupacao
+    const base = Math.max(capacidade.contratuais, ocupados.length);
+    const taxaOcupacao = base > 0 ? Math.min((ocupados.length / base) * 100, 100) : 0;
+    
+    // Porcentagem de reservados
+    const porcentagemReservados = capacidade.contratuais > 0 
+        ? Math.min((reservas.length / capacidade.contratuais) * 100, 100) 
+        : 0;
+    
+    // Nome do hospital
+    const nomeHospital = hospitalId === 'H2' ? 'Cruz Azul' :
+                         hospitalId === 'H1' ? 'Neomater' :
+                         hospitalId === 'H3' ? 'Santa Marcelina' :
+                         hospitalId === 'H4' ? 'Santa Clara' :
+                         hospitalId === 'H5' ? 'Adventista' :
+                         hospitalId === 'H6' ? 'Santa Cruz' :
+                         hospitalId === 'H7' ? 'Santa Virginia' :
+                         hospitalId === 'H8' ? 'Sao Camilo Ipiranga' :
+                         hospitalId === 'H9' ? 'Sao Camilo Pompeia' : hospitalId;
     
     return {
         id: hospitalId,
-        nome: capacidade.nome,
+        nome: nomeHospital,
         contratuais: capacidade.contratuais,
         extras: capacidade.extras,
+        total: capacidade.total,
         totalLeitos: leitos.length,
-        taxaOcupacao,
+        taxaOcupacao: taxaOcupacao,
+        porcentagemReservados: porcentagemReservados,
         ocupados: {
             total: ocupados.length,
             apartamento: ocupadosApto,
-            enfermaria: ocupadosEnf,
-            lista: ocupados
+            enfermaria: ocupadosEnf
         },
         reservados: {
             total: reservas.length,
             apartamento: reservadosApto,
-            enfermaria: reservadosEnf,
-            lista: reservas
-        },
-        disponiveis: {
-            total: disponiveis,
-            vagos: vagos.length
+            enfermaria: reservadosEnf
         },
         previsao: {
-            total: previsaoAlta.length
+            total: previsaoAlta.length,
+            apartamento: previsaoApto,
+            enfermaria: previsaoEnf
+        },
+        disponiveis: {
+            total: disponiveisTotal,
+            apartamento: Math.max(disponiveisTotal - reservadosApto, 0),
+            enfermaria: Math.max(disponiveisTotal - reservadosEnf, 0)
         },
         tph: {
             medio: tphMedio
@@ -312,11 +247,11 @@ function processarDadosUTI(hospitalId) {
     };
 }
 
-// =================== COPIAR PARA WHATSAPP ===================
-function copiarDashboardUTIParaWhatsApp(hospitalId) {
+// =================== COPIAR PARA WHATSAPP UTI ===================
+function copiarParaWhatsAppUTI(hospitalId) {
     const dados = processarDadosUTI(hospitalId);
     if (!dados) {
-        alert('Erro ao processar dados do hospital');
+        alert('Erro ao processar dados UTI');
         return;
     }
     
@@ -329,22 +264,29 @@ function copiarDashboardUTIParaWhatsApp(hospitalId) {
         minute: '2-digit'
     });
     
-    let texto = `*DASHBOARD UTI - ${dados.nome}*\n`;
+    let texto = `*UTI - ${dados.nome}*\n`;
     texto += `${dataFormatada}\n`;
-    texto += `━━━━━━━━━━━━━━━━━\n\n`;
+    texto += `━━━━━━━━━━━━━━━━━\n`;
+    texto += `*OCUPACAO UTI*\n`;
+    texto += `━━━━━━━━━━━━━━━━━\n`;
+    texto += `Taxa de Ocupacao: *${dados.taxaOcupacao.toFixed(1)}%*\n`;
+    texto += `Leitos Ocupados: *${dados.ocupados.total}/${dados.contratuais}*\n`;
+    texto += `Leitos Reservados: *${dados.reservados.total}*\n`;
+    texto += `Leitos Disponiveis: *${dados.disponiveis.total}*\n\n`;
     
-    texto += `*Ocupacao:* ${dados.ocupados.total}/${dados.contratuais} (${dados.taxaOcupacao.toFixed(1)}%)\n`;
-    texto += `- Convenio Apartamento: ${dados.ocupados.apartamento}\n`;
-    texto += `- Convenio Enfermaria: ${dados.ocupados.enfermaria}\n\n`;
+    texto += `*Por Modalidade Contratada:*\n`;
+    texto += `━━━━━━━━━━━━━━━━━\n`;
+    texto += `_Ocupados:_\n`;
+    texto += `  Apartamento: ${dados.ocupados.apartamento}\n`;
+    texto += `  Enfermaria: ${dados.ocupados.enfermaria}\n\n`;
+    texto += `_Reservados:_\n`;
+    texto += `  Apartamento: ${dados.reservados.apartamento}\n`;
+    texto += `  Enfermaria: ${dados.reservados.enfermaria}\n\n`;
     
-    if (dados.reservados.total > 0) {
-        texto += `*Reservados:* ${dados.reservados.total}\n`;
-        texto += `- Convenio Apartamento: ${dados.reservados.apartamento}\n`;
-        texto += `- Convenio Enfermaria: ${dados.reservados.enfermaria}\n\n`;
-    }
+    texto += `*Previsao de Alta Hoje:* ${dados.previsao.total}\n`;
+    texto += `  Apartamento: ${dados.previsao.apartamento}\n`;
+    texto += `  Enfermaria: ${dados.previsao.enfermaria}\n\n`;
     
-    texto += `*Disponiveis:* ${dados.disponiveis.total}\n\n`;
-    texto += `*Previsao Alta Hoje:* ${dados.previsao.total}\n`;
     texto += `*TPH Medio:* ${dados.tph.medio} dias\n`;
     
     navigator.clipboard.writeText(texto).then(() => {
@@ -355,66 +297,65 @@ function copiarDashboardUTIParaWhatsApp(hospitalId) {
     });
 }
 
-// =================== MUDAR HOSPITAL NO DROPDOWN ===================
-function mudarHospitalUTI(hospitalId) {
-    if (!isHospitalUTIAtivo(hospitalId)) {
-        alert('Este hospital ainda nao esta ativo para UTI.');
-        return;
-    }
-    window.renderDashboardUTI(hospitalId);
+// =================== RENDER MINI GAUGE TPH UTI ===================
+function renderMiniGaugeTPHUTI(valor) {
+    const maxTPH = 30;
+    const porcentagem = Math.min((valor / maxTPH) * 100, 100);
+    
+    let cor = '#22c55e';
+    if (valor >= 20) cor = '#ef4444';
+    else if (valor >= 10) cor = '#f59e0b';
+    
+    const offset = calcularGaugeOffsetUTI(porcentagem);
+    
+    return `
+        <div class="mini-gauge-tph-uti">
+            <svg viewBox="0 0 168 96" style="width: 60px; height: 36px;">
+                <path d="M 18 84 A 66 66 0 0 1 150 84" 
+                      fill="none" 
+                      stroke="rgba(255,255,255,0.1)" 
+                      stroke-width="17" 
+                      stroke-linecap="round"/>
+                <path d="M 18 84 A 66 66 0 0 1 150 84" 
+                      fill="none" 
+                      stroke="${cor}" 
+                      stroke-width="17" 
+                      stroke-linecap="round"
+                      stroke-dasharray="207.3"
+                      stroke-dashoffset="${offset}"/>
+            </svg>
+        </div>
+    `;
 }
 
-// =================== FUNCAO PRINCIPAL: RENDER DASHBOARD UTI ===================
+// =================== RENDER DASHBOARD UTI ===================
 window.renderDashboardUTI = function(hospitalId) {
-    console.log('[UTI V7.0] Renderizando Dashboard UTI');
+    hospitalId = hospitalId || 'H2'; // Default H2
     
-    // Se nao passou hospital, usar o primeiro ativo
-    if (!hospitalId) {
-        const hospitaisAtivos = getHospitaisUTIAtivos();
-        if (hospitaisAtivos.length === 0) {
-            console.error('[UTI] Nenhum hospital UTI ativo');
-            return;
-        }
-        hospitalId = hospitaisAtivos[0].id;
-    }
+    console.log('[UTI] Renderizando Dashboard UTI para ' + hospitalId);
     
-    // Verificar se hospital esta ativo
-    if (!isHospitalUTIAtivo(hospitalId)) {
-        console.warn('[UTI] Hospital', hospitalId, 'nao esta ativo para UTI');
-        const hospitaisAtivos = getHospitaisUTIAtivos();
-        if (hospitaisAtivos.length > 0) {
-            hospitalId = hospitaisAtivos[0].id;
-        } else {
-            return;
-        }
-    }
-    
-    // Buscar container
     let container = document.getElementById('dashUTIContent');
     if (!container) {
-        const dashSection = document.getElementById('dash3');
+        const dashSection = document.getElementById('dash-uti') || document.getElementById('dashboardContainer');
         if (dashSection) {
             container = document.createElement('div');
             container.id = 'dashUTIContent';
+            dashSection.innerHTML = '';
             dashSection.appendChild(container);
         }
     }
     
     if (!container) {
-        container = document.getElementById('dashboardContainer');
-        if (!container) {
-            console.error('[UTI] Nenhum container encontrado');
-            return;
-        }
+        console.error('[UTI] Container nao encontrado');
+        return;
     }
     
     // Verificar dados
-    if (!window.hospitalData || Object.keys(window.hospitalData).length === 0) {
+    if (!window.hospitalData || !window.hospitalData[hospitalId]) {
         container.innerHTML = `
             <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 400px; text-align: center; color: white; background: linear-gradient(135deg, #1a1f2e 0%, #2d3748 100%); border-radius: 12px; margin: 20px; padding: 40px;">
-                <div style="width: 60px; height: 60px; border: 3px solid #ef4444; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px;"></div>
-                <h2 style="color: #ef4444; margin-bottom: 10px; font-size: 20px;">Dados nao disponiveis</h2>
-                <p style="color: #9ca3af; font-size: 14px;">Aguardando sincronizacao com a planilha</p>
+                <h2 style="color: #ef4444; margin-bottom: 10px;">Dados UTI nao disponiveis</h2>
+                <p style="color: #9ca3af;">Aguardando sincronizacao com a planilha</p>
                 <button onclick="window.location.reload()" style="margin-top: 20px; padding: 12px 24px; background: #3b82f6; color: white; border: none; border-radius: 8px; cursor: pointer;">Recarregar</button>
             </div>
         `;
@@ -425,516 +366,479 @@ window.renderDashboardUTI = function(hospitalId) {
     const dados = processarDadosUTI(hospitalId);
     if (!dados) {
         container.innerHTML = `
-            <div style="padding: 40px; text-align: center; color: #9ca3af;">
-                <p>Nenhum dado UTI disponivel para este hospital</p>
+            <div style="text-align: center; padding: 40px; color: #9ca3af;">
+                <h2>Nenhum leito UTI encontrado para ${hospitalId}</h2>
             </div>
         `;
         return;
     }
     
-    // Obter hospitais ativos para dropdown
-    const hospitaisAtivos = getHospitaisUTIAtivos();
+    const hoje = new Date().toLocaleDateString('pt-BR');
     
-    // Calcular porcentagens
-    const porcentagemOcupados = dados.contratuais > 0 ? (dados.ocupados.total / dados.contratuais) * 100 : 0;
-    const porcentagemReservados = dados.contratuais > 0 ? (dados.reservados.total / dados.contratuais) * 100 : 0;
-    const porcentagemDisponiveis = dados.contratuais > 0 ? (dados.disponiveis.total / dados.contratuais) * 100 : 0;
-    
-    // Renderizar HTML
+    // Render HTML
     container.innerHTML = `
-        <div class="dashboard-uti-container">
-            ${getUTICSS()}
+        ${getUTIDashboardCSS()}
+        
+        <div class="dashboard-uti-wrapper">
             
-            <!-- HEADER -->
-            <div class="uti-header">
-                <div class="uti-header-titulo">
-                    <h2>Dashboard UTIs</h2>
-                </div>
+            <!-- Header -->
+            <div class="dashboard-header-uti">
+                <h2 class="dashboard-title-uti">Dashboard UTI - ${dados.nome}</h2>
                 
-                <div class="uti-header-controles">
-                    <select id="hospitalSelectUTI" class="uti-select-hospital" onchange="mudarHospitalUTI(this.value)">
-                        ${hospitaisAtivos.map(h => `
-                            <option value="${h.id}" ${h.id === hospitalId ? 'selected' : ''}>
-                                ${h.nome} (${h.total} leitos)
+                <div class="header-controls-uti">
+                    <select id="hospitalSelectUTI" class="hospital-select-uti" onchange="window.renderDashboardUTI(this.value)">
+                        ${HOSPITAIS_COM_UTI.map(h => `
+                            <option value="${h}" ${h === hospitalId ? 'selected' : ''}>
+                                ${h === 'H2' ? 'Cruz Azul' : h}
                             </option>
                         `).join('')}
                     </select>
                     
-                    <button id="btnWhatsAppUTI" class="uti-btn-whatsapp" onclick="copiarDashboardUTIParaWhatsApp('${hospitalId}')">
+                    <button id="btnWhatsAppUTI" class="btn-whatsapp-uti" onclick="copiarParaWhatsAppUTI('${hospitalId}')">
                         Copiar para WhatsApp
                     </button>
                 </div>
             </div>
             
-            <!-- INFO HOSPITAL -->
-            <div class="uti-info-hospital">
-                <div class="uti-info-nome">${dados.nome}</div>
-                <div class="uti-info-capacidade">
-                    <span class="uti-info-item">
-                        <span class="uti-info-label">Contratuais:</span>
-                        <span class="uti-info-valor">${dados.contratuais}</span>
-                    </span>
-                    <span class="uti-info-separador">|</span>
-                    <span class="uti-info-item">
-                        <span class="uti-info-label">Extras:</span>
-                        <span class="uti-info-valor">${dados.extras}</span>
-                    </span>
-                    <span class="uti-info-separador">|</span>
-                    <span class="uti-info-item">
-                        <span class="uti-info-label">Total:</span>
-                        <span class="uti-info-valor">${dados.contratuais + dados.extras}</span>
-                    </span>
-                </div>
-            </div>
-            
-            <!-- KPI GRID -->
-            <div class="uti-kpi-grid">
+            <!-- Grid de KPIs - 6 boxes (2 linhas x 3 colunas) -->
+            <div class="kpis-grid-uti">
                 
-                <!-- BOX OCUPACAO E RESERVAS -->
-                <div class="uti-kpi-box box-ocupacao-reservas">
-                    <div class="uti-kpi-title">Ocupacao / Reservas</div>
+                <!-- BOX 1: OCUPACAO -->
+                <div class="kpi-box-uti box-ocupacao-uti">
+                    <div class="kpi-title-uti">Ocupacao</div>
                     
-                    <div class="uti-dual-gauges">
-                        ${renderGaugeOcupadosUTI(porcentagemOcupados, dados.ocupados.total)}
-                        ${renderGaugeReservadosUTI(porcentagemReservados, dados.reservados.total)}
-                    </div>
-                    
-                    <div class="uti-kpi-detalhes">
-                        <div class="uti-kpi-subtitle">Por Tipo de Convenio</div>
-                        <table class="uti-tabela-tipo">
+                    <div class="kpi-content-uti">
+                        <div class="dual-gauges-container-uti">
+                            <div class="gauge-with-label-uti">
+                                <div class="gauge-label-uti">Ocupados</div>
+                                ${renderGaugeUTI(dados.taxaOcupacao, CORES_UTI.azulPrincipal, dados.ocupados.total)}
+                            </div>
+                            <div class="gauge-with-label-uti">
+                                <div class="gauge-label-uti">Reservados</div>
+                                ${renderGaugeUTI(dados.porcentagemReservados, CORES_UTI.azulPrincipal, dados.reservados.total)}
+                            </div>
+                        </div>
+                        
+                        <div class="kpi-subtitle-uti">Total por Modalidade Contratada</div>
+                        <table class="modalidade-table-uti">
                             <thead>
                                 <tr>
                                     <th></th>
-                                    <th style="color: ${CORES_UTI.ocupados};">Ocupados</th>
-                                    <th style="color: ${CORES_UTI.reservados};">Reservados</th>
+                                    <th>Ocupados</th>
+                                    <th>Reservados</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td>Apartamento</td>
-                                    <td>${dados.ocupados.apartamento}</td>
-                                    <td>${dados.reservados.apartamento}</td>
+                                    <td class="modalidade-label">Apartamento</td>
+                                    <td class="modalidade-valor">${dados.ocupados.apartamento}</td>
+                                    <td class="modalidade-valor">${dados.reservados.apartamento}</td>
                                 </tr>
                                 <tr>
-                                    <td>Enfermaria</td>
-                                    <td>${dados.ocupados.enfermaria}</td>
-                                    <td>${dados.reservados.enfermaria}</td>
+                                    <td class="modalidade-label">Enfermaria</td>
+                                    <td class="modalidade-valor">${dados.ocupados.enfermaria}</td>
+                                    <td class="modalidade-valor">${dados.reservados.enfermaria}</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
                 
-                <!-- BOX DISPONIVEIS -->
-                <div class="uti-kpi-box box-disponiveis">
-                    <div class="uti-kpi-title">Leitos Disponiveis</div>
+                <!-- BOX 2: PREVISAO DE ALTA -->
+                <div class="kpi-box-uti box-previsao-uti">
+                    <div class="kpi-title-uti">Leitos em Previsao de Alta</div>
                     
-                    <div class="uti-gauge-center">
-                        ${renderGaugeDisponiveisUTI(porcentagemDisponiveis, dados.disponiveis.total)}
+                    <div class="kpi-content-uti">
+                        ${renderGaugeUTI(
+                            dados.ocupados.total > 0 ? (dados.previsao.total / dados.ocupados.total * 100) : 0, 
+                            CORES_UTI.azulPrincipal, 
+                            dados.previsao.total
+                        )}
+                        
+                        <div class="kpi-subtitle-uti">Total por Modalidade Contratada</div>
+                        <table class="modalidade-table-uti single-column">
+                            <tbody>
+                                <tr>
+                                    <td class="modalidade-label">Apartamento</td>
+                                    <td class="modalidade-valor">${dados.previsao.apartamento}</td>
+                                </tr>
+                                <tr>
+                                    <td class="modalidade-label">Enfermaria</td>
+                                    <td class="modalidade-valor">${dados.previsao.enfermaria}</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
+                </div>
+                
+                <!-- BOX 3: DISPONIVEIS -->
+                <div class="kpi-box-uti box-disponiveis-uti">
+                    <div class="kpi-title-uti">Leitos Disponiveis</div>
                     
-                    <div class="uti-kpi-detalhes">
-                        <div class="uti-info-disponiveis">
-                            <div class="uti-info-row">
-                                <span class="uti-info-label">Previsao Alta Hoje:</span>
-                                <span class="uti-info-valor">${dados.previsao.total}</span>
-                            </div>
-                            <div class="uti-info-row">
-                                <span class="uti-info-label">TPH Medio:</span>
-                                <span class="uti-info-valor">${dados.tph.medio} dias</span>
-                            </div>
+                    <div class="kpi-content-uti">
+                        ${renderGaugeUTI(
+                            dados.contratuais > 0 ? (dados.disponiveis.total / dados.contratuais * 100) : 0, 
+                            CORES_UTI.azulPrincipal, 
+                            dados.disponiveis.total
+                        )}
+                        
+                        <div class="kpi-subtitle-uti">Capacidade por Modalidade (nao Simultaneo)</div>
+                        <table class="modalidade-table-uti single-column">
+                            <tbody>
+                                <tr>
+                                    <td class="modalidade-label">Apartamento</td>
+                                    <td class="modalidade-valor">ate ${dados.disponiveis.total}</td>
+                                </tr>
+                                <tr>
+                                    <td class="modalidade-label">Enfermaria</td>
+                                    <td class="modalidade-valor">ate ${dados.disponiveis.total}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- BOX 4: TPH MEDIO -->
+                <div class="kpi-box-uti box-tph-uti">
+                    <div class="kpi-title-uti">TPH Medio</div>
+                    
+                    <div class="kpi-content-uti">
+                        <div class="tph-display-uti">
+                            <div class="tph-numero-uti">${dados.tph.medio}</div>
+                            <div class="tph-label-uti">dias</div>
+                            ${renderMiniGaugeTPHUTI(parseFloat(dados.tph.medio))}
                         </div>
+                    </div>
+                </div>
+                
+                <!-- BOX 5: PPS MEDIO (BLOQUEADO) -->
+                <div class="kpi-box-uti box-bloqueado-uti">
+                    <div class="kpi-title-uti titulo-bloqueado">PPS Medio</div>
+                    
+                    <div class="kpi-content-uti content-bloqueado">
+                        <div class="bloqueado-icon">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#4b5563" stroke-width="2">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                            </svg>
+                        </div>
+                        <div class="bloqueado-texto">Nao aplicavel para UTI</div>
+                    </div>
+                </div>
+                
+                <!-- BOX 6: SPICT/DIRETIVAS (BLOQUEADO) -->
+                <div class="kpi-box-uti box-bloqueado-uti">
+                    <div class="kpi-title-uti titulo-bloqueado">SPICT / Diretivas</div>
+                    
+                    <div class="kpi-content-uti content-bloqueado">
+                        <div class="bloqueado-icon">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#4b5563" stroke-width="2">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                            </svg>
+                        </div>
+                        <div class="bloqueado-texto">Nao aplicavel para UTI</div>
                     </div>
                 </div>
                 
             </div>
             
-            <!-- AVISO SOBRE CAMPOS BLOQUEADOS -->
-            <div class="uti-aviso">
-                <strong>Nota:</strong> Leitos UTI nao utilizam os campos: PPS, SPICT, Regiao, Diretivas, Concessoes e Linhas de Cuidado.
-                O campo "Tipo de Quarto" e substituido por "Tipo de Convenio" (Apartamento/Enfermaria).
-            </div>
-            
         </div>
     `;
     
-    console.log('[UTI V7.0] Dashboard UTI renderizado para', hospitalId);
+    console.log('[UTI] Dashboard UTI renderizado com sucesso');
 };
 
 // =================== CSS DO DASHBOARD UTI ===================
-function getUTICSS() {
+function getUTIDashboardCSS() {
     return `
-        <style id="utiCSS">
+        <style id="utiDashboardCSS">
             * {
                 text-transform: none !important;
             }
             
-            .dashboard-uti-container {
-                background: linear-gradient(135deg, #131b2e 0%, #1e293b 100%);
-                min-height: 100vh;
+            .dashboard-uti-wrapper {
+                max-width: 1600px;
+                margin: 0 auto;
                 padding: 20px;
-                color: white;
-                font-family: 'Poppins', sans-serif;
+                background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+                min-height: 100vh;
             }
             
-            /* =================== HEADER =================== */
-            .uti-header {
+            .dashboard-header-uti {
                 display: flex;
-                justify-content: space-between;
+                flex-direction: column;
                 align-items: center;
-                margin-bottom: 20px;
-                flex-wrap: wrap;
-                gap: 15px;
+                gap: 20px;
+                margin-bottom: 30px;
+                padding: 20px;
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 12px;
+                border: 1px solid rgba(255, 255, 255, 0.1);
             }
             
-            .uti-header-titulo h2 {
-                margin: 0;
-                color: ${CORES_UTI.titulo};
-                font-size: 24px;
+            .dashboard-title-uti {
+                font-size: 28px;
                 font-weight: 700;
+                color: #ffffff;
+                margin: 0;
+                text-align: center;
             }
             
-            .uti-header-controles {
+            .header-controls-uti {
                 display: flex;
                 gap: 15px;
                 align-items: center;
                 flex-wrap: wrap;
+                justify-content: center;
             }
             
-            .uti-select-hospital {
-                padding: 10px 15px;
+            .hospital-select-uti {
+                padding: 10px 20px;
+                font-size: 14px;
+                font-weight: 600;
                 background: rgba(255, 255, 255, 0.1);
                 border: 1px solid rgba(255, 255, 255, 0.2);
                 border-radius: 8px;
                 color: white;
-                font-size: 14px;
                 cursor: pointer;
                 min-width: 200px;
             }
             
-            .uti-select-hospital:focus {
+            .hospital-select-uti:focus {
                 outline: none;
-                border-color: ${CORES_UTI.titulo};
+                border-color: ${CORES_UTI.azulPrincipal};
             }
             
-            .uti-select-hospital option {
-                background: #1e293b;
-                color: white;
-            }
-            
-            .uti-btn-whatsapp {
+            .btn-whatsapp-uti {
                 padding: 10px 20px;
-                background: #25D366;
+                font-size: 14px;
+                font-weight: 600;
+                background: ${CORES_UTI.azulPrincipal};
                 border: none;
                 border-radius: 8px;
                 color: white;
-                font-size: 14px;
-                font-weight: 600;
                 cursor: pointer;
                 transition: all 0.3s ease;
             }
             
-            .uti-btn-whatsapp:hover {
-                background: #128C7E;
+            .btn-whatsapp-uti:hover {
+                background: #93c5fd;
+                transform: translateY(-2px);
             }
             
-            /* =================== INFO HOSPITAL =================== */
-            .uti-info-hospital {
-                background: rgba(255, 255, 255, 0.03);
+            /* Grid de KPIs - 3 colunas */
+            .kpis-grid-uti {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 20px;
+            }
+            
+            /* Box KPI */
+            .kpi-box-uti {
+                background: rgba(255, 255, 255, 0.05);
                 border-radius: 12px;
                 padding: 20px;
-                margin-bottom: 20px;
                 border: 1px solid rgba(255, 255, 255, 0.1);
             }
             
-            .uti-info-nome {
-                font-size: 20px;
-                font-weight: 700;
-                color: white;
-                margin-bottom: 10px;
-            }
-            
-            .uti-info-capacidade {
-                display: flex;
-                gap: 15px;
-                flex-wrap: wrap;
-                align-items: center;
-            }
-            
-            .uti-info-item {
-                display: flex;
-                gap: 5px;
-            }
-            
-            .uti-info-label {
-                color: #9ca3af;
-                font-size: 14px;
-            }
-            
-            .uti-info-valor {
-                color: white;
+            .kpi-title-uti {
+                font-size: 16px;
                 font-weight: 600;
-                font-size: 14px;
-            }
-            
-            .uti-info-separador {
-                color: rgba(255, 255, 255, 0.3);
-            }
-            
-            /* =================== KPI GRID =================== */
-            .uti-kpi-grid {
-                display: grid;
-                grid-template-columns: repeat(2, 1fr);
-                gap: 20px;
-                margin-bottom: 20px;
-            }
-            
-            .uti-kpi-box {
-                background: rgba(255, 255, 255, 0.03);
-                border-radius: 12px;
-                padding: 25px;
-                border: 1px solid rgba(255, 255, 255, 0.8);
-                border-top: 3px solid #ffffff;
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-            }
-            
-            .uti-kpi-box:hover {
-                background: rgba(255, 255, 255, 0.05);
-                transform: translateY(-2px);
-                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-            }
-            
-            .uti-kpi-title {
-                font-size: 14px;
-                font-weight: 700;
-                color: #ffffff;
+                color: ${CORES_UTI.azulPrincipal};
                 text-align: center;
                 margin-bottom: 20px;
             }
             
-            /* =================== DUAL GAUGES =================== */
-            .uti-dual-gauges {
-                display: flex;
-                justify-content: center;
-                gap: 40px;
-                margin-bottom: 20px;
-            }
-            
-            .uti-gauge-center {
-                display: flex;
-                justify-content: center;
-                margin-bottom: 20px;
-            }
-            
-            .uti-gauge-container {
+            .kpi-content-uti {
                 display: flex;
                 flex-direction: column;
                 align-items: center;
-                gap: 8px;
+                gap: 15px;
             }
             
-            .uti-gauge-titulo {
+            .kpi-subtitle-uti {
                 font-size: 12px;
-                color: #9ca3af;
+                color: ${CORES_UTI.cinzaMedio};
+                text-align: center;
+                margin-top: 10px;
+            }
+            
+            /* Dual Gauges */
+            .dual-gauges-container-uti {
+                display: flex;
+                justify-content: center;
+                gap: 50px;
+                width: 100%;
+            }
+            
+            .gauge-with-label-uti {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .gauge-label-uti {
+                font-size: 11px;
+                font-weight: 600;
+                color: ${CORES_UTI.azulPrincipal};
                 margin-bottom: 5px;
             }
             
-            .uti-gauge {
-                width: 120px;
-                height: 70px;
+            /* Gauge styles */
+            .v5-gauge-container-uti {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                min-width: 96px;
             }
             
-            .uti-number-inside {
+            .v5-gauge-uti {
+                width: 96px;
+                height: 60px;
+            }
+            
+            .v5-number-inside-uti {
                 position: absolute;
-                top: 50%;
+                bottom: 6px;
                 left: 50%;
-                transform: translate(-50%, -50%);
+                transform: translateX(-50%);
                 font-size: 26px;
-                font-weight: 700;
+                font-weight: 800;
+                color: #ffffff;
+            }
+            
+            .v5-badge-below-uti {
+                background: ${CORES_UTI.azulPrincipal};
                 color: white;
-                line-height: 1;
+                padding: 4px 12px;
+                border-radius: 12px;
+                font-size: 11px;
+                font-weight: 600;
                 margin-top: 8px;
             }
             
-            .uti-badge-below {
-                font-size: 14px;
-                font-weight: 700;
-                padding: 4px 12px;
-                border-radius: 12px;
-                border: 1px solid;
-            }
-            
-            .uti-badge-below.ocupados {
-                background: rgba(34, 197, 94, 0.2);
-                color: ${CORES_UTI.ocupados};
-                border-color: ${CORES_UTI.ocupados};
-            }
-            
-            .uti-badge-below.reservados {
-                background: rgba(251, 191, 36, 0.2);
-                color: ${CORES_UTI.reservados};
-                border-color: ${CORES_UTI.reservados};
-            }
-            
-            .uti-badge-below.disponiveis {
-                background: rgba(59, 130, 246, 0.2);
-                color: ${CORES_UTI.disponiveis};
-                border-color: ${CORES_UTI.disponiveis};
-            }
-            
-            /* =================== DETALHES =================== */
-            .uti-kpi-detalhes {
-                border-top: 1px solid rgba(255, 255, 255, 0.1);
-                padding-top: 15px;
-            }
-            
-            .uti-kpi-subtitle {
-                font-size: 11px;
-                color: #6b7280;
-                margin-bottom: 12px;
-                text-align: center;
-            }
-            
-            .uti-tabela-tipo {
+            /* Tabela Modalidade */
+            .modalidade-table-uti {
                 width: 100%;
                 border-collapse: collapse;
-                font-size: 13px;
+                font-size: 12px;
+                margin-top: 10px;
             }
             
-            .uti-tabela-tipo th {
-                color: #9ca3af;
+            .modalidade-table-uti thead th {
+                color: ${CORES_UTI.azulPrincipal};
                 font-weight: 600;
-                padding: 8px;
-                text-align: center;
+                padding: 8px 4px;
                 border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                font-size: 11px;
             }
             
-            .uti-tabela-tipo td {
-                color: white;
-                padding: 8px;
+            .modalidade-table-uti thead th:first-child {
+                text-align: left;
+            }
+            
+            .modalidade-table-uti thead th:not(:first-child) {
                 text-align: center;
+            }
+            
+            .modalidade-table-uti tbody td {
+                padding: 8px 4px;
                 border-bottom: 1px solid rgba(255, 255, 255, 0.05);
             }
             
-            .uti-tabela-tipo td:first-child {
+            .modalidade-table-uti .modalidade-label {
+                color: ${CORES_UTI.cinzaClaro};
                 text-align: left;
-                color: #9ca3af;
             }
             
-            .uti-info-disponiveis {
+            .modalidade-table-uti .modalidade-valor {
+                color: #ffffff;
+                font-weight: 600;
+                text-align: center;
+            }
+            
+            .modalidade-table-uti.single-column .modalidade-valor {
+                text-align: right;
+            }
+            
+            /* TPH Display */
+            .tph-display-uti {
                 display: flex;
                 flex-direction: column;
-                gap: 10px;
+                align-items: center;
+                gap: 5px;
             }
             
-            .uti-info-row {
+            .tph-numero-uti {
+                font-size: 48px;
+                font-weight: 800;
+                color: #ffffff;
+            }
+            
+            .tph-label-uti {
+                font-size: 14px;
+                color: ${CORES_UTI.cinzaMedio};
+            }
+            
+            .mini-gauge-tph-uti {
+                margin-top: 10px;
+            }
+            
+            /* Boxes Bloqueados */
+            .box-bloqueado-uti {
+                background: ${CORES_UTI.bloqueadoFundo};
+                border-color: ${CORES_UTI.cinzaBloqueado};
+            }
+            
+            .titulo-bloqueado {
+                color: ${CORES_UTI.cinzaBloqueado} !important;
+            }
+            
+            .content-bloqueado {
                 display: flex;
-                justify-content: space-between;
-                padding: 8px 12px;
-                background: rgba(255, 255, 255, 0.02);
-                border-radius: 6px;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                min-height: 200px;
+                gap: 15px;
             }
             
-            /* =================== AVISO =================== */
-            .uti-aviso {
-                background: rgba(251, 191, 36, 0.1);
-                border: 1px solid rgba(251, 191, 36, 0.3);
-                border-radius: 8px;
-                padding: 15px;
-                font-size: 13px;
-                color: #fbbf24;
-                margin-top: 20px;
+            .bloqueado-icon {
+                opacity: 0.5;
             }
             
-            .uti-aviso strong {
-                color: #fbbf24;
+            .bloqueado-texto {
+                color: ${CORES_UTI.cinzaBloqueado};
+                font-size: 14px;
+                font-style: italic;
             }
             
-            /* =================== RESPONSIVIDADE =================== */
+            /* Responsivo */
+            @media (max-width: 1200px) {
+                .kpis-grid-uti {
+                    grid-template-columns: repeat(2, 1fr);
+                }
+            }
+            
             @media (max-width: 768px) {
-                .uti-header {
-                    flex-direction: column;
-                    align-items: flex-start;
-                }
-                
-                .uti-header-controles {
-                    width: 100%;
-                    flex-direction: column;
-                }
-                
-                .uti-select-hospital {
-                    width: 100%;
-                }
-                
-                .uti-btn-whatsapp {
-                    width: 100%;
-                }
-                
-                .uti-kpi-grid {
+                .kpis-grid-uti {
                     grid-template-columns: 1fr;
                 }
                 
-                .uti-dual-gauges {
+                .dual-gauges-container-uti {
                     flex-direction: column;
                     gap: 20px;
-                    align-items: center;
                 }
                 
-                .uti-info-capacidade {
-                    flex-direction: column;
-                    gap: 8px;
-                }
-                
-                .uti-info-separador {
-                    display: none;
-                }
-            }
-            
-            @media (max-width: 480px) {
-                .dashboard-uti-container {
-                    padding: 10px;
-                }
-                
-                .uti-header-titulo h2 {
-                    font-size: 18px;
-                }
-                
-                .uti-kpi-box {
-                    padding: 15px;
-                }
-                
-                .uti-number-inside {
-                    font-size: 22px;
-                }
-                
-                .uti-gauge {
-                    width: 100px;
-                    height: 60px;
+                .dashboard-title-uti {
+                    font-size: 20px;
                 }
             }
         </style>
     `;
 }
 
-// =================== EXPORTS GLOBAIS ===================
-window.renderDashboardUTI = window.renderDashboardUTI;
-window.processarDadosUTI = processarDadosUTI;
-window.filtrarLeitosUTI = filtrarLeitosUTI;
-window.getReservasUTI = getReservasUTI;
-window.isHospitalUTIAtivo = isHospitalUTIAtivo;
-window.getHospitaisUTIAtivos = getHospitaisUTIAtivos;
-window.mudarHospitalUTI = mudarHospitalUTI;
-window.copiarDashboardUTIParaWhatsApp = copiarDashboardUTIParaWhatsApp;
-window.HOSPITAIS_UTI_ATIVOS = HOSPITAIS_UTI_ATIVOS;
-
-// =================== LOGS DE INICIALIZACAO ===================
-console.log('Dashboard UTI V7.0 - CARREGADO COM SUCESSO');
-console.log('UTI V7.0 - Hospitais ATIVOS:', HOSPITAIS_UTI_ATIVOS.join(', '));
-console.log('UTI V7.0 - Total de leitos UTI ativos:', 
-    HOSPITAIS_UTI_ATIVOS.reduce((sum, id) => sum + (UTI_CAPACIDADE[id]?.total || 0), 0)
-);
-console.log('');
-console.log('Para ativar mais hospitais UTI:');
-console.log('1. Edite o array HOSPITAIS_UTI_ATIVOS no inicio do arquivo');
-console.log('2. Adicione o ID do hospital (ex: "H1", "H4")');
-console.log('3. Certifique-se que os leitos UTI estao na planilha');
+console.log('Dashboard UTI V7.0 - Carregado com sucesso');
+console.log('V7.0 Hospitais com UTI: ' + HOSPITAIS_COM_UTI.join(', '));
+console.log('V7.0 H2 Cruz Azul: 20 contratuais + 10 extras = 30 total');
