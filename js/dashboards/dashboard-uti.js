@@ -544,7 +544,6 @@ window.renderDashboardUTI = function(hospitalId) {
                         <div class="tph-display-uti">
                             <div class="tph-numero-uti">${dados.tph.medio}</div>
                             <div class="tph-label-uti">dias</div>
-                            ${renderMiniGaugeTPHUTI(parseFloat(dados.tph.medio))}
                         </div>
                         
                         <div class="tph-detalhes-uti">
