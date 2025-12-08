@@ -297,7 +297,7 @@ function copiarParaWhatsAppUTI(hospitalId) {
     texto += `Taxa de Ocupacao: *${dados.taxaOcupacao.toFixed(1)}%*\n`;
     texto += `Leitos Ocupados: *${dados.ocupados.total}/${dados.contratuais}*\n`;
     texto += `Leitos Reservados: *${dados.reservados.total}*\n`;
-    texto += `Leitos Disponiveis: *${dados.disponiveis.total}* (${dados.contratuais} - ${dados.ocupados.total} - ${dados.reservados.total})\n\n`;
+    texto += `Leitos Disponiveis: *${dados.disponiveis.total}*\n\n`;
     
     texto += `*Por Modalidade Contratada:*\n`;
     texto += `━━━━━━━━━━━━━━━━━\n`;
@@ -525,10 +525,14 @@ window.renderDashboardUTI = function(hospitalId) {
                             dados.disponiveis.total
                         )}
                         
-                        <div class="disponiveis-info-uti">
-                            <div class="disponiveis-label-uti">UTIs</div>
-                            <div class="disponiveis-formula-uti">${dados.contratuais} - ${dados.ocupados.total} - ${dados.reservados.total} = ${dados.disponiveis.total}</div>
-                        </div>
+                        <table class="modalidade-table-uti single-column">
+                            <tbody>
+                                <tr>
+                                    <td class="modalidade-label">UTIs</td>
+                                    <td class="modalidade-valor">${dados.disponiveis.total}</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
                 
@@ -868,24 +872,6 @@ function getUTIDashboardCSS() {
                 padding: 6px 4px;
                 color: ${CORES_UTI.cinzaClaro};
                 border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            }
-            
-            /* Disponiveis - Info */
-            .disponiveis-info-uti {
-                margin-top: 15px;
-                text-align: center;
-            }
-            
-            .disponiveis-label-uti {
-                font-size: 14px;
-                font-weight: 600;
-                color: ${CORES_UTI.azulPrincipal};
-                margin-bottom: 5px;
-            }
-            
-            .disponiveis-formula-uti {
-                font-size: 12px;
-                color: ${CORES_UTI.cinzaMedio};
             }
             
             /* TPH Detalhes - Lista > 5 dias */
