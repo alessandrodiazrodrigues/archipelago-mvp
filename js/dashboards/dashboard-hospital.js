@@ -5,7 +5,8 @@
 // - Renomeado de "Dashboard Hospitalar" para "Dashboard Enfermarias"
 // - Filtro UTI (leitos UTI nao aparecem neste dashboard)
 // - Sistema de reservas integrado
-// - Novo KPI box para Reservados
+// - Box "Ocupacao" com dois gauges (Reservados | Ocupados)
+// - Tabela por tipo com colunas Ocupados | Reservados
 // - Calculo de disponiveis desconta reservas
 
 // =================== DASHBOARD ENFERMARIAS V7.0 ===================
@@ -44,7 +45,7 @@ const CORES_ARCHIPELAGO = {
     ocupados: '#60a5fa',
     previsao: '#60a5fa',
     disponiveis: '#60a5fa',
-    reservados: '#fbbf24', // V7.0: Cor para reservados
+    reservados: '#60a5fa',
     tph: '#577a97',
     pps: '#1c5083',
     spict: '#172945'
@@ -220,7 +221,6 @@ window.filtrarHospitalDashboard = function(hospitalId) {
     console.log('[FILTRO] Visiveis:', totalVisiveis);
 };
 
-// =================== V7.0: WHATSAPP COM RESERVAS E FILTRO UTI ===================
 window.copiarDashboardParaWhatsApp = function() {
     const hospitaisIds = ['H5', 'H2', 'H1', 'H4', 'H6', 'H3', 'H7', 'H8', 'H9'];
     const hospitaisNomes = {
@@ -239,21 +239,23 @@ window.copiarDashboardParaWhatsApp = function() {
     const filtroAtual = window.hospitalFiltroAtual || 'todos';
     const hospitaisParaRelatorio = filtroAtual === 'todos' ? hospitaisIds : [filtroAtual];
     
-    // V7.0: Renomeado para Dashboard Enfermarias
     let texto = filtroAtual === 'todos' ? 
         '*DASHBOARD ENFERMARIAS*\n' : 
         '*DASHBOARD ENFERMARIAS - ' + hospitaisNomes[filtroAtual] + '*\n';
     
     texto += new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) + '\n\n';
     
-    hospitaisParaRelatorio.forEach((hospitalId, index) => {
+    hospitaisParaRelatorio.forEach(function(hospitalId, index) {
         const hospital = window.hospitalData[hospitalId];
         if (!hospital || !hospital.leitos) return;
         
-        // V7.0: Filtrar leitos UTI
+        const nome = hospitaisNomes[hospitalId];
+        
+        // V7.0: Filtrar UTI
         const leitos = filtrarLeitosSemUTI(hospital.leitos);
         
-        const nome = hospitaisNomes[hospitalId];
+        // V7.0: Buscar reservas
+        const reservas = getReservasHospital(hospitalId);
         
         if (filtroAtual === 'todos') {
             texto += '━━━━━━━━━━━━━━━━━\n';
@@ -261,30 +263,27 @@ window.copiarDashboardParaWhatsApp = function() {
             texto += '━━━━━━━━━━━━━━━━━\n\n';
         }
         
-        // V7.0: Adicionar reservas no relatorio
-        const reservas = getReservasHospital(hospitalId);
-        if (reservas.length > 0) {
-            texto += '*Leitos Reservados: ' + reservas.length + '*\n';
-            reservas.forEach(r => {
-                texto += '- ' + (r.tipo || 'Leito') + ' ' + (r.identificacaoLeito || '---') + ' - Mat. ' + (r.matricula || '---') + '\n';
-            });
-            texto += '\n';
+        // V7.0: Adicionar info de reservas
+        const ocupados = leitos.filter(function(l) { return isOcupado(l); }).length;
+        const totalReservados = reservas.length;
+        if (totalReservados > 0) {
+            texto += '*Ocupados:* ' + ocupados + ' | *Reservados:* ' + totalReservados + '\n\n';
         }
         
         // ========== ALTAS PREVISTAS ==========
-        const altasTimeline = {
+        var altasTimeline = {
             'HOJE': { 'Ouro': [], '2R': [], '3R': [] },
             '24H': { 'Ouro': [], '2R': [], '3R': [] },
             '48H': []
         };
         
-        leitos.forEach(leito => {
+        leitos.forEach(function(leito) {
             if (isOcupado(leito)) {
-                const prevAlta = leito.prevAlta || (leito.paciente && leito.paciente.prevAlta);
-                const matricula = leito.matricula || 'S/N';
+                var prevAlta = leito.prevAlta || (leito.paciente && leito.paciente.prevAlta);
+                var matricula = leito.matricula || 'S/N';
                 
                 if (prevAlta) {
-                    const prev = normStr(prevAlta).replace(/\s+/g, ' ');
+                    var prev = normStr(prevAlta).replace(/\s+/g, ' ');
                     
                     if (prev.includes('hoje') && prev.includes('ouro')) altasTimeline['HOJE']['Ouro'].push(matricula);
                     else if (prev.includes('hoje') && prev.includes('2r')) altasTimeline['HOJE']['2R'].push(matricula);
@@ -297,9 +296,9 @@ window.copiarDashboardParaWhatsApp = function() {
             }
         });
         
-        const temAltasHoje = altasTimeline['HOJE']['Ouro'].length > 0 || altasTimeline['HOJE']['2R'].length > 0 || altasTimeline['HOJE']['3R'].length > 0;
-        const temAltas24h = altasTimeline['24H']['Ouro'].length > 0 || altasTimeline['24H']['2R'].length > 0 || altasTimeline['24H']['3R'].length > 0;
-        const temAltas48h = altasTimeline['48H'].length > 0;
+        var temAltasHoje = altasTimeline['HOJE']['Ouro'].length > 0 || altasTimeline['HOJE']['2R'].length > 0 || altasTimeline['HOJE']['3R'].length > 0;
+        var temAltas24h = altasTimeline['24H']['Ouro'].length > 0 || altasTimeline['24H']['2R'].length > 0 || altasTimeline['24H']['3R'].length > 0;
+        var temAltas48h = altasTimeline['48H'].length > 0;
         
         if (temAltasHoje) {
             texto += '*Altas Previstas HOJE:*\n';
@@ -334,38 +333,37 @@ window.copiarDashboardParaWhatsApp = function() {
             texto += '48h: ' + altasTimeline['48H'].join(', ') + '\n\n';
         }
         
-        // ========== CONCESSOES PREVISTAS (COM DESNORMALIZACAO) ==========
-        const concessoesTimeline = {
+        // ========== CONCESSOES PREVISTAS ==========
+        var concessoesTimeline = {
             'HOJE': {},
             '24H': {}
         };
         
-        leitos.forEach(leito => {
+        leitos.forEach(function(leito) {
             if (isOcupado(leito)) {
-                const concessoes = leito.concessoes || (leito.paciente && leito.paciente.concessoes);
-                const prevAlta = leito.prevAlta || (leito.paciente && leito.paciente.prevAlta);
-                const matricula = leito.matricula || 'S/N';
+                var concessoes = leito.concessoes || (leito.paciente && leito.paciente.concessoes);
+                var prevAlta = leito.prevAlta || (leito.paciente && leito.paciente.prevAlta);
+                var matricula = leito.matricula || 'S/N';
                 
                 if (concessoes && prevAlta) {
-                    const concessoesList = Array.isArray(concessoes) ? 
+                    var concessoesList = Array.isArray(concessoes) ? 
                         concessoes : 
                         String(concessoes).split('|');
                     
-                    const prev = normStr(prevAlta).replace(/\s+/g, ' ');
-                    let timeline = null;
+                    var prev = normStr(prevAlta).replace(/\s+/g, ' ');
+                    var timeline = null;
                     
                     if (prev.includes('hoje')) timeline = 'HOJE';
                     else if (prev.includes('24h') || prev.includes('24 h')) timeline = '24H';
                     
                     if (timeline) {
-                        concessoesList.forEach(concessao => {
+                        concessoesList.forEach(function(concessao) {
                             if (concessao && concessao.trim()) {
-                                // APLICAR DESNORMALIZACAO AQUI
-                                const nome = desnormalizarTexto(concessao.trim());
-                                if (!concessoesTimeline[timeline][nome]) {
-                                    concessoesTimeline[timeline][nome] = [];
+                                var nomeConc = window.desnormalizarTexto ? window.desnormalizarTexto(concessao.trim()) : concessao.trim();
+                                if (!concessoesTimeline[timeline][nomeConc]) {
+                                    concessoesTimeline[timeline][nomeConc] = [];
                                 }
-                                concessoesTimeline[timeline][nome].push(matricula);
+                                concessoesTimeline[timeline][nomeConc].push(matricula);
                             }
                         });
                     }
@@ -373,77 +371,80 @@ window.copiarDashboardParaWhatsApp = function() {
             }
         });
         
-        const temConcessoesHoje = Object.keys(concessoesTimeline['HOJE']).length > 0;
-        const temConcessoes24h = Object.keys(concessoesTimeline['24H']).length > 0;
+        var temConcessoesHoje = Object.keys(concessoesTimeline['HOJE']).length > 0;
+        var temConcessoes24h = Object.keys(concessoesTimeline['24H']).length > 0;
         
         if (temConcessoesHoje) {
             texto += '*Concessoes Previstas HOJE:*\n';
-            Object.entries(concessoesTimeline['HOJE']).forEach(([nome, mats]) => {
-                // APLICAR DESNORMALIZACAO AQUI TAMBEM
-                texto += desnormalizarTexto(nome) + ': ' + mats.join(', ') + '\n';
+            Object.entries(concessoesTimeline['HOJE']).forEach(function(entry) {
+                var nomeC = entry[0];
+                var matsC = entry[1];
+                var nomeFinal = window.desnormalizarTexto ? window.desnormalizarTexto(nomeC) : nomeC;
+                texto += nomeFinal + ': ' + matsC.join(', ') + '\n';
             });
             texto += '\n';
         }
         
         if (temConcessoes24h) {
             texto += '*Concessoes Previstas 24H:*\n';
-            Object.entries(concessoesTimeline['24H']).forEach(([nome, mats]) => {
-                // APLICAR DESNORMALIZACAO AQUI TAMBEM
-                texto += desnormalizarTexto(nome) + ': ' + mats.join(', ') + '\n';
+            Object.entries(concessoesTimeline['24H']).forEach(function(entry) {
+                var nomeC = entry[0];
+                var matsC = entry[1];
+                var nomeFinal = window.desnormalizarTexto ? window.desnormalizarTexto(nomeC) : nomeC;
+                texto += nomeFinal + ': ' + matsC.join(', ') + '\n';
             });
             texto += '\n';
         }
         
         // ========== DIRETIVAS PENDENTES ==========
-        const diretivasPendentes = leitos.filter(l => {
+        var diretivasPendentes = leitos.filter(function(l) {
             if (!isOcupado(l)) return false;
             
-            const spict = l.spict;
+            var spict = l.spict;
             if (!spict) return false;
             
-            const spictNorm = normStr(spict);
-            const spictElegivel = spictNorm === 'elegivel' || spictNorm === 'elegível';
+            var spictNorm = normStr(spict);
+            var spictElegivel = spictNorm === 'elegivel' || spictNorm === 'elegível';
             
             if (!spictElegivel) return false;
             
-            const diretivas = l.diretivas;
-            const dirNorm = normStr(diretivas);
+            var diretivas = l.diretivas;
+            var dirNorm = normStr(diretivas);
             
-            const valoresPendentes = ['', 'não', 'nao', 'n/a', 'pendente', 'não se aplica'];
+            var valoresPendentes = ['', 'não', 'nao', 'n/a', 'pendente', 'não se aplica'];
             
             return valoresPendentes.includes(dirNorm);
         });
         
         if (diretivasPendentes.length > 0) {
             texto += '*Diretivas Pendentes:*\n';
-            diretivasPendentes.forEach(l => {
-                const leito = l.identificacaoLeito || l.leito || '---';
-                const matricula = l.matricula || '---';
-                texto += 'Leito ' + leito + ' - Mat. ' + matricula + '\n';
+            diretivasPendentes.forEach(function(l) {
+                var leitoId = l.identificacaoLeito || l.leito || '---';
+                var mat = l.matricula || '---';
+                texto += 'Leito ' + leitoId + ' - Mat. ' + mat + '\n';
             });
             texto += '\n';
         }
         
         // Se nao tem nada
-        if (!temAltasHoje && !temAltas24h && !temAltas48h && !temConcessoesHoje && !temConcessoes24h && diretivasPendentes.length === 0 && reservas.length === 0) {
+        if (!temAltasHoje && !temAltas24h && !temAltas48h && !temConcessoesHoje && !temConcessoes24h && diretivasPendentes.length === 0) {
             texto += '_Nenhuma atividade prevista_\n\n';
         }
     });
     
-    navigator.clipboard.writeText(texto).then(() => {
+    navigator.clipboard.writeText(texto).then(function() {
         alert('Dados copiados para o WhatsApp!\n\nCole e envie.');
-    }).catch(err => {
+    }).catch(function(err) {
         console.error('Erro ao copiar:', err);
         alert('Erro ao copiar. Tente novamente.');
     });
 };
 
-// =================== CALCULOS DE MODALIDADES (COM FILTRO UTI) ===================
 function calcularModalidadesVagos(leitos, hospitalId) {
     // V7.0: Filtrar UTI
-    const leitosFiltrados = filtrarLeitosSemUTI(leitos);
+    var leitosFiltrados = filtrarLeitosSemUTI(leitos);
     
-    const modalidade = {
+    var modalidade = {
         flexiveis: 0,
         exclusivo_apto: 0,
         exclusivo_enf_sem_restricao: 0,
@@ -451,13 +452,13 @@ function calcularModalidadesVagos(leitos, hospitalId) {
         exclusivo_enf_masc: 0
     };
 
-    const vagos = leitosFiltrados.filter(l => isVago(l));
+    var vagos = leitosFiltrados.filter(function(l) { return isVago(l); });
 
     if (hospitalId === 'H1' || hospitalId === 'H3' || hospitalId === 'H5' || hospitalId === 'H6' || hospitalId === 'H7' || hospitalId === 'H8' || hospitalId === 'H9') {
         // V6.0: Usar contratuais (nao conta extras)
-        const capacidadeInfo = window.HOSPITAL_CAPACIDADE ? window.HOSPITAL_CAPACIDADE[hospitalId] : null;
-        const contratuais = capacidadeInfo ? capacidadeInfo.contratuais : leitosFiltrados.length;
-        const ocupados = leitosFiltrados.filter(l => isOcupado(l)).length;
+        var capacidadeInfo = window.HOSPITAL_CAPACIDADE ? window.HOSPITAL_CAPACIDADE[hospitalId] : null;
+        var contratuais = capacidadeInfo ? capacidadeInfo.contratuais : leitosFiltrados.length;
+        var ocupados = leitosFiltrados.filter(function(l) { return isOcupado(l); }).length;
         modalidade.flexiveis = Math.max(0, contratuais - ocupados);
         return modalidade;
     }
@@ -465,37 +466,37 @@ function calcularModalidadesVagos(leitos, hospitalId) {
     // =================== H2 - CRUZ AZUL ===================
     if (hospitalId === 'H2') {
         // APARTAMENTOS: contratuais - ocupados
-        const aptosContratuais = 20;
-        const aptosOcupados = leitosFiltrados.filter(l => 
-            isOcupado(l) && (l.tipo === 'APTO' || l.tipo === 'Apartamento')
-        ).length;
+        var aptosContratuais = 20;
+        var aptosOcupados = leitosFiltrados.filter(function(l) {
+            return isOcupado(l) && (l.tipo === 'APTO' || l.tipo === 'Apartamento');
+        }).length;
         modalidade.exclusivo_apto = Math.max(0, aptosContratuais - aptosOcupados);
         
         // ENFERMARIAS: apenas leitos contratuais (21-36)
-        const vagosContratuais = vagos.filter(l => {
-            const tipo = l.tipo || '';
+        var vagosContratuais = vagos.filter(function(l) {
+            var tipo = l.tipo || '';
             if (tipo !== 'ENFERMARIA' && tipo !== 'Enfermaria') return false;
-            const numeroLeito = getLeitoNumero(l.leito);
+            var numeroLeito = getLeitoNumero(l.leito);
             return numeroLeito && numeroLeito >= 21 && numeroLeito <= 36;
         });
         
-        vagosContratuais.forEach(leitoVago => {
-            const numeroLeito = getLeitoNumero(leitoVago.leito);
+        vagosContratuais.forEach(function(leitoVago) {
+            var numeroLeito = getLeitoNumero(leitoVago.leito);
             
             // Buscar irmao usando CRUZ_AZUL_IRMAOS
-            const irmaosMap = window.CRUZ_AZUL_IRMAOS || {};
-            const numeroIrmao = irmaosMap[numeroLeito];
+            var irmaosMap = window.CRUZ_AZUL_IRMAOS || {};
+            var numeroIrmao = irmaosMap[numeroLeito];
             
             if (!numeroIrmao) {
                 modalidade.exclusivo_enf_sem_restricao++;
                 return;
             }
             
-            const irmao = leitosFiltrados.find(l => getLeitoNumero(l.leito) === numeroIrmao);
+            var irmao = leitosFiltrados.find(function(l) { return getLeitoNumero(l.leito) === numeroIrmao; });
             
             if (!irmao || isVago(irmao)) {
                 modalidade.exclusivo_enf_sem_restricao++;
-            } else if (irmao.isolamento && irmao.isolamento !== 'Nao Isolamento') {
+            } else if (irmao.isolamento && irmao.isolamento !== 'Nao Isolamento' && irmao.isolamento !== 'Não Isolamento') {
                 // Isolamento: leito nao disponivel (nao conta)
             } else {
                 if (irmao.genero === 'Feminino') {
@@ -514,43 +515,43 @@ function calcularModalidadesVagos(leitos, hospitalId) {
     // =================== H4 - SANTA CLARA ===================
     if (hospitalId === 'H4') {
         // APARTAMENTOS: contratuais - ocupados
-        const aptosContratuais = 18;
-        const aptosOcupados = leitosFiltrados.filter(l => 
-            isOcupado(l) && (l.tipo === 'APTO' || l.tipo === 'Apartamento')
-        ).length;
-        modalidade.exclusivo_apto = Math.max(0, aptosContratuais - aptosOcupados);
+        var aptosContratuaisH4 = 18;
+        var aptosOcupadosH4 = leitosFiltrados.filter(function(l) {
+            return isOcupado(l) && (l.tipo === 'APTO' || l.tipo === 'Apartamento');
+        }).length;
+        modalidade.exclusivo_apto = Math.max(0, aptosContratuaisH4 - aptosOcupadosH4);
         
         // ENFERMARIAS: apenas leitos contratuais (10-17)
-        const vagosContratuais = vagos.filter(l => {
-            const tipo = l.tipo || '';
+        var vagosContratuaisH4 = vagos.filter(function(l) {
+            var tipo = l.tipo || '';
             if (tipo !== 'ENFERMARIA' && tipo !== 'Enfermaria') return false;
-            const numeroLeito = getLeitoNumero(l.leito);
+            var numeroLeito = getLeitoNumero(l.leito);
             return numeroLeito && numeroLeito >= 10 && numeroLeito <= 17;
         });
         
-        vagosContratuais.forEach(leitoVago => {
-            const numeroLeito = getLeitoNumero(leitoVago.leito);
+        vagosContratuaisH4.forEach(function(leitoVago) {
+            var numeroLeito = getLeitoNumero(leitoVago.leito);
             
             // Determinar irmao usando SANTA_CLARA_IRMAOS
-            const irmaosMap = window.SANTA_CLARA_IRMAOS || {
+            var irmaosMap = window.SANTA_CLARA_IRMAOS || {
                 10: 11, 11: 10,
                 12: 13, 13: 12,
                 14: 15, 15: 14,
                 16: 17, 17: 16
             };
             
-            const numeroIrmao = irmaosMap[numeroLeito];
+            var numeroIrmao = irmaosMap[numeroLeito];
             
             if (!numeroIrmao) {
                 modalidade.exclusivo_enf_sem_restricao++;
                 return;
             }
             
-            const irmao = leitosFiltrados.find(l => getLeitoNumero(l.leito) === numeroIrmao);
+            var irmao = leitosFiltrados.find(function(l) { return getLeitoNumero(l.leito) === numeroIrmao; });
             
             if (!irmao || isVago(irmao)) {
                 modalidade.exclusivo_enf_sem_restricao++;
-            } else if (irmao.isolamento && irmao.isolamento !== 'Nao Isolamento') {
+            } else if (irmao.isolamento && irmao.isolamento !== 'Nao Isolamento' && irmao.isolamento !== 'Não Isolamento') {
                 // Isolamento: leito nao disponivel (nao conta)
             } else {
                 if (irmao.genero === 'Feminino') {
@@ -566,15 +567,14 @@ function calcularModalidadesVagos(leitos, hospitalId) {
         return modalidade;
     }
 
-
     return modalidade;
 }
 
 function calcularModalidadePorTipo(leitos, hospitalId) {
     // V7.0: Filtrar UTI
-    const leitosFiltrados = filtrarLeitosSemUTI(leitos);
+    var leitosFiltrados = filtrarLeitosSemUTI(leitos);
     
-    const modalidade = {
+    var modalidade = {
         flexiveis: 0,
         exclusivo_apto: 0,
         exclusivo_enf_sem_restricao: 0,
@@ -587,12 +587,12 @@ function calcularModalidadePorTipo(leitos, hospitalId) {
         return modalidade;
     }
 
-    leitosFiltrados.forEach(leito => {
-        const genero = leito.genero || '';
+    leitosFiltrados.forEach(function(leito) {
+        var genero = leito.genero || '';
         
         // Para H2 e H4: usar TIPO estrutural
         if (hospitalId === 'H2' || hospitalId === 'H4') {
-            const tipo = leito.tipo || '';
+            var tipo = leito.tipo || '';
             if (tipo === 'APTO' || tipo === 'Apartamento') {
                 modalidade.exclusivo_apto++;
             } else if (tipo === 'ENFERMARIA' || tipo === 'Enfermaria') {
@@ -608,7 +608,7 @@ function calcularModalidadePorTipo(leitos, hospitalId) {
         }
         
         // Para hibridos: usar categoriaEscolhida
-        const catEscolhida = leito.categoriaEscolhida || leito.categoria || '';
+        var catEscolhida = leito.categoriaEscolhida || leito.categoria || '';
         
         if (catEscolhida === 'Apartamento') {
             modalidade.exclusivo_apto++;
@@ -634,90 +634,91 @@ function calcularModalidadePorTipo(leitos, hospitalId) {
 
 // =================== V7.0: PROCESSAR DADOS HOSPITAL (COM RESERVAS E FILTRO UTI) ===================
 window.processarDadosHospital = function(hospitalId) {
-    const hospitalObj = window.hospitalData[hospitalId] || {};
+    var hospitalObj = window.hospitalData[hospitalId] || {};
     
-    let leitosRaw = hospitalObj.leitos || hospitalObj || [];
+    var leitosRaw = hospitalObj.leitos || hospitalObj || [];
     if (!Array.isArray(leitosRaw)) {
         leitosRaw = [];
     }
     
     // V7.0: Filtrar leitos UTI
-    const leitos = filtrarLeitosSemUTI(leitosRaw);
+    var leitos = filtrarLeitosSemUTI(leitosRaw);
     
-    const ocupados = leitos.filter(l => isOcupado(l));
+    var ocupados = leitos.filter(function(l) { return isOcupado(l); });
     
     // V7.0: Buscar reservas do hospital (ja vem filtrada sem UTI)
-    const reservas = getReservasHospital(hospitalId);
+    var reservas = getReservasHospital(hospitalId);
     
-    let ocupadosApto, ocupadosEnfFem, ocupadosEnfMasc;
+    var ocupadosApto, ocupadosEnfFem, ocupadosEnfMasc;
     
     if (hospitalId === 'H1' || hospitalId === 'H3' || hospitalId === 'H5' || hospitalId === 'H6' || hospitalId === 'H7' || hospitalId === 'H8' || hospitalId === 'H9') {
-        ocupadosApto = ocupados.filter(l => 
-            l.categoriaEscolhida === 'Apartamento'
-        ).length;
-        ocupadosEnfFem = ocupados.filter(l => 
-            l.categoriaEscolhida === 'Enfermaria' && l.genero === 'Feminino'
-        ).length;
-        ocupadosEnfMasc = ocupados.filter(l => 
-            l.categoriaEscolhida === 'Enfermaria' && l.genero === 'Masculino'
-        ).length;
+        ocupadosApto = ocupados.filter(function(l) {
+            return l.categoriaEscolhida === 'Apartamento';
+        }).length;
+        ocupadosEnfFem = ocupados.filter(function(l) {
+            return l.categoriaEscolhida === 'Enfermaria' && l.genero === 'Feminino';
+        }).length;
+        ocupadosEnfMasc = ocupados.filter(function(l) {
+            return l.categoriaEscolhida === 'Enfermaria' && l.genero === 'Masculino';
+        }).length;
     } else {
-        ocupadosApto = ocupados.filter(l => 
-            l.tipo === 'Apartamento' || l.tipo === 'APTO'
-        ).length;
-        ocupadosEnfFem = ocupados.filter(l => 
-            (l.tipo === 'ENFERMARIA' || l.tipo === 'Enfermaria') && l.genero === 'Feminino'
-        ).length;
-        ocupadosEnfMasc = ocupados.filter(l => 
-            (l.tipo === 'ENFERMARIA' || l.tipo === 'Enfermaria') && l.genero === 'Masculino'
-        ).length;
+        ocupadosApto = ocupados.filter(function(l) {
+            return l.tipo === 'Apartamento' || l.tipo === 'APTO';
+        }).length;
+        ocupadosEnfFem = ocupados.filter(function(l) {
+            return (l.tipo === 'ENFERMARIA' || l.tipo === 'Enfermaria') && l.genero === 'Feminino';
+        }).length;
+        ocupadosEnfMasc = ocupados.filter(function(l) {
+            return (l.tipo === 'ENFERMARIA' || l.tipo === 'Enfermaria') && l.genero === 'Masculino';
+        }).length;
     }
     
     // V7.0: Calcular reservas por tipo
-    const reservadosApto = reservas.filter(r => r.tipo === 'Apartamento').length;
-    const reservadosEnfFem = reservas.filter(r => r.tipo === 'Enfermaria' && r.genero === 'Feminino').length;
-    const reservadosEnfMasc = reservas.filter(r => r.tipo === 'Enfermaria' && r.genero === 'Masculino').length;
+    var reservadosApto = reservas.filter(function(r) { return r.tipo === 'Apartamento'; }).length;
+    var reservadosEnfFem = reservas.filter(function(r) { return r.tipo === 'Enfermaria' && r.genero === 'Feminino'; }).length;
+    var reservadosEnfMasc = reservas.filter(function(r) { return r.tipo === 'Enfermaria' && r.genero === 'Masculino'; }).length;
     
-    const previsaoAlta = leitos.filter(l => {
+    var previsaoAlta = leitos.filter(function(l) {
         if (!l.prevAlta || l.prevAlta.trim() === '') return false;
-        const prev = normStr(l.prevAlta);
+        var prev = normStr(l.prevAlta);
         return prev.includes('hoje');
     });
     
-    let previsaoApto, previsaoEnfFem, previsaoEnfMasc;
+    var previsaoApto, previsaoEnfFem, previsaoEnfMasc;
     
     if (hospitalId === 'H1' || hospitalId === 'H3' || hospitalId === 'H5' || hospitalId === 'H6' || hospitalId === 'H7' || hospitalId === 'H8' || hospitalId === 'H9') {
-        previsaoApto = previsaoAlta.filter(l => 
-            l.categoriaEscolhida === 'Apartamento'
-        ).length;
-        previsaoEnfFem = previsaoAlta.filter(l => 
-            l.categoriaEscolhida === 'Enfermaria' && l.genero === 'Feminino'
-        ).length;
-        previsaoEnfMasc = previsaoAlta.filter(l => 
-            l.categoriaEscolhida === 'Enfermaria' && l.genero === 'Masculino'
-        ).length;
+        previsaoApto = previsaoAlta.filter(function(l) {
+            return l.categoriaEscolhida === 'Apartamento';
+        }).length;
+        previsaoEnfFem = previsaoAlta.filter(function(l) {
+            return l.categoriaEscolhida === 'Enfermaria' && l.genero === 'Feminino';
+        }).length;
+        previsaoEnfMasc = previsaoAlta.filter(function(l) {
+            return l.categoriaEscolhida === 'Enfermaria' && l.genero === 'Masculino';
+        }).length;
     } else {
-        previsaoApto = previsaoAlta.filter(l => 
-            l.tipo === 'Apartamento' || l.tipo === 'APTO'
-        ).length;
-        previsaoEnfFem = previsaoAlta.filter(l => 
-            (l.tipo === 'ENFERMARIA' || l.tipo === 'Enfermaria') && l.genero === 'Feminino'
-        ).length;
-        previsaoEnfMasc = previsaoAlta.filter(l => 
-            (l.tipo === 'ENFERMARIA' || l.tipo === 'Enfermaria') && l.genero === 'Masculino'
-        ).length;
+        previsaoApto = previsaoAlta.filter(function(l) {
+            return l.tipo === 'Apartamento' || l.tipo === 'APTO';
+        }).length;
+        previsaoEnfFem = previsaoAlta.filter(function(l) {
+            return (l.tipo === 'ENFERMARIA' || l.tipo === 'Enfermaria') && l.genero === 'Feminino';
+        }).length;
+        previsaoEnfMasc = previsaoAlta.filter(function(l) {
+            return (l.tipo === 'ENFERMARIA' || l.tipo === 'Enfermaria') && l.genero === 'Masculino';
+        }).length;
     }
     
-    const vagos = leitos.filter(l => isVago(l));
+    var vagos = leitos.filter(function(l) { return isVago(l); });
     
-    let vagosApto, vagosEnfFem, vagosEnfMasc;
+    var vagosApto = 0, vagosEnfFem = 0, vagosEnfMasc = 0;
+    var vagosEnfSemRestricao = 0, vagosEnfFemRestrita = 0, vagosEnfMascRestrita = 0;
     
     if (hospitalId === 'H2' || hospitalId === 'H4') {
         // =================== LOGICA APENAS PARA CONTRATUAIS ===================
-        const capacidadeInfo = window.HOSPITAL_CAPACIDADE ? window.HOSPITAL_CAPACIDADE[hospitalId] : null;
+        var capacidadeInfo = window.HOSPITAL_CAPACIDADE ? window.HOSPITAL_CAPACIDADE[hospitalId] : null;
         
         // Definir estrutura de contratuais
-        let aptosContratuais, enfsContratuais;
+        var aptosContratuais, enfsContratuais;
         if (hospitalId === 'H2') {
             aptosContratuais = 20; // leitos 1-20
             enfsContratuais = 16;  // leitos 21-36 (8 pares)
@@ -726,16 +727,11 @@ window.processarDadosHospital = function(hospitalId) {
             enfsContratuais = 8;   // leitos 10-17 (4 pares)
         }
         
-        // APARTAMENTOS: contratuais - ocupados - reservados (se ocupados >= contratuais, entao 0)
+        // APARTAMENTOS: contratuais - ocupados - reservados
         vagosApto = Math.max(0, aptosContratuais - ocupadosApto - reservadosApto);
         
         // ENFERMARIAS: processar apenas leitos CONTRATUAIS com sistema de irmaos
-        let vagosEnfSemRestricao = 0;
-        let vagosEnfFemRestrita = 0;
-        let vagosEnfMascRestrita = 0;
-        
-        // Determinar mapa de irmaos e range de contratuais
-        let irmaosMap, rangeMin, rangeMax;
+        var irmaosMap, rangeMin, rangeMax;
         if (hospitalId === 'H2') {
             irmaosMap = window.CRUZ_AZUL_IRMAOS || {
                 21: 22, 22: 21,
@@ -761,31 +757,31 @@ window.processarDadosHospital = function(hospitalId) {
         }
         
         // Processar APENAS leitos vagos DENTRO DO RANGE CONTRATUAL
-        const vagosContratuais = vagos.filter(l => {
-            const tipo = l.tipo || '';
+        var vagosContratuais = vagos.filter(function(l) {
+            var tipo = l.tipo || '';
             if (tipo !== 'ENFERMARIA' && tipo !== 'Enfermaria') return false;
             
-            const numeroLeito = getLeitoNumero(l.leito);
+            var numeroLeito = getLeitoNumero(l.leito);
             return numeroLeito && numeroLeito >= rangeMin && numeroLeito <= rangeMax;
         });
         
-        vagosContratuais.forEach(leitoVago => {
-            const numeroLeito = getLeitoNumero(leitoVago.leito);
-            const numeroIrmao = irmaosMap[numeroLeito];
+        vagosContratuais.forEach(function(leitoVago) {
+            var numeroLeito = getLeitoNumero(leitoVago.leito);
+            var numeroIrmao = irmaosMap[numeroLeito];
             
             if (!numeroIrmao) {
                 vagosEnfSemRestricao++;
                 return;
             }
             
-            const irmao = leitos.find(l => getLeitoNumero(l.leito) === numeroIrmao);
+            var irmao = leitos.find(function(l) { return getLeitoNumero(l.leito) === numeroIrmao; });
             
             // Irmao vago: sem restricao
             if (!irmao || isVago(irmao)) {
                 vagosEnfSemRestricao++;
             }
             // Irmao com isolamento: NAO conta (leito bloqueado)
-            else if (irmao.isolamento && irmao.isolamento !== 'Nao Isolamento') {
+            else if (irmao.isolamento && irmao.isolamento !== 'Nao Isolamento' && irmao.isolamento !== 'Não Isolamento') {
                 // Nao conta nada - leito bloqueado
             }
             // Irmao ocupado: contar por genero
@@ -800,125 +796,128 @@ window.processarDadosHospital = function(hospitalId) {
             }
         });
         
-        // CAPACIDADE TOTAL: somar todas as possibilidades e descontar reservas
-        vagosEnfFem = Math.max(0, vagosEnfSemRestricao + vagosEnfFemRestrita - reservadosEnfFem);
-        vagosEnfMasc = Math.max(0, vagosEnfSemRestricao + vagosEnfMascRestrita - reservadosEnfMasc);
+        // CAPACIDADE TOTAL: somar todas as possibilidades
+        vagosEnfFem = vagosEnfSemRestricao + vagosEnfFemRestrita;
+        vagosEnfMasc = vagosEnfSemRestricao + vagosEnfMascRestrita;
     }
 
     // Para hibridos, as variaveis serao definidas abaixo no bloco especifico
-    let vagosAptoFinal = vagosApto || 0;
-    let vagosEnfFemFinal = vagosEnfFem || 0;
-    let vagosEnfMascFinal = vagosEnfMasc || 0;
+    var vagosAptoFinal = vagosApto || 0;
+    var vagosEnfFemFinal = vagosEnfFem || 0;
+    var vagosEnfMascFinal = vagosEnfMasc || 0;
     
     if (hospitalId === 'H1' || hospitalId === 'H3' || hospitalId === 'H5' || hospitalId === 'H6' || hospitalId === 'H7' || hospitalId === 'H8' || hospitalId === 'H9') {
-        // V6.0: Hibridos - leitos sao 100% flexiveis
-        const capacidadeInfo = window.HOSPITAL_CAPACIDADE ? window.HOSPITAL_CAPACIDADE[hospitalId] : null;
-        const contratuais = capacidadeInfo ? capacidadeInfo.contratuais : leitos.length;
+        // V7.0: Hibridos - leitos sao 100% flexiveis
+        var capacidadeInfoHib = window.HOSPITAL_CAPACIDADE ? window.HOSPITAL_CAPACIDADE[hospitalId] : null;
+        var contratuaisHib = capacidadeInfoHib ? capacidadeInfoHib.contratuais : leitos.length;
         
-        // Calcular total de disponiveis contratuais - V7.0: descontar reservas
-        const disponiveisTotais = Math.max(0, contratuais - ocupados.length - reservas.length);
+        // V7.0: Calcular total de disponiveis contratuais (descontando reservas)
+        var disponiveisTotais = Math.max(0, contratuaisHib - ocupados.length - reservas.length);
         
         // HIBRIDOS: Cada vago PODE ser qualquer tipo (nao simultaneo)
-        // Exemplo: 1 vago = ate 1 apto OU ate 1 fem OU ate 1 masc
         vagosAptoFinal = disponiveisTotais;
         vagosEnfFemFinal = disponiveisTotais;
         vagosEnfMascFinal = disponiveisTotais;
     }
     
-    const tphValues = ocupados
-        .map(l => {
-            const admAt = l.admAt;
+    var tphValues = ocupados
+        .map(function(l) {
+            var admAt = l.admAt;
             if (!admAt) return null;
             
-            const admData = parseAdmDate_Hosp(admAt);
+            var admData = parseAdmDate_Hosp(admAt);
             if (!admData || isNaN(admData.getTime())) return null;
             
-            const hoje = new Date();
-            const dias = Math.floor((hoje - admData) / (1000 * 60 * 60 * 24));
+            var hoje = new Date();
+            var dias = Math.floor((hoje - admData) / (1000 * 60 * 60 * 24));
             return (dias >= 0 && dias <= 365) ? dias : null;
         })
-        .filter(v => v !== null);
+        .filter(function(v) { return v !== null; });
     
-    const tphMedio = tphValues.length > 0 
-        ? (tphValues.reduce((a, b) => a + b, 0) / tphValues.length).toFixed(2)
+    var tphMedio = tphValues.length > 0 
+        ? (tphValues.reduce(function(a, b) { return a + b; }, 0) / tphValues.length).toFixed(2)
         : '0.00';
     
-    const leitosMais5Diarias = ocupados.filter(l => {
-        const admAt = l.admAt;
+    var leitosMais5Diarias = ocupados.filter(function(l) {
+        var admAt = l.admAt;
         if (!admAt) return false;
         
-        const admData = parseAdmDate_Hosp(admAt);
+        var admData = parseAdmDate_Hosp(admAt);
         if (!admData || isNaN(admData.getTime())) return false;
         
-        const hoje = new Date();
-        const horas = (hoje - admData) / (1000 * 60 * 60);
+        var hoje = new Date();
+        var horas = (hoje - admData) / (1000 * 60 * 60);
         return horas >= 120;
-    }).map(l => {
-        const admData = parseAdmDate_Hosp(l.admAt);
-        const dias = Math.floor((new Date() - admData) / (1000 * 60 * 60 * 24));
+    }).map(function(l) {
+        var admData = parseAdmDate_Hosp(l.admAt);
+        var dias = Math.floor((new Date() - admData) / (1000 * 60 * 60 * 24));
         
         return { 
             leito: l.identificacaoLeito || l.leito || '---',
             matricula: l.matricula || '---',
             dias: dias
         };
-    }).sort((a, b) => b.dias - a.dias);
+    }).sort(function(a, b) { return b.dias - a.dias; });
     
-    const ppsValues = ocupados
-        .map(l => parseInt(l.pps) || 0)
-        .filter(v => v > 0);
-    const ppsMedio = ppsValues.length > 0
-        ? Math.round(ppsValues.reduce((a, b) => a + b, 0) / ppsValues.length)
+    var ppsValues = ocupados
+        .map(function(l) { return parseInt(l.pps) || 0; })
+        .filter(function(v) { return v > 0; });
+    var ppsMedio = ppsValues.length > 0
+        ? Math.round(ppsValues.reduce(function(a, b) { return a + b; }, 0) / ppsValues.length)
         : 0;
     
-    const ppsMenor40 = ocupados.filter(l => {
-        const pps = parseInt(l.pps) || 0;
+    var ppsMenor40 = ocupados.filter(function(l) {
+        var pps = parseInt(l.pps) || 0;
         return pps > 0 && pps < 40;
-    }).map(l => ({
-        leito: l.identificacaoLeito || l.leito || '---',
-        matricula: l.matricula || '---'
-    }));
+    }).map(function(l) {
+        return {
+            leito: l.identificacaoLeito || l.leito || '---',
+            matricula: l.matricula || '---'
+        };
+    });
     
-    const spictElegiveis = ocupados.filter(l => {
-        const spict = l.spict;
+    var spictElegiveis = ocupados.filter(function(l) {
+        var spict = l.spict;
         if (!spict) return false;
-        const norm = normStr(spict);
+        var norm = normStr(spict);
         return norm === 'elegivel' || norm === 'elegível';
     });
     
-    const diretivasPendentes = ocupados.filter(l => {
-        const spict = l.spict;
+    var diretivasPendentes = ocupados.filter(function(l) {
+        var spict = l.spict;
         if (!spict) return false;
         
-        const spictNorm = normStr(spict);
-        const spictElegivel = spictNorm === 'elegivel' || spictNorm === 'elegível';
+        var spictNorm = normStr(spict);
+        var spictElegivel = spictNorm === 'elegivel' || spictNorm === 'elegível';
         
         if (!spictElegivel) return false;
         
-        const diretivas = l.diretivas;
-        const dirNorm = normStr(diretivas);
+        var diretivas = l.diretivas;
+        var dirNorm = normStr(diretivas);
         
-        const valoresPendentes = ['', 'não', 'nao', 'n/a', 'pendente', 'não se aplica'];
+        var valoresPendentes = ['', 'não', 'nao', 'n/a', 'pendente', 'não se aplica'];
         
         return valoresPendentes.includes(dirNorm);
-    }).map(l => ({
-        leito: l.identificacaoLeito || l.leito || '---',
-        matricula: l.matricula || '---'
-    }));
+    }).map(function(l) {
+        return {
+            leito: l.identificacaoLeito || l.leito || '---',
+            matricula: l.matricula || '---'
+        };
+    });
     
-    const totalLeitos = leitos.length;
+    var totalLeitos = leitos.length;
     
-    // V6.0: Usar HOSPITAL_CAPACIDADE para base de calculo
-    const capacidadeInfo = window.HOSPITAL_CAPACIDADE ? window.HOSPITAL_CAPACIDADE[hospitalId] : null;
-    const contratuais = capacidadeInfo ? capacidadeInfo.contratuais : totalLeitos;
-    const base = Math.max(contratuais, ocupados.length);
-    const taxaOcupacao = totalLeitos > 0 ? Math.min((ocupados.length / base * 100), 100) : 0;
+    // V7.0: Usar HOSPITAL_CAPACIDADE para base de calculo
+    var capacidadeInfoFinal = window.HOSPITAL_CAPACIDADE ? window.HOSPITAL_CAPACIDADE[hospitalId] : null;
+    var contratuais = capacidadeInfoFinal ? capacidadeInfoFinal.contratuais : totalLeitos;
+    var base = Math.max(contratuais, ocupados.length);
+    var taxaOcupacao = totalLeitos > 0 ? Math.min((ocupados.length / base * 100), 100) : 0;
     
-    const modalidadeOcupados = calcularModalidadePorTipo(ocupados, hospitalId);
-    const modalidadePrevisao = calcularModalidadePorTipo(previsaoAlta, hospitalId);
-    const modalidadeDisponiveis = calcularModalidadesVagos(leitos, hospitalId);
+    var modalidadeOcupados = calcularModalidadePorTipo(ocupados, hospitalId);
+    var modalidadePrevisao = calcularModalidadePorTipo(previsaoAlta, hospitalId);
+    var modalidadeDisponiveis = calcularModalidadesVagos(leitos, hospitalId);
     
-    const nomeHospital = {
+    var nomeHospital = {
         'H1': 'Neomater',
         'H2': 'Cruz Azul',
         'H3': 'Santa Marcelina',
@@ -932,9 +931,9 @@ window.processarDadosHospital = function(hospitalId) {
     
     return {
         nome: nomeHospital[hospitalId] || hospitalId,
-        totalLeitos,
-        contratuais,
-        taxaOcupacao,
+        totalLeitos: totalLeitos,
+        contratuais: contratuais,
+        taxaOcupacao: taxaOcupacao,
         ocupados: {
             total: ocupados.length,
             apartamento: ocupadosApto,
@@ -982,14 +981,14 @@ window.processarDadosHospital = function(hospitalId) {
 
 // =================== FUNCOES DE GAUGE E MODALIDADE ===================
 function calcularGaugeOffset_Hosp(porcentagem) {
-    const circunferencia = Math.PI * 55;
-    const progresso = (porcentagem / 100) * circunferencia;
+    var circunferencia = Math.PI * 55;
+    var progresso = (porcentagem / 100) * circunferencia;
     return circunferencia - progresso;
 }
 
 function renderGaugeV5_Hosp(porcentagem, cor, numero) {
-    const offset = calcularGaugeOffset_Hosp(porcentagem);
-    const badgeClass = 'blue';
+    var offset = calcularGaugeOffset_Hosp(porcentagem);
+    var badgeClass = 'blue';
     cor = CORES_ARCHIPELAGO.azulPrincipal; 
     
     return '\
@@ -1012,35 +1011,6 @@ function renderGaugeV5_Hosp(porcentagem, cor, numero) {
                 <div class="v5-number-inside">' + numero.toString().padStart(2, '0') + '</div>\
             </div>\
             <div class="v5-badge-below ' + badgeClass + '">' + porcentagem.toFixed(0) + '%</div>\
-        </div>\
-    ';
-}
-
-// V7.0: Gauge especifico para reservados (cor amarela)
-function renderGaugeReservados_Hosp(porcentagem, numero) {
-    const offset = calcularGaugeOffset_Hosp(porcentagem);
-    const cor = CORES_ARCHIPELAGO.reservados;
-    
-    return '\
-        <div class="v5-gauge-container">\
-            <div style="position: relative;">\
-                <svg class="v5-gauge" viewBox="0 0 140 80">\
-                    <path d="M 15 70 A 55 55 0 0 1 125 70" \
-                          fill="none" \
-                          stroke="rgba(255,255,255,0.1)" \
-                          stroke-width="14" \
-                          stroke-linecap="round"/>\
-                    <path d="M 15 70 A 55 55 0 0 1 125 70" \
-                          fill="none" \
-                          stroke="' + cor + '" \
-                          stroke-width="14" \
-                          stroke-linecap="round"\
-                          stroke-dasharray="172.8"\
-                          stroke-dashoffset="' + offset + '"/>\
-                </svg>\
-                <div class="v5-number-inside">' + numero.toString().padStart(2, '0') + '</div>\
-            </div>\
-            <div class="v5-badge-below reservados">' + porcentagem.toFixed(0) + '%</div>\
         </div>\
     ';
 }
@@ -1073,20 +1043,20 @@ function renderModalidadeContratual_Hosp(modalidade) {
 }
 
 function renderMiniGaugeTPH_Hosp(dias) {
-    const diasNum = typeof dias === 'string' ? parseFloat(dias) : dias;
+    var diasNum = typeof dias === 'string' ? parseFloat(dias) : dias;
     
-    const maxDias = 10;
-    const porcentagem = (diasNum / maxDias) * 100;
+    var maxDias = 10;
+    var porcentagem = (diasNum / maxDias) * 100;
     
-    let corClass = 'green';
+    var corClass = 'green';
     if (diasNum >= 9) corClass = 'red';
     else if (diasNum >= 6) corClass = 'yellow';
     
-    const totalBlocos = 20;
-    const blocosCheios = Math.round((diasNum / maxDias) * totalBlocos);
+    var totalBlocos = 20;
+    var blocosCheios = Math.round((diasNum / maxDias) * totalBlocos);
     
-    let blocos = '';
-    for (let i = 0; i < totalBlocos; i++) {
+    var blocos = '';
+    for (var i = 0; i < totalBlocos; i++) {
         blocos += '<div class="tph-gauge-block ' + (i < blocosCheios ? 'filled' : 'empty') + '"></div>';
     }
     
@@ -1095,37 +1065,60 @@ function renderMiniGaugeTPH_Hosp(dias) {
             <div class="tph-gauge-bar ' + corClass + '">\
                 ' + blocos + '\
             </div>\
+            <span class="tph-gauge-label">' + diasNum.toFixed(2) + '/' + maxDias + '</span>\
         </div>\
     ';
 }
 
-// =================== RENDER DASHBOARD ENFERMARIAS V7.0 ===================
 window.renderDashboardHospitalar = function() {
-    console.log('Renderizando Dashboard Enfermarias V7.0...');
+    console.log('Renderizando Dashboard Enfermarias V7.0');
     
-    const container = document.getElementById('dashHospitalarContent');
+    var container = document.getElementById('dashHospitalarContent');
     if (!container) {
-        console.warn('Container dashHospitalarContent nao encontrado');
-        return;
+        var dash1Section = document.getElementById('dash1');
+        if (dash1Section) {
+            container = document.createElement('div');
+            container.id = 'dashHospitalarContent';
+            dash1Section.appendChild(container);
+        }
     }
     
-    if (!window.hospitalData) {
+    if (!container) {
+        container = document.getElementById('dashboardContainer');
+        if (!container) {
+            console.error('Nenhum container encontrado');
+            return;
+        }
+    }
+    
+    if (!window.hospitalData || Object.keys(window.hospitalData).length === 0) {
         container.innerHTML = '\
-            <div style="text-align: center; padding: 50px; color: white;">\
-                <p>Carregando dados...</p>\
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 400px; text-align: center; color: white; background: linear-gradient(135deg, ' + CORES_ARCHIPELAGO.azulMarinhoEscuro + ' 0%, ' + CORES_ARCHIPELAGO.azulEscuro + ' 100%); border-radius: 12px; margin: 20px; padding: 40px;">\
+                <div style="width: 60px; height: 60px; border: 3px solid ' + CORES_ARCHIPELAGO.azulPrincipal + '; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px;"></div>\
+                <h2 style="color: ' + CORES_ARCHIPELAGO.azulPrincipal + '; margin-bottom: 10px; font-size: 20px;">Aguardando Dados</h2>\
+                <p style="color: ' + CORES_ARCHIPELAGO.cinzaMedio + '; font-size: 14px;">Conectando com Google Apps Script...</p>\
             </div>\
+            <style>\
+                @keyframes spin {\
+                    from { transform: rotate(0deg); }\
+                    to { transform: rotate(360deg); }\
+                }\
+            </style>\
         ';
+        
+        setTimeout(function() {
+            if (window.hospitalData && Object.keys(window.hospitalData).length > 0) {
+                window.renderDashboardHospitalar();
+            }
+        }, 3000);
         return;
     }
     
-    const ordemAlfabetica = ['H5', 'H2', 'H1', 'H4', 'H3', 'H6', 'H7', 'H8', 'H9'];
+    var ordemAlfabetica = ['H5', 'H2', 'H1', 'H4', 'H3', 'H6', 'H7', 'H8', 'H9'];
     
-    const hospitaisComDados = ordemAlfabetica.filter(hospitalId => {
-        const hospital = window.hospitalData[hospitalId];
-        if (!hospital || !hospital.leitos) return false;
-        // V7.0: Filtrar UTI antes de verificar
-        const leitosSemUTI = filtrarLeitosSemUTI(hospital.leitos);
-        return leitosSemUTI.some(l => isOcupado(l) || isVago(l));
+    var hospitaisComDados = ordemAlfabetica.filter(function(hospitalId) {
+        var hospital = window.hospitalData[hospitalId];
+        return hospital && hospital.leitos && hospital.leitos.some(function(l) { return isOcupado(l) || isVago(l); });
     });
     
     if (hospitaisComDados.length === 0) {
@@ -1141,7 +1134,7 @@ window.renderDashboardHospitalar = function() {
         return;
     }
     
-    const hoje = new Date().toLocaleDateString('pt-BR');
+    var hoje = new Date().toLocaleDateString('pt-BR');
     
     container.innerHTML = '\
         <div class="dashboard-hospitalar-wrapper" style="background: linear-gradient(135deg, ' + CORES_ARCHIPELAGO.azulMarinhoEscuro + ' 0%, ' + CORES_ARCHIPELAGO.azulEscuro + ' 100%); min-height: 100vh; padding: 20px; color: white; font-family: \'Poppins\', sans-serif;">\
@@ -1172,21 +1165,21 @@ window.renderDashboardHospitalar = function() {
             </div>\
             \
             <div class="hospitais-container">\
-                ' + hospitaisComDados.map(hospitalId => renderHospitalSection(hospitalId, hoje)).join('') + '\
+                ' + hospitaisComDados.map(function(hospitalId) { return renderHospitalSection(hospitalId, hoje); }).join('') + '\
             </div>\
         </div>\
         \
         ' + getHospitalConsolidadoCSS() + '\
     ';
     
-    const aguardarChartJS = () => {
+    var aguardarChartJS = function() {
         if (typeof Chart === 'undefined') {
             setTimeout(aguardarChartJS, 100);
             return;
         }
         
-        setTimeout(() => {
-            hospitaisComDados.forEach(hospitalId => {
+        setTimeout(function() {
+            hospitaisComDados.forEach(function(hospitalId) {
                 renderAltasHospital(hospitalId);
                 renderConcessoesHospital(hospitalId);
                 if (CONFIG_DASHBOARD.MOSTRAR_LINHAS_CUIDADO) {
@@ -1201,9 +1194,9 @@ window.renderDashboardHospitalar = function() {
     aguardarChartJS();
 };
 
-// =================== V7.0: RENDER HOSPITAL SECTION (COM BOX RESERVADOS) ===================
+// =================== V7.0: RENDER HOSPITAL SECTION (COM BOX OCUPACAO ATUALIZADO) ===================
 function renderHospitalSection(hospitalId, hoje) {
-    const dados = window.processarDadosHospital(hospitalId);
+    var dados = window.processarDadosHospital(hospitalId);
     
     if (!dados || !dados.tph || !dados.pps || !dados.spict) {
         console.error('Dados invalidos para ' + hospitalId);
@@ -1211,7 +1204,7 @@ function renderHospitalSection(hospitalId, hoje) {
     }
     
     // V7.0: Calcular porcentagem de reservados
-    const porcentagemReservados = dados.contratuais > 0 ? (dados.reservados.total / dados.contratuais * 100) : 0;
+    var porcentagemReservados = dados.contratuais > 0 ? (dados.reservados.total / dados.contratuais * 100) : 0;
     
     return '\
         <div class="hospital-card" data-hospital="' + hospitalId + '">\
@@ -1220,67 +1213,58 @@ function renderHospitalSection(hospitalId, hoje) {
             </div>\
             \
             <div class="kpis-grid">\
+                <!-- V7.0: BOX OCUPACAO COM DOIS GAUGES -->\
                 <div class="kpi-box box-ocupados">\
-                    <div class="kpi-title">Leitos Ocupados</div>\
+                    <div class="kpi-title">Ocupacao</div>\
                     \
                     <div class="kpi-content">\
-                        ' + renderGaugeV5_Hosp(dados.taxaOcupacao, CORES_ARCHIPELAGO.ocupados, dados.ocupados.total) + '\
+                        <!-- V7.0: Dois gauges lado a lado -->\
+                        <div class="dual-gauges-container">\
+                            <div class="gauge-with-label">\
+                                <div class="gauge-label">Reservados</div>\
+                                ' + renderGaugeV5_Hosp(porcentagemReservados, CORES_ARCHIPELAGO.azulPrincipal, dados.reservados.total) + '\
+                            </div>\
+                            <div class="gauge-with-label">\
+                                <div class="gauge-label">Ocupados</div>\
+                                ' + renderGaugeV5_Hosp(dados.taxaOcupacao, CORES_ARCHIPELAGO.azulPrincipal, dados.ocupados.total) + '\
+                            </div>\
+                        </div>\
                         \
+                        <!-- V7.0: Tabela com duas colunas -->\
                         <div class="kpi-items-lista">\
                             <div class="kpi-subtitle">Total por Tipo de Leito</div>\
-                            <div class="item-lista">\
-                                <span class="label">Apartamento</span>\
-                                <span class="valor">' + dados.ocupados.apartamento + '</span>\
-                            </div>\
-                            <div class="item-lista">\
-                                <span class="label">Enfermaria Feminina</span>\
-                                <span class="valor">' + dados.ocupados.enf_feminina + '</span>\
-                            </div>\
-                            <div class="item-lista">\
-                                <span class="label">Enfermaria Masculina</span>\
-                                <span class="valor">' + dados.ocupados.enf_masculina + '</span>\
-                            </div>\
+                            <table class="tipo-leito-table">\
+                                <thead>\
+                                    <tr>\
+                                        <th></th>\
+                                        <th>Ocupados</th>\
+                                        <th>Reservados</th>\
+                                    </tr>\
+                                </thead>\
+                                <tbody>\
+                                    <tr>\
+                                        <td class="tipo-label">Apartamento</td>\
+                                        <td class="tipo-valor">' + dados.ocupados.apartamento + '</td>\
+                                        <td class="tipo-valor">' + dados.reservados.apartamento + '</td>\
+                                    </tr>\
+                                    <tr>\
+                                        <td class="tipo-label">Enfermaria Feminina</td>\
+                                        <td class="tipo-valor">' + dados.ocupados.enf_feminina + '</td>\
+                                        <td class="tipo-valor">' + dados.reservados.enf_feminina + '</td>\
+                                    </tr>\
+                                    <tr>\
+                                        <td class="tipo-label">Enfermaria Masculina</td>\
+                                        <td class="tipo-valor">' + dados.ocupados.enf_masculina + '</td>\
+                                        <td class="tipo-valor">' + dados.reservados.enf_masculina + '</td>\
+                                    </tr>\
+                                </tbody>\
+                            </table>\
                         </div>\
                     </div>\
                     \
                     <div class="kpi-detalhes">\
                         <div class="detalhe-titulo">Total por Modalidade Contratual</div>\
                         ' + renderModalidadeContratual_Hosp(dados.ocupados.modalidade) + '\
-                    </div>\
-                </div>\
-\
-                <!-- V7.0: NOVO BOX DE RESERVADOS -->\
-                <div class="kpi-box box-reservados">\
-                    <div class="kpi-title">Leitos Reservados</div>\
-                    \
-                    <div class="kpi-content">\
-                        ' + renderGaugeReservados_Hosp(porcentagemReservados, dados.reservados.total) + '\
-                        \
-                        <div class="kpi-items-lista">\
-                            <div class="kpi-subtitle">Total por Tipo de Leito</div>\
-                            <div class="item-lista">\
-                                <span class="label">Apartamento</span>\
-                                <span class="valor">' + dados.reservados.apartamento + '</span>\
-                            </div>\
-                            <div class="item-lista">\
-                                <span class="label">Enfermaria Feminina</span>\
-                                <span class="valor">' + dados.reservados.enf_feminina + '</span>\
-                            </div>\
-                            <div class="item-lista">\
-                                <span class="label">Enfermaria Masculina</span>\
-                                <span class="valor">' + dados.reservados.enf_masculina + '</span>\
-                            </div>\
-                        </div>\
-                    </div>\
-                    \
-                    <div class="kpi-detalhes">\
-                        <div class="detalhe-titulo">Aguardando Admissao</div>\
-                        <div class="lista-simples-compacta">\
-                            <div class="lista-item-compacto">\
-                                <span class="label">Total Reservados</span>\
-                                <span class="valor">' + dados.reservados.total + '</span>\
-                            </div>\
-                        </div>\
                     </div>\
                 </div>\
 \
@@ -1484,10 +1468,10 @@ function renderHospitalSection(hospitalId, hoje) {
 }
 
 // =================== GRAFICOS (COM FILTRO UTI) ===================
-const backgroundPlugin = {
+var backgroundPlugin = {
     id: 'customBackground',
-    beforeDraw: (chart) => {
-        const ctx = chart.ctx;
+    beforeDraw: function(chart) {
+        var ctx = chart.ctx;
         ctx.save();
         ctx.fillStyle = window.fundoBranco ? '#ffffff' : 'transparent';
         ctx.fillRect(0, 0, chart.width, chart.height);
@@ -1496,27 +1480,27 @@ const backgroundPlugin = {
 };
 
 function renderAltasHospital(hospitalId) {
-    const canvas = document.getElementById('graficoAltas' + hospitalId);
+    var canvas = document.getElementById('graficoAltas' + hospitalId);
     if (!canvas || typeof Chart === 'undefined') return;
     
-    const hospital = window.hospitalData[hospitalId];
+    var hospital = window.hospitalData[hospitalId];
     if (!hospital || !hospital.leitos) return;
     
     // V7.0: Filtrar UTI
-    const leitos = filtrarLeitosSemUTI(hospital.leitos);
+    var leitos = filtrarLeitosSemUTI(hospital.leitos);
     
-    const chartKey = 'altas' + hospitalId;
+    var chartKey = 'altas' + hospitalId;
     if (window.chartInstances && window.chartInstances[chartKey]) {
         window.chartInstances[chartKey].destroy();
     }
     
     if (!window.chartInstances) window.chartInstances = {};
     
-    const categorias = CONFIG_DASHBOARD.MOSTRAR_96H ? 
+    var categorias = CONFIG_DASHBOARD.MOSTRAR_96H ? 
         ['HOJE', '24H', '48H', '72H', '96H'] : 
         ['HOJE', '24H', '48H', '72H'];
     
-    const dados = {
+    var dados = {
         'Ouro': CONFIG_DASHBOARD.MOSTRAR_96H ? [0, 0, 0, 0, 0] : [0, 0, 0, 0],
         '2R': CONFIG_DASHBOARD.MOSTRAR_96H ? [0, 0, 0, 0, 0] : [0, 0, 0, 0],
         '3R': CONFIG_DASHBOARD.MOSTRAR_96H ? [0, 0, 0, 0, 0] : [0, 0, 0, 0],
@@ -1525,15 +1509,15 @@ function renderAltasHospital(hospitalId) {
         '96H': CONFIG_DASHBOARD.MOSTRAR_96H ? [0, 0, 0, 0, 0] : []
     };
     
-    leitos.forEach(leito => {
+    leitos.forEach(function(leito) {
         if (isOcupado(leito)) {
-            const prevAlta = leito.prevAlta || (leito.paciente && leito.paciente.prevAlta);
+            var prevAlta = leito.prevAlta || (leito.paciente && leito.paciente.prevAlta);
             
             if (prevAlta) {
-                const prev = normStr(prevAlta).replace(/\s+/g, ' ');
+                var prev = normStr(prevAlta).replace(/\s+/g, ' ');
                 
-                let index = -1;
-                let tipo = '';
+                var index = -1;
+                var tipo = '';
                 
                 if (prev.includes('hoje') && prev.includes('ouro')) { index = 0; tipo = 'Ouro'; }
                 else if (prev.includes('hoje') && prev.includes('2r')) { index = 0; tipo = '2R'; }
@@ -1552,12 +1536,12 @@ function renderAltasHospital(hospitalId) {
         }
     });
     
-    const corTexto = window.fundoBranco ? CORES_ARCHIPELAGO.cinzaEscuro : '#ffffff';
-    const corGrid = window.fundoBranco ? 'rgba(60, 58, 62, 0.1)' : 'rgba(255, 255, 255, 0.1)';
+    var corTexto = window.fundoBranco ? CORES_ARCHIPELAGO.cinzaEscuro : '#ffffff';
+    var corGrid = window.fundoBranco ? 'rgba(60, 58, 62, 0.1)' : 'rgba(255, 255, 255, 0.1)';
     
-    const ctx = canvas.getContext('2d');
+    var ctx = canvas.getContext('2d');
     
-    const dadosSimplificados = CONFIG_DASHBOARD.MOSTRAR_96H ? [
+    var dadosSimplificados = CONFIG_DASHBOARD.MOSTRAR_96H ? [
         dados['Ouro'][0] + dados['2R'][0] + dados['3R'][0],
         dados['Ouro'][1] + dados['2R'][1] + dados['3R'][1],
         dados['48H'][2],
@@ -1570,8 +1554,8 @@ function renderAltasHospital(hospitalId) {
         dados['72H'][3]
     ];
     
-    const valorMaximo = Math.max.apply(null, dadosSimplificados.concat([0]));
-    const limiteSuperior = valorMaximo + 1;
+    var valorMaximo = Math.max.apply(null, dadosSimplificados.concat([0]));
+    var limiteSuperior = valorMaximo + 1;
     
     window.chartInstances[chartKey] = new Chart(ctx, {
         type: 'bar',
@@ -1646,43 +1630,43 @@ function renderAltasHospital(hospitalId) {
 
 // =================== RENDER CONCESSOES HOSPITAL (COM FILTRO UTI) ===================
 function renderConcessoesHospital(hospitalId) {
-    const container = document.getElementById('concessoesBoxes' + hospitalId);
+    var container = document.getElementById('concessoesBoxes' + hospitalId);
     if (!container) return;
     
-    const hospital = window.hospitalData[hospitalId];
+    var hospital = window.hospitalData[hospitalId];
     if (!hospital || !hospital.leitos) return;
     
     // V7.0: Filtrar UTI
-    const leitos = filtrarLeitosSemUTI(hospital.leitos);
+    var leitos = filtrarLeitosSemUTI(hospital.leitos);
     
-    const concessoesTimeline = {
+    var concessoesTimeline = {
         'HOJE': {},
         '24H': {},
         '48H': {}
     };
     
-    leitos.forEach(leito => {
+    leitos.forEach(function(leito) {
         if (isOcupado(leito)) {
-            const concessoes = leito.concessoes || (leito.paciente && leito.paciente.concessoes);
-            const prevAlta = leito.prevAlta || (leito.paciente && leito.paciente.prevAlta);
-            const matricula = leito.matricula || 'S/N';
+            var concessoes = leito.concessoes || (leito.paciente && leito.paciente.concessoes);
+            var prevAlta = leito.prevAlta || (leito.paciente && leito.paciente.prevAlta);
+            var matricula = leito.matricula || 'S/N';
             
             if (concessoes && prevAlta) {
-                const concessoesList = Array.isArray(concessoes) ? 
+                var concessoesList = Array.isArray(concessoes) ? 
                     concessoes : 
                     String(concessoes).split('|');
                 
-                const prev = normStr(prevAlta).replace(/\s+/g, ' ');
-                let timeline = null;
+                var prev = normStr(prevAlta).replace(/\s+/g, ' ');
+                var timeline = null;
                 
                 if (prev.includes('hoje')) timeline = 'HOJE';
                 else if (prev.includes('24h') || prev.includes('24 h')) timeline = '24H';
                 else if (prev.includes('48h')) timeline = '48H';
                 
                 if (timeline) {
-                    concessoesList.forEach(concessao => {
+                    concessoesList.forEach(function(concessao) {
                         if (concessao && concessao.trim()) {
-                            const nome = desnormalizarTexto(concessao.trim());
+                            var nome = window.desnormalizarTexto ? window.desnormalizarTexto(concessao.trim()) : concessao.trim();
                             if (!concessoesTimeline[timeline][nome]) {
                                 concessoesTimeline[timeline][nome] = [];
                             }
@@ -1694,13 +1678,13 @@ function renderConcessoesHospital(hospitalId) {
         }
     });
     
-    const periodos = ['HOJE', '24H', '48H'];
+    var periodos = ['HOJE', '24H', '48H'];
     
     container.innerHTML = '\
         <div class="timeline-boxes-grid">\
             ' + periodos.map(function(periodo) {
-                const concessoes = concessoesTimeline[periodo];
-                const total = Object.values(concessoes).reduce(function(sum, arr) { return sum + arr.length; }, 0);
+                var concessoes = concessoesTimeline[periodo];
+                var total = Object.values(concessoes).reduce(function(sum, arr) { return sum + arr.length; }, 0);
                 
                 return '\
                     <div class="timeline-box">\
@@ -1729,43 +1713,43 @@ function renderConcessoesHospital(hospitalId) {
 
 // =================== RENDER LINHAS HOSPITAL (COM FILTRO UTI) ===================
 function renderLinhasHospital(hospitalId) {
-    const container = document.getElementById('linhasBoxes' + hospitalId);
+    var container = document.getElementById('linhasBoxes' + hospitalId);
     if (!container) return;
     
-    const hospital = window.hospitalData[hospitalId];
+    var hospital = window.hospitalData[hospitalId];
     if (!hospital || !hospital.leitos) return;
     
     // V7.0: Filtrar UTI
-    const leitos = filtrarLeitosSemUTI(hospital.leitos);
+    var leitos = filtrarLeitosSemUTI(hospital.leitos);
     
-    const linhasTimeline = {
+    var linhasTimeline = {
         'HOJE': {},
         '24H': {},
         '48H': {}
     };
     
-    leitos.forEach(leito => {
+    leitos.forEach(function(leito) {
         if (isOcupado(leito)) {
-            const linhas = leito.linhasCuidado || (leito.paciente && leito.paciente.linhasCuidado);
-            const prevAlta = leito.prevAlta || (leito.paciente && leito.paciente.prevAlta);
-            const matricula = leito.matricula || 'S/N';
+            var linhas = leito.linhasCuidado || (leito.paciente && leito.paciente.linhasCuidado);
+            var prevAlta = leito.prevAlta || (leito.paciente && leito.paciente.prevAlta);
+            var matricula = leito.matricula || 'S/N';
             
             if (linhas && prevAlta) {
-                const linhasList = Array.isArray(linhas) ? 
+                var linhasList = Array.isArray(linhas) ? 
                     linhas : 
                     String(linhas).split('|');
                 
-                const prev = normStr(prevAlta).replace(/\s+/g, ' ');
-                let timeline = null;
+                var prev = normStr(prevAlta).replace(/\s+/g, ' ');
+                var timeline = null;
                 
                 if (prev.includes('hoje')) timeline = 'HOJE';
                 else if (prev.includes('24h') || prev.includes('24 h')) timeline = '24H';
                 else if (prev.includes('48h')) timeline = '48H';
                 
                 if (timeline) {
-                    linhasList.forEach(linha => {
+                    linhasList.forEach(function(linha) {
                         if (linha && linha.trim()) {
-                            const nome = desnormalizarTexto(linha.trim());
+                            var nome = window.desnormalizarTexto ? window.desnormalizarTexto(linha.trim()) : linha.trim();
                             if (!linhasTimeline[timeline][nome]) {
                                 linhasTimeline[timeline][nome] = [];
                             }
@@ -1777,13 +1761,13 @@ function renderLinhasHospital(hospitalId) {
         }
     });
     
-    const periodos = ['HOJE', '24H', '48H'];
+    var periodos = ['HOJE', '24H', '48H'];
     
     container.innerHTML = '\
         <div class="timeline-boxes-grid">\
             ' + periodos.map(function(periodo) {
-                const linhas = linhasTimeline[periodo];
-                const total = Object.values(linhas).reduce(function(sum, arr) { return sum + arr.length; }, 0);
+                var linhas = linhasTimeline[periodo];
+                var total = Object.values(linhas).reduce(function(sum, arr) { return sum + arr.length; }, 0);
                 
                 return '\
                     <div class="timeline-box">\
@@ -1939,7 +1923,7 @@ function getHospitalConsolidadoCSS() {
             \
             .kpis-grid {\
                 display: grid;\
-                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));\
+                grid-template-columns: repeat(3, 1fr);\
                 gap: 20px;\
                 margin-bottom: 30px;\
             }\
@@ -1964,33 +1948,87 @@ function getHospitalConsolidadoCSS() {
                 text-transform: none !important;\
             }\
             \
-            /* V7.0: Estilo especifico para box-reservados */\
-            .box-reservados .kpi-title {\
-                color: ' + CORES_ARCHIPELAGO.reservados + ';\
-            }\
-            \
-            .box-reservados .v5-badge-below.reservados {\
-                background: ' + CORES_ARCHIPELAGO.reservados + ';\
-                color: ' + CORES_ARCHIPELAGO.azulMarinhoEscuro + ';\
-            }\
-            \
             .kpi-content {\
                 display: flex;\
-                align-items: flex-start;\
-                gap: 20px;\
+                flex-direction: column;\
+                align-items: center;\
+                gap: 15px;\
                 margin-bottom: 15px;\
+            }\
+            \
+            /* V7.0: Estilos para dois gauges lado a lado */\
+            .dual-gauges-container {\
+                display: flex;\
+                justify-content: center;\
+                gap: 20px;\
+                width: 100%;\
+            }\
+            \
+            .gauge-with-label {\
+                display: flex;\
+                flex-direction: column;\
+                align-items: center;\
+            }\
+            \
+            .gauge-label {\
+                font-size: 11px;\
+                font-weight: 600;\
+                color: ' + CORES_ARCHIPELAGO.azulPrincipal + ';\
+                margin-bottom: 5px;\
+                text-transform: none;\
+            }\
+            \
+            /* V7.0: Tabela de tipos de leito com duas colunas */\
+            .tipo-leito-table {\
+                width: 100%;\
+                border-collapse: collapse;\
+                font-size: 11px;\
+                margin-top: 10px;\
+            }\
+            \
+            .tipo-leito-table thead th {\
+                color: ' + CORES_ARCHIPELAGO.azulPrincipal + ';\
+                font-weight: 600;\
+                padding: 6px 4px;\
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);\
+                font-size: 10px;\
+                text-transform: none !important;\
+            }\
+            \
+            .tipo-leito-table thead th:first-child {\
+                text-align: left;\
+            }\
+            \
+            .tipo-leito-table thead th:not(:first-child) {\
+                text-align: center;\
+            }\
+            \
+            .tipo-leito-table tbody td {\
+                padding: 6px 4px;\
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05);\
+            }\
+            \
+            .tipo-leito-table tbody td.tipo-label {\
+                color: ' + CORES_ARCHIPELAGO.cinzaClaro + ';\
+                text-align: left;\
+            }\
+            \
+            .tipo-leito-table tbody td.tipo-valor {\
+                color: #ffffff;\
+                font-weight: 600;\
+                text-align: center;\
             }\
             \
             .v5-gauge-container {\
                 display: flex;\
                 flex-direction: column;\
                 align-items: center;\
-                min-width: 100px;\
+                min-width: 80px;\
             }\
             \
             .v5-gauge {\
-                width: 100px;\
-                height: 60px;\
+                width: 80px;\
+                height: 50px;\
             }\
             \
             .v5-number-inside {\
@@ -1998,7 +2036,7 @@ function getHospitalConsolidadoCSS() {
                 bottom: 5px;\
                 left: 50%;\
                 transform: translateX(-50%);\
-                font-size: 28px;\
+                font-size: 22px;\
                 font-weight: 800;\
                 color: #ffffff;\
             }\
@@ -2007,7 +2045,7 @@ function getHospitalConsolidadoCSS() {
                 margin-top: 8px;\
                 padding: 4px 12px;\
                 border-radius: 12px;\
-                font-size: 12px;\
+                font-size: 11px;\
                 font-weight: 700;\
             }\
             \
@@ -2017,7 +2055,7 @@ function getHospitalConsolidadoCSS() {
             }\
             \
             .kpi-items-lista {\
-                flex: 1;\
+                width: 100%;\
             }\
             \
             .kpi-subtitle {\
@@ -2124,6 +2162,12 @@ function getHospitalConsolidadoCSS() {
             \
             .tph-gauge-bar.red .tph-gauge-block.filled {\
                 background: #ef4444;\
+            }\
+            \
+            .tph-gauge-label {\
+                font-size: 11px;\
+                color: ' + CORES_ARCHIPELAGO.cinzaMedio + ';\
+                margin-left: 10px;\
             }\
             \
             .kpi-valores-duplos-divididos {\
@@ -2410,6 +2454,11 @@ function getHospitalConsolidadoCSS() {
                 \
                 .hospitais-container {\
                     padding: 0 !important;\
+                }\
+                \
+                .dual-gauges-container {\
+                    flex-direction: column;\
+                    gap: 15px;\
                 }\
             }\
         </style>\
