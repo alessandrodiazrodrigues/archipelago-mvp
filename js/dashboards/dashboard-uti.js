@@ -1,8 +1,9 @@
-// =================== DASHBOARD UTI V7.0 ===================
+// =================== DASHBOARD UTI V7.1 ===================
 // =================== LEITOS UTI - INICIAL: H2 CRUZ AZUL ===================
 // =================== 20 CONTRATUAIS + 10 EXTRAS = 30 TOTAL ===================
+// V7.1 CORRIGIDO: Busca dados em window.leitosUTI (separado de hospitalData)
 
-console.log('Dashboard UTI V7.0 - Carregando...');
+console.log('Dashboard UTI V7.1 - Carregando...');
 
 // =================== CONFIGURACAO UTI POR HOSPITAL ===================
 const UTI_CAPACIDADE = {
@@ -112,15 +113,16 @@ function renderGaugeUTI(porcentagem, cor, numero) {
 
 // =================== PROCESSAR DADOS HOSPITAL UTI ===================
 function processarDadosUTI(hospitalId) {
-    const hospitalObj = window.hospitalData[hospitalId] || {};
-    let leitos = hospitalObj.leitos || hospitalObj || [];
+    // V7.1: Buscar em window.leitosUTI (separado de hospitalData)
+    const hospitalObj = window.leitosUTI[hospitalId] || {};
+    let leitos = hospitalObj.leitos || [];
     
     if (!Array.isArray(leitos)) {
         leitos = [];
     }
     
-    // Filtrar APENAS leitos UTI
-    leitos = filtrarLeitosUTI(leitos);
+    // Nao precisa filtrar - window.leitosUTI ja contem apenas UTI
+    console.log('[UTI] Hospital ' + hospitalId + ' - Leitos encontrados: ' + leitos.length);
     
     // Buscar capacidade UTI
     const capacidade = UTI_CAPACIDADE[hospitalId];
@@ -350,8 +352,8 @@ window.renderDashboardUTI = function(hospitalId) {
         return;
     }
     
-    // Verificar dados
-    if (!window.hospitalData || !window.hospitalData[hospitalId]) {
+    // Verificar dados - V7.1: usar window.leitosUTI
+    if (!window.leitosUTI || !window.leitosUTI[hospitalId]) {
         container.innerHTML = `
             <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 400px; text-align: center; color: white; background: linear-gradient(135deg, #1a1f2e 0%, #2d3748 100%); border-radius: 12px; margin: 20px; padding: 40px;">
                 <h2 style="color: #ef4444; margin-bottom: 10px;">Dados UTI nao disponiveis</h2>
@@ -839,6 +841,7 @@ function getUTIDashboardCSS() {
     `;
 }
 
-console.log('Dashboard UTI V7.0 - Carregado com sucesso');
-console.log('V7.0 Hospitais com UTI: ' + HOSPITAIS_COM_UTI.join(', '));
-console.log('V7.0 H2 Cruz Azul: 20 contratuais + 10 extras = 30 total');
+console.log('Dashboard UTI V7.1 - Carregado com sucesso');
+console.log('V7.1 CORRIGIDO: Busca dados em window.leitosUTI (separado de hospitalData)');
+console.log('V7.1 Hospitais com UTI: ' + HOSPITAIS_COM_UTI.join(', '));
+console.log('V7.1 H2 Cruz Azul: 20 contratuais + 10 extras = 30 total');
