@@ -104,10 +104,11 @@ function filtrarLeitosSemUTI(leitos) {
 function getReservasHospitalExec(hospitalId) {
     const reservas = window.reservasData || [];
     // Filtrar por hospital, excluir UTI, e só contar se tiver matricula
+    // V7.4: Converter para string antes de trim (matricula pode ser numero)
     return reservas.filter(r => 
         r.hospital === hospitalId && 
         r.tipo !== 'UTI' &&
-        r.matricula && r.matricula.trim() !== ''
+        r.matricula && String(r.matricula).trim() !== ''
     );
 }
 
