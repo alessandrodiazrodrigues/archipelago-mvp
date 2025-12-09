@@ -50,6 +50,52 @@
         setTimeout(function() { toast.remove(); }, 4000);
     }
     
+    // V7.4: Loading overlay para bloquear interface durante operacoes
+    function showLoadingOverlayUTI(mensagem) {
+        mensagem = mensagem || 'Processando...';
+        // Remover overlay existente se houver
+        var existente = document.getElementById('loadingOverlayUTI');
+        if (existente) existente.remove();
+        
+        var overlay = document.createElement('div');
+        overlay.id = 'loadingOverlayUTI';
+        overlay.innerHTML = '<div class="loading-overlay-content-uti">' +
+            '<div class="loading-spinner-uti"></div>' +
+            '<div class="loading-text-uti">' + mensagem + '</div>' +
+        '</div>';
+        
+        // Estilos inline
+        overlay.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); display: flex; justify-content: center; align-items: center; z-index: 99999; backdrop-filter: blur(3px);';
+        
+        var content = overlay.querySelector('.loading-overlay-content-uti');
+        content.style.cssText = 'text-align: center; color: white;';
+        
+        var spinner = overlay.querySelector('.loading-spinner-uti');
+        spinner.style.cssText = 'width: 50px; height: 50px; border: 4px solid rgba(255, 255, 255, 0.3); border-top: 4px solid #60a5fa; border-radius: 50%; margin: 0 auto 15px; animation: spinUTI 1s linear infinite;';
+        
+        var text = overlay.querySelector('.loading-text-uti');
+        text.style.cssText = 'font-size: 16px; font-weight: 500; color: #e2e8f0;';
+        
+        // Adicionar keyframes
+        if (!document.getElementById('loadingSpinnerStyleUTI')) {
+            var style = document.createElement('style');
+            style.id = 'loadingSpinnerStyleUTI';
+            style.textContent = '@keyframes spinUTI { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }';
+            document.head.appendChild(style);
+        }
+        
+        document.body.appendChild(overlay);
+        console.log('[CARDS-UTI] Loading ativado:', mensagem);
+    }
+    
+    function hideLoadingOverlayUTI() {
+        var overlay = document.getElementById('loadingOverlayUTI');
+        if (overlay) {
+            overlay.remove();
+            console.log('[CARDS-UTI] Loading removido');
+        }
+    }
+    
     function getBadgeIsolamentoUTI(isolamento) {
         if (!isolamento) return { cor: '#b2adaa', texto: 'Nao Isol', textoCor: '#ffffff' };
         var iso = String(isolamento).toLowerCase().trim();
@@ -522,12 +568,15 @@
                 e.preventDefault();
                 if (confirm('Deseja cancelar esta reserva UTI?')) {
                     if (window.cancelarReserva) {
+                        showLoadingOverlayUTI('Cancelando reserva...');
                         window.cancelarReserva(hospitalId, cancelarBtn.dataset.identificacao, cancelarBtn.dataset.matricula)
                             .then(function() {
+                                hideLoadingOverlayUTI();
                                 showSuccessMessageUTI('Reserva UTI cancelada!');
                                 setTimeout(function() { renderCardsUTI(hospitalId); }, 500);
                             })
                             .catch(function(error) {
+                                hideLoadingOverlayUTI();
                                 showErrorMessageUTI('Erro: ' + error.message);
                             });
                     }
@@ -671,11 +720,14 @@
             params.append('matricula', matriculaRaw);
             params.append('idade', document.getElementById('resUtiIdade').value);
             
+            showLoadingOverlayUTI('Salvando reserva...');
+            
             fetch(window.API_URL + '?' + params.toString())
                 .then(function(response) { return response.json(); })
                 .then(function(result) {
                     if (result.ok || result.success) {
                         modal.remove();
+                        hideLoadingOverlayUTI();
                         showSuccessMessageUTI('Leito UTI reservado!');
                         if (window.carregarReservas) {
                             window.carregarReservas().then(function() {
@@ -689,6 +741,7 @@
                     }
                 })
                 .catch(function(error) {
+                    hideLoadingOverlayUTI();
                     showErrorMessageUTI('Erro: ' + error.message);
                 });
         });
@@ -850,6 +903,8 @@
                 params.append(key, dados[key]);
             });
             
+            showLoadingOverlayUTI('Admitindo paciente...');
+            
             fetch(window.API_URL + '?' + params.toString())
                 .then(function(response) { return response.json(); })
                 .then(function(result) {
@@ -858,6 +913,7 @@
                             window.cancelarReserva(hospitalId, dadosLeito.identificacaoLeito, dadosLeito.matricula).catch(function() {});
                         }
                         modal.remove();
+                        hideLoadingOverlayUTI();
                         showSuccessMessageUTI('Paciente admitido na UTI!');
                         if (window.loadHospitalData) {
                             window.loadHospitalData().then(function() {
@@ -871,6 +927,7 @@
                     }
                 })
                 .catch(function(error) {
+                    hideLoadingOverlayUTI();
                     showErrorMessageUTI('Erro: ' + error.message);
                 });
         });
@@ -955,11 +1012,14 @@
             params.append('hospital', hospitalId);
             params.append('leito', leitoNumero);
             
+            showLoadingOverlayUTI('Processando alta...');
+            
             fetch(window.API_URL + '?' + params.toString())
                 .then(function(response) { return response.json(); })
                 .then(function(result) {
                     if (result.ok || result.success) {
                         modal.remove();
+                        hideLoadingOverlayUTI();
                         showSuccessMessageUTI('Alta realizada com sucesso!');
                         if (window.loadHospitalData) {
                             window.loadHospitalData().then(function() {
@@ -973,6 +1033,7 @@
                     }
                 })
                 .catch(function(error) {
+                    hideLoadingOverlayUTI();
                     showErrorMessageUTI('Erro: ' + error.message);
                 });
         });
@@ -988,11 +1049,14 @@
             params.append('prevAlta', document.getElementById('updUtiPrevAlta').value);
             params.append('anotacoes', document.getElementById('updUtiAnotacoes').value);
             
+            showLoadingOverlayUTI('Atualizando dados...');
+            
             fetch(window.API_URL + '?' + params.toString())
                 .then(function(response) { return response.json(); })
                 .then(function(result) {
                     if (result.ok || result.success) {
                         modal.remove();
+                        hideLoadingOverlayUTI();
                         showSuccessMessageUTI('Dados atualizados!');
                         if (window.loadHospitalData) {
                             window.loadHospitalData().then(function() {
@@ -1006,6 +1070,7 @@
                     }
                 })
                 .catch(function(error) {
+                    hideLoadingOverlayUTI();
                     showErrorMessageUTI('Erro: ' + error.message);
                 });
         });

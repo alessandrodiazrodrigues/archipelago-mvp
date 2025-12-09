@@ -51,6 +51,87 @@ window.SUFIXOS_APARTAMENTO = {
     H7: ['1']   // Fixo "-1"
 };
 
+// =================== V7.4: LOADING OVERLAY ===================
+// Bloqueia toda a interface durante operacoes assincronas
+
+window.showLoadingOverlay = function(mensagem = 'Processando...') {
+    // Remover overlay existente se houver
+    const existente = document.getElementById('loadingOverlayCards');
+    if (existente) existente.remove();
+    
+    const overlay = document.createElement('div');
+    overlay.id = 'loadingOverlayCards';
+    overlay.innerHTML = `
+        <div class="loading-overlay-content">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">${mensagem}</div>
+        </div>
+    `;
+    
+    // Estilos inline para garantir funcionamento
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 99999;
+        backdrop-filter: blur(3px);
+    `;
+    
+    const content = overlay.querySelector('.loading-overlay-content');
+    content.style.cssText = `
+        text-align: center;
+        color: white;
+    `;
+    
+    const spinner = overlay.querySelector('.loading-spinner');
+    spinner.style.cssText = `
+        width: 50px;
+        height: 50px;
+        border: 4px solid rgba(255, 255, 255, 0.3);
+        border-top: 4px solid #60a5fa;
+        border-radius: 50%;
+        margin: 0 auto 15px;
+        animation: spin 1s linear infinite;
+    `;
+    
+    const text = overlay.querySelector('.loading-text');
+    text.style.cssText = `
+        font-size: 16px;
+        font-weight: 500;
+        color: #e2e8f0;
+    `;
+    
+    // Adicionar keyframes para animacao
+    if (!document.getElementById('loadingSpinnerStyle')) {
+        const style = document.createElement('style');
+        style.id = 'loadingSpinnerStyle';
+        style.textContent = `
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    document.body.appendChild(overlay);
+    console.log('[LOADING] Overlay ativado:', mensagem);
+};
+
+window.hideLoadingOverlay = function() {
+    const overlay = document.getElementById('loadingOverlayCards');
+    if (overlay) {
+        overlay.remove();
+        console.log('[LOADING] Overlay removido');
+    }
+};
+
 // =================== V7.0: FUNCOES DE RESERVA ===================
 
 // Retorna TODAS as reservas do hospital (incluindo bloqueios de irmao)
@@ -1207,12 +1288,15 @@ function createCard(leito, hospitalNome, hospitalId, posicaoOcupacao) {
         cancelarBtn.addEventListener('click', async (e) => {
             e.preventDefault();
             if (confirm('Deseja cancelar esta reserva?')) {
+                window.showLoadingOverlay('Cancelando reserva...');
                 try {
                     await window.cancelarReserva(hospitalId, cancelarBtn.dataset.identificacao, cancelarBtn.dataset.matricula);
                     showSuccessMessage('Reserva cancelada!');
                     await window.refreshAfterAction();
                 } catch (error) {
                     showErrorMessage('Erro: ' + error.message);
+                } finally {
+                    window.hideLoadingOverlay();
                 }
             }
         });
@@ -2349,6 +2433,9 @@ function setupReservaModalEventListeners(modal) {
                 btnSalvar.innerHTML = 'SALVANDO...';
                 btnSalvar.disabled = true;
                 
+                // V7.4: Mostrar loading overlay
+                window.showLoadingOverlay('Salvando reserva...');
+                
                 console.log('[V7.0 RESERVA] Enviando para API...');
                 
                 // Usar GET com parametros na URL (evita CORS)
@@ -2410,12 +2497,19 @@ function setupReservaModalEventListeners(modal) {
                     if (window.renderCards && window.currentHospital) {
                         window.renderCards(window.currentHospital);
                     }
+                    
+                    // V7.4: Esconder loading apos sucesso
+                    window.hideLoadingOverlay();
                 } else {
+                    // V7.4: Esconder loading antes de mostrar erro
+                    window.hideLoadingOverlay();
                     btnSalvar.innerHTML = originalText;
                     btnSalvar.disabled = false;
                     throw new Error(result.message || result.error || 'Erro ao reservar leito');
                 }
             } catch (error) {
+                // V7.4: Esconder loading em caso de erro
+                window.hideLoadingOverlay();
                 console.error('[V7.0 RESERVA] ERRO:', error);
                 const btnSalvarErr = modal.querySelector('.btn-salvar-reserva');
                 if (btnSalvarErr) {
@@ -3063,6 +3157,9 @@ function setupModalEventListeners(modal, tipo) {
             const originalText = this.innerHTML;
             showButtonLoading(this, 'SALVANDO...');
             
+            // V7.4: Mostrar loading overlay
+            window.showLoadingOverlay(tipo === 'admissao' ? 'Admitindo paciente...' : 'Atualizando dados...');
+            
             try {
                 const dadosFormulario = coletarDadosFormulario(modal, tipo);
                 
@@ -3079,7 +3176,12 @@ function setupModalEventListeners(modal, tipo) {
                 
                 await window.refreshAfterAction();
                 
+                // V7.4: Esconder loading apos sucesso
+                window.hideLoadingOverlay();
+                
             } catch (error) {
+                // V7.4: Esconder loading em caso de erro
+                window.hideLoadingOverlay();
                 hideButtonLoading(this, originalText);
                 showErrorMessage('Erro ao salvar: ' + error.message);
                 logError('Erro ao salvar:', error);
@@ -3098,6 +3200,9 @@ function setupModalEventListeners(modal, tipo) {
             const originalText = this.innerHTML;
             showButtonLoading(this, 'PROCESSANDO ALTA...');
             
+            // V7.4: Mostrar loading overlay
+            window.showLoadingOverlay('Processando alta...');
+            
             try {
                 await window.darAlta(window.currentHospital, window.selectedLeito);
                 
@@ -3107,7 +3212,12 @@ function setupModalEventListeners(modal, tipo) {
                 
                 await window.refreshAfterAction();
                 
+                // V7.4: Esconder loading apos sucesso
+                window.hideLoadingOverlay();
+                
             } catch (error) {
+                // V7.4: Esconder loading em caso de erro
+                window.hideLoadingOverlay();
                 hideButtonLoading(this, originalText);
                 showErrorMessage('Erro ao processar alta: ' + error.message);
                 logError('Erro alta:', error);
