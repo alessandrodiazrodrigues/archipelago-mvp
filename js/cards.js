@@ -2280,6 +2280,34 @@ function setupReservaModalEventListeners(modal) {
                 
                 console.log('[V7.0 RESERVA] identificacaoLeito final:', identificacaoLeito);
                 
+                // V7.4: Calcular identificacao do leito irmao para H2/H4 enfermaria
+                let identificacaoIrmao = '';
+                let leitoIrmao = '';
+                
+                if (isCruzAzulEnfermaria) {
+                    leitoIrmao = cruzAzulIrmaos[leitoNumero];
+                    if (leitoIrmao && identificacaoLeito && identificacaoLeito.includes('-')) {
+                        const partes = identificacaoLeito.split('-');
+                        const numero = partes[0];
+                        const sufixo = partes[1];
+                        // Alternar sufixo: 1 -> 3, 3 -> 1
+                        const sufixoIrmao = (sufixo === '1') ? '3' : '1';
+                        identificacaoIrmao = `${numero}-${sufixoIrmao}`;
+                        console.log('[V7.4 RESERVA] Leito irmao H2:', leitoIrmao, 'Identificacao irmao:', identificacaoIrmao);
+                    }
+                } else if (isSantaClaraEnfermaria) {
+                    leitoIrmao = santaClaraIrmaos[leitoNumero];
+                    if (leitoIrmao && identificacaoLeito && identificacaoLeito.includes('-')) {
+                        const partes = identificacaoLeito.split('-');
+                        const numero = partes[0];
+                        const sufixo = partes[1];
+                        // Alternar sufixo: A -> C, C -> A
+                        const sufixoIrmao = (sufixo === 'A') ? 'C' : 'A';
+                        identificacaoIrmao = `${numero}-${sufixoIrmao}`;
+                        console.log('[V7.4 RESERVA] Leito irmao H4:', leitoIrmao, 'Identificacao irmao:', identificacaoIrmao);
+                    }
+                }
+                
                 // Validacoes
                 if (isHibrido && !tipoQuarto) {
                     showErrorMessage('Selecione o Tipo de Quarto');
@@ -2334,7 +2362,10 @@ function setupReservaModalEventListeners(modal) {
                     genero: genero,
                     iniciais: iniciais.replace(/\s/g, ''),
                     matricula: matricula,
-                    idade: idade || ''
+                    idade: idade || '',
+                    // V7.4: Dados do leito irmao (para criar segunda linha)
+                    leitoIrmao: leitoIrmao || '',
+                    identificacaoIrmao: identificacaoIrmao || ''
                 });
                 
                 const urlCompleta = window.API_URL + '?' + params.toString();
@@ -3250,9 +3281,11 @@ function validarIdentificacaoOcupada(hospitalId, identificacao, leitoAtual = nul
 
 // Validar se matricula ja esta em uso em leitos OCUPADOS (sem verificar reservas)
 function validarMatriculaOcupada(hospitalId, matricula, leitoAtual = null) {
-    if (!matricula || !matricula.trim()) return { valido: true };
+    // V7.4: Converter para string antes de usar trim
+    const matriculaStr = String(matricula || '').trim();
+    if (!matriculaStr) return { valido: true };
     
-    const matriculaSemHifen = matricula.replace(/-/g, '').trim();
+    const matriculaSemHifen = matriculaStr.replace(/-/g, '').trim();
     if (!matriculaSemHifen) return { valido: true };
     
     const leitosHospital = window.hospitalData[hospitalId]?.leitos || [];
