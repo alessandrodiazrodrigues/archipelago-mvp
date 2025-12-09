@@ -51,6 +51,20 @@ window.SUFIXOS_APARTAMENTO = {
     H7: ['1']   // Fixo "-1"
 };
 
+// V7.4: Maxlength do campo identificação por hospital
+// H3 = 4 dígitos, todos os outros = 3 dígitos
+window.MAXLENGTH_IDENTIFICACAO = {
+    H1: 3,
+    H2: 3,
+    H3: 4,
+    H4: 3,
+    H5: 3,
+    H6: 3,
+    H7: 3,
+    H8: 3,
+    H9: 3
+};
+
 // =================== V7.4: LOADING OVERLAY ===================
 // Bloqueia toda a interface durante operacoes assincronas
 
@@ -1704,6 +1718,9 @@ function createAdmissaoForm(hospitalNome, leitoNumero, hospitalId) {
         }
     }
     
+    // V7.4: Maxlength dinamico por hospital (H3=4, outros=3)
+    const maxLen = window.MAXLENGTH_IDENTIFICACAO[hospitalId] || 3;
+    
     return `
         <div class="modal-content" style="background: #1a1f2e; border-radius: 12px; padding: 30px; max-width: 700px; width: 95%; max-height: 90vh; overflow-y: auto; color: #ffffff; font-family: 'Poppins', sans-serif;">
             <h2 style="margin: 0 0 20px 0; text-align: center; color: #60a5fa; font-size: 24px; font-weight: 700; text-transform: uppercase;">
@@ -1723,7 +1740,7 @@ function createAdmissaoForm(hospitalNome, leitoNumero, hospitalId) {
                         <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600; font-size: 12px; white-space: nowrap;">Identificação do Leito <span style="color: #c86420;">*</span></label>
                         ${isCruzAzulEnfermaria 
                             ? `<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 8px;">
-                                <input id="admIdentificacaoNumero" type="text" value="${numeroBasePreenchido}" placeholder="Ex: 101" maxlength="4" required ${numeroBasePreenchido ? 'readonly' : ''} oninput="this.value = this.value.replace(/[^0-9]/g, '')" style="width: 100%; padding: 12px; background: ${numeroBasePreenchido ? '#1f2937' : '#374151'}; color: ${numeroBasePreenchido ? '#9ca3af' : '#ffffff'}; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif; ${numeroBasePreenchido ? 'cursor: not-allowed;' : ''}">
+                                <input id="admIdentificacaoNumero" type="text" value="${numeroBasePreenchido}" placeholder="Ex: 101" maxlength="${maxLen}" required ${numeroBasePreenchido ? 'readonly' : ''} oninput="this.value = this.value.replace(/[^0-9]/g, '')" style="width: 100%; padding: 12px; background: ${numeroBasePreenchido ? '#1f2937' : '#374151'}; color: ${numeroBasePreenchido ? '#9ca3af' : '#ffffff'}; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif; ${numeroBasePreenchido ? 'cursor: not-allowed;' : ''}">
                                 <select id="admIdentificacaoSufixo" required ${numeroBasePreenchido ? 'disabled' : ''} style="width: 100%; padding: 12px; background: ${numeroBasePreenchido ? '#1f2937' : '#374151'} !important; color: ${numeroBasePreenchido ? '#9ca3af' : '#ffffff'} !important; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif; ${numeroBasePreenchido ? 'cursor: not-allowed;' : ''}">
                                     <option value="1" ${sufixoPreDefinido === '1' ? 'selected' : ''}>1</option>
                                     <option value="3" ${sufixoPreDefinido === '3' ? 'selected' : ''}>3</option>
@@ -1732,7 +1749,7 @@ function createAdmissaoForm(hospitalNome, leitoNumero, hospitalId) {
                                <div style="font-size: 10px; color: rgba(255,255,255,0.5); margin-top: 3px;">Número + Sufixo (1 ou 3)</div>`
                             : isSantaClaraEnfermaria
                             ? `<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 8px;">
-                                <input id="admIdentificacaoNumero" type="text" value="${numeroBasePreenchido}" placeholder="Ex: 201" maxlength="4" required ${numeroBasePreenchido ? 'readonly' : ''} oninput="this.value = this.value.replace(/[^0-9]/g, '')" style="width: 100%; padding: 12px; background: ${numeroBasePreenchido ? '#1f2937' : '#374151'}; color: ${numeroBasePreenchido ? '#9ca3af' : '#ffffff'}; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif; ${numeroBasePreenchido ? 'cursor: not-allowed;' : ''}">
+                                <input id="admIdentificacaoNumero" type="text" value="${numeroBasePreenchido}" placeholder="Ex: 201" maxlength="${maxLen}" required ${numeroBasePreenchido ? 'readonly' : ''} oninput="this.value = this.value.replace(/[^0-9]/g, '')" style="width: 100%; padding: 12px; background: ${numeroBasePreenchido ? '#1f2937' : '#374151'}; color: ${numeroBasePreenchido ? '#9ca3af' : '#ffffff'}; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif; ${numeroBasePreenchido ? 'cursor: not-allowed;' : ''}">
                                 <select id="admIdentificacaoSufixo" required ${numeroBasePreenchido ? 'disabled' : ''} style="width: 100%; padding: 12px; background: ${numeroBasePreenchido ? '#1f2937' : '#374151'} !important; color: ${numeroBasePreenchido ? '#9ca3af' : '#ffffff'} !important; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif; ${numeroBasePreenchido ? 'cursor: not-allowed;' : ''}">
                                     <option value="A" ${sufixoPreDefinido === 'A' ? 'selected' : ''}>A</option>
                                     <option value="C" ${sufixoPreDefinido === 'C' ? 'selected' : ''}>C</option>
@@ -1744,7 +1761,7 @@ function createAdmissaoForm(hospitalNome, leitoNumero, hospitalId) {
                                 <input id="admIdentificacaoLeito" type="text" placeholder="Selecione o Tipo de Quarto" disabled style="width: 100%; padding: 12px; background: #1f2937; color: #9ca3af; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif; cursor: not-allowed;">
                                </div>
                                <div id="admIdentificacaoHint" style="font-size: 10px; color: rgba(255,255,255,0.5); margin-top: 3px;">Primeiro selecione o Tipo de Quarto</div>`
-                            : `<input id="admIdentificacaoLeito" type="text" placeholder="Ex: 101, 202" maxlength="6" required oninput="this.value = this.value.replace(/[^0-9]/g, '')" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
+                            : `<input id="admIdentificacaoLeito" type="text" placeholder="Ex: 101, 202" maxlength="${maxLen}" required oninput="this.value = this.value.replace(/[^0-9]/g, '')" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
                                <div style="font-size: 10px; color: rgba(255,255,255,0.5); margin-top: 3px;">Apenas numeros</div>`
                         }
                     </div>
@@ -2079,6 +2096,9 @@ function createReservaForm(hospitalNome, leitoNumero, hospitalId, dadosLeito) {
     
     const estiloCampoBloqueado = 'background: #1f2937 !important; color: #6b7280 !important; cursor: not-allowed;';
     
+    // V7.4: Maxlength dinamico por hospital (H3=4, outros=3)
+    const maxLen = window.MAXLENGTH_IDENTIFICACAO[hospitalId] || 3;
+    
     return `
         <div class="modal-content" style="background: #1a1f2e; border-radius: 12px; padding: 30px; max-width: 700px; width: 95%; max-height: 90vh; overflow-y: auto; color: #ffffff; font-family: 'Poppins', sans-serif;">
             <h2 style="margin: 0 0 20px 0; text-align: center; color: #f59a1d; font-size: 24px; font-weight: 700; text-transform: uppercase;">
@@ -2102,7 +2122,7 @@ function createReservaForm(hospitalNome, leitoNumero, hospitalId, dadosLeito) {
                         <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600; font-size: 12px;">Identificacao do Leito <span style="color: #c86420;">*</span></label>
                         ${isCruzAzulEnfermaria 
                             ? `<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 8px;">
-                                <input id="resIdentificacaoNumero" type="text" value="${numeroBasePreenchido}" placeholder="Numero" maxlength="4" required ${numeroBasePreenchido ? 'readonly' : ''} oninput="this.value = this.value.replace(/[^0-9]/g, '')" style="width: 100%; padding: 12px; background: ${numeroBasePreenchido ? '#1f2937' : '#374151'}; color: ${numeroBasePreenchido ? '#9ca3af' : '#ffffff'}; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
+                                <input id="resIdentificacaoNumero" type="text" value="${numeroBasePreenchido}" placeholder="Numero" maxlength="${maxLen}" required ${numeroBasePreenchido ? 'readonly' : ''} oninput="this.value = this.value.replace(/[^0-9]/g, '')" style="width: 100%; padding: 12px; background: ${numeroBasePreenchido ? '#1f2937' : '#374151'}; color: ${numeroBasePreenchido ? '#9ca3af' : '#ffffff'}; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
                                 <select id="resIdentificacaoSufixo" required style="width: 100%; padding: 12px; background: #374151 !important; color: #ffffff !important; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
                                     <option value="1" ${sufixoPreDefinido === '1' ? 'selected' : ''}>1</option>
                                     <option value="3" ${sufixoPreDefinido === '3' ? 'selected' : ''}>3</option>
@@ -2110,19 +2130,19 @@ function createReservaForm(hospitalNome, leitoNumero, hospitalId, dadosLeito) {
                                </div>`
                             : isSantaClaraEnfermaria
                             ? `<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 8px;">
-                                <input id="resIdentificacaoNumero" type="text" value="${numeroBasePreenchido}" placeholder="Numero" maxlength="4" required ${numeroBasePreenchido ? 'readonly' : ''} oninput="this.value = this.value.replace(/[^0-9]/g, '')" style="width: 100%; padding: 12px; background: ${numeroBasePreenchido ? '#1f2937' : '#374151'}; color: ${numeroBasePreenchido ? '#9ca3af' : '#ffffff'}; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
+                                <input id="resIdentificacaoNumero" type="text" value="${numeroBasePreenchido}" placeholder="Numero" maxlength="${maxLen}" required ${numeroBasePreenchido ? 'readonly' : ''} oninput="this.value = this.value.replace(/[^0-9]/g, '')" style="width: 100%; padding: 12px; background: ${numeroBasePreenchido ? '#1f2937' : '#374151'}; color: ${numeroBasePreenchido ? '#9ca3af' : '#ffffff'}; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
                                 <select id="resIdentificacaoSufixo" required style="width: 100%; padding: 12px; background: #374151 !important; color: #ffffff !important; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
                                     <option value="A" ${sufixoPreDefinido === 'A' ? 'selected' : ''}>A</option>
                                     <option value="C" ${sufixoPreDefinido === 'C' ? 'selected' : ''}>C</option>
                                 </select>
                                </div>`
                             : isApartamentoFixo
-                            ? `<input id="resIdentificacaoLeito" type="text" placeholder="Numero do quarto" maxlength="6" required oninput="this.value = this.value.replace(/[^0-9]/g, '')" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">`
+                            ? `<input id="resIdentificacaoLeito" type="text" placeholder="Numero do quarto" maxlength="${maxLen}" required oninput="this.value = this.value.replace(/[^0-9]/g, '')" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">`
                             : isHibrido
                             ? `<div id="resIdentificacaoContainer">
                                 <input id="resIdentificacaoLeito" type="text" placeholder="Selecione o Tipo de Quarto" disabled style="width: 100%; padding: 12px; ${estiloCampoBloqueado} border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
                                </div>`
-                            : `<input id="resIdentificacaoLeito" type="text" placeholder="Numero do quarto" maxlength="6" required oninput="this.value = this.value.replace(/[^0-9]/g, '')" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">`
+                            : `<input id="resIdentificacaoLeito" type="text" placeholder="Numero do quarto" maxlength="${maxLen}" required oninput="this.value = this.value.replace(/[^0-9]/g, '')" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">`
                         }
                     </div>
                     
@@ -2244,6 +2264,9 @@ function setupReservaModalEventListeners(modal) {
     const hospitalId = window.currentHospital;
     const isHibrido = window.HOSPITAIS_HIBRIDOS && window.HOSPITAIS_HIBRIDOS.includes(hospitalId);
     
+    // V7.4: Maxlength dinamico por hospital (H3=4, outros=3)
+    const maxLen = window.MAXLENGTH_IDENTIFICACAO[hospitalId] || 3;
+    
     // V7.4: Campo dinâmico para híbridos com dropdown de sufixo por hospital
     const tipoQuartoSelect = modal.querySelector('#resTipoQuarto');
     const identificacaoContainer = modal.querySelector('#resIdentificacaoContainer');
@@ -2261,7 +2284,7 @@ function setupReservaModalEventListeners(modal) {
                 const sufixoOptions = sufixosEnf.map(s => `<option value="${s}">${s}</option>`).join('');
                 identificacaoContainer.innerHTML = `
                     <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 8px;">
-                        <input id="resIdentificacaoNumero" type="text" placeholder="Numero" maxlength="4" required oninput="this.value = this.value.replace(/[^0-9]/g, '')" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
+                        <input id="resIdentificacaoNumero" type="text" placeholder="Numero" maxlength="${maxLen}" required oninput="this.value = this.value.replace(/[^0-9]/g, '')" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
                         <select id="resIdentificacaoSufixo" required style="width: 100%; padding: 12px; background: #374151 !important; color: #ffffff !important; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
                             ${sufixoOptions}
                         </select>
@@ -2272,12 +2295,12 @@ function setupReservaModalEventListeners(modal) {
                     // H3/H7: sufixo fixo "-1"
                     identificacaoContainer.innerHTML = `
                         <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 8px;">
-                            <input id="resIdentificacaoNumero" type="text" placeholder="Numero" maxlength="4" required oninput="this.value = this.value.replace(/[^0-9]/g, '')" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
+                            <input id="resIdentificacaoNumero" type="text" placeholder="Numero" maxlength="${maxLen}" required oninput="this.value = this.value.replace(/[^0-9]/g, '')" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
                             <input id="resIdentificacaoSufixoFixo" type="text" value="${sufixosApto[0]}" readonly style="width: 100%; padding: 12px; background: #1f2937; color: #9ca3af; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif; text-align: center;">
                         </div>`;
                 } else {
                     // Campo livre para número
-                    identificacaoContainer.innerHTML = `<input id="resIdentificacaoLeito" type="text" placeholder="Numero do quarto" maxlength="6" required oninput="this.value = this.value.replace(/[^0-9]/g, '')" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">`;
+                    identificacaoContainer.innerHTML = `<input id="resIdentificacaoLeito" type="text" placeholder="Numero do quarto" maxlength="${maxLen}" required oninput="this.value = this.value.replace(/[^0-9]/g, '')" style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">`;
                 }
             }
         });
@@ -2566,6 +2589,9 @@ function createAtualizacaoForm(hospitalNome, leitoNumero, dadosLeito) {
     const isHibrido = window.HOSPITAIS_HIBRIDOS.includes(hospitalId);
     const tipoAtual = dadosLeito?.categoriaEscolhida || '';
     
+    // V7.4: Maxlength dinamico por hospital (H3=4, outros=3)
+    const maxLen = window.MAXLENGTH_IDENTIFICACAO[hospitalId] || 3;
+    
     const matriculaAtual = dadosLeito?.matricula || '';
     const matriculaFormatada = formatarMatriculaExibicao(matriculaAtual);
     
@@ -2593,9 +2619,9 @@ function createAtualizacaoForm(hospitalNome, leitoNumero, dadosLeito) {
                         <label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600; white-space: nowrap;">Identificação do Leito <span style="color: #c86420;">*</span></label>
                         ${(isCruzAzulEnfermaria || isSantaClaraEnfermaria) 
                             ? `<input id="updIdentificacaoLeito" type="text" value="${identificacaoAtual}" readonly style="width: 100%; padding: 12px; background: #1f2937; color: #9ca3af; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; font-size: 14px; cursor: not-allowed; font-family: 'Poppins', sans-serif;">`
-                            : `<input id="updIdentificacaoLeito" type="text" value="${identificacaoAtual}" placeholder="Ex: 1A, 21, 711.1" maxlength="6" required style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">`
+                            : `<input id="updIdentificacaoLeito" type="text" value="${identificacaoAtual}" placeholder="Ex: 101, 202" maxlength="${maxLen}" required style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">`
                         }
-                        ${(isCruzAzulEnfermaria || isSantaClaraEnfermaria) ? '<div style="font-size: 10px; color: rgba(255,255,255,0.5); margin-top: 3px;">Identificação fixa</div>' : '<div style="font-size: 10px; color: rgba(255,255,255,0.5); margin-top: 3px;">Aceita números e letras (1-6)</div>'}
+                        ${(isCruzAzulEnfermaria || isSantaClaraEnfermaria) ? '<div style="font-size: 10px; color: rgba(255,255,255,0.5); margin-top: 3px;">Identificação fixa</div>' : '<div style="font-size: 10px; color: rgba(255,255,255,0.5); margin-top: 3px;">Apenas numeros</div>'}
                     </div>
                     
                     
@@ -2876,6 +2902,10 @@ function setupConcessoesLogic(modal, concessoesId) {
 
 // =================== EVENT LISTENERS DOS MODAIS ===================
 function setupModalEventListeners(modal, tipo) {
+    // V7.4: Obter hospitalId e maxLen para campo dinâmico
+    const hospitalId = window.currentHospital;
+    const maxLen = window.MAXLENGTH_IDENTIFICACAO[hospitalId] || 3;
+    
     // V7.0: CAMPO IDENTIFICACAO DINAMICO PARA HIBRIDOS
     const tipoQuartoSelect = modal.querySelector('#admTipoQuarto');
     const identificacaoContainer = modal.querySelector('#admIdentificacaoContainer');
@@ -2884,6 +2914,9 @@ function setupModalEventListeners(modal, tipo) {
     if (tipoQuartoSelect && identificacaoContainer && !tipoQuartoSelect.disabled) {
         tipoQuartoSelect.addEventListener('change', function() {
             const tipoSelecionado = this.value;
+            // V7.4: Obter sufixos do hospital para enfermaria
+            const sufixosEnf = window.SUFIXOS_ENFERMARIA[hospitalId] || ['A', 'B'];
+            const sufixoOptions = sufixosEnf.map(s => `<option value="${s}">${s}</option>`).join('');
             
             if (!tipoSelecionado) {
                 identificacaoContainer.innerHTML = `
@@ -2892,22 +2925,23 @@ function setupModalEventListeners(modal, tipo) {
                 `;
                 if (identificacaoHint) identificacaoHint.textContent = 'Primeiro selecione o Tipo de Quarto';
             } else if (tipoSelecionado === 'Enfermaria') {
-                // Enfermaria: numero + digito
+                // V7.4: Enfermaria com dropdown de sufixo por hospital
                 identificacaoContainer.innerHTML = `
                     <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 8px;">
-                        <input id="admIdentificacaoNumero" type="text" placeholder="Numero" maxlength="4" required 
+                        <input id="admIdentificacaoNumero" type="text" placeholder="Numero" maxlength="${maxLen}" required 
                                oninput="this.value = this.value.replace(/[^0-9]/g, '')"
                                style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
-                        <input id="admIdentificacaoDigito" type="text" placeholder="Dig" maxlength="1" required 
-                               oninput="this.value = this.value.replace(/[^A-Za-z]/g, '').toUpperCase()"
-                               style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif; text-align: center;">
+                        <select id="admIdentificacaoSufixo" required 
+                               style="width: 100%; padding: 12px; background: #374151 !important; color: #ffffff !important; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
+                            ${sufixoOptions}
+                        </select>
                     </div>
                 `;
-                if (identificacaoHint) identificacaoHint.textContent = 'Numero + Digito (1 letra)';
+                if (identificacaoHint) identificacaoHint.textContent = 'Numero + Sufixo';
             } else {
                 // Apartamento: campo simples (apenas numeros)
                 identificacaoContainer.innerHTML = `
-                    <input id="admIdentificacaoLeito" type="text" placeholder="Numero do quarto" maxlength="6" required 
+                    <input id="admIdentificacaoLeito" type="text" placeholder="Numero do quarto" maxlength="${maxLen}" required 
                            oninput="this.value = this.value.replace(/[^0-9]/g, '')"
                            style="width: 100%; padding: 12px; background: #374151; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
                 `;
