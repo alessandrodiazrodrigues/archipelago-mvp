@@ -2079,7 +2079,7 @@ function getHospitalConsolidadoCSS() {
             .sticky-hospital-header {\
                 display: none;\
                 position: fixed;\
-                top: 60px;\
+                top: 75px;\
                 left: 0;\
                 right: 0;\
                 background: linear-gradient(135deg, #131b2e 0%, #1a2744 100%);\
