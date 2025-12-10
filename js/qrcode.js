@@ -1117,7 +1117,7 @@ window.abrirJanelaImpressaoQRCodes = function() {
             page-break-after: always;
             display: flex;
             flex-direction: column;
-            justify-content: space-around;
+            justify-content: space-between;
             align-items: center;
             margin: 0 auto 10mm;
         }
@@ -1128,9 +1128,10 @@ window.abrirJanelaImpressaoQRCodes = function() {
         
         .qr-item-irmao {
             width: 100%;
+            height: 48%;
             border: 1px solid #333;
             border-radius: 2mm;
-            padding: 3mm;
+            padding: 2mm;
             background: white;
             display: flex;
             flex-direction: column;
@@ -1139,25 +1140,25 @@ window.abrirJanelaImpressaoQRCodes = function() {
         }
         
         .qr-item-irmao .qr-label {
-            margin-bottom: 3mm;
+            margin-bottom: 2mm;
         }
         
         .qr-item-irmao .qr-label .nome-hospital {
-            font-size: 14px;
+            font-size: 12px;
         }
         
         .qr-item-irmao .qr-label .tipo-leito {
-            font-size: 11px;
+            font-size: 10px;
         }
         
         .qr-item-irmao .qr-img {
-            width: 50mm;
-            height: 50mm;
+            width: 40mm;
+            height: 40mm;
         }
         
         .qr-item-irmao .qr-ref {
-            margin-top: 3mm;
-            font-size: 10px;
+            margin-top: 2mm;
+            font-size: 9px;
         }
         
         @media print {
@@ -2199,7 +2200,7 @@ function addOptimizedStyles() {
                 page-break-after: always !important;
                 display: flex !important;
                 flex-direction: column !important;
-                justify-content: space-around !important;
+                justify-content: space-between !important;
                 align-items: center !important;
                 margin: 0 auto 5mm !important;
             }
@@ -2210,6 +2211,7 @@ function addOptimizedStyles() {
             
             .qr-item-irmao {
                 width: 100% !important;
+                height: 48% !important;
                 border: 1px solid #333 !important;
                 border-radius: 2mm !important;
                 padding: 2mm !important;
@@ -2270,8 +2272,8 @@ function addOptimizedStyles() {
             }
             
             .qr-item-irmao .qr-img {
-                width: 50mm !important;
-                height: 50mm !important;
+                width: 40mm !important;
+                height: 40mm !important;
             }
             
             .qr-item-irmao .qr-label {
@@ -2280,7 +2282,7 @@ function addOptimizedStyles() {
             }
             
             .qr-item-irmao .qr-label strong {
-                font-size: 13px !important;
+                font-size: 12px !important;
             }
             
             .qr-item-irmao .qr-ref {
