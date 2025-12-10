@@ -1148,6 +1148,11 @@ window.renderDashboardHospitalar = function() {
     container.innerHTML = '\
         <div class="dashboard-hospitalar-wrapper" style="background: linear-gradient(135deg, ' + CORES_ARCHIPELAGO.azulMarinhoEscuro + ' 0%, ' + CORES_ARCHIPELAGO.azulEscuro + ' 100%); min-height: 100vh; padding: 20px; color: white; font-family: \'Poppins\', sans-serif;">\
             \
+            <!-- HEADER STICKY MOBILE - V7.4 -->\
+            <div id="stickyHospitalHeader" class="sticky-hospital-header">\
+                <span id="stickyHospitalName">Dashboard Enfermarias</span>\
+            </div>\
+            \
             <!-- HEADER COM FILTRO -->\
             <div class="dashboard-header-filtro">\
                 <h2 class="dashboard-title-central">Dashboard Enfermarias</h2>\
@@ -1201,9 +1206,94 @@ window.renderDashboardHospitalar = function() {
     };
     
     aguardarChartJS();
+    
+    // =================== V7.4: HEADER STICKY MOBILE - INTERSECTION OBSERVER ===================
+    setupStickyHospitalHeader();
 };
 
-// =================== V7.0: RENDER HOSPITAL SECTION (COM BOX OCUPACAO ATUALIZADO) ===================
+// V7.4: Setup do header sticky para mobile
+function setupStickyHospitalHeader() {
+    var stickyHeader = document.getElementById('stickyHospitalHeader');
+    var stickyName = document.getElementById('stickyHospitalName');
+    var headerFiltro = document.querySelector('.dashboard-header-filtro');
+    
+    if (!stickyHeader || !stickyName || !headerFiltro) return;
+    
+    // Detectar se é mobile
+    function isMobile() {
+        return window.innerWidth <= 768;
+    }
+    
+    // Mapa de nomes dos hospitais
+    var nomesHospitais = {
+        'H1': 'Neomater',
+        'H2': 'Cruz Azul',
+        'H3': 'Santa Marcelina',
+        'H4': 'Santa Clara',
+        'H5': 'Adventista',
+        'H6': 'Santa Cruz',
+        'H7': 'Santa Virginia',
+        'H8': 'Sao Camilo Ipiranga',
+        'H9': 'Sao Camilo Pompeia'
+    };
+    
+    // Hospital atualmente visível
+    var hospitalAtual = null;
+    
+    // Intersection Observer para detectar qual hospital está visível
+    var observerOptions = {
+        root: null,
+        rootMargin: '-80px 0px -50% 0px',
+        threshold: 0
+    };
+    
+    var hospitalObserver = new IntersectionObserver(function(entries) {
+        if (!isMobile()) return;
+        
+        entries.forEach(function(entry) {
+            if (entry.isIntersecting) {
+                var hospitalId = entry.target.getAttribute('data-hospital');
+                if (hospitalId && nomesHospitais[hospitalId]) {
+                    hospitalAtual = hospitalId;
+                    stickyName.textContent = nomesHospitais[hospitalId];
+                }
+            }
+        });
+    }, observerOptions);
+    
+    // Observar todos os hospital-cards
+    var hospitalCards = document.querySelectorAll('.hospital-card');
+    hospitalCards.forEach(function(card) {
+        hospitalObserver.observe(card);
+    });
+    
+    // Observer para mostrar/esconder o header sticky baseado no scroll
+    var headerObserver = new IntersectionObserver(function(entries) {
+        if (!isMobile()) {
+            stickyHeader.classList.remove('visible');
+            return;
+        }
+        
+        entries.forEach(function(entry) {
+            if (!entry.isIntersecting) {
+                // Header principal saiu da tela - mostrar sticky
+                stickyHeader.classList.add('visible');
+            } else {
+                // Header principal visível - esconder sticky
+                stickyHeader.classList.remove('visible');
+            }
+        });
+    }, { threshold: 0 });
+    
+    headerObserver.observe(headerFiltro);
+    
+    // Atualizar em resize
+    window.addEventListener('resize', function() {
+        if (!isMobile()) {
+            stickyHeader.classList.remove('visible');
+        }
+    });
+}
 function renderHospitalSection(hospitalId, hoje) {
     var dados = window.processarDadosHospital(hospitalId);
     
@@ -1985,6 +2075,41 @@ function renderDoughnutLinhas(hospitalId, timeline, dados) {
 function getHospitalConsolidadoCSS() {
     return '\
         <style>\
+            /* V7.4: HEADER STICKY MOBILE */\
+            .sticky-hospital-header {\
+                display: none;\
+                position: fixed;\
+                top: 60px;\
+                left: 0;\
+                right: 0;\
+                background: linear-gradient(135deg, #131b2e 0%, #1a2744 100%);\
+                padding: 12px 20px;\
+                z-index: 999;\
+                border-bottom: 2px solid #60a5fa;\
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);\
+                transform: translateY(-100%);\
+                transition: transform 0.3s ease;\
+            }\
+            \
+            .sticky-hospital-header.visible {\
+                transform: translateY(0);\
+            }\
+            \
+            .sticky-hospital-header span {\
+                color: #60a5fa;\
+                font-size: 16px;\
+                font-weight: 700;\
+                font-family: \'Poppins\', sans-serif;\
+                text-align: center;\
+                display: block;\
+            }\
+            \
+            @media (max-width: 768px) {\
+                .sticky-hospital-header {\
+                    display: block;\
+                }\
+            }\
+            \
             @keyframes fadeIn {\
                 from { opacity: 0; transform: translateY(10px); }\
                 to { opacity: 1; transform: translateY(0); }\
