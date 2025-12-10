@@ -197,7 +197,7 @@ window.openQRCodesSimple = function() {
                         <button onclick="generateAllQRCodesOptimized()" class="btn-all" id="btnGenerateAll">
                             Gerar Todos (${totalEnfermaria} QR Codes)
                         </button>
-                        <button onclick="window.print()" class="btn-print">Imprimir</button>
+                        <button onclick="abrirJanelaImpressaoQRCodes()" class="btn-print">Imprimir</button>
                     </div>
                     
                     <div id="progressContainer" class="progress-container" style="display: none;">
@@ -966,6 +966,335 @@ function isLeitoIrmao(hospitalId, numeroLeito) {
 function getLeitoIrmao(hospitalId, numeroLeito) {
     return LEITOS_IRMAOS[hospitalId]?.[numeroLeito];
 }
+
+// =================== ABRIR JANELA DE IMPRESSAO DOS QR CODES ===================
+window.abrirJanelaImpressaoQRCodes = function() {
+    const hospitalId = document.getElementById('qrHospitalSelect').value;
+    const isUTI = (modoAtual === 'uti');
+    const hospitalConfig = isUTI ? QR_API.UTI[hospitalId] : QR_API.HOSPITAIS[hospitalId];
+    
+    if (!hospitalConfig) {
+        alert('Selecione um hospital primeiro.');
+        return;
+    }
+    
+    const printWindow = window.open('', '_blank', 'width=900,height=700');
+    const tipoLabel = isUTI ? ' (UTI)' : '';
+    const leitosIrmaos = isUTI ? {} : (LEITOS_IRMAOS[hospitalId] || {});
+    const leitosProcessados = new Set();
+    
+    let html = `
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Codes - ${hospitalConfig.nome}${tipoLabel}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        body {
+            background: white;
+            padding: 10mm;
+            color: #000;
+        }
+        
+        .controles {
+            background: #f3f4f6;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #d1d5db;
+        }
+        
+        .controles h1 {
+            font-size: 18px;
+            color: #111;
+            margin-bottom: 3px;
+        }
+        
+        .controles p {
+            font-size: 13px;
+            color: #6b7280;
+        }
+        
+        .btn-imprimir {
+            background: #000;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        .btn-imprimir:hover {
+            background: #333;
+        }
+        
+        .hospital-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #111;
+            margin: 15px 0 10px 0;
+            padding: 10px;
+            background: #f3f4f6;
+            border-left: 4px solid #3b82f6;
+        }
+        
+        .qr-item {
+            width: 95mm;
+            height: 145mm;
+            padding: 5mm;
+            border: 2px solid #000;
+            background: white;
+            margin: 0 auto 10mm;
+            border-radius: 3mm;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            page-break-inside: avoid;
+            page-break-after: always;
+        }
+        
+        .qr-item:last-child {
+            page-break-after: auto;
+        }
+        
+        .qr-label {
+            text-align: center;
+            margin-bottom: 5mm;
+            line-height: 1.5;
+        }
+        
+        .qr-label strong {
+            font-size: 16px;
+            color: #000;
+            display: block;
+        }
+        
+        .qr-label span {
+            font-size: 14px;
+            color: #333;
+        }
+        
+        .qr-img {
+            width: 70mm;
+            height: 70mm;
+            border-radius: 2mm;
+        }
+        
+        .qr-ref {
+            margin-top: 5mm;
+            font-size: 11px;
+            color: #666;
+            letter-spacing: 1px;
+            font-family: monospace;
+        }
+        
+        /* Leitos Irmaos */
+        .qr-item-duplo {
+            width: 95mm;
+            height: 145mm;
+            border: 2px solid #000;
+            border-radius: 3mm;
+            padding: 3mm;
+            background: white;
+            page-break-inside: avoid;
+            page-break-after: always;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            align-items: center;
+            margin: 0 auto 10mm;
+        }
+        
+        .qr-item-duplo:last-child {
+            page-break-after: auto;
+        }
+        
+        .qr-item-irmao {
+            width: 100%;
+            border: 1px solid #333;
+            border-radius: 2mm;
+            padding: 3mm;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .qr-item-irmao .qr-label {
+            margin-bottom: 2mm;
+        }
+        
+        .qr-item-irmao .qr-label strong {
+            font-size: 13px;
+        }
+        
+        .qr-item-irmao .qr-label span {
+            font-size: 11px;
+        }
+        
+        .qr-item-irmao .qr-img {
+            width: 50mm;
+            height: 50mm;
+        }
+        
+        .qr-item-irmao .qr-ref {
+            margin-top: 2mm;
+            font-size: 9px;
+        }
+        
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 10mm;
+            }
+            
+            body {
+                padding: 0;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            
+            .controles {
+                display: none !important;
+            }
+            
+            .hospital-title {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="controles">
+        <div>
+            <h1>QR Codes - ${hospitalConfig.nome}${tipoLabel}</h1>
+            <p><strong>${hospitalConfig.leitos} leitos</strong> para impressao</p>
+        </div>
+        <button class="btn-imprimir" onclick="window.print()">Imprimir</button>
+    </div>
+    
+    <div class="hospital-title">${hospitalConfig.nome}${tipoLabel}</div>
+`;
+    
+    // Gerar QR codes normais (nao-irmaos)
+    for (let i = 1; i <= hospitalConfig.leitos; i++) {
+        if (!leitosIrmaos[i] && !leitosProcessados.has(i)) {
+            let qrURL = `${QR_API.BASE_URL}/?h=${hospitalId}&l=${i}`;
+            if (isUTI) {
+                qrURL += '&t=UTI';
+            }
+            
+            const imgURL = `${QR_API.API_URL}?size=${QR_API.SIZE}x${QR_API.SIZE}&data=${encodeURIComponent(qrURL)}`;
+            const nomeLeitoFormatado = getNomeLeitoFormatado(hospitalId, i, isUTI);
+            const tipoLeito = getTipoLeito(hospitalId, i, isUTI);
+            const codigoRef = gerarCodigoReferencia(hospitalId, i, tipoLeito);
+            
+            html += `
+    <div class="qr-item">
+        <div class="qr-label">
+            <strong>${hospitalConfig.nome}</strong>
+            <span>${nomeLeitoFormatado}</span>
+        </div>
+        <img src="${imgURL}" alt="QR Code ${nomeLeitoFormatado}" class="qr-img">
+        <div class="qr-ref">${codigoRef}</div>
+    </div>
+`;
+            leitosProcessados.add(i);
+        }
+    }
+    
+    // Gerar QR codes de leitos irmaos (apenas enfermaria)
+    if (Object.keys(leitosIrmaos).length > 0) {
+        for (let i = 1; i <= hospitalConfig.leitos; i++) {
+            const irmao = leitosIrmaos[i];
+            
+            if (irmao && !leitosProcessados.has(i) && i < irmao) {
+                const qrURL1 = `${QR_API.BASE_URL}/?h=${hospitalId}&l=${i}`;
+                const qrURL2 = `${QR_API.BASE_URL}/?h=${hospitalId}&l=${irmao}`;
+                const imgURL1 = `${QR_API.API_URL}?size=${QR_API.SIZE}x${QR_API.SIZE}&data=${encodeURIComponent(qrURL1)}`;
+                const imgURL2 = `${QR_API.API_URL}?size=${QR_API.SIZE}x${QR_API.SIZE}&data=${encodeURIComponent(qrURL2)}`;
+                
+                const nome1 = getNomeLeitoFormatado(hospitalId, i, false);
+                const nome2 = getNomeLeitoFormatado(hospitalId, irmao, false);
+                const tipo1 = getTipoLeito(hospitalId, i, false);
+                const tipo2 = getTipoLeito(hospitalId, irmao, false);
+                const codigoRef1 = gerarCodigoReferencia(hospitalId, i, tipo1);
+                const codigoRef2 = gerarCodigoReferencia(hospitalId, irmao, tipo2);
+                
+                html += `
+    <div class="qr-item-duplo">
+        <div class="qr-item-irmao">
+            <div class="qr-label">
+                <strong>${hospitalConfig.nome}</strong>
+                <span>${nome1}</span>
+            </div>
+            <img src="${imgURL1}" alt="QR Code ${nome1}" class="qr-img">
+            <div class="qr-ref">${codigoRef1}</div>
+        </div>
+        <div class="qr-item-irmao">
+            <div class="qr-label">
+                <strong>${hospitalConfig.nome}</strong>
+                <span>${nome2}</span>
+            </div>
+            <img src="${imgURL2}" alt="QR Code ${nome2}" class="qr-img">
+            <div class="qr-ref">${codigoRef2}</div>
+        </div>
+    </div>
+`;
+                leitosProcessados.add(i);
+                leitosProcessados.add(irmao);
+            }
+        }
+    }
+    
+    html += `
+    <script>
+        console.log('Pagina de impressao QR Codes carregada');
+        console.log('${hospitalConfig.leitos} QR Codes prontos');
+        
+        window.addEventListener('load', function() {
+            var imagens = document.querySelectorAll('img');
+            var carregadas = 0;
+            var total = imagens.length;
+            
+            console.log('Aguardando ' + total + ' imagens...');
+            
+            imagens.forEach(function(img) {
+                if (img.complete) {
+                    carregadas++;
+                } else {
+                    img.onload = function() {
+                        carregadas++;
+                        if (carregadas === total) {
+                            console.log('Todas imagens carregadas!');
+                        }
+                    };
+                }
+            });
+        });
+    <\/script>
+</body>
+</html>`;
+    
+    printWindow.document.write(html);
+    printWindow.document.close();
+};
 
 // =================== GERAR QR CODES DE UM HOSPITAL ===================
 window.generateQRCodesSimple = function() {
