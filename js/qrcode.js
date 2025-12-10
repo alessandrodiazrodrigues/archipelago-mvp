@@ -1074,19 +1074,21 @@ window.abrirJanelaImpressaoQRCodes = function() {
         
         .qr-label {
             text-align: center;
-            margin-bottom: 5mm;
-            line-height: 1.5;
+            margin-bottom: 8mm;
         }
         
-        .qr-label strong {
-            font-size: 16px;
+        .qr-label .nome-hospital {
+            font-size: 18px;
+            font-weight: 700;
             color: #000;
             display: block;
         }
         
-        .qr-label span {
+        .qr-label .tipo-leito {
             font-size: 14px;
-            color: #333;
+            font-weight: 600;
+            color: #555;
+            margin-top: 2mm;
         }
         
         .qr-img {
@@ -1096,9 +1098,9 @@ window.abrirJanelaImpressaoQRCodes = function() {
         }
         
         .qr-ref {
-            margin-top: 5mm;
-            font-size: 11px;
-            color: #666;
+            margin-top: 8mm;
+            font-size: 12px;
+            color: #888;
             letter-spacing: 1px;
             font-family: monospace;
         }
@@ -1137,14 +1139,14 @@ window.abrirJanelaImpressaoQRCodes = function() {
         }
         
         .qr-item-irmao .qr-label {
-            margin-bottom: 2mm;
+            margin-bottom: 3mm;
         }
         
-        .qr-item-irmao .qr-label strong {
-            font-size: 13px;
+        .qr-item-irmao .qr-label .nome-hospital {
+            font-size: 14px;
         }
         
-        .qr-item-irmao .qr-label span {
+        .qr-item-irmao .qr-label .tipo-leito {
             font-size: 11px;
         }
         
@@ -1154,8 +1156,8 @@ window.abrirJanelaImpressaoQRCodes = function() {
         }
         
         .qr-item-irmao .qr-ref {
-            margin-top: 2mm;
-            font-size: 9px;
+            margin-top: 3mm;
+            font-size: 10px;
         }
         
         @media print {
@@ -1201,17 +1203,22 @@ window.abrirJanelaImpressaoQRCodes = function() {
             }
             
             const imgURL = `${QR_API.API_URL}?size=${QR_API.SIZE}x${QR_API.SIZE}&data=${encodeURIComponent(qrURL)}`;
-            const nomeLeitoFormatado = getNomeLeitoFormatado(hospitalId, i, isUTI);
             const tipoLeito = getTipoLeito(hospitalId, i, isUTI);
             const codigoRef = gerarCodigoReferencia(hospitalId, i, tipoLeito);
+            
+            // Mostrar tipo apenas para H2 e H4 (Apartamento/Enfermaria)
+            let tipoHTML = '';
+            if (!isUTI && (hospitalId === 'H2' || hospitalId === 'H4')) {
+                tipoHTML = `<span class="tipo-leito">${tipoLeito}</span>`;
+            }
             
             html += `
     <div class="qr-item">
         <div class="qr-label">
-            <strong>${hospitalConfig.nome}</strong>
-            <span>${nomeLeitoFormatado}</span>
+            <span class="nome-hospital">${hospitalConfig.nome}</span>
+            ${tipoHTML}
         </div>
-        <img src="${imgURL}" alt="QR Code ${nomeLeitoFormatado}" class="qr-img">
+        <img src="${imgURL}" alt="QR Code" class="qr-img">
         <div class="qr-ref">${codigoRef}</div>
     </div>
 `;
@@ -1219,7 +1226,7 @@ window.abrirJanelaImpressaoQRCodes = function() {
         }
     }
     
-    // Gerar QR codes de leitos irmaos (apenas enfermaria)
+    // Gerar QR codes de leitos irmaos (apenas enfermaria H2 e H4)
     if (Object.keys(leitosIrmaos).length > 0) {
         for (let i = 1; i <= hospitalConfig.leitos; i++) {
             const irmao = leitosIrmaos[i];
@@ -1230,8 +1237,6 @@ window.abrirJanelaImpressaoQRCodes = function() {
                 const imgURL1 = `${QR_API.API_URL}?size=${QR_API.SIZE}x${QR_API.SIZE}&data=${encodeURIComponent(qrURL1)}`;
                 const imgURL2 = `${QR_API.API_URL}?size=${QR_API.SIZE}x${QR_API.SIZE}&data=${encodeURIComponent(qrURL2)}`;
                 
-                const nome1 = getNomeLeitoFormatado(hospitalId, i, false);
-                const nome2 = getNomeLeitoFormatado(hospitalId, irmao, false);
                 const tipo1 = getTipoLeito(hospitalId, i, false);
                 const tipo2 = getTipoLeito(hospitalId, irmao, false);
                 const codigoRef1 = gerarCodigoReferencia(hospitalId, i, tipo1);
@@ -1241,18 +1246,18 @@ window.abrirJanelaImpressaoQRCodes = function() {
     <div class="qr-item-duplo">
         <div class="qr-item-irmao">
             <div class="qr-label">
-                <strong>${hospitalConfig.nome}</strong>
-                <span>${nome1}</span>
+                <span class="nome-hospital">${hospitalConfig.nome}</span>
+                <span class="tipo-leito">${tipo1}</span>
             </div>
-            <img src="${imgURL1}" alt="QR Code ${nome1}" class="qr-img">
+            <img src="${imgURL1}" alt="QR Code" class="qr-img">
             <div class="qr-ref">${codigoRef1}</div>
         </div>
         <div class="qr-item-irmao">
             <div class="qr-label">
-                <strong>${hospitalConfig.nome}</strong>
-                <span>${nome2}</span>
+                <span class="nome-hospital">${hospitalConfig.nome}</span>
+                <span class="tipo-leito">${tipo2}</span>
             </div>
-            <img src="${imgURL2}" alt="QR Code ${nome2}" class="qr-img">
+            <img src="${imgURL2}" alt="QR Code" class="qr-img">
             <div class="qr-ref">${codigoRef2}</div>
         </div>
     </div>
@@ -1330,17 +1335,21 @@ window.generateQRCodesSimple = function() {
             }
             
             const imgURL = `${QR_API.API_URL}?size=${QR_API.SIZE}x${QR_API.SIZE}&data=${encodeURIComponent(qrURL)}`;
-            const nomeLeitoFormatado = getNomeLeitoFormatado(hospitalId, i, isUTI);
             const tipoLeito = getTipoLeito(hospitalId, i, isUTI);
             const codigoRef = gerarCodigoReferencia(hospitalId, i, tipoLeito);
+            
+            // Mostrar tipo apenas para H2 e H4 (Apartamento/Enfermaria)
+            let tipoHTML = '';
+            if (!isUTI && (hospitalId === 'H2' || hospitalId === 'H4')) {
+                tipoHTML = `<br><span style="font-size: 12px; color: #666;">${tipoLeito}</span>`;
+            }
             
             gridNormais.innerHTML += `
                 <div class="qr-item">
                     <div class="qr-label">
-                        <strong>${hospitalConfig.nome}</strong><br>
-                        ${nomeLeitoFormatado}
+                        <strong>${hospitalConfig.nome}</strong>${tipoHTML}
                     </div>
-                    <img src="${imgURL}" alt="QR Code ${nomeLeitoFormatado}" class="qr-img" loading="eager">
+                    <img src="${imgURL}" alt="QR Code" class="qr-img" loading="eager">
                     <div class="qr-ref">${codigoRef}</div>
                 </div>
             `;
@@ -1363,8 +1372,6 @@ window.generateQRCodesSimple = function() {
                 const imgURL1 = `${QR_API.API_URL}?size=${QR_API.SIZE}x${QR_API.SIZE}&data=${encodeURIComponent(qrURL1)}`;
                 const imgURL2 = `${QR_API.API_URL}?size=${QR_API.SIZE}x${QR_API.SIZE}&data=${encodeURIComponent(qrURL2)}`;
                 
-                const nome1 = getNomeLeitoFormatado(hospitalId, i, false);
-                const nome2 = getNomeLeitoFormatado(hospitalId, irmao, false);
                 const tipo1 = getTipoLeito(hospitalId, i, false);
                 const tipo2 = getTipoLeito(hospitalId, irmao, false);
                 const codigoRef1 = gerarCodigoReferencia(hospitalId, i, tipo1);
@@ -1374,18 +1381,18 @@ window.generateQRCodesSimple = function() {
                     <div class="qr-item-duplo">
                         <div class="qr-item-irmao">
                             <div class="qr-label">
-                                <strong>${hospitalConfig.nome}</strong><br>
-                                ${nome1}
+                                <strong>${hospitalConfig.nome}</strong>
+                                <br><span style="font-size: 11px; color: #666;">${tipo1}</span>
                             </div>
-                            <img src="${imgURL1}" alt="QR Code ${nome1}" class="qr-img" loading="eager">
+                            <img src="${imgURL1}" alt="QR Code" class="qr-img" loading="eager">
                             <div class="qr-ref">${codigoRef1}</div>
                         </div>
                         <div class="qr-item-irmao">
                             <div class="qr-label">
-                                <strong>${hospitalConfig.nome}</strong><br>
-                                ${nome2}
+                                <strong>${hospitalConfig.nome}</strong>
+                                <br><span style="font-size: 11px; color: #666;">${tipo2}</span>
                             </div>
-                            <img src="${imgURL2}" alt="QR Code ${nome2}" class="qr-img" loading="eager">
+                            <img src="${imgURL2}" alt="QR Code" class="qr-img" loading="eager">
                             <div class="qr-ref">${codigoRef2}</div>
                         </div>
                     </div>
@@ -1484,18 +1491,22 @@ async function generateHospitalQRCodes(hospitalId, hospital, container, isUTI) {
             }
             
             const imgURL = `${QR_API.API_URL}?size=${QR_API.SIZE}x${QR_API.SIZE}&data=${encodeURIComponent(qrURL)}`;
-            const nomeLeitoFormatado = getNomeLeitoFormatado(hospitalId, i, isUTI);
             const tipoLeito = getTipoLeito(hospitalId, i, isUTI);
             const codigoRef = gerarCodigoReferencia(hospitalId, i, tipoLeito);
+            
+            // Mostrar tipo apenas para H2 e H4 (Apartamento/Enfermaria)
+            let tipoHTML = '';
+            if (!isUTI && (hospitalId === 'H2' || hospitalId === 'H4')) {
+                tipoHTML = `<br><span style="font-size: 12px; color: #666;">${tipoLeito}</span>`;
+            }
             
             const qrItem = document.createElement('div');
             qrItem.className = 'qr-item';
             qrItem.innerHTML = `
                 <div class="qr-label">
-                    <strong>${hospital.nome}</strong><br>
-                    ${nomeLeitoFormatado}
+                    <strong>${hospital.nome}</strong>${tipoHTML}
                 </div>
-                <img src="${imgURL}" alt="QR Code ${nomeLeitoFormatado}" class="qr-img" loading="eager">
+                <img src="${imgURL}" alt="QR Code" class="qr-img" loading="eager">
                 <div class="qr-ref">${codigoRef}</div>
             `;
             
@@ -1522,8 +1533,6 @@ async function generateHospitalQRCodes(hospitalId, hospital, container, isUTI) {
                 const imgURL1 = `${QR_API.API_URL}?size=${QR_API.SIZE}x${QR_API.SIZE}&data=${encodeURIComponent(qrURL1)}`;
                 const imgURL2 = `${QR_API.API_URL}?size=${QR_API.SIZE}x${QR_API.SIZE}&data=${encodeURIComponent(qrURL2)}`;
                 
-                const nome1 = getNomeLeitoFormatado(hospitalId, i, false);
-                const nome2 = getNomeLeitoFormatado(hospitalId, irmao, false);
                 const tipo1 = getTipoLeito(hospitalId, i, false);
                 const tipo2 = getTipoLeito(hospitalId, irmao, false);
                 const codigoRef1 = gerarCodigoReferencia(hospitalId, i, tipo1);
@@ -1534,18 +1543,18 @@ async function generateHospitalQRCodes(hospitalId, hospital, container, isUTI) {
                 qrItemDuplo.innerHTML = `
                     <div class="qr-item-irmao">
                         <div class="qr-label">
-                            <strong>${hospital.nome}</strong><br>
-                            ${nome1}
+                            <strong>${hospital.nome}</strong>
+                            <br><span style="font-size: 11px; color: #666;">${tipo1}</span>
                         </div>
-                        <img src="${imgURL1}" alt="QR Code ${nome1}" class="qr-img" loading="eager">
+                        <img src="${imgURL1}" alt="QR Code" class="qr-img" loading="eager">
                         <div class="qr-ref">${codigoRef1}</div>
                     </div>
                     <div class="qr-item-irmao">
                         <div class="qr-label">
-                            <strong>${hospital.nome}</strong><br>
-                            ${nome2}
+                            <strong>${hospital.nome}</strong>
+                            <br><span style="font-size: 11px; color: #666;">${tipo2}</span>
                         </div>
-                        <img src="${imgURL2}" alt="QR Code ${nome2}" class="qr-img" loading="eager">
+                        <img src="${imgURL2}" alt="QR Code" class="qr-img" loading="eager">
                         <div class="qr-ref">${codigoRef2}</div>
                     </div>
                 `;
