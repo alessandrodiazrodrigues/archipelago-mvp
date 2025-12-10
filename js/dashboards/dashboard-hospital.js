@@ -440,9 +440,12 @@ window.copiarDashboardParaWhatsApp = function() {
     });
 };
 
-function calcularModalidadesVagos(leitos, hospitalId) {
+function calcularModalidadesVagos(leitos, hospitalId, reservas) {
     // V7.0: Filtrar UTI
     var leitosFiltrados = filtrarLeitosSemUTI(leitos);
+    
+    // V7.4: Garantir que reservas seja um array
+    var reservasArray = reservas || [];
     
     var modalidade = {
         flexiveis: 0,
@@ -459,18 +462,22 @@ function calcularModalidadesVagos(leitos, hospitalId) {
         var capacidadeInfo = window.HOSPITAL_CAPACIDADE ? window.HOSPITAL_CAPACIDADE[hospitalId] : null;
         var contratuais = capacidadeInfo ? capacidadeInfo.contratuais : leitosFiltrados.length;
         var ocupados = leitosFiltrados.filter(function(l) { return isOcupado(l); }).length;
-        modalidade.flexiveis = Math.max(0, contratuais - ocupados);
+        // V7.4: Descontar reservas no calculo de flexiveis
+        var totalReservados = reservasArray.length;
+        modalidade.flexiveis = Math.max(0, contratuais - ocupados - totalReservados);
         return modalidade;
     }
 
     // =================== H2 - CRUZ AZUL ===================
     if (hospitalId === 'H2') {
-        // APARTAMENTOS: contratuais - ocupados
+        // APARTAMENTOS: contratuais - ocupados - reservados
         var aptosContratuais = 20;
         var aptosOcupados = leitosFiltrados.filter(function(l) {
             return isOcupado(l) && (l.tipo === 'APTO' || l.tipo === 'Apartamento');
         }).length;
-        modalidade.exclusivo_apto = Math.max(0, aptosContratuais - aptosOcupados);
+        // V7.4: Descontar reservas de apartamento
+        var aptosReservados = reservasArray.filter(function(r) { return r.tipo === 'Apartamento'; }).length;
+        modalidade.exclusivo_apto = Math.max(0, aptosContratuais - aptosOcupados - aptosReservados);
         
         // ENFERMARIAS: apenas leitos contratuais (21-36)
         var vagosContratuais = vagos.filter(function(l) {
@@ -514,12 +521,14 @@ function calcularModalidadesVagos(leitos, hospitalId) {
     
     // =================== H4 - SANTA CLARA ===================
     if (hospitalId === 'H4') {
-        // APARTAMENTOS: contratuais - ocupados
+        // APARTAMENTOS: contratuais - ocupados - reservados
         var aptosContratuaisH4 = 18;
         var aptosOcupadosH4 = leitosFiltrados.filter(function(l) {
             return isOcupado(l) && (l.tipo === 'APTO' || l.tipo === 'Apartamento');
         }).length;
-        modalidade.exclusivo_apto = Math.max(0, aptosContratuaisH4 - aptosOcupadosH4);
+        // V7.4: Descontar reservas de apartamento
+        var aptosReservadosH4 = reservasArray.filter(function(r) { return r.tipo === 'Apartamento'; }).length;
+        modalidade.exclusivo_apto = Math.max(0, aptosContratuaisH4 - aptosOcupadosH4 - aptosReservadosH4);
         
         // ENFERMARIAS: apenas leitos contratuais (10-17)
         var vagosContratuaisH4 = vagos.filter(function(l) {
@@ -915,7 +924,7 @@ window.processarDadosHospital = function(hospitalId) {
     
     var modalidadeOcupados = calcularModalidadePorTipo(ocupados, hospitalId);
     var modalidadePrevisao = calcularModalidadePorTipo(previsaoAlta, hospitalId);
-    var modalidadeDisponiveis = calcularModalidadesVagos(leitos, hospitalId);
+    var modalidadeDisponiveis = calcularModalidadesVagos(leitos, hospitalId, reservas);
     
     var nomeHospital = {
         'H1': 'Neomater',
