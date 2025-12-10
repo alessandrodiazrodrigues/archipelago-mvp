@@ -10,10 +10,10 @@
 //   - Total: 356 leitos (293 enfermaria + 63 UTI)
 // ==================================================================================
 
-// *** AMBIENTE DE TESTE ***
-// Para mudar para PRODUCAO, altere BASE_URL para: 'https://qrcode-seven-gamma.vercel.app'
+// *** AMBIENTE DE PRODUCAO ***
+// Para mudar para TESTE, altere BASE_URL para: 'https://qr-code-systelos.vercel.app'
 const QR_API = {
-    BASE_URL: 'https://qr-code-systelos.vercel.app',
+    BASE_URL: 'https://qrcode-seven-gamma.vercel.app',
     API_URL: 'https://api.qrserver.com/v1/create-qr-code/',
     SIZE: 300,
     DELAY: 150,
@@ -2346,7 +2346,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const totalUTI = Object.values(QR_API.UTI).reduce((t, h) => t + h.leitos, 0);
     
     console.log('Sistema QR Code V7.0 carregado');
-    console.log('AMBIENTE: TESTE');
+    console.log('AMBIENTE: PRODUCAO');
     console.log('URL: ' + QR_API.BASE_URL);
     console.log('9 hospitais ativos - ' + totalEnfermaria + ' leitos enfermaria');
     console.log('8 hospitais com UTI - ' + totalUTI + ' leitos UTI');
