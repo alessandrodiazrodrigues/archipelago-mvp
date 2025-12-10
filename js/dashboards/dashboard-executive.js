@@ -3,7 +3,7 @@
 // =================== V7.0: + Coluna Reservados + Filtro UTI ===================
 
 // =================== CONSTANTES GLOBAIS V7.0 ===================
-const TOTAL_CONTRATUAIS = 126; // 9 hospitais ativos (H1-H9)
+const TOTAL_CONTRATUAIS = 138; // 9 hospitais ativos (H1-H9): 10+36+13+26+13+13+13+7+7
 const TOTAL_LEITOS = 293; // 126 contratuais + 167 extras
 
 // Estado global para fundo branco (compartilhado com dashboard hospitalar)
