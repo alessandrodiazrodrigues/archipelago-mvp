@@ -781,14 +781,14 @@ function copiarParaWhatsAppExecutivo() {
     texto += `*REDE EXTERNA (9 HOSPITAIS)*\n`;
     texto += `━━━━━━━━━━━━━━━━━\n`;
     texto += `Taxa de Ocupação: *${taxaOcupacao.toFixed(1)}%*\n`;
-    texto += `Leitos Ocupados: *${totalOcupados}/${totalLeitos}*\n`;
+    texto += `Leitos Ocupados: *${totalOcupados}*\n`;
     texto += `Leitos Reservados: *${totalReservados}*\n\n`;
     
     hospitais.forEach((h, index) => {
         texto += `*${index + 1}. ${h.nome}*\n`;
         texto += `━━━━━━━━━━━━━━━━━\n`;
         texto += `• Taxa: ${h.taxaOcupacao.toFixed(1)}%\n`;
-        texto += `• Ocupados: ${h.ocupados.total}/${h.totalLeitos}\n`;
+        texto += `• Ocupados: ${h.ocupados.total}\n`;
         texto += `• Reservados: ${h.reservados.total}\n`;
         texto += `• Previsão Alta: ${h.previsao.total}\n`;
         texto += `• Disponíveis: ${h.disponiveis.total}\n`;
@@ -1048,7 +1048,7 @@ window.renderDashboardExecutivo = function() {
                         <table class="hospitais-table-ocupacao">
                             <thead>
                                 <tr>
-                                    <th></th>
+                                    <th style="text-align: left;"></th>
                                     <th>Leitos Fixos</th>
                                     <th>Leitos Ocupados</th>
                                     <th style="color: #60a5fa;">Reservados</th>
@@ -1058,7 +1058,7 @@ window.renderDashboardExecutivo = function() {
                             <tbody>
                                 ${hospitais.map(h => `
                                     <tr>
-                                        <td><strong>${h.nome}</strong></td>
+                                        <td style="text-align: left;"><strong>${h.nome}</strong></td>
                                         <td>${window.HOSPITAL_CAPACIDADE[h.id]?.contratuais || h.totalLeitos}</td>
                                         <td>${h.ocupados.total}</td>
                                         <td>${h.reservados.total}</td>
@@ -1147,14 +1147,14 @@ window.renderDashboardExecutivo = function() {
                         <table class="hospitais-table-alinhada">
                             <thead>
                                 <tr>
-                                    <th style="text-align: center;">Hospital</th>
+                                    <th style="text-align: left;">Hospital</th>
                                     <th style="text-align: center;">TPH (dias)</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 ${hospitais.map(h => `
                                     <tr>
-                                        <td style="text-align: center;">${h.nome}</td>
+                                        <td style="text-align: left;">${h.nome}</td>
                                         <td style="text-align: center;">${h.tph.medio}</td>
                                     </tr>
                                 `).join('')}
@@ -1183,14 +1183,14 @@ window.renderDashboardExecutivo = function() {
                         <table class="hospitais-table-alinhada">
                             <thead>
                                 <tr>
-                                    <th style="text-align: center;">Hospital</th>
+                                    <th style="text-align: left;">Hospital</th>
                                     <th style="text-align: center;">PPS < 40%</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 ${hospitais.map(h => `
                                     <tr>
-                                        <td style="text-align: center;">${h.nome}</td>
+                                        <td style="text-align: left;">${h.nome}</td>
                                         <td style="text-align: center;">${h.pps.menor40.length}</td>
                                     </tr>
                                 `).join('')}
@@ -1219,14 +1219,14 @@ window.renderDashboardExecutivo = function() {
                         <table class="hospitais-table-alinhada">
                             <thead>
                                 <tr>
-                                    <th style="text-align: center;">Hospital</th>
+                                    <th style="text-align: left;">Hospital</th>
                                     <th style="text-align: center;">Diretivas Pendentes</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 ${hospitais.map(h => `
                                     <tr>
-                                        <td style="text-align: center;">${h.nome}</td>
+                                        <td style="text-align: left;">${h.nome}</td>
                                         <td style="text-align: center;">${h.spict.diretivas}</td>
                                     </tr>
                                 `).join('')}
