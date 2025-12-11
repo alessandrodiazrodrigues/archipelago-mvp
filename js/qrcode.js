@@ -11,9 +11,9 @@
 // ==================================================================================
 
 // *** AMBIENTE DE TESTE ***
-// Para PRODUCAO, altere BASE_URL para: 'https://qrcode-seven-gamma.vercel.app'
+// Para PRODUCAO, altere BASE_URL para: 'https://qr-code-systelos.vercel.app'
 const QR_API = {
-    BASE_URL: 'https://qr-code-systelos.vercel.app',
+    BASE_URL: 'https://qrcode-seven-gamma.vercel.app',
     API_URL: 'https://api.qrserver.com/v1/create-qr-code/',
     SIZE: 300,
     DELAY: 150,
