@@ -1,9 +1,9 @@
-// =================== DASHBOARD UTI V7.1 ===================
+// =================== DASHBOARD UTI V7.5 ===================
 // =================== LEITOS UTI - INICIAL: H2 CRUZ AZUL ===================
 // =================== 20 CONTRATUAIS + 10 EXTRAS = 30 TOTAL ===================
-// V7.1 CORRIGIDO: Busca dados em window.leitosUTI (separado de hospitalData)
+// V7.5: SPICT-BR reativado, relatorio WhatsApp simplificado
 
-console.log('Dashboard UTI V7.1 - Carregando...');
+console.log('Dashboard UTI V7.5 - Carregando...');
 
 // =================== CONFIGURACAO UTI POR HOSPITAL ===================
 const UTI_CAPACIDADE = {
@@ -237,6 +237,18 @@ function processarDadosUTI(hospitalId) {
                          hospitalId === 'H8' ? 'Sao Camilo Ipiranga' :
                          hospitalId === 'H9' ? 'Sao Camilo Pompeia' : hospitalId;
     
+    // V7.5: SPICT-BR - Contar elegiveis
+    const spictElegiveis = ocupados.filter(l => {
+        const spict = (l.spict || '').toLowerCase().trim();
+        return spict === 'elegivel';
+    });
+    
+    // Lista de SPICT elegiveis
+    const spictLista = spictElegiveis.map(l => ({
+        leito: l.identificacaoLeito || l.leito || '---',
+        matricula: l.matricula || '---'
+    }));
+    
     return {
         id: hospitalId,
         nome: nomeHospital,
@@ -268,11 +280,16 @@ function processarDadosUTI(hospitalId) {
         tph: {
             medio: tphMedio,
             lista: leitosMais5Diarias
+        },
+        spict: {
+            total: spictElegiveis.length,
+            lista: spictLista
         }
     };
 }
 
 // =================== COPIAR PARA WHATSAPP UTI ===================
+// V7.5: Formato simplificado sem emojis
 function copiarParaWhatsAppUTI(hospitalId) {
     const dados = processarDadosUTI(hospitalId);
     if (!dados) {
@@ -281,48 +298,60 @@ function copiarParaWhatsAppUTI(hospitalId) {
     }
     
     const agora = new Date();
-    const dataFormatada = agora.toLocaleDateString('pt-BR', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-    });
+    const hora = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
     
-    let texto = `*UTI - ${dados.nome}*\n`;
-    texto += `${dataFormatada}\n`;
-    texto += `━━━━━━━━━━━━━━━━━\n`;
-    texto += `*OCUPACAO UTI*\n`;
-    texto += `━━━━━━━━━━━━━━━━━\n`;
-    texto += `Taxa de Ocupacao: *${dados.taxaOcupacao.toFixed(1)}%*\n`;
-    texto += `Leitos Ocupados: *${dados.ocupados.total}/${dados.contratuais}*\n`;
-    texto += `Leitos Reservados: *${dados.reservados.total}*\n`;
-    texto += `Leitos Disponiveis: *${dados.disponiveis.total}*\n\n`;
+    // Buscar leitos vagos
+    const hospitalObj = window.leitosUTI[hospitalId] || {};
+    const leitos = hospitalObj.leitos || [];
+    const leitosVagos = leitos.filter(l => isVagoUTI(l));
+    const leitosVagosIds = leitosVagos.map(l => 'L' + (l.identificacaoLeito || l.leito || '?')).join(', ');
     
-    texto += `*Por Modalidade Contratada:*\n`;
-    texto += `━━━━━━━━━━━━━━━━━\n`;
-    texto += `_Ocupados:_\n`;
-    texto += `  Apartamento: ${dados.ocupados.apartamento}\n`;
-    texto += `  Enfermaria: ${dados.ocupados.enfermaria}\n\n`;
-    texto += `_Reservados:_\n`;
-    texto += `  Apartamento: ${dados.reservados.apartamento}\n`;
-    texto += `  Enfermaria: ${dados.reservados.enfermaria}\n\n`;
+    // Buscar reservas
+    const reservas = getReservasUTI(hospitalId);
+    const reservasIds = reservas.map(r => 'L' + (r.identificacaoLeito || r.leito || '?')).join(', ');
     
-    texto += `*Previsao de Alta Hoje:* ${dados.previsao.total}\n`;
+    // Montar texto
+    let texto = `UTI - Hospital ${dados.nome} - Boletim das ${hora}\n`;
+    texto += `Leitos Ocupados: ${dados.ocupados.total}\n`;
+    
+    // Altas Sinalizadas (Previsao Hoje)
+    texto += `Altas Sinalizadas: ${dados.previsao.total}\n`;
     if (dados.previsao.lista && dados.previsao.lista.length > 0) {
         dados.previsao.lista.forEach(l => {
-            texto += `  ${l.leito} | ${l.matricula}\n`;
+            texto += `  . L${l.leito}\n`;
         });
+    } else {
+        texto += `  -\n`;
     }
-    texto += `\n`;
     
-    texto += `*TPH Medio:* ${dados.tph.medio} dias\n`;
+    // Leitos Vagos
+    texto += `Leitos Vagos: ${leitosVagos.length}\n`;
+    if (leitosVagos.length > 0) {
+        texto += `  . ${leitosVagosIds}\n`;
+    } else {
+        texto += `  -\n`;
+    }
     
-    if (dados.tph.lista && dados.tph.lista.length > 0) {
-        texto += `\n*Leitos > 5 Diarias:*\n`;
-        dados.tph.lista.forEach(l => {
-            texto += `  ${l.leito} | ${l.matricula} | ${l.dias} dias\n`;
+    // Leitos Reservados
+    texto += `Leitos Reservados: ${dados.reservados.total}\n`;
+    if (reservas.length > 0) {
+        texto += `  . ${reservasIds}\n`;
+    } else {
+        texto += `  -\n`;
+    }
+    
+    // Leitos Bloqueados (por isolamento do irmao - nao aplicavel na UTI H2)
+    texto += `Leitos Bloqueados: 0\n`;
+    texto += `  -\n`;
+    
+    // SPICT-BR Elegiveis
+    texto += `SPICT-BR Elegiveis: ${dados.spict.total}\n`;
+    if (dados.spict.lista && dados.spict.lista.length > 0) {
+        dados.spict.lista.forEach(l => {
+            texto += `  . L${l.leito}\n`;
         });
+    } else {
+        texto += `  -\n`;
     }
     
     navigator.clipboard.writeText(texto).then(() => {
@@ -587,18 +616,37 @@ window.renderDashboardUTI = function(hospitalId) {
                     </div>
                 </div>
                 
-                <!-- BOX 6: SPICT/DIRETIVAS (BLOQUEADO) -->
-                <div class="kpi-box-uti box-bloqueado-uti">
-                    <div class="kpi-title-uti titulo-bloqueado">SPICT / Diretivas</div>
+                <!-- BOX 6: SPICT-BR ELEGIVEIS (V7.5: Reativado) -->
+                <div class="kpi-box-uti box-spict-uti">
+                    <div class="kpi-title-uti">SPICT-BR Elegiveis</div>
                     
-                    <div class="kpi-content-uti content-bloqueado">
-                        <div class="bloqueado-icon">
-                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#4b5563" stroke-width="2">
-                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                            </svg>
+                    <div class="kpi-content-uti">
+                        <div class="spict-display-uti">
+                            <div class="spict-numero-uti">${dados.spict.total}</div>
+                            <div class="spict-label-uti">pacientes</div>
                         </div>
-                        <div class="bloqueado-texto">Nao aplicavel para UTI</div>
+                        
+                        <div class="spict-detalhes-uti">
+                            <div class="detalhe-titulo-uti">Lista de Elegiveis</div>
+                            ${dados.spict.lista && dados.spict.lista.length > 0 ? `
+                                <table class="spict-table-uti">
+                                    <thead>
+                                        <tr>
+                                            <th style="text-align: left;">Leito</th>
+                                            <th style="text-align: right;">Matricula</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${dados.spict.lista.map(l => `
+                                            <tr>
+                                                <td style="text-align: left;">${l.leito}</td>
+                                                <td style="text-align: right;">${l.matricula}</td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            ` : '<div class="sem-dados-uti">Nenhum Paciente Elegivel</div>'}
+                        </div>
                     </div>
                 </div>
                 
@@ -946,6 +994,52 @@ function getUTIDashboardCSS() {
                 font-style: italic;
             }
             
+            /* V7.5: SPICT-BR Display */
+            .spict-display-uti {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 5px;
+            }
+            
+            .spict-numero-uti {
+                font-size: 48px;
+                font-weight: 800;
+                color: #ffffff;
+            }
+            
+            .spict-label-uti {
+                font-size: 14px;
+                color: ${CORES_UTI.cinzaMedio};
+            }
+            
+            .spict-detalhes-uti {
+                width: 100%;
+                margin-top: 15px;
+                padding-top: 15px;
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            
+            .spict-table-uti {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 11px;
+            }
+            
+            .spict-table-uti thead th {
+                color: ${CORES_UTI.azulPrincipal};
+                font-weight: 600;
+                padding: 6px 4px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                font-size: 10px;
+            }
+            
+            .spict-table-uti tbody td {
+                padding: 6px 4px;
+                color: ${CORES_UTI.cinzaClaro};
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            }
+            
             /* Responsivo */
             @media (max-width: 1200px) {
                 .kpis-grid-uti {
@@ -971,7 +1065,7 @@ function getUTIDashboardCSS() {
     `;
 }
 
-console.log('Dashboard UTI V7.1 - Carregado com sucesso');
-console.log('V7.1 CORRIGIDO: Busca dados em window.leitosUTI (separado de hospitalData)');
-console.log('V7.1 Hospitais com UTI: ' + HOSPITAIS_COM_UTI.join(', '));
-console.log('V7.1 H2 Cruz Azul: 20 contratuais + 10 extras = 30 total');
+console.log('Dashboard UTI V7.5 - Carregado com sucesso');
+console.log('V7.5: SPICT-BR reativado, relatorio WhatsApp simplificado');
+console.log('V7.5 Hospitais com UTI: ' + HOSPITAIS_COM_UTI.join(', '));
+console.log('V7.5 H2 Cruz Azul: 20 contratuais + 10 extras = 30 total');

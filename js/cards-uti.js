@@ -838,8 +838,8 @@
         modalHTML += '<div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 20px;">';
         modalHTML += '<div><label style="display: block; margin-bottom: 5px; color: #6b7280; font-weight: 600; font-size: 12px;">PPS</label>';
         modalHTML += '<select disabled style="width: 100%; padding: 12px; ' + estiloCampoBloqueado + ' border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; font-size: 14px;"><option value="">Nao disponivel UTI</option></select></div>';
-        modalHTML += '<div><label style="display: block; margin-bottom: 5px; color: #6b7280; font-weight: 600; font-size: 12px;">SPICT-BR</label>';
-        modalHTML += '<select disabled style="width: 100%; padding: 12px; ' + estiloCampoBloqueado + ' border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; font-size: 14px;"><option value="">Nao disponivel UTI</option></select></div>';
+        modalHTML += '<div><label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600; font-size: 12px;">SPICT-BR <span style="color: #c86420;">*</span></label>';
+        modalHTML += '<select id="admUtiSpict" required style="width: 100%; padding: 12px; background: #374151 !important; color: #ffffff !important; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px;"><option value="nao_elegivel">Nao elegivel</option><option value="elegivel">Elegivel</option></select></div>';
         modalHTML += '<div><label style="display: block; margin-bottom: 5px; color: #6b7280; font-weight: 600; font-size: 12px;">Diretivas</label>';
         modalHTML += '<select disabled style="width: 100%; padding: 12px; ' + estiloCampoBloqueado + ' border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; font-size: 14px;"><option value="">Nao disponivel UTI</option></select></div>';
         modalHTML += '</div>';
@@ -890,7 +890,7 @@
                 prevAlta: document.getElementById('admUtiPrevAlta').value,
                 anotacoes: document.getElementById('admUtiAnotacoes').value,
                 pps: '',
-                spict: '',
+                spict: document.getElementById('admUtiSpict').value,
                 regiao: '',
                 diretivas: '',
                 concessoes: '[]',
@@ -946,6 +946,7 @@
         var isolamento = leito.isolamento || 'Nao Isolamento';
         var prevAlta = leito.prevAlta || '';
         var anotacoes = leito.anotacoes || '';
+        var spictAtual = leito.spict || 'nao_elegivel';
         
         var modal = document.createElement('div');
         modal.id = 'modalAtualizarUTI';
@@ -983,6 +984,14 @@
         modalHTML += '<label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600; font-size: 12px;">Previsao de Alta</label>';
         modalHTML += '<select id="updUtiPrevAlta" style="width: 100%; padding: 12px; background: #374151 !important; color: #ffffff !important; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px;">';
         modalHTML += '<option value="">Selecione...</option>' + prevAltaOptions + '</select></div>';
+        
+        // SPICT-BR - V7.5: Reativado
+        modalHTML += '<div style="margin-bottom: 20px;">';
+        modalHTML += '<label style="display: block; margin-bottom: 5px; color: #e2e8f0; font-weight: 600; font-size: 12px;">SPICT-BR</label>';
+        modalHTML += '<select id="updUtiSpict" style="width: 100%; padding: 12px; background: #374151 !important; color: #ffffff !important; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px;">';
+        modalHTML += '<option value="nao_elegivel"' + (spictAtual === 'nao_elegivel' ? ' selected' : '') + '>Nao elegivel</option>';
+        modalHTML += '<option value="elegivel"' + (spictAtual === 'elegivel' ? ' selected' : '') + '>Elegivel</option>';
+        modalHTML += '</select></div>';
         
         // ANOTACOES
         modalHTML += '<div style="margin-bottom: 20px;">';
@@ -1047,6 +1056,7 @@
             params.append('leito', leitoNumero);
             params.append('isolamento', document.getElementById('updUtiIsolamento').value);
             params.append('prevAlta', document.getElementById('updUtiPrevAlta').value);
+            params.append('spict', document.getElementById('updUtiSpict').value);
             params.append('anotacoes', document.getElementById('updUtiAnotacoes').value);
             
             showLoadingOverlayUTI('Atualizando dados...');
