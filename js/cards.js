@@ -41,8 +41,8 @@ window.SUFIXOS_ENFERMARIA = {
     H5: ['1', '2'],
     H6: ['1', '2'],
     H7: ['1', '2'],
-    H8: ['A', 'B'],
-    H9: ['A', 'B']
+    H8: ['1', '2'],
+    H9: ['1', '2']
 };
 
 // Sufixos para Apartamento (alguns hospitais têm sufixo fixo)
