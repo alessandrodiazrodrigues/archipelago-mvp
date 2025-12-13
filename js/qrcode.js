@@ -95,7 +95,7 @@ function gerarCodigoReferencia(hospitalId, numeroLeito, tipo) {
 }
 
 // =================== FUNCAO PARA OBTER TIPO DO LEITO ===================
-function getTipoLeito(hospitalId, numeroLeito, isUTI) {
+function getTipoLeitoQR(hospitalId, numeroLeito, isUTI) {
     if (isUTI) return 'UTI';
     
     // H2 - CRUZ AZUL
@@ -1204,7 +1204,7 @@ window.abrirJanelaImpressaoQRCodes = function() {
             }
             
             const imgURL = `${QR_API.API_URL}?size=${QR_API.SIZE}x${QR_API.SIZE}&data=${encodeURIComponent(qrURL)}`;
-            const tipoLeito = getTipoLeito(hospitalId, i, isUTI);
+            const tipoLeito = getTipoLeitoQR(hospitalId, i, isUTI);
             const codigoRef = gerarCodigoReferencia(hospitalId, i, tipoLeito);
             
             // Mostrar tipo apenas para H2 e H4 (Apartamento/Enfermaria)
@@ -1238,8 +1238,8 @@ window.abrirJanelaImpressaoQRCodes = function() {
                 const imgURL1 = `${QR_API.API_URL}?size=${QR_API.SIZE}x${QR_API.SIZE}&data=${encodeURIComponent(qrURL1)}`;
                 const imgURL2 = `${QR_API.API_URL}?size=${QR_API.SIZE}x${QR_API.SIZE}&data=${encodeURIComponent(qrURL2)}`;
                 
-                const tipo1 = getTipoLeito(hospitalId, i, false);
-                const tipo2 = getTipoLeito(hospitalId, irmao, false);
+                const tipo1 = getTipoLeitoQR(hospitalId, i, false);
+                const tipo2 = getTipoLeitoQR(hospitalId, irmao, false);
                 const codigoRef1 = gerarCodigoReferencia(hospitalId, i, tipo1);
                 const codigoRef2 = gerarCodigoReferencia(hospitalId, irmao, tipo2);
                 
@@ -1336,7 +1336,7 @@ window.generateQRCodesSimple = function() {
             }
             
             const imgURL = `${QR_API.API_URL}?size=${QR_API.SIZE}x${QR_API.SIZE}&data=${encodeURIComponent(qrURL)}`;
-            const tipoLeito = getTipoLeito(hospitalId, i, isUTI);
+            const tipoLeito = getTipoLeitoQR(hospitalId, i, isUTI);
             const codigoRef = gerarCodigoReferencia(hospitalId, i, tipoLeito);
             
             // Mostrar tipo apenas para H2 e H4 (Apartamento/Enfermaria)
@@ -1373,8 +1373,8 @@ window.generateQRCodesSimple = function() {
                 const imgURL1 = `${QR_API.API_URL}?size=${QR_API.SIZE}x${QR_API.SIZE}&data=${encodeURIComponent(qrURL1)}`;
                 const imgURL2 = `${QR_API.API_URL}?size=${QR_API.SIZE}x${QR_API.SIZE}&data=${encodeURIComponent(qrURL2)}`;
                 
-                const tipo1 = getTipoLeito(hospitalId, i, false);
-                const tipo2 = getTipoLeito(hospitalId, irmao, false);
+                const tipo1 = getTipoLeitoQR(hospitalId, i, false);
+                const tipo2 = getTipoLeitoQR(hospitalId, irmao, false);
                 const codigoRef1 = gerarCodigoReferencia(hospitalId, i, tipo1);
                 const codigoRef2 = gerarCodigoReferencia(hospitalId, irmao, tipo2);
                 
@@ -1492,7 +1492,7 @@ async function generateHospitalQRCodes(hospitalId, hospital, container, isUTI) {
             }
             
             const imgURL = `${QR_API.API_URL}?size=${QR_API.SIZE}x${QR_API.SIZE}&data=${encodeURIComponent(qrURL)}`;
-            const tipoLeito = getTipoLeito(hospitalId, i, isUTI);
+            const tipoLeito = getTipoLeitoQR(hospitalId, i, isUTI);
             const codigoRef = gerarCodigoReferencia(hospitalId, i, tipoLeito);
             
             // Mostrar tipo apenas para H2 e H4 (Apartamento/Enfermaria)
@@ -1534,8 +1534,8 @@ async function generateHospitalQRCodes(hospitalId, hospital, container, isUTI) {
                 const imgURL1 = `${QR_API.API_URL}?size=${QR_API.SIZE}x${QR_API.SIZE}&data=${encodeURIComponent(qrURL1)}`;
                 const imgURL2 = `${QR_API.API_URL}?size=${QR_API.SIZE}x${QR_API.SIZE}&data=${encodeURIComponent(qrURL2)}`;
                 
-                const tipo1 = getTipoLeito(hospitalId, i, false);
-                const tipo2 = getTipoLeito(hospitalId, irmao, false);
+                const tipo1 = getTipoLeitoQR(hospitalId, i, false);
+                const tipo2 = getTipoLeitoQR(hospitalId, irmao, false);
                 const codigoRef1 = gerarCodigoReferencia(hospitalId, i, tipo1);
                 const codigoRef2 = gerarCodigoReferencia(hospitalId, irmao, tipo2);
                 
