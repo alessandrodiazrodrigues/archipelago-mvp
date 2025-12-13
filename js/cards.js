@@ -2,6 +2,8 @@
 // Versao: 7.4 - 08/Dezembro/2025
 // Depende de: cards-config.js (carregar ANTES)
 // 
+// V7.6 - CORRECAO FLAG EXTRA H2/H4:
+// - Tratar tipo "Hibrido" em H2/H4 corretamente (usar contratuais totais)
 // V7.4 - BLOQUEIO ADMISSÃO + AUTO-COMPLETAR MATRÍCULA:
 // 1. Botão ADMITIR bloqueado nos cards (só via QR Code)
 // 2. Botão ADMITIR RESERVA bloqueado (só via QR Code)
@@ -16,7 +18,7 @@
 // 4. Ordenacao: Ocupados > Reservados > Vagos
 // 5. Campo Identificacao dinamico para HIBRIDOS (Enfermaria: numero+digito)
 
-console.log('CARDS.JS V7.4 - Carregando com Bloqueio Admissão...');
+console.log('CARDS.JS V7.6 - Correcao Flag EXTRA H2/H4...');
 
 // =================== VALIDAR DEPENDENCIAS ===================
 if (typeof window.CONCESSOES_DISPLAY_MAP === 'undefined') {
@@ -333,6 +335,12 @@ window.renderFlagOcupacao = function(hospitalId, status, posicaoOcupacao, tipoLe
                 totalContratuaisPorTipo = (hospitalId === 'H2') ? 16 : 8; // Fallback
             }
             textoTipo = 'ENFERMARIA';
+        } else {
+            // V7.6: CORRECAO - Tipo "Hibrido" ou outro em H2/H4
+            // Tratar como contratuais totais (sem separacao por tipo)
+            totalContratuaisPorTipo = capacidade.contratuais;
+            textoTipo = '';
+            console.log('[V7.6] H2/H4 com tipo "' + tipoLeito + '" - usando contratuais totais: ' + totalContratuaisPorTipo);
         }
     } else {
         // ✅ HÍBRIDOS: Sem tipo na flag
@@ -575,12 +583,19 @@ window.renderCards = function() {
         if (hospitalId === 'H2' || hospitalId === 'H4') {
             const tipoLeito = (leito.tipo || '').toUpperCase();
             const isApto = tipoLeito.includes('APTO') || tipoLeito === 'APARTAMENTO';
-            const ocupadosMesmoTipo = leitosOcupados.filter(l => {
-                const tipoL = (l.tipo || '').toUpperCase();
-                const isAptoL = tipoL.includes('APTO') || tipoL === 'APARTAMENTO';
-                return isApto === isAptoL;
-            });
-            posicaoOcupacao = ocupadosMesmoTipo.findIndex(l => l.leito === leito.leito) + 1;
+            const isEnf = tipoLeito.includes('ENF') || tipoLeito === 'ENFERMARIA';
+            
+            // V7.6: Se tipo é Hibrido ou outro, contar todos os ocupados juntos
+            if (!isApto && !isEnf) {
+                posicaoOcupacao = leitosOcupados.findIndex(l => l.leito === leito.leito) + 1;
+            } else {
+                const ocupadosMesmoTipo = leitosOcupados.filter(l => {
+                    const tipoL = (l.tipo || '').toUpperCase();
+                    const isAptoL = tipoL.includes('APTO') || tipoL === 'APARTAMENTO';
+                    return isApto === isAptoL;
+                });
+                posicaoOcupacao = ocupadosMesmoTipo.findIndex(l => l.leito === leito.leito) + 1;
+            }
         } else {
             posicaoOcupacao = leitosOcupados.findIndex(l => l.leito === leito.leito) + 1;
         }
