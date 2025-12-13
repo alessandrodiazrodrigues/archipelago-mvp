@@ -299,12 +299,13 @@ function copiarParaWhatsAppUTI(hospitalId) {
     
     const agora = new Date();
     const hora = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    const data = agora.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
     
     // Buscar reservas
     const reservas = getReservasUTI(hospitalId);
     
     // Montar texto
-    let texto = `UTI - Hospital ${dados.nome} - Boletim das ${hora}\n`;
+    let texto = `UTI - Hospital ${dados.nome} - ${data} ${hora}\n`;
     texto += `Leitos Ocupados: ${dados.ocupados.total}\n`;
     
     // Altas Sinalizadas (Previsao Hoje) com matricula
