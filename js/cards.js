@@ -336,11 +336,9 @@ window.renderFlagOcupacao = function(hospitalId, status, posicaoOcupacao, tipoLe
             }
             textoTipo = 'ENFERMARIA';
         } else {
-            // V7.6: CORRECAO - Tipo "Hibrido" ou outro em H2/H4
-            // Tratar como contratuais totais (sem separacao por tipo)
+            // V7.6: Fallback de seguranca - se tipo vier vazio/invalido
             totalContratuaisPorTipo = capacidade.contratuais;
             textoTipo = '';
-            console.log('[V7.6] H2/H4 com tipo "' + tipoLeito + '" - usando contratuais totais: ' + totalContratuaisPorTipo);
         }
     } else {
         // ✅ HÍBRIDOS: Sem tipo na flag
@@ -518,7 +516,7 @@ window.renderCards = function() {
             return tipo.toUpperCase().includes('ENF') || tipo === 'ENFERMARIA' || tipo === 'Enfermaria';
         });
         
-        // 1️⃣ APARTAMENTOS: Apenas 1 vago (menor ID)
+        //1️⃣ APARTAMENTOS: Apenas 1 vago (menor ID)
         const apartamentoParaMostrar = vagosApartamentos.length > 0 ? [vagosApartamentos[0]] : [];
         
         // 2️⃣ ENFERMARIAS: ✅ CORREÇÃO V6.1
@@ -723,48 +721,25 @@ function getTipoLeito(leito, hospitalId) {
     
     const numeroLeito = parseInt(leito.leito);
     
-    // V7.6: CRUZ AZUL (H2): TIPOS FIXOS baseado na planilha
-    // Leitos 1-20: APTO | Leitos 21-46: ENFERMARIA | Leitos 47-67: APTO
-    if (hospitalId === 'H2') {
-        // Sempre usar tipo da planilha para Cruz Azul
-        if (leito.tipo && leito.tipo !== 'Hibrido' && leito.tipo !== 'Híbrido') {
-            return leito.tipo;
-        }
-        // Fallback baseado no número do leito
-        if (numeroLeito >= 21 && numeroLeito <= 46) {
-            return 'ENFERMARIA';
-        }
-        return 'APTO';
+    // V7.6: CRUZ AZUL (H2) e SANTA CLARA (H4): TIPOS FIXOS
+    // A coluna C (tipo) ja tem APTO ou ENFERMARIA - usar diretamente
+    if (hospitalId === 'H2' || hospitalId === 'H4') {
+        return leito.tipo || 'APTO';
     }
     
-    // SANTA CLARA (H4): TIPOS FIXOS baseado na planilha
-    // Leitos 1-9: APTO | Leitos 10-27: ENFERMARIA | Leitos 28-57: APTO
-    // NÃO é híbrido - tipo está hardcoded na planilha (coluna C)
-    if (hospitalId === 'H4') {
-        // Sempre usar tipo da planilha para Santa Clara
-        if (leito.tipo && leito.tipo !== 'Hibrido' && leito.tipo !== 'Híbrido') {
-            return leito.tipo;
-        }
-        // Fallback baseado no número do leito
-        if (numeroLeito >= 10 && numeroLeito <= 27) {
-            return 'ENFERMARIA';
-        }
-        return 'APTO';
-    }
-    
-    // VAGOS de híbridos: "Híbrido"
+    // VAGOS de hibridos: "Hibrido"
     const isVago = leito.status === 'Vago' || leito.status === 'vago';
     if (window.HOSPITAIS_HIBRIDOS.includes(hospitalId) && isVago) {
-        return 'Híbrido';
+        return 'Hibrido';
     }
     
-    // OCUPADOS de híbridos: usar categoria
+    // OCUPADOS de hibridos: usar categoria
     const isOcupado = leito.status === 'Em uso' || leito.status === 'ocupado' || leito.status === 'Ocupado';
     if (window.HOSPITAIS_HIBRIDOS.includes(hospitalId) && isOcupado) {
-        if (categoriaValue && categoriaValue.trim() !== '' && categoriaValue !== 'Híbrido') {
+        if (categoriaValue && categoriaValue.trim() !== '' && categoriaValue !== 'Hibrido') {
             return categoriaValue;
         }
-        if (leito.tipo && leito.tipo !== 'Híbrido') return leito.tipo;
+        if (leito.tipo && leito.tipo !== 'Hibrido') return leito.tipo;
         return 'Apartamento';
     }
     
