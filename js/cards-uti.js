@@ -1,7 +1,9 @@
 (function() {
     'use strict';
     
-    // =================== CARDS UTI V7.4 - DEZEMBRO/2025 ===================
+    // =================== CARDS UTI V7.6 - DEZEMBRO/2025 ===================
+    // V7.6:
+    // - CORRIGIDO: leito.anotacoes.trim() erro quando anotacoes eh numero
     // V7.4: 
     // - Admissão bloqueada nos cards (só via QR Code)
     // - "Tipo de Convênio" renomeado para "Modalidade Contratada"
@@ -9,7 +11,7 @@
     // - Limite 2 dígitos na identificação
     // - Auto-completar zeros na matrícula (10 dígitos + dígito)
     // - Botão "Salvar Reserva" alterado para "RESERVAR"
-    console.log('CARDS-UTI.JS V7.4 - Carregando...');
+    console.log('CARDS-UTI.JS V7.6 - Carregando...');
     
     // =================== CONFIGURACAO UTI ===================
     // V7.1: Todos os hospitais com UTI ativados (H7 nao tem UTI)
@@ -31,7 +33,7 @@
     
     // =================== FUNCOES AUXILIARES ===================
     function logInfoUTI(msg) {
-        console.log('[CARDS-UTI V7.4] ' + msg);
+        console.log('[CARDS-UTI V7.6] ' + msg);
     }
     
     function showSuccessMessageUTI(msg) {
@@ -494,8 +496,10 @@
         cardHTML += '<div class="card-section" style="margin-bottom: 15px; font-family: \'Poppins\', sans-serif;">';
         cardHTML += '<div class="section-header" style="background: #60a5fa; color: #ffffff; font-size: 10px; padding: 6px 8px; border-radius: 4px; margin-bottom: 6px; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px;">ANOTACOES</div>';
         cardHTML += '<div class="anotacoes-container" style="' + styleNormal + ' border-radius: 6px; padding: 8px; min-height: 40px;">';
-        if (leito.anotacoes && leito.anotacoes.trim()) {
-            cardHTML += '<span style="color: rgba(255,255,255,0.9); font-size: 11px; line-height: 1.6; font-family: \'Poppins\', sans-serif; white-space: pre-wrap;">' + leito.anotacoes + '</span>';
+        // V7.6: Converter para string antes de usar trim()
+        var anotacoesTexto = leito.anotacoes ? String(leito.anotacoes).trim() : '';
+        if (anotacoesTexto) {
+            cardHTML += '<span style="color: rgba(255,255,255,0.9); font-size: 11px; line-height: 1.6; font-family: \'Poppins\', sans-serif; white-space: pre-wrap;">' + anotacoesTexto + '</span>';
         } else {
             cardHTML += '<span style="color: rgba(255,255,255,0.5); font-size: 10px; font-style: italic;">Sem anotacoes</span>';
         }
@@ -1095,10 +1099,11 @@
     
     window.renderCardsUTI = renderCardsUTI;
     
-    console.log('CARDS-UTI.JS V7.1 - Carregado com sucesso!');
-    console.log('[CARDS-UTI V7.1] Hospitais UTI ativos: ' + HOSPITAIS_UTI_ATIVOS_CARDS.join(', '));
-    console.log('[CARDS-UTI V7.1] Fonte de dados: window.leitosUTI (V7.1) ou window.hospitalData (fallback)');
-    console.log('[CARDS-UTI V7.1] Botao RESERVAR = AZUL (#60a5fa)');
-    console.log('[CARDS-UTI V7.1] Flag LEITO CONTRATUAL/EXTRA implementada');
+    console.log('CARDS-UTI.JS V7.6 - Carregado com sucesso!');
+    console.log('[CARDS-UTI V7.6] Hospitais UTI ativos: ' + HOSPITAIS_UTI_ATIVOS_CARDS.join(', '));
+    console.log('[CARDS-UTI V7.6] Fonte de dados: window.leitosUTI (V7.1) ou window.hospitalData (fallback)');
+    console.log('[CARDS-UTI V7.6] Botao RESERVAR = AZUL (#60a5fa)');
+    console.log('[CARDS-UTI V7.6] Flag LEITO CONTRATUAL/EXTRA implementada');
+    console.log('[CARDS-UTI V7.6] CORRIGIDO: anotacoes.trim() com conversao para String');
     
 })();
