@@ -289,7 +289,7 @@ function processarDadosUTI(hospitalId) {
 }
 
 // =================== COPIAR PARA WHATSAPP UTI ===================
-// V7.5: Formato simplificado sem emojis
+// V7.6: Formato simplificado - sem lista de vagos, sem bloqueados, com matriculas
 function copiarParaWhatsAppUTI(hospitalId) {
     const dados = processarDadosUTI(hospitalId);
     if (!dados) {
@@ -300,55 +300,45 @@ function copiarParaWhatsAppUTI(hospitalId) {
     const agora = new Date();
     const hora = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
     
-    // Buscar leitos vagos
-    const hospitalObj = window.leitosUTI[hospitalId] || {};
-    const leitos = hospitalObj.leitos || [];
-    const leitosVagos = leitos.filter(l => isVagoUTI(l));
-    const leitosVagosIds = leitosVagos.map(l => 'L' + (l.identificacaoLeito || l.leito || '?')).join(', ');
-    
     // Buscar reservas
     const reservas = getReservasUTI(hospitalId);
-    const reservasIds = reservas.map(r => 'L' + (r.identificacaoLeito || r.leito || '?')).join(', ');
     
     // Montar texto
     let texto = `UTI - Hospital ${dados.nome} - Boletim das ${hora}\n`;
     texto += `Leitos Ocupados: ${dados.ocupados.total}\n`;
     
-    // Altas Sinalizadas (Previsao Hoje)
+    // Altas Sinalizadas (Previsao Hoje) com matricula
     texto += `Altas Sinalizadas: ${dados.previsao.total}\n`;
     if (dados.previsao.lista && dados.previsao.lista.length > 0) {
         dados.previsao.lista.forEach(l => {
-            texto += `  . L${l.leito}\n`;
+            const mat = l.matricula ? ` | Mat: ${l.matricula}` : '';
+            texto += `  . L${l.leito}${mat}\n`;
         });
     } else {
         texto += `  -\n`;
     }
     
-    // Leitos Vagos
-    texto += `Leitos Vagos: ${leitosVagos.length}\n`;
-    if (leitosVagos.length > 0) {
-        texto += `  . ${leitosVagosIds}\n`;
-    } else {
-        texto += `  -\n`;
-    }
+    // Leitos Vagos - apenas quantidade (dos contratuais, nunca negativo)
+    const vagosDisponiveis = Math.max(0, dados.contratuais - dados.ocupados.total - dados.reservados.total);
+    texto += `Leitos Vagos: ${vagosDisponiveis}\n`;
     
-    // Leitos Reservados
+    // Leitos Reservados com matricula
     texto += `Leitos Reservados: ${dados.reservados.total}\n`;
     if (reservas.length > 0) {
-        texto += `  . ${reservasIds}\n`;
+        reservas.forEach(r => {
+            const mat = r.matricula ? ` | Mat: ${r.matricula}` : '';
+            texto += `  . L${r.identificacaoLeito || r.leito || '?'}${mat}\n`;
+        });
     } else {
         texto += `  -\n`;
     }
     
-    // Leitos Bloqueados (por isolamento do irmao - nao aplicavel na UTI H2)
-    texto += `Leitos Bloqueados: 0\n`;
-    texto += `  -\n`;
-    
-    // SPICT-BR Elegiveis
+    // SPICT-BR Elegiveis com matricula
     texto += `SPICT-BR Elegiveis: ${dados.spict.total}\n`;
     if (dados.spict.lista && dados.spict.lista.length > 0) {
         dados.spict.lista.forEach(l => {
-            texto += `  . L${l.leito}\n`;
+            const mat = l.matricula ? ` | Mat: ${l.matricula}` : '';
+            texto += `  . L${l.leito}${mat}\n`;
         });
     } else {
         texto += `  -\n`;
