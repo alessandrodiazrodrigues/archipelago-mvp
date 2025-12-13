@@ -723,8 +723,22 @@ function getTipoLeito(leito, hospitalId) {
     
     const numeroLeito = parseInt(leito.leito);
     
+    // V7.6: CRUZ AZUL (H2): TIPOS FIXOS baseado na planilha
+    // Leitos 1-20: APTO | Leitos 21-46: ENFERMARIA | Leitos 47-67: APTO
+    if (hospitalId === 'H2') {
+        // Sempre usar tipo da planilha para Cruz Azul
+        if (leito.tipo && leito.tipo !== 'Hibrido' && leito.tipo !== 'Híbrido') {
+            return leito.tipo;
+        }
+        // Fallback baseado no número do leito
+        if (numeroLeito >= 21 && numeroLeito <= 46) {
+            return 'ENFERMARIA';
+        }
+        return 'APTO';
+    }
+    
     // SANTA CLARA (H4): TIPOS FIXOS baseado na planilha
-    // Leitos 1-27: ENFERMARIA | Leitos 28-57: APTO
+    // Leitos 1-9: APTO | Leitos 10-27: ENFERMARIA | Leitos 28-57: APTO
     // NÃO é híbrido - tipo está hardcoded na planilha (coluna C)
     if (hospitalId === 'H4') {
         // Sempre usar tipo da planilha para Santa Clara
@@ -732,7 +746,10 @@ function getTipoLeito(leito, hospitalId) {
             return leito.tipo;
         }
         // Fallback baseado no número do leito
-        return numeroLeito <= 27 ? 'ENFERMARIA' : 'APTO';
+        if (numeroLeito >= 10 && numeroLeito <= 27) {
+            return 'ENFERMARIA';
+        }
+        return 'APTO';
     }
     
     // VAGOS de híbridos: "Híbrido"
