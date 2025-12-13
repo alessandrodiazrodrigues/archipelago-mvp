@@ -516,7 +516,7 @@ window.renderCards = function() {
             return tipo.toUpperCase().includes('ENF') || tipo === 'ENFERMARIA' || tipo === 'Enfermaria';
         });
         
-        //1️⃣ APARTAMENTOS: Apenas 1 vago (menor ID)
+        // 1️⃣ APARTAMENTOS: Apenas 1 vago (menor ID)
         const apartamentoParaMostrar = vagosApartamentos.length > 0 ? [vagosApartamentos[0]] : [];
         
         // 2️⃣ ENFERMARIAS: ✅ CORREÇÃO V6.1
