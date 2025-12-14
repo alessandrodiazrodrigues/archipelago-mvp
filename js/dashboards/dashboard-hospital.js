@@ -1435,7 +1435,7 @@ function renderHospitalSection(hospitalId, hoje) {
                     </div>\
                     \
                     <div class="kpi-detalhes">\
-                        <div class="detalhe-titulo">N Diarias > 5</div>\
+                        <div class="detalhe-titulo">N Diarias >= 5</div>\
                         ' + (dados.tph.lista && dados.tph.lista.length > 0 ? '\
                             <table class="hospitais-table">\
                                 <thead>\
@@ -1455,7 +1455,7 @@ function renderHospitalSection(hospitalId, hoje) {
                                     '; }).join('') + '\
                                 </tbody>\
                             </table>\
-                        ' : '<div class="sem-dados">Nenhum Leito com Mais de 5 Diarias</div>') + '\
+                        ' : '<div class="sem-dados">Nenhum Leito com 5 ou Mais Diarias</div>') + '\
                     </div>\
                 </div>\
 \

@@ -1,9 +1,11 @@
 // =================== CARDS.JS - GESTAO DE LEITOS HOSPITALARES ===================
-// Versao: 7.4 - 08/Dezembro/2025
+// Versao: 7.6 - 14/Dezembro/2025
 // Depende de: cards-config.js (carregar ANTES)
 // 
-// V7.6 - CORRECAO FLAG EXTRA H2/H4:
+// V7.6 - CORRECAO FLAG EXTRA H2/H4 + AUTO-SUFIXO IRMAO:
 // - Tratar tipo "Hibrido" em H2/H4 corretamente (usar contratuais totais)
+// - Quando irmao ocupado/reservado com identificacao, auto-definir sufixo alternativo
+// - Dropdown de sufixo desabilitado quando herdado do irmao
 // V7.4 - BLOQUEIO ADMISSÃO + AUTO-COMPLETAR MATRÍCULA:
 // 1. Botão ADMITIR bloqueado nos cards (só via QR Code)
 // 2. Botão ADMITIR RESERVA bloqueado (só via QR Code)
@@ -1968,6 +1970,7 @@ function createReservaForm(hospitalNome, leitoNumero, hospitalId, dadosLeito) {
     let isolamentoDisabled = false;
     let numeroBasePreenchido = '';
     let sufixoPreDefinido = '';
+    let sufixoDisabled = false;
     
     // V7.0: Se é um bloqueio de irmão (vaga flutuante), já vem com gênero restrito
     if (dadosLeito && dadosLeito._isBloqueioIrmao && dadosLeito._generoRestrito) {
@@ -2010,9 +2013,15 @@ function createReservaForm(hospitalNome, leitoNumero, hospitalId, dadosLeito) {
                     }
                 }
                 const identificacaoIrmao = String(dadosLeitoIrmao.identificacaoLeito || dadosLeitoIrmao.identificacao_leito || '');
-                if (identificacaoIrmao) {
+                if (identificacaoIrmao && identificacaoIrmao.includes('-')) {
                     const partes = identificacaoIrmao.split('-');
-                    if (partes.length > 0) numeroBasePreenchido = partes[0];
+                    numeroBasePreenchido = partes[0];
+                    // V7.6: Definir sufixo alternativo ao do irmao ocupado
+                    if (partes[1]) {
+                        sufixoPreDefinido = (partes[1] === '1') ? '3' : '1';
+                        sufixoDisabled = true;
+                        console.log('[V7.6 SUFIXO H2] Irmao ocupado com sufixo ' + partes[1] + ', definindo ' + sufixoPreDefinido);
+                    }
                 }
             }
             // SEGUNDO: V7.0 - Verificar se irmao tem RESERVA
@@ -2028,13 +2037,22 @@ function createReservaForm(hospitalNome, leitoNumero, hospitalId, dadosLeito) {
                     }
                 }
                 const identificacaoReserva = String(reservaLeitoIrmao.identificacaoLeito || '');
-                if (identificacaoReserva) {
+                if (identificacaoReserva && identificacaoReserva.includes('-')) {
                     const partes = identificacaoReserva.split('-');
-                    if (partes.length > 0) numeroBasePreenchido = partes[0];
+                    numeroBasePreenchido = partes[0];
+                    // V7.6: Definir sufixo alternativo ao da reserva do irmao
+                    if (partes[1]) {
+                        sufixoPreDefinido = (partes[1] === '1') ? '3' : '1';
+                        sufixoDisabled = true;
+                        console.log('[V7.6 SUFIXO H2] Irmao reservado com sufixo ' + partes[1] + ', definindo ' + sufixoPreDefinido);
+                    }
                 }
             }
         }
-        sufixoPreDefinido = (leitoNumero % 2 === 0) ? '3' : '1';
+        // V7.6: Só definir por par/ímpar se sufixo não foi herdado do irmão
+        if (!sufixoDisabled) {
+            sufixoPreDefinido = (leitoNumero % 2 === 0) ? '3' : '1';
+        }
     }
     
     // Logica de leitos irmaos H4
@@ -2060,9 +2078,15 @@ function createReservaForm(hospitalNome, leitoNumero, hospitalId, dadosLeito) {
                     }
                 }
                 const identificacaoIrmao2 = String(dadosLeitoIrmao.identificacaoLeito || dadosLeitoIrmao.identificacao_leito || '');
-                if (identificacaoIrmao2) {
+                if (identificacaoIrmao2 && identificacaoIrmao2.includes('-')) {
                     const partes = identificacaoIrmao2.split('-');
-                    if (partes.length > 0) numeroBasePreenchido = partes[0];
+                    numeroBasePreenchido = partes[0];
+                    // V7.6: Definir sufixo alternativo ao do irmao ocupado
+                    if (partes[1]) {
+                        sufixoPreDefinido = (partes[1] === 'A') ? 'C' : 'A';
+                        sufixoDisabled = true;
+                        console.log('[V7.6 SUFIXO H4] Irmao ocupado com sufixo ' + partes[1] + ', definindo ' + sufixoPreDefinido);
+                    }
                 }
             }
             // SEGUNDO: V7.0 - Verificar se irmao tem RESERVA
@@ -2078,13 +2102,22 @@ function createReservaForm(hospitalNome, leitoNumero, hospitalId, dadosLeito) {
                     }
                 }
                 const identificacaoReserva = String(reservaLeitoIrmao.identificacaoLeito || '');
-                if (identificacaoReserva) {
+                if (identificacaoReserva && identificacaoReserva.includes('-')) {
                     const partes = identificacaoReserva.split('-');
-                    if (partes.length > 0) numeroBasePreenchido = partes[0];
+                    numeroBasePreenchido = partes[0];
+                    // V7.6: Definir sufixo alternativo ao da reserva do irmao
+                    if (partes[1]) {
+                        sufixoPreDefinido = (partes[1] === 'A') ? 'C' : 'A';
+                        sufixoDisabled = true;
+                        console.log('[V7.6 SUFIXO H4] Irmao reservado com sufixo ' + partes[1] + ', definindo ' + sufixoPreDefinido);
+                    }
                 }
             }
         }
-        sufixoPreDefinido = (leitoNumero % 2 === 0) ? 'C' : 'A';
+        // V7.6: Só definir por par/ímpar se sufixo não foi herdado do irmão
+        if (!sufixoDisabled) {
+            sufixoPreDefinido = (leitoNumero % 2 === 0) ? 'C' : 'A';
+        }
     }
     
     // Tipo fixo para H2/H4
@@ -2130,7 +2163,7 @@ function createReservaForm(hospitalNome, leitoNumero, hospitalId, dadosLeito) {
                         ${isCruzAzulEnfermaria 
                             ? `<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 8px;">
                                 <input id="resIdentificacaoNumero" type="text" value="${numeroBasePreenchido}" placeholder="Numero" maxlength="${maxLen}" required ${numeroBasePreenchido ? 'readonly' : ''} oninput="this.value = this.value.replace(/[^0-9]/g, '')" style="width: 100%; padding: 12px; background: ${numeroBasePreenchido ? '#1f2937' : '#374151'}; color: ${numeroBasePreenchido ? '#9ca3af' : '#ffffff'}; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
-                                <select id="resIdentificacaoSufixo" required style="width: 100%; padding: 12px; background: #374151 !important; color: #ffffff !important; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
+                                <select id="resIdentificacaoSufixo" required ${sufixoDisabled ? 'disabled' : ''} style="width: 100%; padding: 12px; background: ${sufixoDisabled ? '#1f2937' : '#374151'} !important; color: ${sufixoDisabled ? '#9ca3af' : '#ffffff'} !important; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
                                     <option value="1" ${sufixoPreDefinido === '1' ? 'selected' : ''}>1</option>
                                     <option value="3" ${sufixoPreDefinido === '3' ? 'selected' : ''}>3</option>
                                 </select>
@@ -2138,7 +2171,7 @@ function createReservaForm(hospitalNome, leitoNumero, hospitalId, dadosLeito) {
                             : isSantaClaraEnfermaria
                             ? `<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 8px;">
                                 <input id="resIdentificacaoNumero" type="text" value="${numeroBasePreenchido}" placeholder="Numero" maxlength="${maxLen}" required ${numeroBasePreenchido ? 'readonly' : ''} oninput="this.value = this.value.replace(/[^0-9]/g, '')" style="width: 100%; padding: 12px; background: ${numeroBasePreenchido ? '#1f2937' : '#374151'}; color: ${numeroBasePreenchido ? '#9ca3af' : '#ffffff'}; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
-                                <select id="resIdentificacaoSufixo" required style="width: 100%; padding: 12px; background: #374151 !important; color: #ffffff !important; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
+                                <select id="resIdentificacaoSufixo" required ${sufixoDisabled ? 'disabled' : ''} style="width: 100%; padding: 12px; background: ${sufixoDisabled ? '#1f2937' : '#374151'} !important; color: ${sufixoDisabled ? '#9ca3af' : '#ffffff'} !important; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; font-size: 14px; font-family: 'Poppins', sans-serif;">
                                     <option value="A" ${sufixoPreDefinido === 'A' ? 'selected' : ''}>A</option>
                                     <option value="C" ${sufixoPreDefinido === 'C' ? 'selected' : ''}>C</option>
                                 </select>

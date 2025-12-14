@@ -662,10 +662,10 @@ function processarDadosHospitalExecutivo(hospitalId) {
         l.spict && l.spict.toLowerCase() === 'elegivel'
     );
     
-    // =================== DIRETIVAS CORRIGIDA: SÓ "Não" ===================
+    // =================== DIRETIVAS CORRIGIDA: "Não" ou "Nao" ===================
     const diretivasPendentes = ocupados.filter(l => 
         l.spict && l.spict.toLowerCase() === 'elegivel' && 
-        l.diretivas === 'Não'
+        (l.diretivas === 'Não' || l.diretivas === 'Nao')
     );
     
     const totalLeitos = leitos.length;
