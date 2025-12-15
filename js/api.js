@@ -2,7 +2,7 @@
 // Cliente: Guilherme Santoro
 // Desenvolvedor: Alessandro Rodrigues
 // Data: Dezembro/2025
-// Versão: V7.1 (11 HOSPITAIS - 356 LEITOS - 76 COLUNAS + RESERVAS + UTI)
+// Versão: V7.1 (11 HOSPITAIS - 356 LEITOS - 76 COLUNAS + RESERVAS ++ UTI)
 // ✅ NOVIDADES V7.1:
 //    - Handlers UTI especificos (admitirUTI, atualizarUTI, daraltaUTI)
 //    - Separacao de dados: window.hospitalData (enfermaria) + window.leitosUTI
