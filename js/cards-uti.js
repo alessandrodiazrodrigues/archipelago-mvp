@@ -1,7 +1,11 @@
 (function() {
     'use strict';
     
-    // =================== CARDS UTI V7.6 - DEZEMBRO/2025 ===================
+    // =================== CARDS UTI V7.7 - DEZEMBRO/2025 ===================
+    // V7.7:
+    // - TIPO UTI substituido por MOD. CONTRATADA (Apartamento/Enfermaria)
+    // - Ocupado: usa categoriaEscolhida (coluna BU)
+    // - Reservado: usa categoriaEscolhida (da coluna L aba reservas)
     // V7.6:
     // - CORRIGIDO: leito.anotacoes.trim() erro quando anotacoes eh numero
     // V7.4: 
@@ -11,7 +15,7 @@
     // - Limite 2 dígitos na identificação
     // - Auto-completar zeros na matrícula (10 dígitos + dígito)
     // - Botão "Salvar Reserva" alterado para "RESERVAR"
-    console.log('CARDS-UTI.JS V7.6 - Carregando...');
+    console.log('CARDS-UTI.JS V7.7 - Carregando...');
     
     // =================== CONFIGURACAO UTI ===================
     // V7.1: Todos os hospitais com UTI ativados (H7 nao tem UTI)
@@ -33,7 +37,7 @@
     
     // =================== FUNCOES AUXILIARES ===================
     function logInfoUTI(msg) {
-        console.log('[CARDS-UTI V7.6] ' + msg);
+        console.log('[CARDS-UTI V7.7] ' + msg);
     }
     
     function showSuccessMessageUTI(msg) {
@@ -219,7 +223,7 @@
         
         var container = document.getElementById('cardsContainerUTI');
         if (!container) {
-            console.error('[CARDS-UTI V7.1] Container cardsContainerUTI nao encontrado');
+            console.error('[CARDS-UTI V7.7] Container cardsContainerUTI nao encontrado');
             return;
         }
         
@@ -363,6 +367,7 @@
         var sexo = leito.genero || '';
         var isolamento = leito.isolamento || 'Nao Isolamento';
         var identificacaoLeito = String(leito.identificacaoLeito || leito.identificacao_leito || '');
+        var modalidadeContratada = leito.categoriaEscolhida || '';
         
         var badgeIsolamento = getBadgeIsolamentoUTI(isolamento);
         var badgeGenero = getBadgeGeneroUTI(sexo);
@@ -405,8 +410,8 @@
         cardHTML += '<div class="box-value" style="color: #ffffff; font-weight: 700; font-size: 11px; line-height: 1.2;">' + leitoDisplay + '</div>';
         cardHTML += '</div>';
         cardHTML += '<div class="card-box" style="' + styleNormal + ' border-radius: 6px; padding: 8px; min-height: 45px; display: flex; flex-direction: column; justify-content: center;">';
-        cardHTML += '<div class="box-label" style="font-size: 9px; color: rgba(255,255,255,0.8); font-weight: 700; text-transform: uppercase; margin-bottom: 3px; letter-spacing: 0.5px;">TIPO</div>';
-        cardHTML += '<div class="box-value" style="color: #ffffff; font-weight: 700; font-size: 11px; line-height: 1.2;">UTI</div>';
+        cardHTML += '<div class="box-label" style="font-size: 9px; color: rgba(255,255,255,0.8); font-weight: 700; text-transform: uppercase; margin-bottom: 3px; letter-spacing: 0.5px;">MOD. CONTRATADA</div>';
+        cardHTML += '<div class="box-value" style="color: #ffffff; font-weight: 700; font-size: 11px; line-height: 1.2;">' + (modalidadeContratada || '-') + '</div>';
         cardHTML += '</div>';
         cardHTML += '<div class="status-badge" style="background: ' + statusBgColor + '; color: ' + statusTextColor + '; padding: 12px 6px; border-radius: 6px; font-weight: 800; text-transform: uppercase; text-align: center; font-size: 11px; letter-spacing: 0.5px; min-height: 45px; display: flex; flex-direction: column; align-items: center; justify-content: center;">';
         cardHTML += '<div class="box-label" style="font-size: 9px; font-weight: 700; text-transform: uppercase; margin-bottom: 3px; letter-spacing: 0.5px; color: ' + statusTextColor + ';">STATUS</div>';
@@ -1099,11 +1104,11 @@
     
     window.renderCardsUTI = renderCardsUTI;
     
-    console.log('CARDS-UTI.JS V7.6 - Carregado com sucesso!');
-    console.log('[CARDS-UTI V7.6] Hospitais UTI ativos: ' + HOSPITAIS_UTI_ATIVOS_CARDS.join(', '));
-    console.log('[CARDS-UTI V7.6] Fonte de dados: window.leitosUTI (V7.1) ou window.hospitalData (fallback)');
-    console.log('[CARDS-UTI V7.6] Botao RESERVAR = AZUL (#60a5fa)');
-    console.log('[CARDS-UTI V7.6] Flag LEITO CONTRATUAL/EXTRA implementada');
-    console.log('[CARDS-UTI V7.6] CORRIGIDO: anotacoes.trim() com conversao para String');
+    console.log('CARDS-UTI.JS V7.7 - Carregado com sucesso!');
+    console.log('[CARDS-UTI V7.7] Hospitais UTI ativos: ' + HOSPITAIS_UTI_ATIVOS_CARDS.join(', '));
+    console.log('[CARDS-UTI V7.7] Fonte de dados: window.leitosUTI (V7.1) ou window.hospitalData (fallback)');
+    console.log('[CARDS-UTI V7.7] Botao RESERVAR = AZUL (#60a5fa)');
+    console.log('[CARDS-UTI V7.7] Flag LEITO CONTRATUAL/EXTRA implementada');
+    console.log('[CARDS-UTI V7.7] NOVIDADE: MOD. CONTRATADA substituiu TIPO UTI no card');
     
 })();
