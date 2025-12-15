@@ -1,0 +1,2101 @@
+// =================== GOOGLE APPS SCRIPT - ARCHIPELAGO DASHBOARD API V7.3 ===================
+// Cliente: Guilherme Santoro
+// Desenvolvedor: Alessandro Rodrigues
+// Data: Dezembro/2025
+// Versao: V7.3 - 76 COLUNAS (A-BX) - SISTEMA COMPLETO COM UTI + RESERVAS
+// BASE: V7.2 com SPICT-BR ativo na UTI
+// NOVIDADES V7.3:
+//    - SPICT-BR removido da lista de campos bloqueados na UTI
+//    - handleAdmitirUTI agora recebe e grava SPICT na coluna J
+//    - handleAtualizarUTI agora recebe e grava SPICT na coluna J
+// ==================================================================================
+
+// CONFIGURACOES DA PLANILHA
+const ABA_NOME = 'leitos';
+const ABA_RESERVAS = 'reservas';
+
+// =================== FUNCAO DE NORMALIZACAO ===================
+/**
+ * Remove acentos e caracteres especiais de um texto
+ * @param {string} texto - Texto a ser normalizado
+ * @returns {string} Texto sem acentos
+ */
+function normalizarTexto(texto) {
+  if (!texto || typeof texto !== 'string') return texto;
+  
+  return texto
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/ç/g, 'c')
+    .replace(/Ç/g, 'C');
+}
+
+// =================== MAPEAMENTO COMPLETO DAS 76 COLUNAS (A-BX) ===================
+const COLUNAS = {
+  // DADOS BASICOS (A-L) - 12 colunas
+  HOSPITAL: 0,           // A
+  LEITO: 1,              // B
+  TIPO: 2,               // C
+  STATUS: 3,             // D
+  NOME: 4,               // E
+  MATRICULA: 5,          // F
+  IDADE: 6,              // G
+  ADM_AT: 7,             // H
+  PPS: 8,                // I
+  SPICT: 9,              // J
+  COMPLEXIDADE: 10,      // K
+  PREV_ALTA: 11,         // L
+  
+  // CONCESSOES (M-W + BW) - 12 checkboxes individuais
+  C1_TRANSICAO_DOMICILIAR: 12,
+  C2_APLICACAO_MED_DOMICILIAR: 13,
+  C3_ASPIRACAO: 14,
+  C4_BANHO: 15,
+  C5_CURATIVO: 16,
+  C6_CURATIVO_PICC: 17,
+  C7_FISIOTERAPIA_MOTORA_DOMICILIAR: 18,
+  C8_FONOAUDIOLOGIA_DOMICILIAR: 19,
+  C9_OXIGENOTERAPIA: 20,
+  C10_REMOCAO: 21,
+  C11_SOLICITACAO_EXAMES_DOMICILIAR: 22,
+  
+  // LINHAS DE CUIDADO (X-BR) - 45 checkboxes individuais
+  L1_ASSISTE: 23,
+  L2_APS_SP: 24,
+  L3_CUIDADOS_PALIATIVOS: 25,
+  L4_ICO: 26,
+  L5_NEXUS_SP_CARDIOLOGIA: 27,
+  L6_NEXUS_SP_GASTROENTEREOLOGIA: 28,
+  L7_NEXUS_SP_GERIATRIA: 29,
+  L8_NEXUS_SP_PNEUMOLOGIA: 30,
+  L9_NEXUS_SP_PSIQUIATRIA: 31,
+  L10_NEXUS_SP_REUMATOLOGIA: 32,
+  L11_NEXUS_SP_SAUDE_FIGADO: 33,
+  L12_GENERALISTA: 34,
+  L13_BUCOMAXILOFACIAL: 35,
+  L14_CARDIOLOGIA: 36,
+  L15_CIRURGIA_CARDIACA: 37,
+  L16_CIRURGIA_CABECA_PESCOCO: 38,
+  L17_CIRURGIA_APARELHO_DIGESTIVO: 39,
+  L18_CIRURGIA_GERAL: 40,
+  L19_CIRURGIA_ONCOLOGICA: 41,
+  IDENTIFICACAO_LEITO: 42,   // AQ (campo especial)
+  ISOLAMENTO: 43,            // AR (campo especial)
+  L20_CIRURGIA_PLASTICA: 44,
+  L21_CIRURGIA_TORACICA: 45,
+  L22_CIRURGIA_VASCULAR: 46,
+  L23_CLINICA_MEDICA: 47,
+  L24_COLOPROCTOLOGIA: 48,
+  L25_DERMATOLOGIA: 49,
+  L26_ENDOCRINOLOGIA: 50,
+  L27_FISIATRIA: 51,
+  L28_GASTROENTEROLOGIA: 52,
+  L29_GERIATRIA: 53,
+  L30_GINECOLOGIA_OBSTETRICIA: 54,
+  L31_HEMATOLOGIA: 55,
+  L32_INFECTOLOGIA: 56,
+  L33_MASTOLOGIA: 57,
+  L34_NEFROLOGIA: 58,
+  L35_NEUROCIRURGIA: 59,
+  L36_NEUROLOGIA: 60,
+  L37_OFTALMOLOGIA: 61,
+  L38_ONCOLOGIA_CLINICA: 62,
+  L39_ORTOPEDIA: 63,
+  L40_OTORRINOLARINGOLOGIA: 64,
+  L41_PEDIATRIA: 65,
+  L42_PNEUMOLOGIA: 66,
+  L43_PSIQUIATRIA: 67,
+  L44_REUMATOLOGIA: 68,
+  L45_UROLOGIA: 69,
+  
+  // CAMPOS V3.3 (BS-BV) - 4 dropdowns
+  GENERO: 70,                // BS
+  REGIAO: 71,                // BT
+  CATEGORIA_ESCOLHIDA: 72,   // BU
+  DIRETIVAS: 73,             // BV
+  
+  // CAMPOS V6.0
+  C12_FISIOTERAPIA_RESPIRATORIA_DOMICILIAR: 74, // BW (12a concessao)
+  ANOTACOES: 75                                  // BX (800 caracteres)
+};
+
+// =================== CONFIGURACAO DOS 11 HOSPITAIS - ENFERMARIA ===================
+const HOSPITAIS = {
+  'H1': { 
+    nome: 'Neomater', 
+    contratuais: 10, 
+    extras: 15, 
+    total: 25,
+    linhaInicio: 2,
+    tipo: 'hibrido_puro'
+  },
+  'H2': { 
+    nome: 'Cruz Azul', 
+    contratuais: 36, 
+    extras: 31, 
+    total: 67,
+    linhaInicio: 27,
+    tipo: 'tipos_fixos',
+    irmaos: {
+      // CONTRATUAIS: 8 pares (21-36)
+      21: 22, 22: 21,
+      23: 24, 24: 23,
+      25: 26, 26: 25,
+      27: 28, 28: 27,
+      29: 30, 30: 29,
+      31: 32, 32: 31,
+      33: 34, 34: 33,
+      35: 36, 36: 35,
+      // EXTRAS: 5 pares (37-46)
+      37: 38, 38: 37,
+      39: 40, 40: 39,
+      41: 42, 42: 41,
+      43: 44, 44: 43,
+      45: 46, 46: 45
+    }
+  },
+  'H3': { 
+    nome: 'Santa Marcelina', 
+    contratuais: 13, 
+    extras: 15, 
+    total: 28,
+    linhaInicio: 94,
+    tipo: 'hibrido_puro'
+  },
+  'H4': { 
+    nome: 'Santa Clara', 
+    contratuais: 26, 
+    extras: 31, 
+    total: 57,
+    linhaInicio: 122,
+    tipo: 'tipos_fixos',
+    irmaos: {
+      // CONTRATUAIS: 4 pares (10-17)
+      10: 11, 11: 10,
+      12: 13, 13: 12,
+      14: 15, 15: 14,
+      16: 17, 17: 16,
+      // EXTRAS: 5 pares (18-27)
+      18: 19, 19: 18,
+      20: 21, 21: 20,
+      22: 23, 23: 22,
+      24: 25, 25: 24,
+      26: 27, 27: 26
+    }
+  },
+  'H5': { 
+    nome: 'Hospital Adventista', 
+    contratuais: 13, 
+    extras: 15, 
+    total: 28,
+    linhaInicio: 179,
+    tipo: 'hibrido_puro'
+  },
+  'H6': { 
+    nome: 'Santa Cruz', 
+    contratuais: 13,
+    extras: 9,
+    total: 22,
+    linhaInicio: 207,
+    tipo: 'hibrido_puro'
+  },
+  'H7': { 
+    nome: 'Santa Virginia', 
+    contratuais: 13,
+    extras: 9,
+    total: 22,
+    linhaInicio: 229,
+    tipo: 'hibrido_puro'
+  },
+  'H8': { 
+    nome: 'Sao Camilo Ipiranga', 
+    contratuais: 7, 
+    extras: 15, 
+    total: 22,
+    linhaInicio: 251,
+    tipo: 'hibrido_puro'
+  },
+  'H9': { 
+    nome: 'Sao Camilo Pompeia', 
+    contratuais: 7, 
+    extras: 15, 
+    total: 22,
+    linhaInicio: 273,
+    tipo: 'hibrido_puro'
+  },
+  'H10': { 
+    nome: 'Reserva 1', 
+    contratuais: 15, 
+    extras: 15, 
+    total: 30,
+    linhaInicio: 358,
+    tipo: 'hibrido_puro'
+  },
+  'H11': { 
+    nome: 'Reserva 2', 
+    contratuais: 15, 
+    extras: 15, 
+    total: 30,
+    linhaInicio: 388,
+    tipo: 'hibrido_puro'
+  }
+};
+
+// =================== CONFIGURACAO DE UTI ===================
+const UTI_HOSPITAIS = {
+  'H1': { nome: 'Neomater', contratuais: 3, extras: 2, total: 5 },
+  'H2': { nome: 'Cruz Azul', contratuais: 20, extras: 10, total: 30 },
+  'H3': { nome: 'Santa Marcelina', contratuais: 2, extras: 2, total: 4 },
+  'H4': { nome: 'Santa Clara', contratuais: 4, extras: 2, total: 6 },
+  'H5': { nome: 'Adventista', contratuais: 4, extras: 2, total: 6 },
+  'H6': { nome: 'Santa Cruz', contratuais: 2, extras: 2, total: 4 },
+  'H7': { nome: 'Santa Virginia', contratuais: 0, extras: 0, total: 0 },  // SEM UTI
+  'H8': { nome: 'Sao Camilo Ipiranga', contratuais: 2, extras: 2, total: 4 },
+  'H9': { nome: 'Sao Camilo Pompeia', contratuais: 2, extras: 2, total: 4 }
+};
+
+// =================== V7.3: CAMPOS BLOQUEADOS PARA UTI (SEM SPICT) ===================
+// V7.3: SPICT removido da lista - agora e capturado e gravado na UTI
+const CAMPOS_BLOQUEADOS_UTI = ['pps', 'complexidade', 'diretivas'];
+
+// =================== PREVISAO DE ALTA UTI (sem turnos) ===================
+const PREV_ALTA_UTI = ['Hoje', '24h', '48h', '72h', '96h', 'Sem Previsao'];
+
+// =================== COLUNAS DA ABA RESERVAS ===================
+const COLUNAS_RESERVAS = {
+  HOSPITAL: 0,
+  TIPO: 1,
+  IDENTIFICACAO_LEITO: 2,
+  ISOLAMENTO: 3,
+  GENERO: 4,
+  INICIAIS: 5,
+  MATRICULA: 6,
+  IDADE: 7,
+  DATA_RESERVA: 8,
+  USUARIO_RESERVA: 9,
+  IDENTIFICACAO_IRMAO: 10
+};
+
+// =================== MAPAS DE LEITOS IRMAOS ===================
+const CRUZ_AZUL_IRMAOS = {
+  21: 22, 22: 21, 23: 24, 24: 23, 25: 26, 26: 25, 27: 28, 28: 27,
+  29: 30, 30: 29, 31: 32, 32: 31, 33: 34, 34: 33, 35: 36, 36: 35,
+  37: 38, 38: 37, 39: 40, 40: 39, 41: 42, 42: 41, 43: 44, 44: 43, 45: 46, 46: 45
+};
+
+const SANTA_CLARA_IRMAOS = {
+  10: 11, 11: 10, 12: 13, 13: 12, 14: 15, 15: 14, 16: 17, 17: 16,
+  18: 19, 19: 18, 20: 21, 21: 20, 22: 23, 23: 22, 24: 25, 25: 24, 26: 27, 27: 26
+};
+
+// =================== MAPEAMENTO CONCESSOES (12 ITENS) ===================
+const CONCESSOES_MAP = {
+  "Transicao Domiciliar": COLUNAS.C1_TRANSICAO_DOMICILIAR,
+  "Aplicacao domiciliar de medicamentos": COLUNAS.C2_APLICACAO_MED_DOMICILIAR,
+  "Aspiracao": COLUNAS.C3_ASPIRACAO,
+  "Banho": COLUNAS.C4_BANHO,
+  "Curativo": COLUNAS.C5_CURATIVO,
+  "Curativo PICC": COLUNAS.C6_CURATIVO_PICC,
+  "Fisioterapia Motora Domiciliar": COLUNAS.C7_FISIOTERAPIA_MOTORA_DOMICILIAR,
+  "Fonoaudiologia Domiciliar": COLUNAS.C8_FONOAUDIOLOGIA_DOMICILIAR,
+  "Oxigenoterapia": COLUNAS.C9_OXIGENOTERAPIA,
+  "Remocao": COLUNAS.C10_REMOCAO,
+  "Solicitacao domiciliar de exames": COLUNAS.C11_SOLICITACAO_EXAMES_DOMICILIAR,
+  "Fisioterapia Respiratoria Domiciliar": COLUNAS.C12_FISIOTERAPIA_RESPIRATORIA_DOMICILIAR
+};
+
+// =================== MAPEAMENTO LINHAS DE CUIDADO (45 ITENS) ===================
+const LINHAS_MAP = {
+  "Assiste": COLUNAS.L1_ASSISTE,
+  "APS SP": COLUNAS.L2_APS_SP,
+  "Cuidados Paliativos": COLUNAS.L3_CUIDADOS_PALIATIVOS,
+  "ICO (Insuficiencia Coronariana)": COLUNAS.L4_ICO,
+  "Nexus SP Cardiologia": COLUNAS.L5_NEXUS_SP_CARDIOLOGIA,
+  "Nexus SP Gastroentereologia": COLUNAS.L6_NEXUS_SP_GASTROENTEREOLOGIA,
+  "Nexus SP Geriatria": COLUNAS.L7_NEXUS_SP_GERIATRIA,
+  "Nexus SP Pneumologia": COLUNAS.L8_NEXUS_SP_PNEUMOLOGIA,
+  "Nexus SP Psiquiatria": COLUNAS.L9_NEXUS_SP_PSIQUIATRIA,
+  "Nexus SP Reumatologia": COLUNAS.L10_NEXUS_SP_REUMATOLOGIA,
+  "Nexus SP Saude do Figado": COLUNAS.L11_NEXUS_SP_SAUDE_FIGADO,
+  "Generalista": COLUNAS.L12_GENERALISTA,
+  "Bucomaxilofacial": COLUNAS.L13_BUCOMAXILOFACIAL,
+  "Cardiologia": COLUNAS.L14_CARDIOLOGIA,
+  "Cirurgia Cardiaca": COLUNAS.L15_CIRURGIA_CARDIACA,
+  "Cirurgia de Cabeca e Pescoco": COLUNAS.L16_CIRURGIA_CABECA_PESCOCO,
+  "Cirurgia do Aparelho Digestivo": COLUNAS.L17_CIRURGIA_APARELHO_DIGESTIVO,
+  "Cirurgia Geral": COLUNAS.L18_CIRURGIA_GERAL,
+  "Cirurgia Oncologica": COLUNAS.L19_CIRURGIA_ONCOLOGICA,
+  "Cirurgia Plastica": COLUNAS.L20_CIRURGIA_PLASTICA,
+  "Cirurgia Toracica": COLUNAS.L21_CIRURGIA_TORACICA,
+  "Cirurgia Vascular": COLUNAS.L22_CIRURGIA_VASCULAR,
+  "Clinica Medica": COLUNAS.L23_CLINICA_MEDICA,
+  "Coloproctologia": COLUNAS.L24_COLOPROCTOLOGIA,
+  "Dermatologia": COLUNAS.L25_DERMATOLOGIA,
+  "Endocrinologia": COLUNAS.L26_ENDOCRINOLOGIA,
+  "Fisiatria": COLUNAS.L27_FISIATRIA,
+  "Gastroenterologia": COLUNAS.L28_GASTROENTEROLOGIA,
+  "Geriatria": COLUNAS.L29_GERIATRIA,
+  "Ginecologia e Obstetricia": COLUNAS.L30_GINECOLOGIA_OBSTETRICIA,
+  "Hematologia": COLUNAS.L31_HEMATOLOGIA,
+  "Infectologia": COLUNAS.L32_INFECTOLOGIA,
+  "Mastologia": COLUNAS.L33_MASTOLOGIA,
+  "Nefrologia": COLUNAS.L34_NEFROLOGIA,
+  "Neurocirurgia": COLUNAS.L35_NEUROCIRURGIA,
+  "Neurologia": COLUNAS.L36_NEUROLOGIA,
+  "Oftalmologia": COLUNAS.L37_OFTALMOLOGIA,
+  "Oncologia Clinica": COLUNAS.L38_ONCOLOGIA_CLINICA,
+  "Ortopedia": COLUNAS.L39_ORTOPEDIA,
+  "Otorrinolaringologia": COLUNAS.L40_OTORRINOLARINGOLOGIA,
+  "Pediatria": COLUNAS.L41_PEDIATRIA,
+  "Pneumologia": COLUNAS.L42_PNEUMOLOGIA,
+  "Psiquiatria": COLUNAS.L43_PSIQUIATRIA,
+  "Reumatologia": COLUNAS.L44_REUMATOLOGIA,
+  "Urologia": COLUNAS.L45_UROLOGIA
+};
+
+// =================== FUNCOES PRINCIPAIS ===================
+
+function doGet(e) {
+  try {
+    Logger.log('>>> [API V7.3] Requisicao GET: ' + JSON.stringify(e.parameter));
+    
+    const action = e.parameter.action || 'test';
+    const callback = e.parameter.callback;
+    let response = {};
+
+    switch(action) {
+      case 'test':
+        response = handleTest();
+        break;
+      case 'all':
+        response = handleGetAll();
+        break;
+      case 'admitir':
+        response = handleAdmitir(e.parameter);
+        break;
+      case 'atualizar':
+        response = handleAtualizar(e.parameter);
+        break;
+      case 'daralta':
+        response = handleDarAlta(e.parameter);
+        break;
+      // HANDLERS UTI V7.1
+      case 'admitirUTI':
+        response = handleAdmitirUTI(e.parameter);
+        break;
+      case 'atualizarUTI':
+        response = handleAtualizarUTI(e.parameter);
+        break;
+      case 'daraltaUTI':
+        response = handleDarAltaUTI(e.parameter);
+        break;
+      // ENDPOINTS RESERVAS
+      case 'reservar':
+        response = handleReservar(e.parameter);
+        break;
+      case 'cancelarReserva':
+        response = handleCancelarReserva(e.parameter);
+        break;
+      case 'listarReservas':
+        response = handleListarReservas(e.parameter);
+        break;
+      case 'admitirComReserva':
+        response = handleAdmitirComReserva(e.parameter);
+        break;
+      default:
+        response = { ok: false, error: 'Acao nao reconhecida: ' + action };
+    }
+    
+    const jsonpResponse = callback ? 
+      callback + '(' + JSON.stringify(response) + ');' : 
+      JSON.stringify(response);
+    
+    return ContentService.createTextOutput(jsonpResponse)
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+
+  } catch (error) {
+    Logger.log('!!! [API V7.3] Erro em doGet: ' + error.toString());
+    const errorResponse = { 
+      ok: false, 
+      error: error.toString(),
+      timestamp: new Date().toISOString()
+    };
+    
+    const callback = e.parameter.callback;
+    const jsonpResponse = callback ? 
+      callback + '(' + JSON.stringify(errorResponse) + ');' : 
+      JSON.stringify(errorResponse);
+    
+    return ContentService.createTextOutput(jsonpResponse)
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
+}
+
+function doPost(e) {
+  try {
+    Logger.log('>>> [API V7.3] Requisicao POST');
+    
+    let params = {};
+    
+    if (e.postData && e.postData.contents) {
+      try {
+        params = JSON.parse(e.postData.contents);
+        Logger.log('[API V7.3] Payload JSON parseado: ' + Object.keys(params).join(', '));
+      } catch (err) {
+        Logger.log('!!! [API V7.3] Erro ao parsear JSON: ' + err.toString());
+        params = e.parameter || {};
+      }
+    } else {
+      params = e.parameter || {};
+    }
+    
+    const action = params.action || 'test';
+    let response = {};
+    
+    switch(action) {
+      case 'admitir':
+        response = handleAdmitir(params);
+        break;
+      case 'atualizar':
+        response = handleAtualizar(params);
+        break;
+      case 'daralta':
+        response = handleDarAlta(params);
+        break;
+      // HANDLERS UTI V7.1
+      case 'admitirUTI':
+        response = handleAdmitirUTI(params);
+        break;
+      case 'atualizarUTI':
+        response = handleAtualizarUTI(params);
+        break;
+      case 'daraltaUTI':
+        response = handleDarAltaUTI(params);
+        break;
+      // ENDPOINTS RESERVAS
+      case 'reservar':
+        response = handleReservar(params);
+        break;
+      case 'cancelarReserva':
+        response = handleCancelarReserva(params);
+        break;
+      case 'admitirComReserva':
+        response = handleAdmitirComReserva(params);
+        break;
+      default:
+        response = { ok: false, error: 'Acao POST nao reconhecida: ' + action };
+    }
+    
+    return ContentService.createTextOutput(JSON.stringify(response))
+      .setMimeType(ContentService.MimeType.JSON);
+      
+  } catch (error) {
+    Logger.log('!!! [API V7.3] Erro em doPost: ' + error.toString());
+    return ContentService.createTextOutput(JSON.stringify({
+      ok: false,
+      error: error.toString(),
+      timestamp: new Date().toISOString()
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+// =================== HANDLERS ===================
+
+function handleTest() {
+  // Calcular totais enfermaria
+  let totalEnfermaria = 0;
+  let contrEnfermaria = 0;
+  let extrasEnfermaria = 0;
+  
+  for (var h in HOSPITAIS) {
+    if (h !== 'H10' && h !== 'H11') {
+      totalEnfermaria += HOSPITAIS[h].total;
+      contrEnfermaria += HOSPITAIS[h].contratuais;
+      extrasEnfermaria += HOSPITAIS[h].extras;
+    }
+  }
+  
+  // Calcular totais UTI
+  let totalUTI = 0;
+  let contrUTI = 0;
+  let extrasUTI = 0;
+  
+  for (var h in UTI_HOSPITAIS) {
+    totalUTI += UTI_HOSPITAIS[h].total;
+    contrUTI += UTI_HOSPITAIS[h].contratuais;
+    extrasUTI += UTI_HOSPITAIS[h].extras;
+  }
+  
+  return {
+    ok: true,
+    data: {
+      message: 'API Archipelago Dashboard V7.3 - Sistema Completo com UTI e Reservas!',
+      timestamp: new Date().toISOString(),
+      version: '7.3',
+      colunas: 76,
+      enfermaria: {
+        total: totalEnfermaria,
+        contratuais: contrEnfermaria,
+        extras: extrasEnfermaria
+      },
+      uti: {
+        total: totalUTI,
+        contratuais: contrUTI,
+        extras: extrasUTI
+      },
+      geral: {
+        total: totalEnfermaria + totalUTI,
+        contratuais: contrEnfermaria + contrUTI,
+        extras: extrasEnfermaria + extrasUTI
+      },
+      estrutura: {
+        concessoes: '12 checkboxes (M-W + BW)',
+        linhas: '45 checkboxes (X-BR)',
+        campos_v3_3: 'BS (genero), BT (regiao), BU (categoria), BV (diretivas)',
+        campo_v6_0: 'BX (anotacoes - 800 caracteres)',
+        aba_reservas: '11 colunas'
+      },
+      hospitais_ativos: ['H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'H7', 'H8', 'H9'],
+      hospitais_reserva: ['H10', 'H11'],
+      hospitais_sem_uti: ['H7'],
+      endpoints: [
+        'test', 'all', 'admitir', 'atualizar', 'daralta',
+        'admitirUTI', 'atualizarUTI', 'daraltaUTI',
+        'reservar', 'cancelarReserva', 'listarReservas', 'admitirComReserva'
+      ],
+      novidades_v73: [
+        'SPICT-BR ativo na UTI (coluna J)',
+        'handleAdmitirUTI grava SPICT',
+        'handleAtualizarUTI atualiza SPICT'
+      ],
+      config: {
+        hospitais: HOSPITAIS,
+        uti: UTI_HOSPITAIS,
+        camposBloqueadosUTI: CAMPOS_BLOQUEADOS_UTI,
+        prevAltaUTI: PREV_ALTA_UTI
+      }
+    }
+  };
+}
+
+function handleGetAll() {
+  try {
+    Logger.log('[API V7.3] Lendo todos os dados...');
+    const dados = lerTodosOsDados();
+    const dadosAgrupados = agruparPorHospital(dados);
+    
+    // Incluir reservas
+    const reservas = obterReservasAtivas();
+    
+    Logger.log('[API V7.3] ' + dados.length + ' leitos lidos, ' + reservas.length + ' reservas');
+    
+    return {
+      ok: true,
+      data: dadosAgrupados,
+      reservas: reservas,
+      config: {
+        hospitais: HOSPITAIS,
+        uti: UTI_HOSPITAIS,
+        camposBloqueadosUTI: CAMPOS_BLOQUEADOS_UTI,
+        prevAltaUTI: PREV_ALTA_UTI
+      }
+    };
+  } catch (error) {
+    Logger.log('!!! [API V7.3] Erro em handleGetAll: ' + error.toString());
+    return { ok: false, error: error.toString() };
+  }
+}
+
+// =================== HANDLER ADMITIR (ENFERMARIA) ===================
+function handleAdmitir(params) {
+  try {
+    Logger.log('[API V7.3] ===== ADMITINDO PACIENTE (ENFERMARIA) =====');
+    Logger.log('Hospital: ' + params.hospital + ' | Leito: ' + params.leito);
+    
+    const hospital = params.hospital;
+    const leito = parseInt(params.leito);
+    const nome = params.nome || '';
+    const matricula = params.matricula || '';
+    const idade = params.idade ? parseInt(params.idade) : null;
+    const pps = params.pps ? parseInt(params.pps) : null;
+    const spict = params.spict || 'nao_elegivel';
+    const complexidade = params.complexidade || 'I';
+    const prevAlta = params.prevAlta || 'SP';
+    
+    // Campos V3.3
+    const identificacaoLeito = params.identificacaoLeito || '';
+    const isolamento = params.isolamento || 'Nao Isolamento';
+    const genero = params.genero || '';
+    const regiao = params.regiao || '';
+    const categoriaEscolhida = params.categoriaEscolhida || '';
+    const diretivas = params.diretivas || 'Nao se aplica';
+    
+    // Campo V6.0
+    const anotacoes = params.anotacoes || '';
+    
+    // Processar concessoes
+    let concessoes = [];
+    if (Array.isArray(params.concessoes)) {
+      concessoes = params.concessoes;
+    } else if (typeof params.concessoes === 'string' && params.concessoes) {
+      concessoes = params.concessoes.split(',').map(function(s) { return s.trim(); }).filter(function(s) { return s; });
+    }
+    
+    // Processar linhas
+    let linhas = [];
+    if (Array.isArray(params.linhas)) {
+      linhas = params.linhas;
+    } else if (typeof params.linhas === 'string' && params.linhas) {
+      linhas = params.linhas.split(',').map(function(s) { return s.trim(); }).filter(function(s) { return s; });
+    }
+    
+    // Validar
+    if (!hospital || !leito || !nome || !matricula) {
+      throw new Error('Campos obrigatorios faltando');
+    }
+    
+    // Abrir planilha
+    const planilha = SpreadsheetApp.getActiveSpreadsheet();
+    const aba = planilha.getSheetByName(ABA_NOME);
+    const linhaIndex = encontrarLinhaPorLeito(aba, hospital, leito);
+    
+    if (linhaIndex === -1) {
+      throw new Error('Leito nao encontrado: ' + hospital + ' - ' + leito);
+    }
+    
+    // Verificar tipo do leito
+    const tipoLeito = aba.getRange(linhaIndex, COLUNAS.TIPO + 1).getValue();
+    const isUTI = (tipoLeito === 'UTI');
+    
+    Logger.log('[LEITO] Linha: ' + linhaIndex + ' | Tipo: ' + tipoLeito);
+    
+    // Gravar dados basicos
+    aba.getRange(linhaIndex, COLUNAS.STATUS + 1).setValue('Ocupado');
+    aba.getRange(linhaIndex, COLUNAS.NOME + 1).setValue(nome);
+    aba.getRange(linhaIndex, COLUNAS.MATRICULA + 1).setValue(matricula);
+    aba.getRange(linhaIndex, COLUNAS.IDADE + 1).setValue(idade || '');
+    aba.getRange(linhaIndex, COLUNAS.ADM_AT + 1).setValue(new Date());
+    
+    // Campos condicionais (nao gravar para UTI)
+    if (!isUTI) {
+      aba.getRange(linhaIndex, COLUNAS.PPS + 1).setValue(pps || '');
+      aba.getRange(linhaIndex, COLUNAS.SPICT + 1).setValue(spict);
+      aba.getRange(linhaIndex, COLUNAS.COMPLEXIDADE + 1).setValue(complexidade);
+      aba.getRange(linhaIndex, COLUNAS.DIRETIVAS + 1).setValue(diretivas);
+      aba.getRange(linhaIndex, COLUNAS.CATEGORIA_ESCOLHIDA + 1).setValue(categoriaEscolhida);
+    }
+    
+    // Campos comuns
+    aba.getRange(linhaIndex, COLUNAS.PREV_ALTA + 1).setValue(prevAlta);
+    aba.getRange(linhaIndex, COLUNAS.IDENTIFICACAO_LEITO + 1).setValue(identificacaoLeito);
+    aba.getRange(linhaIndex, COLUNAS.ISOLAMENTO + 1).setValue(isolamento);
+    aba.getRange(linhaIndex, COLUNAS.GENERO + 1).setValue(genero);
+    aba.getRange(linhaIndex, COLUNAS.REGIAO + 1).setValue(regiao);
+    
+    // Anotacoes V6.0
+    if (anotacoes) {
+      aba.getRange(linhaIndex, COLUNAS.ANOTACOES + 1).setValue(anotacoes.substring(0, 800));
+    }
+    
+    // Concessoes apenas para nao-UTI
+    if (!isUTI) {
+      limparConcessoes(aba, linhaIndex);
+      const resultado = marcarConcessoes(aba, linhaIndex, concessoes);
+      Logger.log('[CONCESSOES] ' + resultado.marcadas + ' marcadas');
+    }
+    
+    // Linhas de cuidado (para todos)
+    limparLinhas(aba, linhaIndex);
+    marcarLinhas(aba, linhaIndex, linhas);
+    Logger.log('[LINHAS] ' + linhas.length + ' marcadas');
+    
+    // Sistema de leitos irmaos (apenas enfermaria H2/H4)
+    if (!isUTI) {
+      const config = HOSPITAIS[hospital];
+      
+      if (config && config.irmaos) {
+        Logger.log('[LEITOS IRMAOS] Verificando se leito ' + leito + ' tem irmao...');
+        
+        const leitoIrmao = config.irmaos[leito];
+        
+        if (leitoIrmao) {
+          Logger.log('[LEITOS IRMAOS] Leito irmao encontrado: ' + leitoIrmao);
+          
+          const linhaIrmao = encontrarLinhaPorLeito(aba, hospital, leitoIrmao);
+          
+          if (linhaIrmao !== -1) {
+            const statusIrmao = aba.getRange(linhaIrmao, COLUNAS.STATUS + 1).getValue();
+            
+            if (statusIrmao === 'Vago' || statusIrmao === 'vago' || statusIrmao === '') {
+              if (identificacaoLeito && identificacaoLeito.trim()) {
+                const partes = identificacaoLeito.split('-');
+                
+                if (partes.length === 2) {
+                  const numeroBase = partes[0];
+                  const sufixoAtual = partes[1];
+                  let sufixoIrmao = '';
+                  
+                  if (hospital === 'H2') {
+                    sufixoIrmao = (sufixoAtual === '1') ? '3' : '1';
+                  } else if (hospital === 'H4') {
+                    sufixoIrmao = (sufixoAtual === 'A') ? 'C' : 'A';
+                  }
+                  
+                  if (sufixoIrmao) {
+                    const identificacaoIrmao = numeroBase + '-' + sufixoIrmao;
+                    aba.getRange(linhaIrmao, COLUNAS.IDENTIFICACAO_LEITO + 1).setValue(identificacaoIrmao);
+                    Logger.log('[IDENTIFICACAO AUTOMATICA] Leito irmao ' + leitoIrmao + ' recebeu: "' + identificacaoIrmao + '"');
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    
+    Logger.log('[SUCESSO] Paciente admitido!');
+    
+    return {
+      ok: true,
+      data: { 
+        message: 'Paciente admitido com sucesso V7.3', 
+        hospital: hospital, 
+        leito: leito,
+        tipo: tipoLeito,
+        isUTI: isUTI
+      }
+    };
+    
+  } catch (error) {
+    Logger.log('!!! [API V7.3] Erro em handleAdmitir: ' + error.toString());
+    return { ok: false, error: error.toString() };
+  }
+}
+
+// =================== V7.3: HANDLER ADMITIR UTI (COM SPICT) ===================
+function handleAdmitirUTI(params) {
+  try {
+    Logger.log('[API V7.3] ===== ADMITINDO PACIENTE UTI =====');
+    Logger.log('Hospital: ' + params.hospital + ' | IdentificacaoLeito: ' + params.identificacaoLeito);
+    
+    const hospital = params.hospital;
+    const identificacaoLeito = params.identificacaoLeito || '';
+    const nome = params.nome || '';
+    const matricula = params.matricula || '';
+    const idade = params.idade ? parseInt(params.idade) : null;
+    const prevAlta = params.prevAlta || '';
+    const isolamento = params.isolamento || 'Nao Isolamento';
+    const genero = params.genero || '';
+    const regiao = params.regiao || '';
+    const categoriaEscolhida = params.categoriaEscolhida || '';  // Tipo de Convenio (Apartamento/Enfermaria)
+    const anotacoes = params.anotacoes || '';
+    
+    // V7.3: SPICT-BR ativo na UTI
+    const spict = params.spict || 'nao_elegivel';
+    Logger.log('[UTI] SPICT-BR recebido: ' + spict);
+    
+    // Processar linhas de cuidado
+    let linhas = [];
+    if (Array.isArray(params.linhas)) {
+      linhas = params.linhas;
+    } else if (typeof params.linhas === 'string' && params.linhas) {
+      linhas = params.linhas.split(',').map(function(s) { return s.trim(); }).filter(function(s) { return s; });
+    }
+    
+    // Validar campos obrigatorios
+    if (!hospital) {
+      throw new Error('Campo obrigatorio: hospital');
+    }
+    if (!identificacaoLeito) {
+      throw new Error('Campo obrigatorio: identificacaoLeito');
+    }
+    if (!nome) {
+      throw new Error('Campo obrigatorio: iniciais (nome)');
+    }
+    if (!matricula) {
+      throw new Error('Campo obrigatorio: matricula');
+    }
+    if (!genero) {
+      throw new Error('Campo obrigatorio: genero');
+    }
+    if (!isolamento) {
+      throw new Error('Campo obrigatorio: isolamento');
+    }
+    
+    // Verificar se hospital tem UTI
+    if (!UTI_HOSPITAIS[hospital] || UTI_HOSPITAIS[hospital].total === 0) {
+      throw new Error('Hospital ' + hospital + ' nao possui leitos de UTI');
+    }
+    
+    // Abrir planilha
+    const planilha = SpreadsheetApp.getActiveSpreadsheet();
+    const aba = planilha.getSheetByName(ABA_NOME);
+    
+    // V7.2: Buscar leito UTI especifico pelo numero enviado
+    const leito = params.leito ? parseInt(params.leito) : null;
+    let linhaIndex = -1;
+
+    if (leito && leito > 0) {
+      // Buscar pelo numero do leito especifico + tipo UTI
+      linhaIndex = encontrarLinhaPorLeitoETipo(aba, hospital, leito, 'UTI');
+      Logger.log('[UTI] Buscando leito especifico: ' + leito + ' | Linha: ' + linhaIndex);
+    }
+
+    // Se nao encontrou pelo numero, buscar primeiro vago (fallback)
+    if (linhaIndex === -1) {
+      linhaIndex = encontrarPrimeiroLeitoVagoUTI(aba, hospital);
+      Logger.log('[UTI] Usando primeiro leito vago');
+    }
+
+    if (linhaIndex === -1) {
+      throw new Error('Nenhum leito UTI disponivel no hospital ' + hospital);
+    }
+    
+    const leitoNumero = aba.getRange(linhaIndex, COLUNAS.LEITO + 1).getValue();
+    Logger.log('[UTI] Linha encontrada: ' + linhaIndex + ' | Leito: ' + leitoNumero);
+    
+    // Gravar dados basicos
+    aba.getRange(linhaIndex, COLUNAS.STATUS + 1).setValue('Ocupado');
+    aba.getRange(linhaIndex, COLUNAS.NOME + 1).setValue(nome);
+    aba.getRange(linhaIndex, COLUNAS.MATRICULA + 1).setValue(matricula);
+    aba.getRange(linhaIndex, COLUNAS.IDADE + 1).setValue(idade || '');
+    aba.getRange(linhaIndex, COLUNAS.ADM_AT + 1).setValue(new Date());
+    
+    // Campos especificos UTI
+    aba.getRange(linhaIndex, COLUNAS.PREV_ALTA + 1).setValue(prevAlta);
+    aba.getRange(linhaIndex, COLUNAS.IDENTIFICACAO_LEITO + 1).setValue(identificacaoLeito);
+    aba.getRange(linhaIndex, COLUNAS.ISOLAMENTO + 1).setValue(isolamento);
+    aba.getRange(linhaIndex, COLUNAS.GENERO + 1).setValue(genero);
+    aba.getRange(linhaIndex, COLUNAS.REGIAO + 1).setValue(regiao);
+    aba.getRange(linhaIndex, COLUNAS.CATEGORIA_ESCOLHIDA + 1).setValue(categoriaEscolhida);
+    
+    // V7.3: SPICT-BR ativo na UTI - gravar na coluna J
+    aba.getRange(linhaIndex, COLUNAS.SPICT + 1).setValue(spict);
+    Logger.log('[UTI] SPICT-BR gravado na coluna J: ' + spict);
+    
+    // Anotacoes
+    if (anotacoes) {
+      aba.getRange(linhaIndex, COLUNAS.ANOTACOES + 1).setValue(anotacoes.substring(0, 800));
+    }
+    
+    // V7.3: NAO gravar outros campos bloqueados para UTI (pps, complexidade, diretivas)
+    // Eles ficam vazios
+    
+    // Linhas de cuidado (para todos)
+    limparLinhas(aba, linhaIndex);
+    marcarLinhas(aba, linhaIndex, linhas);
+    Logger.log('[LINHAS UTI] ' + linhas.length + ' marcadas');
+    
+    Logger.log('[SUCESSO] Paciente UTI admitido!');
+    
+    return {
+      ok: true,
+      data: { 
+        message: 'Paciente UTI admitido com sucesso V7.3', 
+        hospital: hospital, 
+        leito: leitoNumero,
+        linha: linhaIndex,
+        identificacaoLeito: identificacaoLeito,
+        tipo: 'UTI',
+        spict: spict
+      }
+    };
+    
+  } catch (error) {
+    Logger.log('!!! [API V7.3] Erro em handleAdmitirUTI: ' + error.toString());
+    return { ok: false, error: error.toString() };
+  }
+}
+
+// =================== V7.3: HANDLER ATUALIZAR UTI (COM SPICT) ===================
+function handleAtualizarUTI(params) {
+  try {
+    Logger.log('[API V7.3] ===== ATUALIZANDO PACIENTE UTI =====');
+    Logger.log('Hospital: ' + params.hospital + ' | IdentificacaoLeito: ' + params.identificacaoLeito);
+    
+    const hospital = params.hospital;
+    const identificacaoLeito = params.identificacaoLeito || '';
+    const leito = params.leito ? parseInt(params.leito) : null;
+    
+    // Campos atualizaveis
+    const isolamento = params.isolamento || '';
+    const prevAlta = params.prevAlta || '';
+    const anotacoes = params.anotacoes !== undefined ? params.anotacoes : null;
+    
+    // V7.3: SPICT-BR ativo na UTI
+    const spict = params.spict || '';
+    Logger.log('[UTI] SPICT-BR recebido para atualizacao: ' + spict);
+    
+    // Processar linhas de cuidado
+    let linhas = [];
+    if (Array.isArray(params.linhas)) {
+      linhas = params.linhas;
+    } else if (typeof params.linhas === 'string' && params.linhas) {
+      linhas = params.linhas.split(',').map(function(s) { return s.trim(); }).filter(function(s) { return s; });
+    }
+    
+    // Validar
+    if (!hospital) {
+      throw new Error('Campo obrigatorio: hospital');
+    }
+    
+    // Abrir planilha
+    const planilha = SpreadsheetApp.getActiveSpreadsheet();
+    const aba = planilha.getSheetByName(ABA_NOME);
+    
+    // V7.1: Buscar leito UTI - por numero OU por identificacao
+    let linhaIndex = -1;
+    
+    if (leito && leito > 0) {
+      // Buscar por numero do leito + tipo UTI
+      linhaIndex = encontrarLinhaPorLeitoETipo(aba, hospital, leito, 'UTI');
+    }
+    
+    if (linhaIndex === -1 && identificacaoLeito) {
+      // Buscar por identificacao + tipo UTI
+      linhaIndex = encontrarLinhaPorIdentificacaoETipo(aba, hospital, identificacaoLeito, 'UTI');
+    }
+    
+    if (linhaIndex === -1) {
+      throw new Error('Leito UTI nao encontrado: ' + hospital + ' - ' + (identificacaoLeito || leito));
+    }
+    
+    const leitoNumero = aba.getRange(linhaIndex, COLUNAS.LEITO + 1).getValue();
+    Logger.log('[UTI] Linha encontrada: ' + linhaIndex + ' | Leito: ' + leitoNumero);
+    
+    // Atualizar campos permitidos
+    if (isolamento) {
+      aba.getRange(linhaIndex, COLUNAS.ISOLAMENTO + 1).setValue(isolamento);
+    }
+    if (prevAlta) {
+      aba.getRange(linhaIndex, COLUNAS.PREV_ALTA + 1).setValue(prevAlta);
+    }
+    if (anotacoes !== null) {
+      aba.getRange(linhaIndex, COLUNAS.ANOTACOES + 1).setValue(anotacoes.substring(0, 800));
+    }
+    
+    // V7.3: SPICT-BR ativo na UTI - atualizar na coluna J
+    if (spict) {
+      aba.getRange(linhaIndex, COLUNAS.SPICT + 1).setValue(spict);
+      Logger.log('[UTI] SPICT-BR atualizado na coluna J: ' + spict);
+    }
+    
+    // Linhas de cuidado
+    if (linhas.length > 0 || params.linhas !== undefined) {
+      limparLinhas(aba, linhaIndex);
+      marcarLinhas(aba, linhaIndex, linhas);
+      Logger.log('[LINHAS UTI] ' + linhas.length + ' atualizadas');
+    }
+    
+    Logger.log('[SUCESSO] Paciente UTI atualizado!');
+    
+    return {
+      ok: true,
+      data: { 
+        message: 'Paciente UTI atualizado com sucesso V7.3', 
+        hospital: hospital, 
+        leito: leitoNumero,
+        linha: linhaIndex,
+        identificacaoLeito: identificacaoLeito,
+        tipo: 'UTI',
+        spict: spict
+      }
+    };
+    
+  } catch (error) {
+    Logger.log('!!! [API V7.3] Erro em handleAtualizarUTI: ' + error.toString());
+    return { ok: false, error: error.toString() };
+  }
+}
+
+// =================== V7.1: HANDLER DAR ALTA UTI ===================
+function handleDarAltaUTI(params) {
+  try {
+    Logger.log('[API V7.3] ===== DANDO ALTA UTI =====');
+    Logger.log('Hospital: ' + params.hospital + ' | IdentificacaoLeito: ' + params.identificacaoLeito);
+    
+    const hospital = params.hospital;
+    const identificacaoLeito = params.identificacaoLeito || '';
+    const leito = params.leito ? parseInt(params.leito) : null;
+    
+    // Validar
+    if (!hospital) {
+      throw new Error('Campo obrigatorio: hospital');
+    }
+    
+    // Abrir planilha
+    const planilha = SpreadsheetApp.getActiveSpreadsheet();
+    const aba = planilha.getSheetByName(ABA_NOME);
+    
+    // V7.1: Buscar leito UTI - por numero OU por identificacao
+    let linhaIndex = -1;
+    
+    if (leito && leito > 0) {
+      // Buscar por numero do leito + tipo UTI
+      linhaIndex = encontrarLinhaPorLeitoETipo(aba, hospital, leito, 'UTI');
+    }
+    
+    if (linhaIndex === -1 && identificacaoLeito) {
+      // Buscar por identificacao + tipo UTI
+      linhaIndex = encontrarLinhaPorIdentificacaoETipo(aba, hospital, identificacaoLeito, 'UTI');
+    }
+    
+    if (linhaIndex === -1) {
+      throw new Error('Leito UTI nao encontrado: ' + hospital + ' - ' + (identificacaoLeito || leito));
+    }
+    
+    const leitoNumero = aba.getRange(linhaIndex, COLUNAS.LEITO + 1).getValue();
+    Logger.log('[UTI] Linha encontrada: ' + linhaIndex + ' | Leito: ' + leitoNumero);
+    
+    // Limpar TODOS os dados (manter apenas hospital, leito, tipo)
+    aba.getRange(linhaIndex, COLUNAS.STATUS + 1).setValue('Vago');
+    aba.getRange(linhaIndex, COLUNAS.NOME + 1).setValue('');
+    aba.getRange(linhaIndex, COLUNAS.MATRICULA + 1).setValue('');
+    aba.getRange(linhaIndex, COLUNAS.IDADE + 1).setValue('');
+    aba.getRange(linhaIndex, COLUNAS.ADM_AT + 1).setValue('');
+    aba.getRange(linhaIndex, COLUNAS.PPS + 1).setValue('');
+    aba.getRange(linhaIndex, COLUNAS.SPICT + 1).setValue('');
+    aba.getRange(linhaIndex, COLUNAS.COMPLEXIDADE + 1).setValue('');
+    aba.getRange(linhaIndex, COLUNAS.PREV_ALTA + 1).setValue('');
+    aba.getRange(linhaIndex, COLUNAS.IDENTIFICACAO_LEITO + 1).setValue('');
+    aba.getRange(linhaIndex, COLUNAS.ISOLAMENTO + 1).setValue('');
+    aba.getRange(linhaIndex, COLUNAS.GENERO + 1).setValue('');
+    aba.getRange(linhaIndex, COLUNAS.REGIAO + 1).setValue('');
+    aba.getRange(linhaIndex, COLUNAS.CATEGORIA_ESCOLHIDA + 1).setValue('');
+    aba.getRange(linhaIndex, COLUNAS.DIRETIVAS + 1).setValue('');
+    aba.getRange(linhaIndex, COLUNAS.ANOTACOES + 1).setValue('');
+    
+    // Limpar checkboxes
+    limparConcessoes(aba, linhaIndex);
+    limparLinhas(aba, linhaIndex);
+    
+    Logger.log('[SUCESSO] Alta UTI processada!');
+    
+    return {
+      ok: true,
+      data: { 
+        message: 'Alta UTI processada com sucesso V7.3', 
+        hospital: hospital, 
+        leito: leitoNumero,
+        linha: linhaIndex,
+        tipo: 'UTI'
+      }
+    };
+    
+  } catch (error) {
+    Logger.log('!!! [API V7.3] Erro em handleDarAltaUTI: ' + error.toString());
+    return { ok: false, error: error.toString() };
+  }
+}
+
+// =================== HANDLER ATUALIZAR (ENFERMARIA) ===================
+function handleAtualizar(params) {
+  try {
+    Logger.log('[API V7.3] Atualizando: ' + params.hospital + '-' + params.leito);
+    
+    const hospital = params.hospital;
+    const leito = parseInt(params.leito);
+    const idade = params.idade ? parseInt(params.idade) : null;
+    const pps = params.pps ? parseInt(params.pps) : null;
+    const spict = params.spict || '';
+    const complexidade = params.complexidade || '';
+    const prevAlta = params.prevAlta || '';
+    const identificacaoLeito = params.identificacaoLeito || '';
+    const isolamento = params.isolamento || '';
+    const genero = params.genero || '';
+    const regiao = params.regiao || '';
+    const categoriaEscolhida = params.categoriaEscolhida || '';
+    const diretivas = params.diretivas || '';
+    const anotacoes = params.anotacoes !== undefined ? params.anotacoes : null;
+    
+    let concessoes = [];
+    let linhas = [];
+    
+    if (Array.isArray(params.concessoes)) {
+      concessoes = params.concessoes;
+    } else if (typeof params.concessoes === 'string' && params.concessoes) {
+      concessoes = params.concessoes.split(',').map(function(s) { return s.trim(); }).filter(function(s) { return s; });
+    }
+    
+    if (Array.isArray(params.linhas)) {
+      linhas = params.linhas;
+    } else if (typeof params.linhas === 'string' && params.linhas) {
+      linhas = params.linhas.split(',').map(function(s) { return s.trim(); }).filter(function(s) { return s; });
+    }
+    
+    if (!hospital || !leito) {
+      throw new Error('Campos obrigatorios faltando');
+    }
+    
+    const planilha = SpreadsheetApp.getActiveSpreadsheet();
+    const aba = planilha.getSheetByName(ABA_NOME);
+    const linhaIndex = encontrarLinhaPorLeito(aba, hospital, leito);
+    
+    if (linhaIndex === -1) {
+      throw new Error('Leito nao encontrado');
+    }
+    
+    // Verificar tipo
+    const tipoLeito = aba.getRange(linhaIndex, COLUNAS.TIPO + 1).getValue();
+    const isUTI = (tipoLeito === 'UTI');
+    
+    // Atualizar campos comuns
+    if (idade !== null) aba.getRange(linhaIndex, COLUNAS.IDADE + 1).setValue(idade);
+    if (prevAlta) aba.getRange(linhaIndex, COLUNAS.PREV_ALTA + 1).setValue(prevAlta);
+    if (identificacaoLeito) aba.getRange(linhaIndex, COLUNAS.IDENTIFICACAO_LEITO + 1).setValue(identificacaoLeito);
+    if (isolamento) aba.getRange(linhaIndex, COLUNAS.ISOLAMENTO + 1).setValue(isolamento);
+    if (genero) aba.getRange(linhaIndex, COLUNAS.GENERO + 1).setValue(genero);
+    if (regiao) aba.getRange(linhaIndex, COLUNAS.REGIAO + 1).setValue(regiao);
+    
+    // Campos condicionais (nao atualizar para UTI)
+    if (!isUTI) {
+      if (pps !== null) aba.getRange(linhaIndex, COLUNAS.PPS + 1).setValue(pps);
+      if (spict) aba.getRange(linhaIndex, COLUNAS.SPICT + 1).setValue(spict);
+      if (complexidade) aba.getRange(linhaIndex, COLUNAS.COMPLEXIDADE + 1).setValue(complexidade);
+      if (categoriaEscolhida) aba.getRange(linhaIndex, COLUNAS.CATEGORIA_ESCOLHIDA + 1).setValue(categoriaEscolhida);
+      if (diretivas) aba.getRange(linhaIndex, COLUNAS.DIRETIVAS + 1).setValue(diretivas);
+    }
+    
+    // Anotacoes
+    if (anotacoes !== null) {
+      aba.getRange(linhaIndex, COLUNAS.ANOTACOES + 1).setValue(anotacoes.substring(0, 800));
+    }
+    
+    // Concessoes apenas para nao-UTI
+    if (!isUTI) {
+      limparConcessoes(aba, linhaIndex);
+      marcarConcessoes(aba, linhaIndex, concessoes);
+    }
+    
+    // Linhas de cuidado (para todos)
+    limparLinhas(aba, linhaIndex);
+    marcarLinhas(aba, linhaIndex, linhas);
+    
+    Logger.log('[API V7.3] Atualizado: ' + hospital + '-' + leito);
+    
+    return {
+      ok: true,
+      data: { 
+        message: 'Paciente atualizado com sucesso V7.3', 
+        hospital: hospital, 
+        leito: leito,
+        tipo: tipoLeito,
+        isUTI: isUTI
+      }
+    };
+    
+  } catch (error) {
+    Logger.log('!!! [API V7.3] Erro em handleAtualizar: ' + error.toString());
+    return { ok: false, error: error.toString() };
+  }
+}
+
+// =================== HANDLER DAR ALTA (ENFERMARIA) ===================
+function handleDarAlta(params) {
+  try {
+    Logger.log('[API V7.3] Dando alta: ' + params.hospital + '-' + params.leito);
+    
+    const hospital = params.hospital;
+    const leito = parseInt(params.leito);
+    
+    if (!hospital || !leito) {
+      throw new Error('Campos obrigatorios faltando');
+    }
+    
+    const planilha = SpreadsheetApp.getActiveSpreadsheet();
+    const aba = planilha.getSheetByName(ABA_NOME);
+    const linhaIndex = encontrarLinhaPorLeito(aba, hospital, leito);
+    
+    if (linhaIndex === -1) {
+      throw new Error('Leito nao encontrado');
+    }
+    
+    // Verificar tipo antes de limpar
+    const tipoLeito = aba.getRange(linhaIndex, COLUNAS.TIPO + 1).getValue();
+    const isUTI = (tipoLeito === 'UTI');
+    
+    // Limpar TODOS os dados
+    aba.getRange(linhaIndex, COLUNAS.STATUS + 1).setValue('Vago');
+    aba.getRange(linhaIndex, COLUNAS.NOME + 1).setValue('');
+    aba.getRange(linhaIndex, COLUNAS.MATRICULA + 1).setValue('');
+    aba.getRange(linhaIndex, COLUNAS.IDADE + 1).setValue('');
+    aba.getRange(linhaIndex, COLUNAS.ADM_AT + 1).setValue('');
+    aba.getRange(linhaIndex, COLUNAS.PPS + 1).setValue('');
+    aba.getRange(linhaIndex, COLUNAS.SPICT + 1).setValue('');
+    aba.getRange(linhaIndex, COLUNAS.COMPLEXIDADE + 1).setValue('');
+    aba.getRange(linhaIndex, COLUNAS.PREV_ALTA + 1).setValue('');
+    aba.getRange(linhaIndex, COLUNAS.IDENTIFICACAO_LEITO + 1).setValue('');
+    aba.getRange(linhaIndex, COLUNAS.ISOLAMENTO + 1).setValue('');
+    aba.getRange(linhaIndex, COLUNAS.GENERO + 1).setValue('');
+    aba.getRange(linhaIndex, COLUNAS.REGIAO + 1).setValue('');
+    aba.getRange(linhaIndex, COLUNAS.CATEGORIA_ESCOLHIDA + 1).setValue('');
+    aba.getRange(linhaIndex, COLUNAS.DIRETIVAS + 1).setValue('');
+    aba.getRange(linhaIndex, COLUNAS.ANOTACOES + 1).setValue('');
+    
+    // Limpar checkboxes
+    limparConcessoes(aba, linhaIndex);
+    limparLinhas(aba, linhaIndex);
+    
+    // Sistema de leitos irmaos (apenas enfermaria H2/H4)
+    if (!isUTI) {
+      const config = HOSPITAIS[hospital];
+      
+      if (config && config.irmaos) {
+        const leitoIrmao = config.irmaos[leito];
+        
+        if (leitoIrmao) {
+          const linhaIrmao = encontrarLinhaPorLeito(aba, hospital, leitoIrmao);
+          
+          if (linhaIrmao !== -1) {
+            const statusIrmao = aba.getRange(linhaIrmao, COLUNAS.STATUS + 1).getValue();
+            
+            if (statusIrmao === 'Vago' || statusIrmao === 'vago' || statusIrmao === '') {
+              aba.getRange(linhaIndex, COLUNAS.IDENTIFICACAO_LEITO + 1).setValue('');
+              aba.getRange(linhaIrmao, COLUNAS.IDENTIFICACAO_LEITO + 1).setValue('');
+              Logger.log('[LIMPEZA] Identificacao limpa dos leitos ' + leito + ' e ' + leitoIrmao);
+            }
+          }
+        }
+      }
+    }
+    
+    Logger.log('[API V7.3] Alta processada!');
+    
+    return {
+      ok: true,
+      data: { 
+        message: 'Alta processada com sucesso V7.3', 
+        hospital: hospital, 
+        leito: leito,
+        tipo: tipoLeito
+      }
+    };
+    
+  } catch (error) {
+    Logger.log('!!! [API V7.3] Erro em handleDarAlta: ' + error.toString());
+    return { ok: false, error: error.toString() };
+  }
+}
+
+// =================== HANDLERS RESERVAS ===================
+
+function handleReservar(params) {
+  try {
+    Logger.log('[API V7.3] ===== CRIANDO RESERVA =====');
+    
+    var hospital = params.hospital;
+    var tipo = params.tipo || 'Enfermaria';
+    var identificacaoLeito = String(params.identificacaoLeito || '').trim();
+    var isolamento = params.isolamento || 'Nao Isolamento';
+    var genero = params.genero || '';
+    var iniciais = params.iniciais || '';
+    var matricula = params.matricula || '';
+    var idade = params.idade || '';
+    var usuario = params.usuario || '';
+    
+    Logger.log('[RESERVA] hospital=' + hospital + ', tipo=' + tipo + ', identificacaoLeito=' + identificacaoLeito + ', matricula=' + matricula);
+    
+    if (!hospital) {
+      throw new Error('Campo obrigatorio: hospital');
+    }
+    
+    if (!identificacaoLeito) {
+      throw new Error('Campo obrigatorio: identificacaoLeito');
+    }
+    
+    var planilha = SpreadsheetApp.getActiveSpreadsheet();
+    var abaReservas = planilha.getSheetByName(ABA_RESERVAS);
+    
+    if (!abaReservas) {
+      throw new Error('Aba "reservas" nao encontrada');
+    }
+    
+    // Verificar duplicata por identificacao OU matricula
+    var reservasExistentes = obterReservasAtivas();
+    
+    // Verificar se ja existe linha para esta identificacao (mesmo hospital)
+    var identificacaoNorm = identificacaoLeito.toUpperCase();
+    var reservaExistente = reservasExistentes.find(function(r) {
+      var rIdent = String(r.identificacaoLeito || '').trim().toUpperCase();
+      return r.hospital === hospital && rIdent === identificacaoNorm;
+    });
+    
+    // V7.0: Se existe reserva SEM matricula (bloqueio de irmao), vamos ATUALIZAR em vez de criar
+    var atualizarBloqueioExistente = false;
+    var linhaBloqueioExistente = null;
+    
+    if (reservaExistente) {
+      var temMatriculaExistente = reservaExistente.matricula && String(reservaExistente.matricula).trim();
+      
+      if (temMatriculaExistente) {
+        throw new Error('Ja existe reserva para o leito ' + identificacaoLeito + ' neste hospital');
+      } else {
+        atualizarBloqueioExistente = true;
+        linhaBloqueioExistente = reservaExistente.linha;
+        Logger.log('[RESERVA] Encontrado bloqueio existente na linha ' + linhaBloqueioExistente + ' - vamos atualizar');
+      }
+    }
+    
+    // Verificar duplicata por matricula (qualquer hospital)
+    if (matricula && String(matricula).trim()) {
+      var matriculaNorm = String(matricula).replace(/-/g, '').trim();
+      var duplicadaPorMatricula = reservasExistentes.find(function(r) {
+        var rMat = String(r.matricula || '').replace(/-/g, '').trim();
+        return rMat && rMat === matriculaNorm;
+      });
+      
+      if (duplicadaPorMatricula) {
+        throw new Error('Ja existe reserva para a matricula ' + matricula + ' no hospital ' + duplicadaPorMatricula.hospital);
+      }
+    }
+    
+    // =================== LOGICA DE LEITOS IRMAOS ===================
+    // Para enfermarias no H2 e H4, criar 2 linhas (reserva real + bloqueio do irmao)
+    // V7.2: NAO aplicar logica de irmaos para UTI
+    var isEnfermariaH2H4 = (hospital === 'H2' || hospital === 'H4') && 
+                           (tipo === 'Enfermaria' || tipo === 'ENF' || tipo === 'ENFERMARIA') &&
+                           tipo !== 'UTI';
+    
+    var identificacaoIrmao = '';
+    
+    if (isEnfermariaH2H4) {
+      var sufixosH2 = ['1', '3'];
+      var sufixosH4 = ['A', 'C'];
+      var sufixos = hospital === 'H2' ? sufixosH2 : sufixosH4;
+      
+      var match = identificacaoLeito.match(/^(.+)-([13AC])$/i);
+      if (match) {
+        var base = match[1];
+        var sufixoAtual = match[2].toUpperCase();
+        
+        var sufixoIrmao = '';
+        if (hospital === 'H2') {
+          sufixoIrmao = sufixoAtual === '1' ? '3' : '1';
+        } else {
+          sufixoIrmao = sufixoAtual === 'A' ? 'C' : 'A';
+        }
+        
+        identificacaoIrmao = base + '-' + sufixoIrmao;
+        Logger.log('[RESERVA IRMAO] Identificacao: ' + identificacaoLeito + ' -> Irmao: ' + identificacaoIrmao);
+        
+        // Verificar se irmao ja tem reserva REAL (com matricula)
+        var reservaIrmaoExistente = reservasExistentes.find(function(r) {
+          var rIdent = String(r.identificacaoLeito || '').trim().toUpperCase();
+          return r.hospital === hospital && rIdent === identificacaoIrmao.toUpperCase() && r.matricula;
+        });
+        
+        if (reservaIrmaoExistente) {
+          // V7.2: CORRECAO - Normalizar isolamento antes de comparar
+          var isolamentoIrmaoNorm = normalizarTexto(String(reservaIrmaoExistente.isolamento || '')).toLowerCase();
+          var temIsolamentoIrmao = isolamentoIrmaoNorm && 
+                                    !isolamentoIrmaoNorm.includes('nao isol') && 
+                                    isolamentoIrmaoNorm !== 'nao isolamento';
+          
+          if (temIsolamentoIrmao) {
+            throw new Error('Leito bloqueado! O irmao ' + identificacaoIrmao + ' esta reservado com isolamento');
+          }
+          
+          if (reservaIrmaoExistente.genero && genero && reservaIrmaoExistente.genero !== genero) {
+            throw new Error('Genero incompativel! O irmao ' + identificacaoIrmao + ' esta reservado para ' + reservaIrmaoExistente.genero);
+          }
+        }
+        
+        // V7.2: CORRECAO - Normalizar isolamento antes de comparar
+        var isolamentoNorm = normalizarTexto(isolamento || '').toLowerCase();
+        var temIsolamento = isolamentoNorm && 
+                            !isolamentoNorm.includes('nao isol') && 
+                            isolamentoNorm !== 'nao isolamento';
+        
+        Logger.log('[RESERVA] isolamento=' + isolamento + ', isolamentoNorm=' + isolamentoNorm + ', temIsolamento=' + temIsolamento);
+        
+        if (temIsolamento) {
+          identificacaoIrmao = '';
+          Logger.log('[RESERVA] Tem isolamento - irmao fica bloqueado, nao criar linha');
+        }
+      } else {
+        Logger.log('[RESERVA] Identificacao sem sufixo valido: ' + identificacaoLeito);
+      }
+    }
+    
+    // =================== INSERIR OU ATUALIZAR RESERVA PRINCIPAL ===================
+    var dataReserva = new Date();
+    var linhaReserva;
+    
+    if (atualizarBloqueioExistente && linhaBloqueioExistente) {
+      var range = abaReservas.getRange(linhaBloqueioExistente, 1, 1, 11);
+      range.setValues([[
+        hospital,
+        tipo,
+        identificacaoLeito,
+        isolamento || 'Nao Isolamento',
+        genero,
+        iniciais,
+        matricula,
+        idade,
+        dataReserva,
+        usuario,
+        identificacaoIrmao
+      ]]);
+      
+      linhaReserva = linhaBloqueioExistente;
+      Logger.log('[RESERVA] Bloqueio atualizado na linha ' + linhaReserva + ' com matricula ' + matricula);
+    } else {
+      abaReservas.appendRow([
+        hospital,
+        tipo,
+        identificacaoLeito,
+        isolamento,
+        genero,
+        iniciais,
+        matricula,
+        idade,
+        dataReserva,
+        usuario,
+        identificacaoIrmao
+      ]);
+      
+      linhaReserva = abaReservas.getLastRow();
+      Logger.log('[RESERVA] Principal criada na linha ' + linhaReserva);
+    }
+    
+    // =================== INSERIR BLOQUEIO DO IRMAO (se aplicavel) ===================
+    if (identificacaoIrmao) {
+      var irmaoJaExiste = reservasExistentes.find(function(r) {
+        var rIdent = String(r.identificacaoLeito || '').trim().toUpperCase();
+        return r.hospital === hospital && rIdent === identificacaoIrmao.toUpperCase();
+      });
+      
+      if (!irmaoJaExiste) {
+        // V7.2: Inserir linha do irmao SEM iniciais, matricula, idade
+        // Mas COM isolamento e genero para aplicar regras de bloqueio
+        abaReservas.appendRow([
+          hospital,                    // A: hospital
+          tipo,                        // B: tipo (Enfermaria)
+          identificacaoIrmao,          // C: identificacao_leito (do irmao)
+          'Nao Isolamento',            // D: isolamento (sempre Nao Isolamento)
+          genero,                      // E: genero (MESMO do principal - para regra de genero)
+          '',                          // F: iniciais (VAZIO - indica que nao e reserva real)
+          '',                          // G: matricula (VAZIO)
+          '',                          // H: idade (VAZIO)
+          dataReserva,                 // I: data_reserva
+          usuario,                     // J: usuario_reserva
+          identificacaoLeito           // K: identificacao_irmao (aponta para o principal)
+        ]);
+        
+        Logger.log('[RESERVA IRMAO] Bloqueio criado para ' + identificacaoIrmao + ' com genero ' + genero);
+      } else {
+        Logger.log('[RESERVA IRMAO] Irmao ' + identificacaoIrmao + ' ja existe, nao criar duplicata');
+      }
+    }
+    
+    return {
+      ok: true,
+      success: true,
+      data: {
+        message: 'Reserva criada com sucesso',
+        hospital: hospital,
+        tipo: tipo,
+        identificacaoLeito: identificacaoLeito,
+        identificacaoIrmao: identificacaoIrmao,
+        matricula: matricula,
+        linha: linhaReserva
+      }
+    };
+    
+  } catch (error) {
+    Logger.log('!!! [API V7.3] Erro em handleReservar: ' + error.toString());
+    return { ok: false, error: error.toString() };
+  }
+}
+
+function handleCancelarReserva(params) {
+  try {
+    Logger.log('[API V7.3] ===== CANCELANDO RESERVA =====');
+    
+    var hospital = params.hospital || '';
+    var identificacaoLeito = params.identificacaoLeito || '';
+    var matricula = params.matricula || '';
+    var linha = params.linha ? parseInt(params.linha) : null;
+    
+    Logger.log('[CANCELAR] hospital=' + hospital + ', identificacaoLeito=' + identificacaoLeito + ', matricula=' + matricula + ', linha=' + linha);
+    
+    if (!hospital && !linha && !matricula) {
+      throw new Error('Informe hospital+identificacaoLeito, hospital+matricula ou linha da reserva');
+    }
+    
+    var planilha = SpreadsheetApp.getActiveSpreadsheet();
+    var abaReservas = planilha.getSheetByName(ABA_RESERVAS);
+    
+    if (!abaReservas) {
+      throw new Error('Aba "reservas" nao encontrada');
+    }
+    
+    var dados = abaReservas.getDataRange().getValues();
+    var linhaParaApagar = -1;
+    var identificacaoIrmao = '';
+    var hospitalReservaEncontrada = '';
+    
+    var identNorm = String(identificacaoLeito || '').trim().toUpperCase();
+    var matNorm = String(matricula || '').replace(/-/g, '').trim();
+    
+    Logger.log('[BUSCA] identNorm=' + identNorm + ', matNorm=' + matNorm);
+    
+    if (linha && linha > 1) {
+      var dadosLinha = dados[linha - 1];
+      if (dadosLinha) {
+        identificacaoIrmao = String(dadosLinha[COLUNAS_RESERVAS.IDENTIFICACAO_IRMAO] || '').trim().toUpperCase();
+        hospitalReservaEncontrada = dadosLinha[COLUNAS_RESERVAS.HOSPITAL];
+        linhaParaApagar = linha;
+      }
+    } else {
+      for (var i = 1; i < dados.length; i++) {
+        var hospitalReserva = dados[i][COLUNAS_RESERVAS.HOSPITAL] || '';
+        var identReserva = String(dados[i][COLUNAS_RESERVAS.IDENTIFICACAO_LEITO] || '').trim().toUpperCase();
+        var matReserva = String(dados[i][COLUNAS_RESERVAS.MATRICULA] || '').replace(/-/g, '').trim();
+        
+        var matchPorLeito = (hospital === hospitalReserva) && identNorm && (identNorm === identReserva);
+        var matchPorMatricula = matNorm && (matNorm === matReserva);
+        if (matchPorMatricula && hospital) {
+          matchPorMatricula = (hospital === hospitalReserva);
+        }
+        
+        if (matchPorLeito || matchPorMatricula) {
+          linhaParaApagar = i + 1;
+          identificacaoIrmao = String(dados[i][COLUNAS_RESERVAS.IDENTIFICACAO_IRMAO] || '').trim().toUpperCase();
+          hospitalReservaEncontrada = hospitalReserva;
+          Logger.log('[ENCONTRADA] Reserva encontrada na linha ' + linhaParaApagar + ', irmao=' + identificacaoIrmao);
+          break;
+        }
+      }
+    }
+    
+    if (linhaParaApagar === -1) {
+      Logger.log('[NAO ENCONTRADA] Reserva nao encontrada com os parametros informados');
+      throw new Error('Reserva nao encontrada');
+    }
+    
+    // TAMBEM buscar e deletar o irmao (se existir)
+    var linhaIrmao = -1;
+    if (identificacaoIrmao && hospitalReservaEncontrada) {
+      var dadosAtual = abaReservas.getDataRange().getValues();
+      
+      for (var j = 1; j < dadosAtual.length; j++) {
+        var hospIrmao = dadosAtual[j][COLUNAS_RESERVAS.HOSPITAL] || '';
+        var identIrmaoReserva = String(dadosAtual[j][COLUNAS_RESERVAS.IDENTIFICACAO_LEITO] || '').trim().toUpperCase();
+        
+        if (hospIrmao === hospitalReservaEncontrada && identIrmaoReserva === identificacaoIrmao) {
+          linhaIrmao = j + 1;
+          Logger.log('[IRMAO ENCONTRADO] Linha do irmao: ' + linhaIrmao);
+          break;
+        }
+      }
+    }
+    
+    // Apagar as linhas
+    var linhasApagadas = [];
+    
+    if (linhaIrmao > linhaParaApagar) {
+      abaReservas.deleteRow(linhaIrmao);
+      linhasApagadas.push(linhaIrmao);
+      Logger.log('[RESERVA] Linha do irmao ' + linhaIrmao + ' apagada');
+      
+      abaReservas.deleteRow(linhaParaApagar);
+      linhasApagadas.push(linhaParaApagar);
+      Logger.log('[RESERVA] Linha principal ' + linhaParaApagar + ' apagada');
+    } else if (linhaIrmao > 0 && linhaIrmao < linhaParaApagar) {
+      abaReservas.deleteRow(linhaParaApagar);
+      linhasApagadas.push(linhaParaApagar);
+      Logger.log('[RESERVA] Linha principal ' + linhaParaApagar + ' apagada');
+      
+      abaReservas.deleteRow(linhaIrmao);
+      linhasApagadas.push(linhaIrmao);
+      Logger.log('[RESERVA] Linha do irmao ' + linhaIrmao + ' apagada');
+    } else {
+      abaReservas.deleteRow(linhaParaApagar);
+      linhasApagadas.push(linhaParaApagar);
+      Logger.log('[RESERVA] Linha ' + linhaParaApagar + ' apagada (sem irmao)');
+    }
+    
+    return { 
+      ok: true, 
+      success: true, 
+      data: { 
+        message: 'Reserva cancelada com sucesso', 
+        linhasApagadas: linhasApagadas
+      } 
+    };
+    
+  } catch (error) {
+    Logger.log('!!! [API V7.3] Erro em handleCancelarReserva: ' + error.toString());
+    return { ok: false, error: error.toString() };
+  }
+}
+
+function handleListarReservas(params) {
+  try {
+    Logger.log('[API V7.3] ===== LISTANDO RESERVAS =====');
+    
+    const hospital = params.hospital || null;
+    const reservas = obterReservasAtivas();
+    
+    let resultado = reservas;
+    
+    if (hospital) {
+      resultado = reservas.filter(function(r) {
+        return r.hospital === hospital;
+      });
+    }
+    
+    Logger.log('[RESERVAS] ' + resultado.length + ' encontradas');
+    
+    return {
+      ok: true,
+      data: {
+        total: resultado.length,
+        reservas: resultado
+      }
+    };
+    
+  } catch (error) {
+    Logger.log('!!! [API V7.3] Erro em handleListarReservas: ' + error.toString());
+    return { ok: false, error: error.toString() };
+  }
+}
+
+function handleAdmitirComReserva(params) {
+  try {
+    Logger.log('[API V7.3] ===== ADMITIR COM RESERVA =====');
+    
+    const hospital = params.hospital;
+    const leito = parseInt(params.leito);
+    const matriculaReserva = params.matriculaReserva;
+    
+    if (!hospital || !leito) {
+      throw new Error('Campos obrigatorios: hospital, leito');
+    }
+    
+    // Buscar reserva
+    const reservas = obterReservasAtivas();
+    const reserva = reservas.find(function(r) {
+      return r.hospital === hospital && r.matricula === matriculaReserva;
+    });
+    
+    // Montar params de admissao
+    const paramsAdmissao = {
+      hospital: hospital,
+      leito: leito,
+      nome: params.nome || (reserva ? reserva.iniciais : ''),
+      matricula: params.matricula || (reserva ? reserva.matricula : ''),
+      idade: params.idade || (reserva ? reserva.idade : ''),
+      genero: params.genero || (reserva ? reserva.genero : ''),
+      identificacaoLeito: params.identificacaoLeito || (reserva ? reserva.identificacaoLeito : ''),
+      isolamento: params.isolamento || (reserva ? reserva.isolamento : ''),
+      pps: params.pps || '',
+      spict: params.spict || '',
+      complexidade: params.complexidade || '',
+      prevAlta: params.prevAlta || '',
+      regiao: params.regiao || '',
+      categoriaEscolhida: params.categoriaEscolhida || '',
+      diretivas: params.diretivas || '',
+      anotacoes: params.anotacoes || '',
+      concessoes: params.concessoes || '',
+      linhas: params.linhas || ''
+    };
+    
+    // Executar admissao
+    const resultadoAdmissao = handleAdmitir(paramsAdmissao);
+    
+    if (!resultadoAdmissao.ok) {
+      return resultadoAdmissao;
+    }
+    
+    // Cancelar reserva se existia
+    if (reserva && matriculaReserva) {
+      handleCancelarReserva({ hospital: hospital, matricula: matriculaReserva });
+      Logger.log('[RESERVA] Consumida e removida');
+    }
+    
+    return {
+      ok: true,
+      data: {
+        message: 'Paciente admitido com sucesso (reserva consumida)',
+        hospital: hospital,
+        leito: leito,
+        reservaUsada: reserva ? true : false
+      }
+    };
+    
+  } catch (error) {
+    Logger.log('!!! [API V7.3] Erro em handleAdmitirComReserva: ' + error.toString());
+    return { ok: false, error: error.toString() };
+  }
+}
+
+// =================== FUNCOES DE BUSCA ===================
+
+/**
+ * Busca leito por hospital + numero do leito (original)
+ */
+function encontrarLinhaPorLeito(aba, hospital, leito) {
+  const dados = aba.getDataRange().getValues();
+  
+  for (var i = 1; i < dados.length; i++) {
+    if (dados[i][COLUNAS.HOSPITAL] === hospital && 
+        parseInt(dados[i][COLUNAS.LEITO]) === leito) {
+      return i + 1;
+    }
+  }
+  
+  return -1;
+}
+
+/**
+ * V7.1: Busca leito por hospital + numero + tipo
+ */
+function encontrarLinhaPorLeitoETipo(aba, hospital, leito, tipo) {
+  const dados = aba.getDataRange().getValues();
+  
+  for (var i = 1; i < dados.length; i++) {
+    if (dados[i][COLUNAS.HOSPITAL] === hospital && 
+        parseInt(dados[i][COLUNAS.LEITO]) === leito &&
+        dados[i][COLUNAS.TIPO] === tipo) {
+      return i + 1;
+    }
+  }
+  
+  return -1;
+}
+
+/**
+ * V7.1: Busca leito por hospital + identificacao_leito + tipo
+ * Usado para UTI onde o numero do leito e dinamico
+ */
+function encontrarLinhaPorIdentificacaoETipo(aba, hospital, identificacaoLeito, tipo) {
+  const dados = aba.getDataRange().getValues();
+  const identNorm = String(identificacaoLeito || '').trim().toUpperCase();
+  
+  for (var i = 1; i < dados.length; i++) {
+    var linhaIdent = String(dados[i][COLUNAS.IDENTIFICACAO_LEITO] || '').trim().toUpperCase();
+    
+    if (dados[i][COLUNAS.HOSPITAL] === hospital && 
+        linhaIdent === identNorm &&
+        dados[i][COLUNAS.TIPO] === tipo) {
+      return i + 1;
+    }
+  }
+  
+  return -1;
+}
+
+/**
+ * V7.1: Encontra primeiro leito UTI vago do hospital
+ */
+function encontrarPrimeiroLeitoVagoUTI(aba, hospital) {
+  const dados = aba.getDataRange().getValues();
+  
+  for (var i = 1; i < dados.length; i++) {
+    var linhaHospital = dados[i][COLUNAS.HOSPITAL];
+    var linhaTipo = dados[i][COLUNAS.TIPO];
+    var linhaStatus = dados[i][COLUNAS.STATUS];
+    
+    if (linhaHospital === hospital && 
+        linhaTipo === 'UTI' &&
+        (linhaStatus === 'Vago' || linhaStatus === 'vago' || linhaStatus === '')) {
+      return i + 1;
+    }
+  }
+  
+  return -1;
+}
+
+/**
+ * Obtem todas as reservas ativas
+ */
+function obterReservasAtivas() {
+  try {
+    const planilha = SpreadsheetApp.getActiveSpreadsheet();
+    const abaReservas = planilha.getSheetByName(ABA_RESERVAS);
+    
+    if (!abaReservas) {
+      return [];
+    }
+    
+    const dados = abaReservas.getDataRange().getValues();
+    const reservas = [];
+    
+    for (var i = 1; i < dados.length; i++) {
+      const linha = dados[i];
+      
+      if (!linha[COLUNAS_RESERVAS.HOSPITAL]) continue;
+      
+      reservas.push({
+        linha: i + 1,
+        hospital: linha[COLUNAS_RESERVAS.HOSPITAL],
+        tipo: linha[COLUNAS_RESERVAS.TIPO],
+        identificacaoLeito: linha[COLUNAS_RESERVAS.IDENTIFICACAO_LEITO] || '',
+        isolamento: linha[COLUNAS_RESERVAS.ISOLAMENTO] || '',
+        genero: linha[COLUNAS_RESERVAS.GENERO] || '',
+        iniciais: linha[COLUNAS_RESERVAS.INICIAIS] || '',
+        matricula: linha[COLUNAS_RESERVAS.MATRICULA] || '',
+        idade: linha[COLUNAS_RESERVAS.IDADE] || '',
+        dataReserva: linha[COLUNAS_RESERVAS.DATA_RESERVA] || '',
+        usuarioReserva: linha[COLUNAS_RESERVAS.USUARIO_RESERVA] || '',
+        identificacaoIrmao: linha[COLUNAS_RESERVAS.IDENTIFICACAO_IRMAO] || ''
+      });
+    }
+    
+    return reservas;
+    
+  } catch (error) {
+    Logger.log('!!! Erro ao obter reservas: ' + error.toString());
+    return [];
+  }
+}
+
+// =================== LEITURA DE DADOS ===================
+
+function lerTodosOsDados() {
+  try {
+    const planilha = SpreadsheetApp.getActiveSpreadsheet();
+    const aba = planilha.getSheetByName(ABA_NOME);
+    const dados = aba.getDataRange().getValues();
+    const linhasDados = dados.slice(1);
+    
+    return linhasDados.map(function(linha) {
+      // Ler concessoes marcadas
+      const concessoes = [];
+      for (var key in CONCESSOES_MAP) {
+        if (CONCESSOES_MAP.hasOwnProperty(key)) {
+          var colIndex = CONCESSOES_MAP[key];
+          if (linha[colIndex] && linha[colIndex].toString().toUpperCase() === 'X') {
+            concessoes.push(key);
+          }
+        }
+      }
+      
+      // Ler linhas de cuidado marcadas
+      const linhasCuidado = [];
+      for (var key in LINHAS_MAP) {
+        if (LINHAS_MAP.hasOwnProperty(key)) {
+          var colIndex = LINHAS_MAP[key];
+          if (linha[colIndex] && linha[colIndex].toString().toUpperCase() === 'X') {
+            linhasCuidado.push(key);
+          }
+        }
+      }
+      
+      return {
+        hospital: linha[COLUNAS.HOSPITAL] || '',
+        leito: linha[COLUNAS.LEITO] || '',
+        tipo: linha[COLUNAS.TIPO] || '',
+        status: linha[COLUNAS.STATUS] || 'Vago',
+        nome: linha[COLUNAS.NOME] || '',
+        matricula: linha[COLUNAS.MATRICULA] || '',
+        idade: linha[COLUNAS.IDADE] || null,
+        admAt: linha[COLUNAS.ADM_AT] || '',
+        pps: linha[COLUNAS.PPS] || null,
+        spict: linha[COLUNAS.SPICT] || '',
+        complexidade: linha[COLUNAS.COMPLEXIDADE] || '',
+        prevAlta: linha[COLUNAS.PREV_ALTA] || '',
+        concessoes: concessoes,
+        linhas: linhasCuidado,
+        identificacaoLeito: linha[COLUNAS.IDENTIFICACAO_LEITO] || '',
+        isolamento: linha[COLUNAS.ISOLAMENTO] || '',
+        genero: linha[COLUNAS.GENERO] || '',
+        regiao: linha[COLUNAS.REGIAO] || '',
+        categoriaEscolhida: linha[COLUNAS.CATEGORIA_ESCOLHIDA] || '',
+        diretivas: linha[COLUNAS.DIRETIVAS] || '',
+        anotacoes: linha[COLUNAS.ANOTACOES] || ''
+      };
+    });
+    
+  } catch (error) {
+    Logger.log('!!! [API V7.3] Erro ao ler dados: ' + error.toString());
+    throw error;
+  }
+}
+
+// =================== FUNCOES DE MARCACAO ===================
+
+function limparConcessoes(aba, linhaIndex) {
+  for (var col = COLUNAS.C1_TRANSICAO_DOMICILIAR; col <= COLUNAS.C11_SOLICITACAO_EXAMES_DOMICILIAR; col++) {
+    aba.getRange(linhaIndex, col + 1).setValue('');
+  }
+  aba.getRange(linhaIndex, COLUNAS.C12_FISIOTERAPIA_RESPIRATORIA_DOMICILIAR + 1).setValue('');
+}
+
+function marcarConcessoes(aba, linhaIndex, concessoesSelecionadas) {
+  var marcadas = 0;
+  var naoMapeadas = [];
+  
+  concessoesSelecionadas.forEach(function(concessao) {
+    var concessaoNormalizada = normalizarTexto(concessao);
+    var colIndex = CONCESSOES_MAP[concessaoNormalizada];
+    
+    if (colIndex !== undefined) {
+      aba.getRange(linhaIndex, colIndex + 1).setValue('X');
+      marcadas++;
+    } else {
+      naoMapeadas.push(concessao);
+    }
+  });
+  
+  return {
+    marcadas: marcadas,
+    total: concessoesSelecionadas.length,
+    naoMapeadas: naoMapeadas
+  };
+}
+
+function limparLinhas(aba, linhaIndex) {
+  for (var col = COLUNAS.L1_ASSISTE; col <= COLUNAS.L45_UROLOGIA; col++) {
+    if (col === COLUNAS.IDENTIFICACAO_LEITO || col === COLUNAS.ISOLAMENTO) {
+      continue;
+    }
+    aba.getRange(linhaIndex, col + 1).setValue('');
+  }
+}
+
+function marcarLinhas(aba, linhaIndex, linhasSelecionadas) {
+  linhasSelecionadas.forEach(function(linha) {
+    var linhaNormalizada = normalizarTexto(linha);
+    if (LINHAS_MAP[linhaNormalizada]) {
+      aba.getRange(linhaIndex, LINHAS_MAP[linhaNormalizada] + 1).setValue('X');
+    }
+  });
+}
+
+// =================== AGRUPAMENTO ===================
+
+function agruparPorHospital(dados) {
+  const hospitais = {};
+  
+  dados.forEach(function(leito) {
+    const hospitalId = leito.hospital;
+    
+    if (!hospitalId) return;
+    
+    // Pular hospitais reserva
+    if (hospitalId === 'H10' || hospitalId === 'H11') return;
+    
+    if (!hospitais[hospitalId]) {
+      hospitais[hospitalId] = {
+        nome: HOSPITAIS[hospitalId] ? HOSPITAIS[hospitalId].nome : hospitalId,
+        leitos: []
+      };
+    }
+    
+    hospitais[hospitalId].leitos.push(leito);
+  });
+  
+  return hospitais;
+}
+
+// =================== MENU ===================
+
+function onOpen() {
+  var ui = SpreadsheetApp.getUi();
+  ui.createMenu('Archipelago API V7.3')
+    .addItem('Testar API', 'testarAPI')
+    .addItem('Ver Estatisticas', 'verEstatisticas')
+    .addSeparator()
+    .addItem('Listar Reservas', 'listarReservasUI')
+    .addToUi();
+}
+
+function testarAPI() {
+  var resultado = handleTest();
+  var dados = resultado.data;
+  
+  SpreadsheetApp.getUi().alert(
+    'API V' + dados.version + '\n\n' +
+    'Enfermaria: ' + dados.enfermaria.total + ' leitos\n' +
+    'UTI: ' + dados.uti.total + ' leitos\n' +
+    'Total: ' + dados.geral.total + ' leitos\n\n' +
+    'Endpoints: ' + dados.endpoints.length
+  );
+}
+
+function verEstatisticas() {
+  var resultado = handleGetAll();
+  
+  if (!resultado.ok) {
+    SpreadsheetApp.getUi().alert('Erro: ' + resultado.error);
+    return;
+  }
+  
+  var ocupados = 0;
+  var vagos = 0;
+  var utiOcupados = 0;
+  var enfOcupados = 0;
+  
+  for (var h in resultado.data) {
+    resultado.data[h].leitos.forEach(function(leito) {
+      if (leito.status === 'Ocupado') {
+        ocupados++;
+        if (leito.tipo === 'UTI') {
+          utiOcupados++;
+        } else {
+          enfOcupados++;
+        }
+      } else {
+        vagos++;
+      }
+    });
+  }
+  
+  SpreadsheetApp.getUi().alert(
+    'ESTATISTICAS\n\n' +
+    'Ocupados: ' + ocupados + '\n' +
+    '  - Enfermaria: ' + enfOcupados + '\n' +
+    '  - UTI: ' + utiOcupados + '\n' +
+    'Vagos: ' + vagos + '\n\n' +
+    'Reservas: ' + resultado.reservas.length
+  );
+}
+
+function listarReservasUI() {
+  var resultado = handleListarReservas({});
+  
+  if (resultado.data.total === 0) {
+    SpreadsheetApp.getUi().alert('Nenhuma reserva ativa');
+    return;
+  }
+  
+  var msg = 'RESERVAS (' + resultado.data.total + ')\n\n';
+  
+  resultado.data.reservas.forEach(function(r) {
+    msg += r.hospital + ' - ' + r.tipo + ' - ' + (r.iniciais || 'S/N') + '\n';
+  });
+  
+  SpreadsheetApp.getUi().alert(msg);
+}
+
+// =================== LOG FINAL ===================
+Logger.log('===================================================');
+Logger.log('[API V7.3] Script carregado!');
+Logger.log('===================================================');
+Logger.log('76 colunas (A-BX)');
+Logger.log('Enfermaria: 293 leitos (9 hospitais ativos)');
+Logger.log('UTI: 63 leitos (8 hospitais - H7 sem UTI)');
+Logger.log('Total: 356 leitos ativos');
+Logger.log('12 concessoes (M-W + BW)');
+Logger.log('45 linhas de cuidado (X-BR)');
+Logger.log('Campo anotacoes (BX - 800 chars)');
+Logger.log('Aba reservas (11 colunas)');
+Logger.log('===================================================');
+Logger.log('ENDPOINTS:');
+Logger.log('   - test, all, admitir, atualizar, daralta');
+Logger.log('   - admitirUTI, atualizarUTI, daraltaUTI (V7.1)');
+Logger.log('   - reservar, cancelarReserva, listarReservas');
+Logger.log('   - admitirComReserva');
+Logger.log('===================================================');
+Logger.log('V7.3 NOVIDADES:');
+Logger.log('   - SPICT-BR ativo na UTI (coluna J)');
+Logger.log('   - handleAdmitirUTI grava SPICT');
+Logger.log('   - handleAtualizarUTI atualiza SPICT');
+Logger.log('===================================================');
+Logger.log('H6 Santa Cruz: 13 contratuais + 9 extras');
+Logger.log('H7 Santa Virginia: 13 contratuais + 9 extras (SEM UTI)');
+Logger.log('===================================================');
