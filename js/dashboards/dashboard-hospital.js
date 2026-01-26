@@ -2423,6 +2423,7 @@ function getHospitalConsolidadoCSS() {
             \
             .lista-item-compacto .label {\
                 color: ' + CORES_ARCHIPELAGO.azulClaro + ';\
+                text-align: left;\
             }\
             \
             .lista-item-compacto .valor {\
