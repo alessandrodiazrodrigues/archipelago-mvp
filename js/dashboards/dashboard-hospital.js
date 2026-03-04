@@ -400,9 +400,7 @@ window.copiarDashboardParaWhatsApp = function() {
         }
         
         // ========== DIRETIVAS PENDENTES ==========
-        // V7.1: Apenas Diretivas = "Não" (norm: 'nao') conta como pendente.
-        // "Não se aplica" NÃO é pendente - é atribuído automaticamente a SPICT não elegível
-        // ou pacientes sem indicação, e não deve ser cobrado.
+        // V7.2: Campo retornado pela API como 'Diretivas' (D maiúsculo)
         var diretivasPendentes = leitos.filter(function(l) {
             if (!isOcupado(l)) return false;
             
@@ -412,7 +410,8 @@ window.copiarDashboardParaWhatsApp = function() {
             var spictNorm = normStr(spict);
             if (spictNorm !== 'elegivel') return false;
             
-            var dirNorm = normStr(l.diretivas);
+            var dirVal = l.diretivas || l.Diretivas;
+            var dirNorm = normStr(dirVal);
             return dirNorm === 'nao';
         });
         
@@ -892,10 +891,8 @@ window.processarDadosHospital = function(hospitalId) {
         return norm === 'elegivel' || norm === 'elegível';
     });
     
-    // V7.1: Apenas Diretivas = "Não" (norm: 'nao') conta como pendente.
-    // "Não se aplica" NÃO é pendente - é atribuído automaticamente a SPICT não elegível
-    // ou pacientes sem indicação, e não deve ser cobrado.
-    // Antes havia: ['', 'nao', 'n/a', 'pendente', 'nao se aplica'] - INCORRETO
+    // V7.2: Campo retornado pela API como 'Diretivas' (D maiúsculo, igual ao cabeçalho da planilha)
+    // l.diretivas (minúsculo) era sempre undefined -> zero. Usar fallback l.Diretivas.
     var diretivasPendentes = ocupados.filter(function(l) {
         var spict = l.spict;
         if (!spict) return false;
@@ -903,7 +900,8 @@ window.processarDadosHospital = function(hospitalId) {
         var spictNorm = normStr(spict);
         if (spictNorm !== 'elegivel') return false;
         
-        var dirNorm = normStr(l.diretivas);
+        var dirVal = l.diretivas || l.Diretivas;
+        var dirNorm = normStr(dirVal);
         return dirNorm === 'nao';
     }).map(function(l) {
         return {
@@ -2789,7 +2787,7 @@ window.forceDataRefresh = function() {
     window.location.reload();
 };
 
-console.log('Dashboard Enfermarias V7.1 - Carregado com Sucesso!');
-console.log('V7.1 Correção: diretivasPendentes conta apenas Diretivas = "Não" (norm: nao)');
-console.log('V7.1 Antes: array incluía nao se aplica, n/a, vazio - INCORRETO');
-console.log('V7.1 Depois: apenas dirNorm === nao - correto');
+console.log('Dashboard Enfermarias V7.2 - Carregado com Sucesso!');
+console.log('V7.2 Correção: campo Diretivas usa D maiúsculo na API (igual cabeçalho planilha)');
+console.log('V7.2 Antes: l.diretivas era sempre undefined -> zero');
+console.log('V7.2 Depois: l.diretivas || l.Diretivas cobre ambos os casos');
