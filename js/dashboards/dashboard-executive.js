@@ -1,6 +1,7 @@
 // =================== DASHBOARD EXECUTIVO V7.0 - COM RESERVADOS E FILTRO UTI ===================
 // =================== 9 HOSPITAIS | 293 LEITOS (126 CONTRATUAIS) ===================
 // =================== V7.0: + Coluna Reservados + Filtro UTI ===================
+// =================== V7.1: CORREÇÃO BUG DIRETIVAS PENDENTES (normalização NFD) ===================
 
 // =================== CONSTANTES GLOBAIS V7.0 ===================
 const TOTAL_CONTRATUAIS = 150; // 9 hospitais ativos (H1-H9): 10+36+13+26+13+13+13+13+13
@@ -441,6 +442,16 @@ function calcularModalidadePorTipoExecutivo(leitos, hospitalId) {
     return modalidade;
 }
 
+// =================== HELPER: NORMALIZAR STRING (remove acentos, lowercase, trim) ===================
+// V7.1: Adicionado para garantir comparações robustas independente de encoding
+function normalizarStrExec(str) {
+    return (str || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .trim();
+}
+
 // =================== FUNÇÃO: PROCESSAR DADOS DO HOSPITAL (EXECUTIVO) ===================
 function processarDadosHospitalExecutivo(hospitalId) {
     const hospitalObj = window.hospitalData[hospitalId] || {};
@@ -662,11 +673,18 @@ function processarDadosHospitalExecutivo(hospitalId) {
         l.spict && l.spict.toLowerCase() === 'elegivel'
     );
     
-    // =================== DIRETIVAS CORRIGIDA: "Não" ou "Nao" ===================
-    const diretivasPendentes = ocupados.filter(l => 
-        l.spict && l.spict.toLowerCase() === 'elegivel' && 
-        (l.diretivas === 'Não' || l.diretivas === 'Nao')
-    );
+    // =================== V7.1: DIRETIVAS PENDENTES - NORMALIZAÇÃO NFD ===================
+    // Correção do bug que retornava 0:
+    // A comparação anterior usava === com strings literais acentuadas, quebrando com
+    // variações de encoding. A normalização NFD garante comparação robusta em todos os casos.
+    // Regra: SPICT = "elegivel" E Diretivas = "Nao" (com ou sem acento)
+    const diretivasPendentes = ocupados.filter(l => {
+        if (!l.spict) return false;
+        const spictNorm = normalizarStrExec(l.spict);
+        if (spictNorm !== 'elegivel') return false;
+        const dirNorm = normalizarStrExec(l.diretivas);
+        return dirNorm === 'nao';
+    });
     
     const totalLeitos = leitos.length;
     const base = Math.max(capacidade.contratuais, ocupados.length);
@@ -2766,23 +2784,26 @@ function getExecutiveCSS() {
 }
 
 function logInfo(message) {
-    console.log('[DASHBOARD EXECUTIVO V7.0] ' + message);
+    console.log('[DASHBOARD EXECUTIVO V7.1] ' + message);
 }
 
 function logSuccess(message) {
-    console.log('[DASHBOARD EXECUTIVO V7.0] ' + message);
+    console.log('[DASHBOARD EXECUTIVO V7.1] ' + message);
 }
 
 function logError(message) {
-    console.error('[DASHBOARD EXECUTIVO V7.0] ' + message);
+    console.error('[DASHBOARD EXECUTIVO V7.1] ' + message);
 }
 
-console.log('Dashboard Executivo V7.0 - CORRIGIDO COMPLETO + RESERVADOS + FILTRO UTI');
+console.log('Dashboard Executivo V7.1 - CORREÇÃO BUG DIRETIVAS PENDENTES');
+console.log('V7.1 Correção: normalizarStrExec() garante comparação NFD para spict e diretivas');
+console.log('V7.1 Antes: diretivasPendentes usava === literal, retornando 0 por variação de encoding');
+console.log('V7.1 Depois: normalização NFD + toLowerCase + trim antes de comparar');
 console.log('V7.0 9 Hospitais (H1-H9) | 293 Leitos (150 Contratuais + 143 Extras)');
 console.log('V7.0 Coluna Reservados adicionada na tabela de ocupacao');
 console.log('V7.0 Filtro UTI aplicado em todos os calculos');
 console.log('V7.0 Disponíveis = contratuais - ocupados - reservados');
-console.log('V7.0 Diretivas: SPICT elegível + Diretivas = "Não"');
+console.log('V7.1 Diretivas: SPICT elegível (NFD) + Diretivas = "nao" (NFD)');
 console.log('V7.0 text-transform: none !important em TUDO');
 console.log('V7.0 Bordas brancas sempre visíveis');
 console.log('V7.0 Ordem alfabética: Adventista → Sao Camilo Pompeia');
