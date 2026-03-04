@@ -299,7 +299,15 @@ function validarCategoriaEscolhida(categoria) {
 }
 
 function validarDiretivas(diretiva) {
-    return window.DIRETIVAS_OPCOES.includes(diretiva) ? diretiva : 'Não se aplica';
+    // V7.3: Normalizar NFD antes de comparar para cobrir variantes sem acento
+    // Ex: 'Nao' da planilha deve mapear para 'Não', 'Nao se aplica' -> 'Não se aplica'
+    if (!diretiva) return 'Não se aplica';
+    if (window.DIRETIVAS_OPCOES.includes(diretiva)) return diretiva;
+    const norm = diretiva.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+    if (norm === 'nao') return 'Não';
+    if (norm === 'sim') return 'Sim';
+    if (norm === 'nao se aplica') return 'Não se aplica';
+    return 'Não se aplica';
 }
 
 function getCorConcessao(concessao) {
