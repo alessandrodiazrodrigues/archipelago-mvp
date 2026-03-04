@@ -1,4 +1,4 @@
-﻿// js/dashboards/dashboard-hospital.js
+// js/dashboards/dashboard-hospital.js
 // Dashboard Enfermarias - Archipelago V7.0
 // Versão: 7.0 - Dezembro/2025
 // Alterações V7.0:
@@ -8,6 +8,9 @@
 // - Box "Ocupação" com dois gauges (Reservados | Ocupados)
 // - Tabela por tipo com colunas Ocupados | Reservados
 // - Cálculo de disponíveis desconta reservas
+// V7.1: Correção diretivasPendentes - removido 'nao se aplica' dos valores pendentes
+//       Apenas Diretivas = "Não" conta como pendente (normalizado NFD = 'nao')
+//       Corrigido em processarDadosHospital() e copiarDashboardParaWhatsApp()
 
 // =================== DASHBOARD ENFERMARIAS V7.0 ===================
 // Depende de: cards-config.js (carregar ANTES)
@@ -397,6 +400,9 @@ window.copiarDashboardParaWhatsApp = function() {
         }
         
         // ========== DIRETIVAS PENDENTES ==========
+        // V7.1: Apenas Diretivas = "Não" (norm: 'nao') conta como pendente.
+        // "Não se aplica" NÃO é pendente - é atribuído automaticamente a SPICT não elegível
+        // ou pacientes sem indicação, e não deve ser cobrado.
         var diretivasPendentes = leitos.filter(function(l) {
             if (!isOcupado(l)) return false;
             
@@ -404,16 +410,10 @@ window.copiarDashboardParaWhatsApp = function() {
             if (!spict) return false;
             
             var spictNorm = normStr(spict);
-            var spictElegivel = spictNorm === 'elegivel' || spictNorm === 'elegível';
+            if (spictNorm !== 'elegivel') return false;
             
-            if (!spictElegivel) return false;
-            
-            var diretivas = l.diretivas;
-            var dirNorm = normStr(diretivas);
-            
-            var valoresPendentes = ['', 'nao', 'n/a', 'pendente', 'nao se aplica'];
-            
-            return valoresPendentes.includes(dirNorm);
+            var dirNorm = normStr(l.diretivas);
+            return dirNorm === 'nao';
         });
         
         if (diretivasPendentes.length > 0) {
@@ -892,21 +892,19 @@ window.processarDadosHospital = function(hospitalId) {
         return norm === 'elegivel' || norm === 'elegível';
     });
     
+    // V7.1: Apenas Diretivas = "Não" (norm: 'nao') conta como pendente.
+    // "Não se aplica" NÃO é pendente - é atribuído automaticamente a SPICT não elegível
+    // ou pacientes sem indicação, e não deve ser cobrado.
+    // Antes havia: ['', 'nao', 'n/a', 'pendente', 'nao se aplica'] - INCORRETO
     var diretivasPendentes = ocupados.filter(function(l) {
         var spict = l.spict;
         if (!spict) return false;
         
         var spictNorm = normStr(spict);
-        var spictElegivel = spictNorm === 'elegivel' || spictNorm === 'elegível';
+        if (spictNorm !== 'elegivel') return false;
         
-        if (!spictElegivel) return false;
-        
-        var diretivas = l.diretivas;
-        var dirNorm = normStr(diretivas);
-        
-        var valoresPendentes = ['', 'nao', 'n/a', 'pendente', 'nao se aplica'];
-        
-        return valoresPendentes.includes(dirNorm);
+        var dirNorm = normStr(l.diretivas);
+        return dirNorm === 'nao';
     }).map(function(l) {
         return {
             leito: l.identificacaoLeito || l.leito || '---',
@@ -2791,5 +2789,7 @@ window.forceDataRefresh = function() {
     window.location.reload();
 };
 
-console.log('Dashboard Enfermarias V7.0 - Carregado com Sucesso!');
-
+console.log('Dashboard Enfermarias V7.1 - Carregado com Sucesso!');
+console.log('V7.1 Correção: diretivasPendentes conta apenas Diretivas = "Não" (norm: nao)');
+console.log('V7.1 Antes: array incluía nao se aplica, n/a, vazio - INCORRETO');
+console.log('V7.1 Depois: apenas dirNorm === nao - correto');
