@@ -678,11 +678,14 @@ function processarDadosHospitalExecutivo(hospitalId) {
     // A comparação anterior usava === com strings literais acentuadas, quebrando com
     // variações de encoding. A normalização NFD garante comparação robusta em todos os casos.
     // Regra: SPICT = "elegivel" E Diretivas = "Nao" (com ou sem acento)
+    // V7.2: Campo retornado pela API como 'Diretivas' (D maiúsculo, igual ao cabeçalho da planilha)
+    // l.diretivas (minúsculo) era sempre undefined -> zero. Usar fallback l.Diretivas.
     const diretivasPendentes = ocupados.filter(l => {
         if (!l.spict) return false;
         const spictNorm = normalizarStrExec(l.spict);
         if (spictNorm !== 'elegivel') return false;
-        const dirNorm = normalizarStrExec(l.diretivas);
+        const dirVal = l.diretivas || l.Diretivas;
+        const dirNorm = normalizarStrExec(dirVal);
         return dirNorm === 'nao';
     });
     
@@ -2796,9 +2799,9 @@ function logError(message) {
 }
 
 console.log('Dashboard Executivo V7.1 - CORREÇÃO BUG DIRETIVAS PENDENTES');
-console.log('V7.1 Correção: normalizarStrExec() garante comparação NFD para spict e diretivas');
-console.log('V7.1 Antes: diretivasPendentes usava === literal, retornando 0 por variação de encoding');
-console.log('V7.1 Depois: normalização NFD + toLowerCase + trim antes de comparar');
+console.log('V7.2 Correção: campo Diretivas usa D maiúsculo na API (igual cabeçalho planilha)');
+console.log('V7.2 Antes: l.diretivas era sempre undefined -> zero');
+console.log('V7.2 Depois: l.diretivas || l.Diretivas cobre ambos os casos');
 console.log('V7.0 9 Hospitais (H1-H9) | 293 Leitos (150 Contratuais + 143 Extras)');
 console.log('V7.0 Coluna Reservados adicionada na tabela de ocupacao');
 console.log('V7.0 Filtro UTI aplicado em todos os calculos');
