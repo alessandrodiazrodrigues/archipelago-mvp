@@ -1899,7 +1899,7 @@ function getExecutiveCSS() {
             
             .gauge-largo-info {
                 position: absolute;
-                bottom: 60px;
+                top: 50px;
                 left: 0;
                 right: 0;
                 -webkit-transform: none;
@@ -2508,7 +2508,7 @@ function getExecutiveCSS() {
             
             @media (min-width: 768px) and (max-width: 1024px) {
                 .gauge-largo-info {
-                    bottom: 60px !important;
+                    top: 50px !important;
                     left: 0 !important;
                     right: 0 !important;
                     -webkit-transform: none !important;
@@ -2591,7 +2591,7 @@ function getExecutiveCSS() {
                 
                 .gauge-largo-info {
                     position: absolute !important;
-                    bottom: 60px !important;
+                    top: 50px !important;
                     left: 0 !important;
                     right: 0 !important;
                     -webkit-transform: none !important;
