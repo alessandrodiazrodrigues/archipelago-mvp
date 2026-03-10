@@ -1,9 +1,10 @@
-// =================== DASHBOARD EXECUTIVO V7.6 - COM RESERVADOS E FILTRO UTI ===================
+// =================== DASHBOARD EXECUTIVO V7.7 - COM RESERVADOS E FILTRO UTI ===================
 // =================== 9 HOSPITAIS | 293 LEITOS (126 CONTRATUAIS) ===================
 // =================== V7.0: + Coluna Reservados + Filtro UTI ===================
 // =================== V7.1: CORREÇÃO BUG DIRETIVAS PENDENTES (normalização NFD) ===================
 // =================== V7.5: CORREÇÃO breakdown modalidade H2/H4 não descontava reservados ===================
 // =================== V7.6: CORREÇÃO breakdown overcounting quando extras enf ocupados; fix gauge Safari ===================
+// =================== V7.7: CORREÇÃO gauge-largo Safari; v5-number bottom; kpi-box overflow; Taxa Ocupação centralizado ===================
 
 // =================== CONSTANTES GLOBAIS V7.0 ===================
 const TOTAL_CONTRATUAIS = 150; // 9 hospitais ativos (H1-H9): 10+36+13+26+13+13+13+13+13
@@ -1867,6 +1868,7 @@ function getExecutiveCSS() {
                 display: flex;
                 flex-direction: column;
                 color: white;
+                overflow: hidden;
             }
             
             .kpi-box:hover {
@@ -1897,9 +1899,11 @@ function getExecutiveCSS() {
             
             .gauge-largo-info {
                 position: absolute;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -40%);
+                top: 30px;
+                left: 0;
+                right: 0;
+                -webkit-transform: none;
+                transform: none;
                 text-align: center;
                 width: 100%;
                 pointer-events: none;
@@ -1960,15 +1964,14 @@ function getExecutiveCSS() {
             
             .v5-number-inside {
                 position: absolute;
-                top: 50%;
+                bottom: 8px;
                 left: 50%;
-                -webkit-transform: translate(-50%, -50%);
-                transform: translate(-50%, -50%);
+                -webkit-transform: translateX(-50%);
+                transform: translateX(-50%);
                 font-size: 26px;
                 font-weight: 700;
                 color: white;
                 line-height: 1;
-                margin-top: 8px;
                 text-transform: none !important;
             }
             
@@ -2302,7 +2305,8 @@ function getExecutiveCSS() {
             
             .hospitais-table-ocupacao th:nth-child(2),
             .hospitais-table-ocupacao th:nth-child(3),
-            .hospitais-table-ocupacao th:nth-child(4) {
+            .hospitais-table-ocupacao th:nth-child(4),
+            .hospitais-table-ocupacao th:nth-child(5) {
                 text-align: center;
             }
             
@@ -2315,7 +2319,8 @@ function getExecutiveCSS() {
             
             .hospitais-table-ocupacao tbody tr:not(.regua-row) td:nth-child(2),
             .hospitais-table-ocupacao tbody tr:not(.regua-row) td:nth-child(3),
-            .hospitais-table-ocupacao tbody tr:not(.regua-row) td:nth-child(4) {
+            .hospitais-table-ocupacao tbody tr:not(.regua-row) td:nth-child(4),
+            .hospitais-table-ocupacao tbody tr:not(.regua-row) td:nth-child(5) {
                 text-align: center;
             }
             
@@ -2503,8 +2508,11 @@ function getExecutiveCSS() {
             
             @media (min-width: 768px) and (max-width: 1024px) {
                 .gauge-largo-info {
-                    top: 52% !important;
-                    transform: translate(-50%, -42%) !important;
+                    top: 30px !important;
+                    left: 0 !important;
+                    right: 0 !important;
+                    -webkit-transform: none !important;
+                    transform: none !important;
                 }
                 
                 .gauge-largo-number {
@@ -2583,9 +2591,11 @@ function getExecutiveCSS() {
                 
                 .gauge-largo-info {
                     position: absolute !important;
-                    top: 45% !important;
-                    left: 50% !important;
-                    transform: translate(-50%, -50%) !important;
+                    top: 30px !important;
+                    left: 0 !important;
+                    right: 0 !important;
+                    -webkit-transform: none !important;
+                    transform: none !important;
                     width: 100% !important;
                     padding: 0 10px !important;
                     pointer-events: none !important;
@@ -2627,7 +2637,8 @@ function getExecutiveCSS() {
                 
                 .v5-number-inside {
                     font-size: 28px !important;
-                    margin-top: 5px !important;
+                    bottom: 6px !important;
+                    margin-top: 0 !important;
                 }
                 
                 .v5-badge-below {
@@ -2813,6 +2824,7 @@ function getExecutiveCSS() {
                 
                 .v5-number-inside {
                     font-size: 24px !important;
+                    bottom: 6px !important;
                 }
                 
                 .kpi-valor-metade .valor {
@@ -2863,22 +2875,24 @@ function getExecutiveCSS() {
 }
 
 function logInfo(message) {
-    console.log('[DASHBOARD EXECUTIVO V7.6] ' + message);
+    console.log('[DASHBOARD EXECUTIVO V7.7] ' + message);
 }
 
 function logSuccess(message) {
-    console.log('[DASHBOARD EXECUTIVO V7.6] ' + message);
+    console.log('[DASHBOARD EXECUTIVO V7.7] ' + message);
 }
 
 function logError(message) {
-    console.error('[DASHBOARD EXECUTIVO V7.6] ' + message);
+    console.error('[DASHBOARD EXECUTIVO V7.7] ' + message);
 }
 
-console.log('Dashboard Executivo V7.6 - CORREÇÃO breakdown overcounting + fix gauge Safari');
+console.log('Dashboard Executivo V7.7 - CORREÇÃO gauge Safari/iPad + Taxa Ocupação centralizado');
+console.log('V7.7 Fix: gauge-largo-info top fixo (30px) em vez de top:50% — compatível Safari');
+console.log('V7.7 Fix: v5-number-inside bottom:8px em vez de top:50% — compatível Safari');
+console.log('V7.7 Fix: kpi-box overflow:hidden — impede box de vazar no iPad');
+console.log('V7.7 Fix: th/td nth-child(5) adicionado ao center — Taxa Ocupação centralizado');
 console.log('V7.6 Bug: calcularModalidadesVagosExecutivo overcounting quando extras enf (H2/H4) estão ocupados');
 console.log('V7.6 Fix: cap da soma das modalidades ao disponível real (contratuais - total_ocupados) em H2/H4');
-console.log('V7.6 Fix: wrapper do gauge v5 com width/height explícitos para Safari/iOS');
-console.log('V7.6 Fix: -webkit-transform adicionado ao .v5-number-inside');
 console.log('V7.5 Bug: calcularModalidadesVagosExecutivo contava leitos reservados como disponíveis em H2/H4');
 console.log('V7.5 Fix: após calcularModalidadesVagosExecutivo, subtrair reservados por tipo/gênero em H2/H4');
 console.log('V7.1 CORREÇÃO BUG DIRETIVAS PENDENTES');
