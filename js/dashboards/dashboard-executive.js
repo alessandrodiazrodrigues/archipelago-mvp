@@ -1,7 +1,8 @@
-// =================== DASHBOARD EXECUTIVO V7.0 - COM RESERVADOS E FILTRO UTI ===================
+// =================== DASHBOARD EXECUTIVO V7.5 - COM RESERVADOS E FILTRO UTI ===================
 // =================== 9 HOSPITAIS | 293 LEITOS (126 CONTRATUAIS) ===================
 // =================== V7.0: + Coluna Reservados + Filtro UTI ===================
 // =================== V7.1: CORREÇÃO BUG DIRETIVAS PENDENTES (normalização NFD) ===================
+// =================== V7.5: CORREÇÃO breakdown modalidade H2/H4 não descontava reservados ===================
 
 // =================== CONSTANTES GLOBAIS V7.0 ===================
 const TOTAL_CONTRATUAIS = 150; // 9 hospitais ativos (H1-H9): 10+36+13+26+13+13+13+13+13
@@ -696,6 +697,28 @@ function processarDadosHospitalExecutivo(hospitalId) {
     const modalidadeOcupados = calcularModalidadePorTipoExecutivo(ocupados, hospitalId);
     const modalidadePrevisao = calcularModalidadePorTipoExecutivo(previsaoAlta, hospitalId);
     const modalidadeDisponiveis = calcularModalidadesVagosExecutivo(leitos, hospitalId);
+    
+    // =================== V7.5: DESCONTAR RESERVADOS DO BREAKDOWN H2/H4 ===================
+    // Leitos reservados permanecem com status=Vago na planilha (a reserva fica na aba reservas).
+    // calcularModalidadesVagosExecutivo os conta como disponíveis. Para H2/H4 é necessário
+    // subtrair explicitamente, pois os híbridos já fazem esse desconto via contratuais - ocupados - reservados.
+    if (hospitalId === 'H2' || hospitalId === 'H4') {
+        reservas.forEach(r => {
+            const tipo = (r.tipo || '').toLowerCase();
+            const genero = r.genero || '';
+            if (tipo === 'apartamento' || tipo === 'apto') {
+                modalidadeDisponiveis.exclusivo_apto = Math.max(0, modalidadeDisponiveis.exclusivo_apto - 1);
+            } else if (tipo === 'enfermaria' || tipo === 'enf') {
+                if (genero === 'Feminino') {
+                    modalidadeDisponiveis.exclusivo_enf_fem = Math.max(0, modalidadeDisponiveis.exclusivo_enf_fem - 1);
+                } else if (genero === 'Masculino') {
+                    modalidadeDisponiveis.exclusivo_enf_masc = Math.max(0, modalidadeDisponiveis.exclusivo_enf_masc - 1);
+                } else {
+                    modalidadeDisponiveis.exclusivo_enf_sem_restricao = Math.max(0, modalidadeDisponiveis.exclusivo_enf_sem_restricao - 1);
+                }
+            }
+        });
+    }
     
     // =================== V7.0: CALCULAR RESERVADOS POR TIPO ===================
     let reservadosApto = 0;
@@ -2798,7 +2821,10 @@ function logError(message) {
     console.error('[DASHBOARD EXECUTIVO V7.1] ' + message);
 }
 
-console.log('Dashboard Executivo V7.1 - CORREÇÃO BUG DIRETIVAS PENDENTES');
+console.log('Dashboard Executivo V7.5 - CORREÇÃO breakdown modalidade H2/H4');
+console.log('V7.5 Bug: calcularModalidadesVagosExecutivo contava leitos reservados como disponíveis em H2/H4');
+console.log('V7.5 Fix: após calcularModalidadesVagosExecutivo, subtrair reservados por tipo/gênero em H2/H4');
+console.log('V7.1 CORREÇÃO BUG DIRETIVAS PENDENTES');
 console.log('V7.2 Correção: campo Diretivas usa D maiúsculo na API (igual cabeçalho planilha)');
 console.log('V7.2 Antes: l.diretivas era sempre undefined -> zero');
 console.log('V7.2 Depois: l.diretivas || l.Diretivas cobre ambos os casos');
