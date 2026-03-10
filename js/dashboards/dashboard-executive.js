@@ -1,8 +1,9 @@
-// =================== DASHBOARD EXECUTIVO V7.5 - COM RESERVADOS E FILTRO UTI ===================
+// =================== DASHBOARD EXECUTIVO V7.6 - COM RESERVADOS E FILTRO UTI ===================
 // =================== 9 HOSPITAIS | 293 LEITOS (126 CONTRATUAIS) ===================
 // =================== V7.0: + Coluna Reservados + Filtro UTI ===================
 // =================== V7.1: CORREÇÃO BUG DIRETIVAS PENDENTES (normalização NFD) ===================
 // =================== V7.5: CORREÇÃO breakdown modalidade H2/H4 não descontava reservados ===================
+// =================== V7.6: CORREÇÃO breakdown overcounting quando extras enf ocupados; fix gauge Safari ===================
 
 // =================== CONSTANTES GLOBAIS V7.0 ===================
 const TOTAL_CONTRATUAIS = 150; // 9 hospitais ativos (H1-H9): 10+36+13+26+13+13+13+13+13
@@ -190,7 +191,7 @@ function renderGaugeV5(porcentagem, cor, numero) {
     
     return `
         <div class="v5-gauge-container">
-            <div style="position: relative;">
+            <div style="position: relative; width: 120px; height: 70px;">
                 <svg class="v5-gauge" viewBox="0 0 140 80">
                     <path d="M 15 70 A 55 55 0 0 1 125 70" 
                           fill="none" 
@@ -338,6 +339,32 @@ function calcularModalidadesVagosExecutivo(leitos, hospitalId) {
             }
         });
         
+        // V7.6: Cap da soma ao disponível real (leitos extras ocupados não reduzem contratuais visíveis
+        // mas consomem o orçamento contratual — sem este cap, breakdown > gauge quando há extras enf ocupados)
+        const totalOcupadosH2 = leitos.filter(l => isOcupadoExecutivo(l)).length;
+        const disponivelRealH2 = Math.max(0, 36 - totalOcupadosH2);
+        const somaH2 = modalidade.exclusivo_apto + modalidade.exclusivo_enf_sem_restricao +
+                       modalidade.exclusivo_enf_fem + modalidade.exclusivo_enf_masc;
+        if (somaH2 > disponivelRealH2) {
+            let excesso = somaH2 - disponivelRealH2;
+            const redSem = Math.min(excesso, modalidade.exclusivo_enf_sem_restricao);
+            modalidade.exclusivo_enf_sem_restricao -= redSem;
+            excesso -= redSem;
+            if (excesso > 0) {
+                const redFem = Math.min(excesso, modalidade.exclusivo_enf_fem);
+                modalidade.exclusivo_enf_fem -= redFem;
+                excesso -= redFem;
+            }
+            if (excesso > 0) {
+                const redMasc = Math.min(excesso, modalidade.exclusivo_enf_masc);
+                modalidade.exclusivo_enf_masc -= redMasc;
+                excesso -= redMasc;
+            }
+            if (excesso > 0) {
+                modalidade.exclusivo_apto = Math.max(0, modalidade.exclusivo_apto - excesso);
+            }
+        }
+        
         return modalidade;
     }
     
@@ -395,6 +422,31 @@ function calcularModalidadesVagosExecutivo(leitos, hospitalId) {
                 }
             }
         });
+        
+        // V7.6: Cap da soma ao disponível real (mesma lógica H2 — extras enf ocupados consomem orçamento contratual)
+        const totalOcupadosH4 = leitos.filter(l => isOcupadoExecutivo(l)).length;
+        const disponivelRealH4 = Math.max(0, 26 - totalOcupadosH4);
+        const somaH4 = modalidade.exclusivo_apto + modalidade.exclusivo_enf_sem_restricao +
+                       modalidade.exclusivo_enf_fem + modalidade.exclusivo_enf_masc;
+        if (somaH4 > disponivelRealH4) {
+            let excesso = somaH4 - disponivelRealH4;
+            const redSem = Math.min(excesso, modalidade.exclusivo_enf_sem_restricao);
+            modalidade.exclusivo_enf_sem_restricao -= redSem;
+            excesso -= redSem;
+            if (excesso > 0) {
+                const redFem = Math.min(excesso, modalidade.exclusivo_enf_fem);
+                modalidade.exclusivo_enf_fem -= redFem;
+                excesso -= redFem;
+            }
+            if (excesso > 0) {
+                const redMasc = Math.min(excesso, modalidade.exclusivo_enf_masc);
+                modalidade.exclusivo_enf_masc -= redMasc;
+                excesso -= redMasc;
+            }
+            if (excesso > 0) {
+                modalidade.exclusivo_apto = Math.max(0, modalidade.exclusivo_apto - excesso);
+            }
+        }
         
         return modalidade;
     }
@@ -1910,6 +1962,7 @@ function getExecutiveCSS() {
                 position: absolute;
                 top: 50%;
                 left: 50%;
+                -webkit-transform: translate(-50%, -50%);
                 transform: translate(-50%, -50%);
                 font-size: 26px;
                 font-weight: 700;
@@ -2810,18 +2863,22 @@ function getExecutiveCSS() {
 }
 
 function logInfo(message) {
-    console.log('[DASHBOARD EXECUTIVO V7.1] ' + message);
+    console.log('[DASHBOARD EXECUTIVO V7.6] ' + message);
 }
 
 function logSuccess(message) {
-    console.log('[DASHBOARD EXECUTIVO V7.1] ' + message);
+    console.log('[DASHBOARD EXECUTIVO V7.6] ' + message);
 }
 
 function logError(message) {
-    console.error('[DASHBOARD EXECUTIVO V7.1] ' + message);
+    console.error('[DASHBOARD EXECUTIVO V7.6] ' + message);
 }
 
-console.log('Dashboard Executivo V7.5 - CORREÇÃO breakdown modalidade H2/H4');
+console.log('Dashboard Executivo V7.6 - CORREÇÃO breakdown overcounting + fix gauge Safari');
+console.log('V7.6 Bug: calcularModalidadesVagosExecutivo overcounting quando extras enf (H2/H4) estão ocupados');
+console.log('V7.6 Fix: cap da soma das modalidades ao disponível real (contratuais - total_ocupados) em H2/H4');
+console.log('V7.6 Fix: wrapper do gauge v5 com width/height explícitos para Safari/iOS');
+console.log('V7.6 Fix: -webkit-transform adicionado ao .v5-number-inside');
 console.log('V7.5 Bug: calcularModalidadesVagosExecutivo contava leitos reservados como disponíveis em H2/H4');
 console.log('V7.5 Fix: após calcularModalidadesVagosExecutivo, subtrair reservados por tipo/gênero em H2/H4');
 console.log('V7.1 CORREÇÃO BUG DIRETIVAS PENDENTES');
