@@ -2342,8 +2342,9 @@ function getHospitalConsolidadoCSS() {
             \
             .v5-number-inside {\
                 position: absolute;\
-                bottom: 6px;\
+                bottom: 8px;\
                 left: 50%;\
+                -webkit-transform: translateX(-50%);\
                 transform: translateX(-50%);\
                 font-size: 26px;\
                 font-weight: 800;\
@@ -2714,6 +2715,37 @@ function getHospitalConsolidadoCSS() {
                 line-height: 1.4;\
             }\
             \
+            /* =================== RESPONSIVIDADE TABLET (iPad) =================== */\
+            @media (min-width: 768px) and (max-width: 1024px) {\
+                .kpi-box {\
+                    overflow: hidden !important;\
+                }\
+                \
+                .tipo-table,\
+                .modalidade-table {\
+                    font-size: 10px !important;\
+                }\
+                \
+                .tipo-table th,\
+                .tipo-table td,\
+                .modalidade-table th,\
+                .modalidade-table td {\
+                    padding: 5px 3px !important;\
+                    font-size: 10px !important;\
+                    white-space: normal !important;\
+                    word-break: break-word !important;\
+                    line-height: 1.2 !important;\
+                }\
+                \
+                .disponivel-item-label,\
+                .disponivel-item-value {\
+                    font-size: 10px !important;\
+                    white-space: normal !important;\
+                    word-break: break-word !important;\
+                    line-height: 1.3 !important;\
+                }\
+            }\
+            \
             /* =================== RESPONSIVIDADE MOBILE =================== */\
             @media (max-width: 768px) {\
                 .hospital-filter-selector {\
@@ -2787,7 +2819,9 @@ window.forceDataRefresh = function() {
     window.location.reload();
 };
 
-console.log('Dashboard Enfermarias V7.2 - Carregado com Sucesso!');
+console.log('Dashboard Enfermarias V7.3 - Carregado com Sucesso!');
+console.log('V7.3 Fix: media query 768-1024px adicionada (iPad) — tabelas font 10px, white-space normal');
+console.log('V7.3 Fix: v5-number-inside com -webkit-transform para compatibilidade Safari');
 console.log('V7.2 Correção: campo Diretivas usa D maiúsculo na API (igual cabeçalho planilha)');
 console.log('V7.2 Antes: l.diretivas era sempre undefined -> zero');
 console.log('V7.2 Depois: l.diretivas || l.Diretivas cobre ambos os casos');
