@@ -1899,7 +1899,7 @@ function getExecutiveCSS() {
             
             .gauge-largo-info {
                 position: absolute;
-                top: 50px;
+                top: 90px;
                 left: 0;
                 right: 0;
                 -webkit-transform: none;
@@ -2508,7 +2508,7 @@ function getExecutiveCSS() {
             
             @media (min-width: 768px) and (max-width: 1024px) {
                 .gauge-largo-info {
-                    top: 50px !important;
+                    top: 90px !important;
                     left: 0 !important;
                     right: 0 !important;
                     -webkit-transform: none !important;
@@ -2610,7 +2610,7 @@ function getExecutiveCSS() {
                 
                 .gauge-largo-info {
                     position: absolute !important;
-                    top: 50px !important;
+                    top: 90px !important;
                     left: 0 !important;
                     right: 0 !important;
                     -webkit-transform: none !important;
@@ -2906,7 +2906,7 @@ function logError(message) {
 }
 
 console.log('Dashboard Executivo V7.8 - CORREÇÃO tabela iPad + gauge top fixo');
-console.log('V7.8 Fix: gauge-largo-info top: 50px nos 3 lugares (principal, tablet, mobile)');
+console.log('V7.8 Fix: gauge-largo-info top: 90px nos 3 lugares (principal, tablet, mobile)');
 console.log('V7.8 Fix: tabela exec adicionada à media query 768-1024px (iPad Air) — font 10px, padding 5px 3px, white-space normal');
 console.log('V7.7 Fix: gauge-largo-info top fixo (30px) em vez de top:50% — compatível Safari');
 console.log('V7.7 Fix: v5-number-inside bottom:8px em vez de top:50% — compatível Safari');
