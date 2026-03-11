@@ -2524,6 +2524,25 @@ function getExecutiveCSS() {
                 .gauge-largo-percentage {
                     font-size: 55px !important;
                 }
+
+                .hospitais-table-ocupacao,
+                .hospitais-table,
+                .hospitais-table-alinhada {
+                    font-size: 10px !important;
+                }
+
+                .hospitais-table-ocupacao th,
+                .hospitais-table-ocupacao td,
+                .hospitais-table th,
+                .hospitais-table td,
+                .hospitais-table-alinhada th,
+                .hospitais-table-alinhada td {
+                    padding: 5px 3px !important;
+                    font-size: 10px !important;
+                    white-space: normal !important;
+                    word-break: break-word !important;
+                    line-height: 1.2 !important;
+                }
             }
             
             @media (max-width: 1200px) {
@@ -2886,7 +2905,9 @@ function logError(message) {
     console.error('[DASHBOARD EXECUTIVO V7.7] ' + message);
 }
 
-console.log('Dashboard Executivo V7.7 - CORREÇÃO gauge Safari/iPad + Taxa Ocupação centralizado');
+console.log('Dashboard Executivo V7.8 - CORREÇÃO tabela iPad + gauge top fixo');
+console.log('V7.8 Fix: gauge-largo-info top: 50px nos 3 lugares (principal, tablet, mobile)');
+console.log('V7.8 Fix: tabela exec adicionada à media query 768-1024px (iPad Air) — font 10px, padding 5px 3px, white-space normal');
 console.log('V7.7 Fix: gauge-largo-info top fixo (30px) em vez de top:50% — compatível Safari');
 console.log('V7.7 Fix: v5-number-inside bottom:8px em vez de top:50% — compatível Safari');
 console.log('V7.7 Fix: kpi-box overflow:hidden — impede box de vazar no iPad');
