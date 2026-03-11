@@ -2761,6 +2761,19 @@ function getHospitalConsolidadoCSS() {
                     word-break: break-word !important;\
                     line-height: 1.3 !important;\
                 }\
+                \
+                .tipo-leito-table {\
+                    font-size: 10px !important;\
+                }\
+                \
+                .tipo-leito-table th,\
+                .tipo-leito-table td {\
+                    padding: 5px 3px !important;\
+                    font-size: 10px !important;\
+                    white-space: normal !important;\
+                    word-break: break-word !important;\
+                    line-height: 1.2 !important;\
+                }\
             }\
             \
             /* =================== RESPONSIVIDADE MOBILE =================== */\
@@ -2836,7 +2849,8 @@ window.forceDataRefresh = function() {
     window.location.reload();
 };
 
-console.log('Dashboard Enfermarias V7.4 - Carregado com Sucesso!');
+console.log('Dashboard Enfermarias V7.5 - Carregado com Sucesso!');
+console.log('V7.5 Fix: tipo-leito-table adicionada à media query 768-1024px — coluna Reservados visível no iPad');
 console.log('V7.4 Fix: dual-gauges reduzidos no iPad (76px, gap 20px) — evita estouro lateral do box Ocupação');
 console.log('V7.3 Fix: media query 768-1024px adicionada (iPad) — tabelas font 10px, white-space normal');
 console.log('V7.3 Fix: v5-number-inside com -webkit-transform para compatibilidade Safari');
