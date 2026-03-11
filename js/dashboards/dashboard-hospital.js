@@ -2721,6 +2721,23 @@ function getHospitalConsolidadoCSS() {
                     overflow: hidden !important;\
                 }\
                 \
+                .dual-gauges-container {\
+                    gap: 20px !important;\
+                }\
+                \
+                .v5-gauge {\
+                    width: 76px !important;\
+                    height: 48px !important;\
+                }\
+                \
+                .v5-gauge-container {\
+                    min-width: 76px !important;\
+                }\
+                \
+                .v5-number-inside {\
+                    font-size: 20px !important;\
+                }\
+                \
                 .tipo-table,\
                 .modalidade-table {\
                     font-size: 10px !important;\
@@ -2819,7 +2836,8 @@ window.forceDataRefresh = function() {
     window.location.reload();
 };
 
-console.log('Dashboard Enfermarias V7.3 - Carregado com Sucesso!');
+console.log('Dashboard Enfermarias V7.4 - Carregado com Sucesso!');
+console.log('V7.4 Fix: dual-gauges reduzidos no iPad (76px, gap 20px) — evita estouro lateral do box Ocupação');
 console.log('V7.3 Fix: media query 768-1024px adicionada (iPad) — tabelas font 10px, white-space normal');
 console.log('V7.3 Fix: v5-number-inside com -webkit-transform para compatibilidade Safari');
 console.log('V7.2 Correção: campo Diretivas usa D maiúsculo na API (igual cabeçalho planilha)');
