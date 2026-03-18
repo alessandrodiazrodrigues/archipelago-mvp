@@ -42,10 +42,10 @@ window.renderViewEnfermeiro = function(hospitalId) {
 
             <!-- TITULO -->
             <div style="margin-bottom: 24px;">
-                <h2 style="color: #ffffff; font-size: 22px; font-weight: 700; margin: 0 0 4px 0;">
+                <h2 style="color: #131b2e; font-size: 22px; font-weight: 700; margin: 0 0 4px 0;">
                     Reservas de Leitos
                 </h2>
-                <p style="color: #60a5fa; font-size: 14px; font-weight: 600; margin: 0;">
+                <p style="color: #0676bb; font-size: 18px; font-weight: 700; margin: 0;">
                     ${nomeHospital}
                 </p>
             </div>
@@ -59,7 +59,7 @@ window.renderViewEnfermeiro = function(hospitalId) {
 
             <!-- MAPA DE LEITOS -->
             <div style="margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between;">
-                <h3 style="color: #ffffff; font-size: 16px; font-weight: 700; margin: 0;">
+                <h3 style="color: #131b2e; font-size: 16px; font-weight: 700; margin: 0;">
                     Mapa de Leitos — Enfermarias
                 </h3>
             </div>
