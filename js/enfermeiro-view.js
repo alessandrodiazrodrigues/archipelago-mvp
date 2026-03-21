@@ -166,9 +166,6 @@ function renderCardReservado(hospitalId, reserva) {
     // Indicador de isolamento
     const isolNorm = String(isolamento).toLowerCase();
     const temIsolamento = isolNorm && !isolNorm.includes('nao isol') && isolNorm !== 'nao isolamento';
-    const isolLabel = temIsolamento
-        ? `<span style="background: #ef4444; color: white; font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 4px; text-transform: uppercase;">ISOL</span>`
-        : '';
 
     return `
         <div style="
@@ -184,7 +181,6 @@ function renderCardReservado(hospitalId, reserva) {
                 <span style="background: #f59e0b; color: #000000; font-size: 10px; font-weight: 800; padding: 4px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px;">
                     RESERVADO
                 </span>
-                ${isolLabel}
             </div>
 
             <!-- IDENTIFICACAO -->
@@ -193,9 +189,16 @@ function renderCardReservado(hospitalId, reserva) {
             </div>
 
             <!-- TIPO E GENERO -->
-            <div style="color: rgba(255,255,255,0.6); font-size: 12px; margin-bottom: 12px;">
+            <div style="color: rgba(255,255,255,0.6); font-size: 12px; margin-bottom: ${temIsolamento ? '4px' : '12px'};">
                 ${tipo}${genero ? ' &bull; ' + genero : ''}
             </div>
+
+            <!-- ISOLAMENTO (apenas se houver) -->
+            ${temIsolamento ? `
+            <div style="color: #60a5fa; font-size: 11px; font-weight: 600; margin-bottom: 12px;">
+                ${isolamento}
+            </div>
+            ` : ''}
 
             <!-- DADOS DO PACIENTE -->
             <div style="background: rgba(245,158,11,0.08); border-radius: 8px; padding: 10px; margin-bottom: 14px;">
