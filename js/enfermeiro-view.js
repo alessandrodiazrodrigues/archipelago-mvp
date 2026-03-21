@@ -163,8 +163,12 @@ function renderCardReservado(hospitalId, reserva) {
     const matricula = reserva.matricula || '';
     const isolamento = reserva.isolamento || '';
 
-    // Indicador de isolamento
-    const isolNorm = String(isolamento).toLowerCase();
+    // Indicador de isolamento — normaliza acentos antes de comparar
+    const isolNorm = String(isolamento)
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .trim();
     const temIsolamento = isolNorm && !isolNorm.includes('nao isol') && isolNorm !== 'nao isolamento';
 
     return `
