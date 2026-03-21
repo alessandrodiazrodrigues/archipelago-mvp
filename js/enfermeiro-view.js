@@ -52,8 +52,8 @@ window.renderViewEnfermeiro = function(hospitalId) {
 
             <!-- KPI BOXES -->
             <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 28px;">
-                ${renderKPIBox('Ocupação', kpis.ocupados, kpis.total, '#22c55e')}
-                ${renderKPIBox('Reservados', kpis.reservados, kpis.total, '#f59e0b')}
+                ${renderKPIBox('Ocupação', kpis.ocupados, kpis.total, '#f59a1d')}
+                ${renderKPIBox('Reservados', kpis.reservados, kpis.total, '#f59a1d')}
                 ${renderKPIBox('Disponíveis', kpis.disponiveis, kpis.total, '#60a5fa')}
             </div>
 
@@ -119,25 +119,45 @@ function renderKPIBox(titulo, valor, total, cor) {
 function renderCardsEnfermeiro(hospitalId, leitosHospital, reservasHospital) {
     let html = '';
 
+    // Reservas com matricula (reservas reais)
+    const reservasReais = reservasHospital.filter(r => r.matricula && String(r.matricula).trim());
+
+    // Bloqueios de irmão (sem matricula — gerados automaticamente pelo backend)
+    const bloqueiosIrmao = reservasHospital.filter(r => !r.matricula || !String(r.matricula).trim());
+
+    // IDs reservados (para excluir dos vagos)
+    const idsReservados = new Set(
+        reservasReais.map(r => String(r.identificacaoLeito || '').toUpperCase())
+    );
+
+    // IDs bloqueados por irmão
+    const idsBloqueados = new Set(
+        bloqueiosIrmao.map(r => String(r.identificacaoLeito || '').toUpperCase())
+    );
+
     // 1. Reservados (com matricula)
-    reservasHospital.forEach(reserva => {
-        if (!reserva.matricula || !String(reserva.matricula).trim()) return;
+    reservasReais.forEach(reserva => {
         html += renderCardReservado(hospitalId, reserva);
     });
 
-    // 2. Vagos (leitos sem ocupacao e sem reserva)
-    const idsReservados = new Set(
-        reservasHospital
-            .filter(r => r.matricula && String(r.matricula).trim())
-            .map(r => String(r.identificacaoLeito || '').toUpperCase())
-    );
+    // 2. Bloqueados por irmão
+    bloqueiosIrmao.forEach(bloqueio => {
+        // Buscar a reserva principal que causou o bloqueio
+        const reservaPrincipal = reservasReais.find(r =>
+            String(r.identificacaoLeito || '').toUpperCase() === String(bloqueio.identificacaoIrmao || '').toUpperCase()
+        );
+        const motivoGenero = bloqueio.genero || (reservaPrincipal ? reservaPrincipal.genero : '');
+        html += renderCardBloqueado(bloqueio.identificacaoLeito, bloqueio.tipo, motivoGenero, bloqueio.identificacaoIrmao);
+    });
 
+    // 3. Vagos (sem ocupacao, sem reserva, sem bloqueio)
     leitosHospital
         .filter(l => {
             const status = String(l.status || '').toLowerCase();
             if (status === 'ocupado') return false;
             const idLeito = String(l.identificacaoLeito || '').toUpperCase();
             if (idLeito && idsReservados.has(idLeito)) return false;
+            if (idLeito && idsBloqueados.has(idLeito)) return false;
             return true;
         })
         .forEach(leito => {
@@ -176,13 +196,13 @@ function renderCardReservado(hospitalId, reserva) {
             background: #1e293b;
             border-radius: 12px;
             padding: 16px;
-            border: 2px solid #f59e0b;
+            border: 2px solid #f59a1d;
             position: relative;
             font-family: 'Poppins', sans-serif;
         ">
             <!-- BADGE STATUS -->
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                <span style="background: #f59e0b; color: #000000; font-size: 10px; font-weight: 800; padding: 4px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px;">
+                <span style="background: #f59a1d; color: #131b2e; font-size: 10px; font-weight: 800; padding: 4px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px;">
                     RESERVADO
                 </span>
             </div>
@@ -205,7 +225,7 @@ function renderCardReservado(hospitalId, reserva) {
             ` : ''}
 
             <!-- DADOS DO PACIENTE -->
-            <div style="background: rgba(245,158,11,0.08); border-radius: 8px; padding: 10px; margin-bottom: 14px;">
+            <div style="background: rgba(245,154,29,0.08); border-radius: 8px; padding: 10px; margin-bottom: 14px;">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
                     <span style="color: rgba(255,255,255,0.4); font-size: 10px; font-weight: 600; text-transform: uppercase;">Iniciais</span>
                     <span style="color: #ffffff; font-size: 11px; font-weight: 700;">${iniciais || '---'}</span>
@@ -225,6 +245,52 @@ function renderCardReservado(hospitalId, reserva) {
                 style="width: 100%; padding: 10px; background: #c86420; color: #ffffff; border: none; border-radius: 6px; cursor: pointer; font-weight: 800; text-transform: uppercase; font-size: 11px; font-family: 'Poppins', sans-serif; letter-spacing: 0.5px;">
                 CANCELAR RESERVA
             </button>
+        </div>
+    `;
+}
+
+function renderCardBloqueado(identificacao, tipo, genero, identificacaoPrincipal) {
+    const motivo = genero
+        ? `Leito bloqueado — reserva do quarto vinculado (${identificacaoPrincipal || ''}) restringe gênero ${genero}`
+        : `Leito bloqueado — quarto vinculado (${identificacaoPrincipal || ''}) está reservado`;
+
+    return `
+        <div style="
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 16px;
+            border: 2px solid #c86420;
+            font-family: 'Poppins', sans-serif;
+            opacity: 0.75;
+        ">
+            <!-- BADGE STATUS -->
+            <div style="margin-bottom: 12px;">
+                <span style="background: #c86420; color: #ffffff; font-size: 10px; font-weight: 800; padding: 4px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px;">
+                    BLOQUEADO
+                </span>
+            </div>
+
+            <!-- IDENTIFICACAO -->
+            <div style="color: rgba(255,255,255,0.5); font-size: 26px; font-weight: 800; margin-bottom: 4px; line-height: 1;">
+                ${identificacao || '---'}
+            </div>
+
+            <!-- TIPO -->
+            <div style="color: rgba(255,255,255,0.4); font-size: 12px; margin-bottom: 10px;">
+                ${tipo || ''}
+            </div>
+
+            <!-- MOTIVO -->
+            <div style="
+                background: rgba(200,100,32,0.1);
+                border-radius: 6px;
+                padding: 8px 10px;
+                color: rgba(255,255,255,0.5);
+                font-size: 10px;
+                line-height: 1.5;
+            ">
+                ${motivo}
+            </div>
         </div>
     `;
 }
