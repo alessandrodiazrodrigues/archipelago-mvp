@@ -213,16 +213,14 @@ function renderCardReservado(hospitalId, reserva) {
             </div>
 
             <!-- TIPO E GENERO -->
-            <div style="color: rgba(255,255,255,0.6); font-size: 12px; margin-bottom: ${temIsolamento ? '4px' : '12px'};">
+            <div style="color: rgba(255,255,255,0.6); font-size: 12px; margin-bottom: 4px;">
                 ${tipo}${genero ? ' &bull; ' + genero : ''}
             </div>
 
-            <!-- ISOLAMENTO (apenas se houver) -->
-            ${temIsolamento ? `
-            <div style="color: #60a5fa; font-size: 11px; font-weight: 600; margin-bottom: 12px;">
-                ${isolamento}
+            <!-- ISOLAMENTO — espaço sempre reservado, texto só aparece se houver -->
+            <div style="color: #60a5fa; font-size: 11px; font-weight: 600; margin-bottom: 12px; min-height: 16px;">
+                ${temIsolamento ? isolamento : ''}
             </div>
-            ` : ''}
 
             <!-- DADOS DO PACIENTE -->
             <div style="background: rgba(245,154,29,0.08); border-radius: 8px; padding: 10px; margin-bottom: 14px;">
