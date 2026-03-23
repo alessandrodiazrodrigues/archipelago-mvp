@@ -150,19 +150,12 @@ function renderCardsEnfermeiro(hospitalId, leitosHospital, reservasHospital) {
         html += renderCardBloqueado(bloqueio.identificacaoLeito, bloqueio.tipo, motivoGenero, bloqueio.identificacaoIrmao);
     });
 
-    // 3. Vagos (sem ocupacao, sem reserva, sem bloqueio)
-    leitosHospital
-        .filter(l => {
-            const status = String(l.status || '').toLowerCase();
-            if (status === 'ocupado') return false;
-            const idLeito = String(l.identificacaoLeito || '').toUpperCase();
-            if (idLeito && idsReservados.has(idLeito)) return false;
-            if (idLeito && idsBloqueados.has(idLeito)) return false;
-            return true;
-        })
-        .forEach(leito => {
-            html += renderCardVagoEnfermeiro(hospitalId, leito);
-        });
+    // 3. Vagos — filtro inteligente idêntico ao Mapa de Leitos
+    const vagosParaMostrar = filtrarVagosInteligente(hospitalId, leitosHospital, idsReservados, idsBloqueados);
+
+    vagosParaMostrar.forEach(leito => {
+        html += renderCardVagoEnfermeiro(hospitalId, leito);
+    });
 
     if (!html) {
         html = `
@@ -245,6 +238,98 @@ function renderCardReservado(hospitalId, reserva) {
             </button>
         </div>
     `;
+}
+
+// =================== FILTRO INTELIGENTE DE VAGOS ===================
+// Replica exatamente a lógica do Mapa de Leitos (cards.js V6.1)
+function filtrarVagosInteligente(hospitalId, leitos, idsReservados, idsBloqueados) {
+    const isHibrido      = window.HOSPITAIS_HIBRIDOS && window.HOSPITAIS_HIBRIDOS.includes(hospitalId);
+    const isTiposFixos   = window.HOSPITAIS_TIPOS_FIXOS && window.HOSPITAIS_TIPOS_FIXOS.includes(hospitalId);
+
+    // Leitos vagos não reservados e não bloqueados
+    const leitosVagos = leitos
+        .filter(l => {
+            const status = String(l.status || '').toLowerCase();
+            if (status === 'ocupado') return false;
+            const idLeito = String(l.identificacaoLeito || '').toUpperCase();
+            if (idLeito && idsReservados.has(idLeito)) return false;
+            if (idLeito && idsBloqueados.has(idLeito)) return false;
+            return true;
+        })
+        .sort((a, b) => (a.leito || 0) - (b.leito || 0));
+
+    if (isHibrido) {
+        // Híbridos: apenas 1 vago (menor número)
+        return leitosVagos.length > 0 ? [leitosVagos[0]] : [];
+    }
+
+    if (isTiposFixos) {
+        // Tipos fixos (H2, H4): separar apartamentos e enfermarias
+        const vagosApto = leitosVagos.filter(l => {
+            const t = (l.tipo || '').toUpperCase();
+            return t.includes('APTO') || t === 'APARTAMENTO';
+        });
+
+        const vagosEnf = leitosVagos.filter(l => {
+            const t = (l.tipo || '').toUpperCase();
+            return t.includes('ENF') || t === 'ENFERMARIA';
+        });
+
+        // Apartamentos: apenas 1 vago
+        const aptoParaMostrar = vagosApto.length > 0 ? [vagosApto[0]] : [];
+
+        // Enfermarias: lógica de irmãos
+        const enfParaMostrar = [];
+        let parLivreJaAdicionado = false;
+
+        vagosEnf.forEach(leitoVago => {
+            const numeroLeito = parseInt(leitoVago.leito);
+            const leitoIrmao  = window.getLeitoIrmao ? window.getLeitoIrmao(hospitalId, numeroLeito) : null;
+
+            if (!leitoIrmao) {
+                // Sem irmão — mostrar normalmente
+                enfParaMostrar.push(leitoVago);
+            } else {
+                // Buscar dados do irmão nos leitos do hospital
+                const dadosIrmao = leitos.find(l => parseInt(l.leito) === leitoIrmao);
+
+                const irmaoVago = !dadosIrmao ||
+                    dadosIrmao.status === 'Vago' ||
+                    dadosIrmao.status === 'vago' ||
+                    dadosIrmao.status === '';
+
+                if (irmaoVago) {
+                    // Ambos vagos: mostrar apenas 1 par livre
+                    if (!parLivreJaAdicionado) {
+                        enfParaMostrar.push(leitoVago);
+                        parLivreJaAdicionado = true;
+                    }
+                } else {
+                    // Irmão ocupado: verificar isolamento
+                    const isolIrmao = String(dadosIrmao.isolamento || '')
+                        .normalize('NFD')
+                        .replace(/[\u0300-\u036f]/g, '')
+                        .toLowerCase();
+
+                    const temIsolIrmao = isolIrmao &&
+                        !isolIrmao.includes('nao isol') &&
+                        isolIrmao !== 'nao isolamento';
+
+                    if (temIsolIrmao) {
+                        // Bloqueado por isolamento — não mostrar
+                    } else {
+                        // Vago com restrição de gênero — mostrar
+                        enfParaMostrar.push(leitoVago);
+                    }
+                }
+            }
+        });
+
+        return [...aptoParaMostrar, ...enfParaMostrar];
+    }
+
+    // Fallback: 1 vago
+    return leitosVagos.length > 0 ? [leitosVagos[0]] : [];
 }
 
 function renderCardBloqueado(identificacao, tipo, genero, identificacaoPrincipal) {
