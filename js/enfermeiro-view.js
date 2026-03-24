@@ -442,8 +442,15 @@ function renderCardVagoEnfermeiro(hospitalId, leito) {
             <!-- RESTRICAO DE GENERO (quando houver) -->
             ${badgeGenero}
 
+            <!-- NUMERO DO LEITO (quando identificado automaticamente) -->
+            ${leito._idLeito ? `
+            <div style="color: #ffffff; font-size: 26px; font-weight: 800; margin-bottom: 4px; line-height: 1;">
+                ${leito._idLeito}
+            </div>
+            ` : ''}
+
             <!-- LABEL LEITO LIVRE -->
-            <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 6px 0;">
+            <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: ${leito._idLeito ? 'flex-start' : 'center'}; padding: 6px 0;">
                 <div style="color: rgba(255,255,255,0.3); font-size: 14px; font-weight: 600; margin-bottom: 4px;">
                     Leito Livre
                 </div>
