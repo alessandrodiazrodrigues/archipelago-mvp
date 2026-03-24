@@ -319,9 +319,27 @@ function filtrarVagosInteligente(hospitalId, leitos, idsReservados, idsBloqueado
                         // Bloqueado por isolamento — não mostrar
                     } else {
                         // Vago com restrição de gênero — mostrar com genero do irmão
+                        // Calcular identificação do leito irmão vago
+                        const sufixoAtual = leitoVago.identificacaoLeito
+                            ? String(leitoVago.identificacaoLeito).split('-')[1] || ''
+                            : '';
+                        let sufixoIrmaoVago = '';
+                        if (hospitalId === 'H2') {
+                            sufixoIrmaoVago = sufixoAtual === '1' ? '3' : '1';
+                        } else if (hospitalId === 'H4') {
+                            sufixoIrmaoVago = sufixoAtual === 'A' ? 'C' : 'A';
+                        }
+                        const baseId = leitoVago.identificacaoLeito
+                            ? String(leitoVago.identificacaoLeito).split('-')[0]
+                            : '';
+                        const idIrmaoVago = baseId && sufixoIrmaoVago
+                            ? baseId + '-' + sufixoIrmaoVago
+                            : null;
+
                         enfParaMostrar.push({
                             ...leitoVago,
-                            _generoRestrito: dadosIrmao.genero || null
+                            _generoRestrito: dadosIrmao.genero || null,
+                            _idLeito: idIrmaoVago
                         });
                     }
                 }
@@ -441,6 +459,7 @@ function renderCardVagoEnfermeiro(hospitalId, leito) {
                 data-leito="${numeroLeito}"
                 data-tipo="${tipo}"
                 data-genero-restrito="${generoRestrito || ''}"
+                data-id-leito="${leito._idLeito || ''}"
                 style="width: 100%; padding: 10px; background: #60a5fa; color: #ffffff; border: none; border-radius: 6px; cursor: pointer; font-weight: 800; text-transform: uppercase; font-size: 11px; font-family: 'Poppins', sans-serif; letter-spacing: 0.5px;">
                 RESERVAR LEITO
             </button>
@@ -477,10 +496,11 @@ function vincularEventosEnfermeiro(hospitalId) {
     // Abrir modal de reserva
     document.querySelectorAll('.btn-reservar-enf').forEach(btn => {
         btn.addEventListener('click', function() {
-            const leito         = this.dataset.leito;
-            const tipo          = this.dataset.tipo;
+            const leito          = this.dataset.leito;
+            const tipo           = this.dataset.tipo;
             const generoRestrito = this.dataset.generoRestrito || null;
-            abrirModalReservaEnfermeiro(hospitalId, leito, tipo, generoRestrito);
+            const idLeito        = this.dataset.idLeito || null;
+            abrirModalReservaEnfermeiro(hospitalId, leito, tipo, generoRestrito, idLeito);
         });
     });
 }
@@ -488,7 +508,7 @@ function vincularEventosEnfermeiro(hospitalId) {
 // =================== MODAL DE RESERVA ===================
 window.abrirModalReservaEnfermeiro = abrirModalReservaEnfermeiro;
 
-function abrirModalReservaEnfermeiro(hospitalId, numeroLeito, tipoLeito, generoRestrito) {
+function abrirModalReservaEnfermeiro(hospitalId, numeroLeito, tipoLeito, generoRestrito, idLeito) {
     const modal = document.getElementById('modalReservaEnfermeiro');
     const body  = document.getElementById('modalReservaEnfermeiroBody');
     if (!modal || !body) return;
@@ -539,13 +559,15 @@ function abrirModalReservaEnfermeiro(hospitalId, numeroLeito, tipoLeito, generoR
 
             <!-- IDENTIFICACAO DO LEITO -->
             <div style="margin-bottom: 14px;">
-                <label style="display: block; color: rgba(255,255,255,0.6); font-size: 11px; font-weight: 600; text-transform: uppercase; margin-bottom: 6px;">
-                    Identificação do Leito *
+                <label style="display: block; color: ${idLeito ? '#60a5fa' : 'rgba(255,255,255,0.6)'}; font-size: 11px; font-weight: 600; text-transform: uppercase; margin-bottom: 6px;">
+                    Identificação do Leito *${idLeito ? ' — definida automaticamente' : ''}
                 </label>
                 <div id="enf_identificacaoContainer">
-                    ${ehTipoFixo
-                        ? renderIdentificacaoFixo(tipoLeito, hospitalId, sufixos, maxlength)
-                        : `<input type="text" id="enf_idLeitoDisabled" disabled placeholder="${!ehTipoFixo ? 'Selecione o Tipo de Quarto primeiro' : ''}" style="${estiloInput(true)}">`
+                    ${idLeito
+                        ? `<input type="text" id="enf_idFixo" value="${idLeito}" disabled style="${estiloInput(true)}">`
+                        : (ehTipoFixo
+                            ? renderIdentificacaoFixo(tipoLeito, hospitalId, sufixos, maxlength)
+                            : `<input type="text" id="enf_idLeitoDisabled" disabled placeholder="Selecione o Tipo de Quarto primeiro" style="${estiloInput(true)}">`)
                     }
                 </div>
             </div>
@@ -684,9 +706,12 @@ window.salvarReservaEnfermeiro = async function(hospitalId) {
     const numEl    = document.getElementById('enf_idNumero');
     const sufEl    = document.getElementById('enf_idSufixo');
     const idDisEl  = document.getElementById('enf_idLeitoDisabled');
+    const idFixoEl = document.getElementById('enf_idFixo');
     let identificacaoLeito = '';
 
-    if (numEl) {
+    if (idFixoEl) {
+        identificacaoLeito = idFixoEl.value.trim();
+    } else if (numEl) {
         const num = numEl.value.trim();
         const suf = sufEl ? sufEl.value : '';
         identificacaoLeito = suf ? (num + '-' + suf) : num;
