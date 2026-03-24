@@ -190,33 +190,36 @@ function renderCardReservado(hospitalId, reserva) {
             border-radius: 12px;
             padding: 16px;
             border: 2px solid #f59a1d;
-            position: relative;
             font-family: 'Poppins', sans-serif;
+            display: flex;
+            flex-direction: column;
+            min-height: 220px;
+            box-sizing: border-box;
         ">
             <!-- BADGE STATUS -->
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <div style="margin-bottom: 8px;">
                 <span style="background: #f59a1d; color: #131b2e; font-size: 10px; font-weight: 800; padding: 4px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px;">
                     RESERVADO
                 </span>
             </div>
 
+            <!-- LINHA DE GENERO/ISOLAMENTO — espaço fixo igual ao DISPONÍVEL -->
+            <div style="color: #60a5fa; font-size: 11px; font-weight: 600; margin-bottom: 4px; min-height: 16px;">
+                ${temIsolamento ? isolamento : (genero ? genero : '')}
+            </div>
+
             <!-- IDENTIFICACAO -->
-            <div style="color: #ffffff; font-size: 26px; font-weight: 800; margin-bottom: 4px; line-height: 1;">
+            <div style="color: #ffffff; font-size: 26px; font-weight: 800; margin-bottom: 2px; line-height: 1;">
                 ${identificacao}
             </div>
 
-            <!-- TIPO E GENERO -->
-            <div style="color: rgba(255,255,255,0.6); font-size: 12px; margin-bottom: 4px;">
-                ${tipo}${genero ? ' &bull; ' + genero : ''}
-            </div>
-
-            <!-- ISOLAMENTO — espaço sempre reservado, texto só aparece se houver -->
-            <div style="color: #60a5fa; font-size: 11px; font-weight: 600; margin-bottom: 12px; min-height: 16px;">
-                ${temIsolamento ? isolamento : ''}
+            <!-- TIPO -->
+            <div style="color: rgba(255,255,255,0.5); font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 12px;">
+                ${tipo}
             </div>
 
             <!-- DADOS DO PACIENTE -->
-            <div style="background: rgba(245,154,29,0.08); border-radius: 8px; padding: 10px; margin-bottom: 14px;">
+            <div style="background: rgba(245,154,29,0.08); border-radius: 8px; padding: 8px 10px; margin-bottom: 12px;">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
                     <span style="color: rgba(255,255,255,0.4); font-size: 10px; font-weight: 600; text-transform: uppercase;">Iniciais</span>
                     <span style="color: #ffffff; font-size: 11px; font-weight: 700;">${iniciais || '---'}</span>
@@ -227,15 +230,17 @@ function renderCardReservado(hospitalId, reserva) {
                 </div>
             </div>
 
-            <!-- BOTAO CANCELAR -->
-            <button
-                class="btn-cancelar-reserva-enf"
-                data-hospital="${hospitalId}"
-                data-identificacao="${identificacao}"
-                data-matricula="${matricula}"
-                style="width: 100%; padding: 10px; background: #c86420; color: #ffffff; border: none; border-radius: 6px; cursor: pointer; font-weight: 800; text-transform: uppercase; font-size: 11px; font-family: 'Poppins', sans-serif; letter-spacing: 0.5px;">
-                CANCELAR RESERVA
-            </button>
+            <!-- BOTAO CANCELAR — sempre na base -->
+            <div style="margin-top: auto;">
+                <button
+                    class="btn-cancelar-reserva-enf"
+                    data-hospital="${hospitalId}"
+                    data-identificacao="${identificacao}"
+                    data-matricula="${matricula}"
+                    style="width: 100%; padding: 10px; background: #c86420; color: #ffffff; border: none; border-radius: 6px; cursor: pointer; font-weight: 800; text-transform: uppercase; font-size: 11px; font-family: 'Poppins', sans-serif; letter-spacing: 0.5px;">
+                    CANCELAR RESERVA
+                </button>
+            </div>
         </div>
     `;
 }
@@ -409,19 +414,15 @@ function renderCardVagoEnfermeiro(hospitalId, leito) {
 
     const badgeGenero = generoRestrito ? `
         <div style="
-            display: inline-block;
-            background: rgba(96,165,250,0.15);
             color: #60a5fa;
-            font-size: 10px;
-            font-weight: 700;
-            padding: 3px 10px;
-            border-radius: 20px;
-            margin-bottom: 10px;
-            letter-spacing: 0.3px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            min-height: 16px;
         ">
             Somente ${generoRestrito}
         </div>
-    ` : '';
+    ` : '<div style="min-height: 16px; margin-bottom: 4px;"></div>';
 
     return `
         <div style="
@@ -432,8 +433,8 @@ function renderCardVagoEnfermeiro(hospitalId, leito) {
             font-family: 'Poppins', sans-serif;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
-            min-height: 160px;
+            min-height: 220px;
+            box-sizing: border-box;
         ">
             <!-- BADGE STATUS -->
             <div style="margin-bottom: 8px;">
@@ -442,37 +443,41 @@ function renderCardVagoEnfermeiro(hospitalId, leito) {
                 </span>
             </div>
 
-            <!-- RESTRICAO DE GENERO (quando houver) -->
+            <!-- LINHA DE GENERO — espaço fixo igual ao RESERVADO -->
             ${badgeGenero}
 
             <!-- NUMERO DO LEITO (quando identificado automaticamente) -->
             ${leito._idLeito ? `
-            <div style="color: #ffffff; font-size: 26px; font-weight: 800; margin-bottom: 4px; line-height: 1;">
+            <div style="color: #ffffff; font-size: 26px; font-weight: 800; margin-bottom: 2px; line-height: 1;">
                 ${leito._idLeito}
             </div>
-            ` : ''}
+            ` : '<div style="min-height: 32px;"></div>'}
 
-            <!-- LABEL LEITO LIVRE -->
-            <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: ${leito._idLeito ? 'flex-start' : 'center'}; padding: 6px 0;">
-                <div style="color: rgba(255,255,255,0.3); font-size: 14px; font-weight: 600; margin-bottom: 4px;">
+            <!-- TIPO -->
+            <div style="color: rgba(255,255,255,0.3); font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 12px;">
+                ${tipo || 'Enfermaria'}
+            </div>
+
+            <!-- LABEL LEITO LIVRE — empurra botão para baixo -->
+            <div style="flex: 1; display: flex; align-items: center; justify-content: center;">
+                <div style="color: rgba(255,255,255,0.2); font-size: 13px; font-weight: 600;">
                     Leito Livre
-                </div>
-                <div style="color: rgba(255,255,255,0.15); font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px;">
-                    ${tipo || 'Enfermaria'}
                 </div>
             </div>
 
-            <!-- BOTAO RESERVAR -->
-            <button
-                class="btn-reservar-enf"
-                data-hospital="${hospitalId}"
-                data-leito="${numeroLeito}"
-                data-tipo="${tipo}"
-                data-genero-restrito="${generoRestrito || ''}"
-                data-id-leito="${leito._idLeito || ''}"
-                style="width: 100%; padding: 10px; background: #60a5fa; color: #ffffff; border: none; border-radius: 6px; cursor: pointer; font-weight: 800; text-transform: uppercase; font-size: 11px; font-family: 'Poppins', sans-serif; letter-spacing: 0.5px;">
-                RESERVAR LEITO
-            </button>
+            <!-- BOTAO RESERVAR — sempre na base -->
+            <div style="margin-top: auto;">
+                <button
+                    class="btn-reservar-enf"
+                    data-hospital="${hospitalId}"
+                    data-leito="${numeroLeito}"
+                    data-tipo="${tipo}"
+                    data-genero-restrito="${generoRestrito || ''}"
+                    data-id-leito="${leito._idLeito || ''}"
+                    style="width: 100%; padding: 10px; background: #60a5fa; color: #ffffff; border: none; border-radius: 6px; cursor: pointer; font-weight: 800; text-transform: uppercase; font-size: 11px; font-family: 'Poppins', sans-serif; letter-spacing: 0.5px;">
+                    RESERVAR LEITO
+                </button>
+            </div>
         </div>
     `;
 }
