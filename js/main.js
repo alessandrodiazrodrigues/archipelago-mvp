@@ -887,9 +887,6 @@ window.setActiveTab = function(tab) {
         }
     }, 200);
 };
-        }
-    }, 200);
-};
 
 // =================== COMANDOS DE CONSOLE ===================
 window.debug = window.debug || {};
