@@ -493,8 +493,7 @@ function vincularEventosEnfermeiro(hospitalId) {
 
             try {
                 await window.cancelarReserva(hospital, identificacao, matricula);
-                await window.refreshAfterAction();
-                window.renderViewEnfermeiro(hospitalId);
+                await recarregarEAtualizar(hospitalId);
             } catch (error) {
                 alert('Erro ao cancelar reserva: ' + error.message);
                 this.disabled = false;
@@ -781,8 +780,7 @@ window.salvarReservaEnfermeiro = async function(hospitalId) {
 
         if (result.ok || result.success) {
             window.fecharModalReservaEnfermeiro();
-            await window.refreshAfterAction();
-            window.renderViewEnfermeiro(hospitalId);
+            await recarregarEAtualizar(hospitalId);
         } else {
             mostrarErroReserva(result.error || result.message || 'Erro ao criar reserva.');
             if (btnSalvar) { btnSalvar.disabled = false; btnSalvar.textContent = 'RESERVAR'; }
@@ -792,6 +790,29 @@ window.salvarReservaEnfermeiro = async function(hospitalId) {
         if (btnSalvar) { btnSalvar.disabled = false; btnSalvar.textContent = 'RESERVAR'; }
     }
 };
+
+// =================== REFRESH PROPRIO DA VIEW ENFERMEIRO ===================
+// Evita depender do refreshAfterAction do main.js que não conhecia esta view
+async function recarregarEAtualizar(hospitalId) {
+    try {
+        if (window.showLoading) window.showLoading(null, 'Atualizando...');
+
+        if (window.loadHospitalData) {
+            await window.loadHospitalData();
+        }
+        if (window.carregarReservas) {
+            await window.carregarReservas();
+        }
+
+        if (window.hideLoading) window.hideLoading();
+
+        window.renderViewEnfermeiro(hospitalId);
+    } catch (error) {
+        if (window.hideLoading) window.hideLoading();
+        logError('[ENFERMEIRO] Erro ao recarregar:', error);
+        window.renderViewEnfermeiro(hospitalId);
+    }
+}
 
 function mostrarErroReserva(msg) {
     const erroEl = document.getElementById('enf_erro');
