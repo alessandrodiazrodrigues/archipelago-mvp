@@ -318,8 +318,11 @@ function filtrarVagosInteligente(hospitalId, leitos, idsReservados, idsBloqueado
                     if (temIsolIrmao) {
                         // Bloqueado por isolamento — não mostrar
                     } else {
-                        // Vago com restrição de gênero — mostrar
-                        enfParaMostrar.push(leitoVago);
+                        // Vago com restrição de gênero — mostrar com genero do irmão
+                        enfParaMostrar.push({
+                            ...leitoVago,
+                            _generoRestrito: dadosIrmao.genero || null
+                        });
                     }
                 }
             }
@@ -379,8 +382,25 @@ function renderCardBloqueado(identificacao, tipo, genero, identificacaoPrincipal
 }
 
 function renderCardVagoEnfermeiro(hospitalId, leito) {
-    const numeroLeito = leito.leito || '';
-    const tipo = leito.tipo || '';
+    const numeroLeito   = leito.leito || '';
+    const tipo          = leito.tipo || '';
+    const generoRestrito = leito._generoRestrito || null;
+
+    const badgeGenero = generoRestrito ? `
+        <div style="
+            display: inline-block;
+            background: rgba(96,165,250,0.15);
+            color: #60a5fa;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 20px;
+            margin-bottom: 10px;
+            letter-spacing: 0.3px;
+        ">
+            Somente ${generoRestrito}
+        </div>
+    ` : '';
 
     return `
         <div style="
@@ -395,19 +415,22 @@ function renderCardVagoEnfermeiro(hospitalId, leito) {
             min-height: 160px;
         ">
             <!-- BADGE STATUS -->
-            <div style="margin-bottom: 12px;">
+            <div style="margin-bottom: 8px;">
                 <span style="background: rgba(96,165,250,0.15); color: #60a5fa; font-size: 10px; font-weight: 800; padding: 4px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px;">
                     DISPONÍVEL
                 </span>
             </div>
 
+            <!-- RESTRICAO DE GENERO (quando houver) -->
+            ${badgeGenero}
+
             <!-- LABEL LEITO LIVRE -->
-            <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 10px 0;">
+            <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 6px 0;">
                 <div style="color: rgba(255,255,255,0.3); font-size: 14px; font-weight: 600; margin-bottom: 4px;">
                     Leito Livre
                 </div>
-                <div style="color: rgba(255,255,255,0.15); font-size: 11px;">
-                    ${tipo ? tipo : 'Enfermaria'}
+                <div style="color: rgba(255,255,255,0.15); font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px;">
+                    ${tipo || 'Enfermaria'}
                 </div>
             </div>
 
@@ -417,6 +440,7 @@ function renderCardVagoEnfermeiro(hospitalId, leito) {
                 data-hospital="${hospitalId}"
                 data-leito="${numeroLeito}"
                 data-tipo="${tipo}"
+                data-genero-restrito="${generoRestrito || ''}"
                 style="width: 100%; padding: 10px; background: #60a5fa; color: #ffffff; border: none; border-radius: 6px; cursor: pointer; font-weight: 800; text-transform: uppercase; font-size: 11px; font-family: 'Poppins', sans-serif; letter-spacing: 0.5px;">
                 RESERVAR LEITO
             </button>
@@ -453,9 +477,10 @@ function vincularEventosEnfermeiro(hospitalId) {
     // Abrir modal de reserva
     document.querySelectorAll('.btn-reservar-enf').forEach(btn => {
         btn.addEventListener('click', function() {
-            const leito = this.dataset.leito;
-            const tipo = this.dataset.tipo;
-            abrirModalReservaEnfermeiro(hospitalId, leito, tipo);
+            const leito         = this.dataset.leito;
+            const tipo          = this.dataset.tipo;
+            const generoRestrito = this.dataset.generoRestrito || null;
+            abrirModalReservaEnfermeiro(hospitalId, leito, tipo, generoRestrito);
         });
     });
 }
@@ -463,7 +488,7 @@ function vincularEventosEnfermeiro(hospitalId) {
 // =================== MODAL DE RESERVA ===================
 window.abrirModalReservaEnfermeiro = abrirModalReservaEnfermeiro;
 
-function abrirModalReservaEnfermeiro(hospitalId, numeroLeito, tipoLeito) {
+function abrirModalReservaEnfermeiro(hospitalId, numeroLeito, tipoLeito, generoRestrito) {
     const modal = document.getElementById('modalReservaEnfermeiro');
     const body  = document.getElementById('modalReservaEnfermeiroBody');
     if (!modal || !body) return;
@@ -540,14 +565,15 @@ function abrirModalReservaEnfermeiro(hospitalId, numeroLeito, tipoLeito) {
 
             <!-- GENERO -->
             <div style="margin-bottom: 14px;">
-                <label style="display: block; color: rgba(255,255,255,0.6); font-size: 11px; font-weight: 600; text-transform: uppercase; margin-bottom: 6px;">
-                    Gênero *
+                <label style="display: block; color: ${generoRestrito ? '#60a5fa' : 'rgba(255,255,255,0.6)'}; font-size: 11px; font-weight: 600; text-transform: uppercase; margin-bottom: 6px;">
+                    Gênero *${generoRestrito ? ' — restrito: ' + generoRestrito : ''}
                 </label>
-                <select id="enf_genero" style="${estiloInput()}">
+                <select id="enf_genero" ${generoRestrito ? 'disabled' : ''} style="${estiloInput(!!generoRestrito)}">
                     <option value="">Selecione...</option>
-                    <option value="Feminino">Feminino</option>
-                    <option value="Masculino">Masculino</option>
+                    <option value="Feminino" ${generoRestrito === 'Feminino' ? 'selected' : ''}>Feminino</option>
+                    <option value="Masculino" ${generoRestrito === 'Masculino' ? 'selected' : ''}>Masculino</option>
                 </select>
+                ${generoRestrito ? `<input type="hidden" id="enf_genero_hidden" value="${generoRestrito}">` : ''}
             </div>
 
             <!-- INICIAIS -->
@@ -669,7 +695,11 @@ window.salvarReservaEnfermeiro = async function(hospitalId) {
     }
 
     const isolamento = document.getElementById('enf_isolamento')?.value || '';
-    const genero     = document.getElementById('enf_genero')?.value || '';
+    const generoSelect = document.getElementById('enf_genero');
+    const generoHidden = document.getElementById('enf_genero_hidden');
+    const genero = (generoSelect && !generoSelect.disabled)
+        ? generoSelect.value
+        : (generoHidden ? generoHidden.value : '');
     const iniciais   = document.getElementById('enf_iniciais')?.value || '';
     const matricula  = document.getElementById('enf_matricula')?.value || '';
 
