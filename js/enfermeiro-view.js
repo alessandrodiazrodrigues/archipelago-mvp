@@ -250,7 +250,7 @@ function filtrarVagosInteligente(hospitalId, leitos, idsReservados, idsBloqueado
     const leitosVagos = leitos
         .filter(l => {
             const status = String(l.status || '').toLowerCase();
-            if (status === 'ocupado') return false;
+            if (status === 'ocupado' || status === 'em uso') return false;
             const idLeito = String(l.identificacaoLeito || '').toUpperCase();
             if (idLeito && idsReservados.has(idLeito)) return false;
             if (idLeito && idsBloqueados.has(idLeito)) return false;
@@ -294,8 +294,7 @@ function filtrarVagosInteligente(hospitalId, leitos, idsReservados, idsBloqueado
                 const dadosIrmao = leitos.find(l => parseInt(l.leito) === leitoIrmao);
 
                 const irmaoVago = !dadosIrmao ||
-                    dadosIrmao.status === 'Vago' ||
-                    dadosIrmao.status === 'vago' ||
+                    String(dadosIrmao.status || '').toLowerCase() === 'vago' ||
                     dadosIrmao.status === '';
 
                 if (irmaoVago) {
@@ -318,28 +317,32 @@ function filtrarVagosInteligente(hospitalId, leitos, idsReservados, idsBloqueado
                     if (temIsolIrmao) {
                         // Bloqueado por isolamento — não mostrar
                     } else {
-                        // Vago com restrição de gênero — mostrar com genero do irmão
-                        // Calcular identificação do leito irmão vago
-                        const sufixoAtual = leitoVago.identificacaoLeito
-                            ? String(leitoVago.identificacaoLeito).split('-')[1] || ''
-                            : '';
-                        let sufixoIrmaoVago = '';
-                        if (hospitalId === 'H2') {
-                            sufixoIrmaoVago = sufixoAtual === '1' ? '3' : '1';
-                        } else if (hospitalId === 'H4') {
-                            sufixoIrmaoVago = sufixoAtual === 'A' ? 'C' : 'A';
+                        // Irmão ocupado sem isolamento: vago com restrição de gênero
+                        // Calcular _idLeito a partir do identificacaoLeito do irmão OCUPADO
+                        const idIrmaoOcupado = String(dadosIrmao.identificacaoLeito || '').trim();
+                        let idVago = null;
+
+                        if (idIrmaoOcupado && idIrmaoOcupado.includes('-')) {
+                            const partes = idIrmaoOcupado.split('-');
+                            const base = partes[0];
+                            const sufixoOcupado = partes[1];
+                            let sufixoVago = '';
+
+                            if (hospitalId === 'H2') {
+                                sufixoVago = sufixoOcupado === '1' ? '3' : '1';
+                            } else if (hospitalId === 'H4') {
+                                sufixoVago = sufixoOcupado === 'A' ? 'C' : 'A';
+                            }
+
+                            if (sufixoVago) {
+                                idVago = base + '-' + sufixoVago;
+                            }
                         }
-                        const baseId = leitoVago.identificacaoLeito
-                            ? String(leitoVago.identificacaoLeito).split('-')[0]
-                            : '';
-                        const idIrmaoVago = baseId && sufixoIrmaoVago
-                            ? baseId + '-' + sufixoIrmaoVago
-                            : null;
 
                         enfParaMostrar.push({
                             ...leitoVago,
                             _generoRestrito: dadosIrmao.genero || null,
-                            _idLeito: idIrmaoVago
+                            _idLeito: idVago
                         });
                     }
                 }
@@ -800,7 +803,10 @@ function mostrarErroReserva(msg) {
 // =================== HELPERS DE DADOS ===================
 function obterLeitosEnfermaria(hospitalId) {
     if (!window.hospitalData || !window.hospitalData[hospitalId]) return [];
-    return (window.hospitalData[hospitalId].leitos || []).filter(l => l.tipo !== 'UTI');
+    return (window.hospitalData[hospitalId].leitos || []).filter(l => {
+        const tipo = String(l.tipo || '').toUpperCase();
+        return tipo !== 'UTI';
+    });
 }
 
 function obterReservasEnfermaria(hospitalId) {
