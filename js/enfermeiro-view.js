@@ -38,7 +38,7 @@ window.renderViewEnfermeiro = function(hospitalId) {
     const kpis = calcularKPIs(leitosHospital, reservasHospital);
 
     container.innerHTML = `
-        <div style="padding: 20px; font-family: 'Poppins', sans-serif; max-width: 1400px; margin: 0 auto;">
+        <div style="padding: 16px; font-family: 'Poppins', sans-serif; max-width: 1400px; margin: 0 auto; box-sizing: border-box; width: 100%;">
 
             <!-- TITULO -->
             <div style="margin-bottom: 24px;">
@@ -51,7 +51,7 @@ window.renderViewEnfermeiro = function(hospitalId) {
             </div>
 
             <!-- KPI BOXES -->
-            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 28px;">
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 28px; width: 100%; box-sizing: border-box;">
                 ${renderKPIBox('Ocupação', kpis.ocupados, kpis.total, '#f59a1d')}
                 ${renderKPIBox('Reservados', kpis.reservados, kpis.total, '#f59a1d')}
                 ${renderKPIBox('Disponíveis', kpis.disponiveis, kpis.total, '#60a5fa')}
@@ -93,7 +93,7 @@ window.renderViewEnfermeiro = function(hospitalId) {
 function renderKPIBox(titulo, valor, total, cor) {
     const pct = total > 0 ? Math.round((valor / total) * 100) : 0;
     return `
-        <div style="background: #1e293b; border-radius: 12px; padding: 20px; border: 1px solid rgba(255,255,255,0.08); text-align: center;">
+        <div style="background: #1e293b; border-radius: 12px; padding: 16px 12px; border: 1px solid rgba(255,255,255,0.08); text-align: center; box-sizing: border-box;">
             <div style="color: rgba(255,255,255,0.5); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px;">
                 ${titulo}
             </div>
